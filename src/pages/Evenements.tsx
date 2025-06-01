@@ -16,35 +16,40 @@ import { useToast } from '@/hooks/use-toast';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Link } from 'react-router-dom';
-import { usePlats, useAirtableConfig, useCreateDemandeTraiteur } from '@/hooks/useAirtable';
+import { usePlats, useAirtableConfig, useCreateEvenement } from '@/hooks/useAirtable';
 
 const Evenements = () => {
   const { toast } = useToast();
   const { config } = useAirtableConfig();
   const { plats } = usePlats();
-  const createDemandeTraiteur = useCreateDemandeTraiteur();
+  const createEvenement = useCreateEvenement();
   
   const [dateEvenement, setDateEvenement] = useState<Date>();
-  const [platsSelectionnes, setPlatsSelectionnes] = useState<string[]>([]);
+  const [heureEvenement, setHeureEvenement] = useState<string>('');
+  const [platsPreSelectionnes, setPlatsPreSelectionnes] = useState<string[]>([]);
   
+  // Formulaire basé sur la structure exacte de Événements DB
   const [formData, setFormData] = useState({
     nomEvenement: '',
     typeEvenement: '',
     nombrePersonnes: '',
     budgetClient: '',
-    demandesSpeciales: '',
-    contactEmail: '',
-    contactTelephone: ''
+    demandesSpecialesEvenement: '',
+    contactEmail: ''
   });
 
+  // Types d'événements selon la structure exacte
   const typesEvenements = [
     'Anniversaire',
-    'Mariage',
-    'Événement d\'entreprise',
-    'Réunion de famille',
-    'Fête entre amis',
-    'Inauguration',
+    'Repas d\'entreprise', 
+    'Fête de famille',
+    'Cocktail dînatoire',
+    'Buffet traiteur',
     'Autre'
+  ];
+
+  const heuresDisponibles = [
+    '12:00', '12:30', '13:00', '18:00', '18:30', '19:00', '19:30', '20:00'
   ];
 
   const handleInputChange = (field: string, value: string) => {
@@ -55,7 +60,7 @@ const Evenements = () => {
   };
 
   const togglePlatSelection = (platId: string) => {
-    setPlatsSelectionnes(prev => 
+    setPlatsPreSelectionnes(prev => 
       prev.includes(platId)
         ? prev.filter(id => id !== platId)
         : [...prev, platId]
@@ -65,7 +70,7 @@ const Evenements = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!dateEvenement || !formData.contactEmail) {
+    if (!dateEvenement || !formData.contactEmail || !formData.nomEvenement || !formData.typeEvenement || !formData.nombrePersonnes) {
       toast({
         title: "Informations manquantes",
         description: "Veuillez remplir tous les champs obligatoires.",
@@ -75,14 +80,22 @@ const Evenements = () => {
     }
 
     try {
-      const platsSelectionnesDetails = plats.filter(plat => 
-        platsSelectionnes.includes(plat.id)
-      );
+      // Formatage de la date avec heure si spécifiée
+      const dateEvenementComplete = new Date(dateEvenement);
+      if (heureEvenement) {
+        const [heures, minutes] = heureEvenement.split(':');
+        dateEvenementComplete.setHours(parseInt(heures), parseInt(minutes));
+      }
 
-      await createDemandeTraiteur.mutateAsync({
-        ...formData,
-        dateEvenement: dateEvenement.toISOString(),
-        platsSelectionnes: platsSelectionnesDetails
+      await createEvenement.mutateAsync({
+        nomEvenement: formData.nomEvenement,
+        contactEmail: formData.contactEmail,
+        dateEvenement: dateEvenementComplete.toISOString(),
+        typeEvenement: formData.typeEvenement,
+        nombrePersonnes: parseInt(formData.nombrePersonnes),
+        budgetClient: formData.budgetClient ? parseFloat(formData.budgetClient) : undefined,
+        demandesSpeciales: formData.demandesSpecialesEvenement,
+        platsPreSelectionnes: platsPreSelectionnes.length > 0 ? platsPreSelectionnes : undefined
       });
       
       toast({
@@ -96,17 +109,17 @@ const Evenements = () => {
         typeEvenement: '',
         nombrePersonnes: '',
         budgetClient: '',
-        demandesSpeciales: '',
-        contactEmail: '',
-        contactTelephone: ''
+        demandesSpecialesEvenement: '',
+        contactEmail: ''
       });
       setDateEvenement(undefined);
-      setPlatsSelectionnes([]);
+      setHeureEvenement('');
+      setPlatsPreSelectionnes([]);
       
     } catch (error) {
       toast({
         title: "Erreur",
-        description: "Une erreur est survenue lors de l'envoi de votre demande.",
+        description: error instanceof Error ? error.message : "Une erreur est survenue lors de l'envoi de votre demande.",
         variant: "destructive",
       });
     }
@@ -145,7 +158,7 @@ const Evenements = () => {
               <CardTitle className="text-3xl font-bold">Demande pour Groupe ou Événement</CardTitle>
             </div>
             <CardDescription className="text-white/90">
-              Organisez votre événement avec nos menus personnalisés (minimum 10 personnes)
+              Organisez votre événement avec nos menus personnalisés
             </CardDescription>
           </CardHeader>
           
@@ -153,40 +166,29 @@ const Evenements = () => {
             <Alert className="mb-6 border-blue-200 bg-blue-50">
               <AlertCircle className="h-4 w-4 text-blue-600" />
               <AlertDescription className="text-blue-800">
-                <strong>Service traiteur :</strong> Commande minimum 10 personnes • Préavis de 2 semaines requis • 
-                Nous vous contacterons pour établir un menu personnalisé et un devis.
+                <strong>Service traiteur :</strong> Nous vous contacterons pour établir un menu personnalisé et un devis détaillé selon vos besoins.
               </AlertDescription>
             </Alert>
 
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Informations de contact */}
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="contactEmail" className="text-thai-green font-medium">Email de contact *</Label>
-                  <Input
-                    id="contactEmail"
-                    type="email"
-                    value={formData.contactEmail}
-                    onChange={(e) => handleInputChange('contactEmail', e.target.value)}
-                    required
-                    className="border-thai-orange/30 focus:border-thai-orange"
-                    placeholder="votre.email@example.com"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="contactTelephone" className="text-thai-green font-medium">Téléphone</Label>
-                  <Input
-                    id="contactTelephone"
-                    value={formData.contactTelephone}
-                    onChange={(e) => handleInputChange('contactTelephone', e.target.value)}
-                    className="border-thai-orange/30 focus:border-thai-orange"
-                    placeholder="06 12 34 56 78"
-                  />
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="contactEmail" className="text-thai-green font-medium">Email de contact *</Label>
+                <Input
+                  id="contactEmail"
+                  type="email"
+                  value={formData.contactEmail}
+                  onChange={(e) => handleInputChange('contactEmail', e.target.value)}
+                  required
+                  className="border-thai-orange/30 focus:border-thai-orange"
+                  placeholder="votre.email@example.com"
+                />
+                <p className="text-xs text-thai-green/60">
+                  Utilisez l'email de votre profil client
+                </p>
               </div>
 
-              {/* Informations de base */}
+              {/* Informations de base selon structure Événements DB */}
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="nomEvenement" className="text-thai-green font-medium">Nom de l'événement *</Label>
@@ -215,40 +217,56 @@ const Evenements = () => {
                 </div>
               </div>
 
-              {/* Date de l'événement */}
-              <div className="space-y-2">
-                <Label className="text-thai-green font-medium">Date de l'événement *</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal border-thai-orange/30",
-                        !dateEvenement && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {dateEvenement ? format(dateEvenement, "PPP", { locale: fr }) : "Sélectionner une date"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0 bg-white z-50" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={dateEvenement}
-                      onSelect={setDateEvenement}
-                      disabled={(date) => {
-                        const twoWeeksFromNow = new Date();
-                        twoWeeksFromNow.setDate(twoWeeksFromNow.getDate() + 14);
-                        return date < twoWeeksFromNow;
-                      }}
-                      initialFocus
-                      className="pointer-events-auto"
-                    />
-                  </PopoverContent>
-                </Popover>
-                <p className="text-xs text-thai-green/60">
-                  Minimum 2 semaines de préavis requis
-                </p>
+              {/* Date et heure de l'événement */}
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-thai-green font-medium">Date de l'événement *</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal border-thai-orange/30",
+                          !dateEvenement && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {dateEvenement ? format(dateEvenement, "PPP", { locale: fr }) : "Sélectionner une date"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0 bg-white z-50" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={dateEvenement}
+                        onSelect={setDateEvenement}
+                        disabled={(date) => {
+                          const twoWeeksFromNow = new Date();
+                          twoWeeksFromNow.setDate(twoWeeksFromNow.getDate() + 14);
+                          return date < twoWeeksFromNow;
+                        }}
+                        initialFocus
+                        className="pointer-events-auto"
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <p className="text-xs text-thai-green/60">
+                    Minimum 2 semaines de préavis requis
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-thai-green font-medium">Heure souhaitée</Label>
+                  <Select value={heureEvenement} onValueChange={setHeureEvenement}>
+                    <SelectTrigger className="border-thai-orange/30 focus:border-thai-orange">
+                      <SelectValue placeholder="Sélectionnez une heure" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white z-50">
+                      {heuresDisponibles.map(heure => (
+                        <SelectItem key={heure} value={heure}>{heure}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               {/* Nombre de personnes et budget */}
@@ -258,39 +276,41 @@ const Evenements = () => {
                   <Input
                     id="nombrePersonnes"
                     type="number"
-                    min="10"
+                    min="1"
                     value={formData.nombrePersonnes}
                     onChange={(e) => handleInputChange('nombrePersonnes', e.target.value)}
                     required
                     className="border-thai-orange/30 focus:border-thai-orange"
-                    placeholder="Minimum 10 personnes"
+                    placeholder="Ex: 15"
                   />
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="budgetClient" className="text-thai-green font-medium">Budget approximatif</Label>
+                  <Label htmlFor="budgetClient" className="text-thai-green font-medium">Budget approximatif (€)</Label>
                   <Input
                     id="budgetClient"
+                    type="number"
+                    step="0.01"
                     value={formData.budgetClient}
                     onChange={(e) => handleInputChange('budgetClient', e.target.value)}
                     className="border-thai-orange/30 focus:border-thai-orange"
-                    placeholder="Ex: 500€"
+                    placeholder="Ex: 500"
                   />
                 </div>
               </div>
 
-              {/* Sélection des plats */}
+              {/* Pré-sélection des plats */}
               {plats.length > 0 && (
                 <div className="space-y-4">
                   <Label className="text-lg font-semibold text-thai-green">
-                    Sélectionnez les plats qui vous intéressent :
+                    Plats pré-sélectionnés (optionnel) :
                   </Label>
                   <div className="grid md:grid-cols-2 gap-3 max-h-60 overflow-y-auto">
                     {plats.map(plat => (
                       <div key={plat.id} className="flex items-start space-x-3 p-3 border border-thai-orange/20 rounded-lg hover:bg-thai-cream/30 transition-colors">
                         <Checkbox
                           id={`plat-${plat.id}`}
-                          checked={platsSelectionnes.includes(plat.id)}
+                          checked={platsPreSelectionnes.includes(plat.id)}
                           onCheckedChange={() => togglePlatSelection(plat.id)}
                           className="border-thai-orange data-[state=checked]:bg-thai-orange mt-1"
                         />
@@ -299,7 +319,7 @@ const Evenements = () => {
                             htmlFor={`plat-${plat.id}`} 
                             className="font-medium text-thai-green cursor-pointer"
                           >
-                            {plat.nom}
+                            {plat.plat}
                           </Label>
                           {plat.description && (
                             <p className="text-sm text-thai-green/70 mt-1">{plat.description}</p>
@@ -308,9 +328,9 @@ const Evenements = () => {
                       </div>
                     ))}
                   </div>
-                  {platsSelectionnes.length > 0 && (
+                  {platsPreSelectionnes.length > 0 && (
                     <p className="text-sm text-thai-green/70">
-                      {platsSelectionnes.length} plat(s) sélectionné(s)
+                      {platsPreSelectionnes.length} plat(s) pré-sélectionné(s)
                     </p>
                   )}
                 </div>
@@ -318,14 +338,14 @@ const Evenements = () => {
 
               {/* Demandes spéciales */}
               <div className="space-y-2">
-                <Label htmlFor="demandesSpeciales" className="text-thai-green font-medium">Demandes spéciales et détails</Label>
+                <Label htmlFor="demandesSpecialesEvenement" className="text-thai-green font-medium">Demandes spéciales événement</Label>
                 <Textarea
-                  id="demandesSpeciales"
-                  value={formData.demandesSpeciales}
-                  onChange={(e) => handleInputChange('demandesSpeciales', e.target.value)}
+                  id="demandesSpecialesEvenement"
+                  value={formData.demandesSpecialesEvenement}
+                  onChange={(e) => handleInputChange('demandesSpecialesEvenement', e.target.value)}
                   rows={4}
                   className="border-thai-orange/30 focus:border-thai-orange"
-                  placeholder="Décrivez votre événement, vos besoins spécifiques, allergies, préférences, horaires souhaités, etc."
+                  placeholder="Allergies du groupe, préférences particulières, équipements nécessaires, lieu de livraison, etc."
                 />
               </div>
 
@@ -340,15 +360,16 @@ const Evenements = () => {
                   <li>Établir un devis personnalisé</li>
                   <li>Confirmer les détails logistiques</li>
                   <li>Planifier la livraison ou le service</li>
+                  <li>Définir les modalités d'acompte si nécessaire</li>
                 </ul>
               </div>
 
               <Button 
                 type="submit" 
-                disabled={createDemandeTraiteur.isPending || !formData.nomEvenement || !formData.typeEvenement || !dateEvenement || !formData.nombrePersonnes || !formData.contactEmail}
+                disabled={createEvenement.isPending || !formData.nomEvenement || !formData.typeEvenement || !dateEvenement || !formData.nombrePersonnes || !formData.contactEmail}
                 className="w-full bg-thai-orange hover:bg-thai-orange-dark text-white py-6 text-lg rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
               >
-                {createDemandeTraiteur.isPending ? 'Envoi en cours...' : 'Envoyer ma demande d\'événement'}
+                {createEvenement.isPending ? 'Envoi en cours...' : 'Envoyer ma demande d\'événement'}
               </Button>
             </form>
           </CardContent>

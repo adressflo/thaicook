@@ -102,23 +102,25 @@ const AirtableTest = () => {
                   {plats?.map((plat) => (
                     <Card key={plat.id} className="border-thai-orange/20">
                       <CardHeader>
-                        <CardTitle className="text-thai-green">{plat.nom}</CardTitle>
-                        {plat.categorie && (
-                          <CardDescription>{plat.categorie}</CardDescription>
-                        )}
+                        <CardTitle className="text-thai-green">{plat.plat}</CardTitle>
+                        <CardDescription>{plat.prixVu || `${plat.prix}€`}</CardDescription>
                       </CardHeader>
                       <CardContent>
                         {plat.description && (
                           <p className="text-sm text-thai-green/70 mb-2">{plat.description}</p>
                         )}
-                        {plat.prix && (
-                          <p className="font-semibold text-thai-orange">{plat.prix}€</p>
-                        )}
-                        {plat.ingredients && (
-                          <p className="text-xs text-thai-green/60 mt-2">
-                            Ingrédients: {plat.ingredients}
-                          </p>
-                        )}
+                        <div className="mt-2 text-xs text-thai-green/60">
+                          <p>Disponibilités:</p>
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {plat.lundiDispo === 'oui' && <span className="bg-thai-cream px-1 rounded">Lun</span>}
+                            {plat.mardiDispo === 'oui' && <span className="bg-thai-cream px-1 rounded">Mar</span>}
+                            {plat.mercrediDispo === 'oui' && <span className="bg-thai-cream px-1 rounded">Mer</span>}
+                            {plat.jeudiDispo === 'oui' && <span className="bg-thai-cream px-1 rounded">Jeu</span>}
+                            {plat.vendrediDispo === 'oui' && <span className="bg-thai-cream px-1 rounded">Ven</span>}
+                            {plat.samediDispo === 'oui' && <span className="bg-thai-cream px-1 rounded">Sam</span>}
+                            {plat.dimancheDispo === 'oui' && <span className="bg-thai-cream px-1 rounded">Dim</span>}
+                          </div>
+                        </div>
                       </CardContent>
                     </Card>
                   )) || (

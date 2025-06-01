@@ -1,0 +1,112 @@
+
+{
+  "navigation": {
+    "dashboard": "แดชบอร์ด",
+    "order": "สั่งอาหาร",
+    "events": "จัดงาน",
+    "findUs": "ที่ตั้ง",
+    "profile": "โปรไฟล์",
+    "about": "เกี่ยวกับเรา",
+    "administration": "การบริหาร"
+  },
+  "common": {
+    "welcome": "ยินดีต้อนรับสู่",
+    "discover": "ค้นพบ",
+    "loading": "กำลังโหลด...",
+    "submit": "ส่ง",
+    "cancel": "ยกเลิก",
+    "close": "ปิด",
+    "required": "*",
+    "optional": "(ไม่บังคับ)"
+  },
+  "dashboard": {
+    "welcome": "ยินดีต้อนรับสู่",
+    "subtitle": "ประสบการณ์การทำอาหารที่ยอดเยี่ยมที่จะพาคุณไปสู่ประเทศไทยโดยตรง",
+    "orderSection": {
+      "title": "สั่งอาหาร",
+      "description": "ค้นพบเมนูต้นตำรับของเราและสั่งอาหาร"
+    },
+    "eventsSection": {
+      "title": "จัดงาน",
+      "description": "จัดงานของคุณด้วยเมนูที่ปรับแต่งเฉพาะ"
+    },
+    "findUsSection": {
+      "title": "ที่ตั้ง",
+      "description": "มาเยี่ยมชมเราที่ Marigny-Marmande"
+    },
+    "profileSection": {
+      "title": "โปรไฟล์ของฉัน",
+      "description": "จัดการข้อมูลส่วนตัวและความชอบ"
+    },
+    "aboutSection": {
+      "title": "เกี่ยวกับเรา",
+      "description": "ค้นพบประวัติและความหลงใหลของเรา"
+    },
+    "cta": {
+      "title": "พร้อมที่จะลิ้มรสความแท้จริงของไทยหรือยัง?",
+      "subtitle": "สร้างโปรไฟล์และค้นพบเมนูประจำวันที่เตรียมด้วยส่วนผสมสดและสูตรดั้งเดิม",
+      "createProfile": "สร้างโปรไฟล์",
+      "viewMenu": "ดูเมนู"
+    }
+  },
+  "events": {
+    "title": "จัดงาน",
+    "subtitle": "จัดงานของคุณด้วยเมนูกลุ่มที่ปรับแต่งเฉพาะ",
+    "form": {
+      "eventName": "ชื่องาน",
+      "contactEmail": "อีเมลติดต่อ",
+      "eventType": "ประเภทงาน",
+      "eventDate": "วันที่จัดงาน",
+      "guestCount": "จำนวนแขก",
+      "budget": "งบประมาณลูกค้า",
+      "preSelectedDishes": "อาหารที่เลือกไว้ล่วงหน้า",
+      "specialRequests": "คำขอพิเศษ",
+      "selectType": "เลือกประเภท",
+      "selectDate": "เลือกวันที่",
+      "budgetPlaceholder": "เป็นยูโร (€)",
+      "specialRequestsPlaceholder": "อาหารที่แพ้, ความชอบ, ฯลฯ",
+      "submit": "ส่งคำขอจัดงาน",
+      "sending": "กำลังส่ง..."
+    },
+    "eventTypes": {
+      "wedding": "งานแต่งงาน",
+      "birthday": "งานวันเกิด",
+      "meeting": "งานประชุม",
+      "other": "อื่นๆ"
+    },
+    "toasts": {
+      "missingDate": "กรุณาเลือกวันที่สำหรับงานของคุณ",
+      "success": "คำขอจัดงานของคุณได้รับการบันทึกแล้ว เราจะติดต่อกลับเร็วๆ นี้",
+      "error": "เกิดข้อผิดพลาดในการส่งคำขอของคุณ"
+    }
+  },
+  "order": {
+    "title": "สั่งอาหาร",
+    "subtitle": "ค้นพบอาหารไทยอีสานต้นตำรับของเรา",
+    "profileRequired": "ในการสั่งอาหาร คุณต้องกรอกข้อมูลบังคับในโปรไฟล์ก่อน",
+    "completeProfile": "กรอกโปรไฟล์ให้สมบูรณ์",
+    "openingHours": "วันจันทร์ พุธ ศุกร์ เสาร์ เวลา 18:30 - 20:30 น.",
+    "selectDay": "เลือกวันเพื่อดูเมนูที่มี:",
+    "availableDishes": "อาหารที่มีในวัน",
+    "noDisheAvailable": "ไม่มีอาหารในวันนั้น ลองวันอื่น!",
+    "myCart": "ตะกร้าของฉัน:",
+    "total": "รวม:",
+    "paymentInfo": "เรารับบัตรเครดิต",
+    "pickupInfo": "ข้อมูลการรับ:",
+    "pickupDate": "วันที่รับ",
+    "pickupTime": "เวลารับ",
+    "specialRequests": "คำขอพิเศษ",
+    "specialRequestsPlaceholder": "อาหารที่แพ้, ความชอบในการปรุง, ฯลฯ",
+    "address": "2 impasse de la poste, 37120 Marigny-Marmande, France",
+    "contact": "07 49 28 37 07",
+    "validateOrder": "ยืนยันคำสั่งซื้อ",
+    "validating": "กำลังส่ง...",
+    "toasts": {
+      "dishAdded": "ได้ถูกเพิ่มในตะกร้าแล้ว",
+      "emptyCart": "กรุณาเพิ่มอาหารในตะกร้า",
+      "missingInfo": "กรุณากรอกข้อมูลที่จำเป็นทั้งหมด",
+      "success": "ได้รับการบันทึกแล้ว ชำระเงินที่ร้านด้วยบัตรเครดิต",
+      "error": "เกิดข้อผิดพลาดในการส่งคำสั่งซื้อ"
+    }
+  }
+}

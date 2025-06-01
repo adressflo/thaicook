@@ -1,0 +1,112 @@
+
+{
+  "navigation": {
+    "dashboard": "Tableau de bord",
+    "order": "Pour commander",
+    "events": "Pour vos événements",
+    "findUs": "Nous trouver",
+    "profile": "Profil",
+    "about": "À propos de nous",
+    "administration": "Administration"
+  },
+  "common": {
+    "welcome": "Bienvenue chez",
+    "discover": "Découvrir",
+    "loading": "Chargement...",
+    "submit": "Valider",
+    "cancel": "Annuler",
+    "close": "Fermer",
+    "required": "*",
+    "optional": "(optionnel)"
+  },
+  "dashboard": {
+    "welcome": "Bienvenue chez",
+    "subtitle": "Une expérience culinaire exceptionnelle qui vous transporte directement en Thaïlande",
+    "orderSection": {
+      "title": "Pour Commander",
+      "description": "Découvrez notre menu authentique et passez votre commande"
+    },
+    "eventsSection": {
+      "title": "Pour vos Événements", 
+      "description": "Organisez vos événements avec nos menus personnalisés"
+    },
+    "findUsSection": {
+      "title": "Nous Trouver",
+      "description": "Venez nous rendre visite à Marigny-Marmande"
+    },
+    "profileSection": {
+      "title": "Mon Profil",
+      "description": "Gérez vos informations personnelles et préférences"
+    },
+    "aboutSection": {
+      "title": "À propos de nous",
+      "description": "Découvrez notre histoire et notre passion"
+    },
+    "cta": {
+      "title": "Prêt à Savourer l'Authenticité Thaïlandaise ?",
+      "subtitle": "Créez votre profil et découvrez nos menus quotidiens préparés avec des ingrédients frais et des recettes traditionnelles.",
+      "createProfile": "Créer Mon Profil",
+      "viewMenu": "Voir le Menu"
+    }
+  },
+  "events": {
+    "title": "Pour vos Événements",
+    "subtitle": "Organisez vos événements avec nos menus personnalisés pour groupes",
+    "form": {
+      "eventName": "Nom de l'événement",
+      "contactEmail": "Email contact",
+      "eventType": "Type d'événement",
+      "eventDate": "Date de l'événement",
+      "guestCount": "Nombre de personnes",
+      "budget": "Budget du client",
+      "preSelectedDishes": "Plats présélectionnés",
+      "specialRequests": "Demandes spéciales",
+      "selectType": "Sélectionnez un type",
+      "selectDate": "Sélectionner une date",
+      "budgetPlaceholder": "En euros (€)",
+      "specialRequestsPlaceholder": "Allergies, préférences, etc.",
+      "submit": "Envoyer ma demande d'événement",
+      "sending": "Envoi..."
+    },
+    "eventTypes": {
+      "wedding": "Mariage",
+      "birthday": "Anniversaire",
+      "meeting": "Réunion",
+      "other": "Autre"
+    },
+    "toasts": {
+      "missingDate": "Veuillez sélectionner une date pour votre événement.",
+      "success": "Votre demande d'événement a été enregistrée. Nous vous recontacterons rapidement.",
+      "error": "Une erreur est survenue lors de l'envoi de votre demande."
+    }
+  },
+  "order": {
+    "title": "Pour Commander",
+    "subtitle": "Découvrez notre cuisine thaïlandaise authentique d'Isan",
+    "profileRequired": "Pour commander, vous devez d'abord remplir les mentions obligatoires de votre profil.",
+    "completeProfile": "Compléter mon profil",
+    "openingHours": "Lundi, Mercredi, Vendredi, Samedi de 18h30 à 20h30",
+    "selectDay": "Choisissez un jour pour voir le menu disponible :",
+    "availableDishes": "Plats disponibles le",
+    "noDisheAvailable": "Aucun plat disponible ce jour-là. Essayez un autre jour !",
+    "myCart": "Mon Panier :",
+    "total": "Total:",
+    "paymentInfo": "Nous acceptons la carte bleue",
+    "pickupInfo": "Informations de retrait :",
+    "pickupDate": "Date de retrait",
+    "pickupTime": "Heure de retrait",
+    "specialRequests": "Demandes spéciales",
+    "specialRequestsPlaceholder": "Allergies, préférences de cuisson, etc.",
+    "address": "2 impasse de la poste, 37120 Marigny-Marmande, France",
+    "contact": "07 49 28 37 07",
+    "validateOrder": "Valider ma commande",
+    "validating": "Envoi...",
+    "toasts": {
+      "dishAdded": "a été ajouté à votre panier.",
+      "emptyCart": "Veuillez ajouter des plats à votre panier.",
+      "missingInfo": "Veuillez remplir tous les champs obligatoires.",
+      "success": "a été enregistrée. Paiement sur place par carte bleue.",
+      "error": "Une erreur est survenue lors de l'envoi de votre commande."
+    }
+  }
+}

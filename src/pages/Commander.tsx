@@ -5,11 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Calendar } from '@/components/ui/calendar';
-import { CalendarIcon, Database, AlertCircle, Utensils } from 'lucide-react';
+import { CalendarIcon, Database, AlertCircle, Utensils, CreditCard } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -28,7 +27,7 @@ interface PlatPanier {
 const Commander = () => {
   const { toast } = useToast();
   const { config } = useAirtableConfig();
-  const { plats, isLoading: platsLoading, error: platsError } = usePlats();
+  const { plats, getPlatsDisponibles, isLoading: platsLoading, error: platsError } = usePlats();
   const createCommande = useCreateCommande();
   
   const [jourSelectionne, setJourSelectionne] = useState<string>('');
@@ -36,29 +35,20 @@ const Commander = () => {
   const [dateRetrait, setDateRetrait] = useState<Date>();
   const [heureRetrait, setHeureRetrait] = useState<string>('');
   const [demandesSpeciales, setDemandesSpeciales] = useState<string>('');
-  const [clientEmail, setClientEmail] = useState<string>('');
 
-  const jours = [
-    { value: 'lundi', label: 'Lundi' },
-    { value: 'mardi', label: 'Mardi' },
-    { value: 'mercredi', label: 'Mercredi' },
-    { value: 'jeudi', label: 'Jeudi' },
-    { value: 'vendredi', label: 'Vendredi' },
-    { value: 'samedi', label: 'Samedi' },
-    { value: 'dimanche', label: 'Dimanche' }
+  // Jours d'ouverture : lundi, mercredi, vendredi, samedi
+  const joursOuverture = [
+    { value: 'lundi', label: 'Lundi', champ: 'lundiDispo' },
+    { value: 'mercredi', label: 'Mercredi', champ: 'mercrediDispo' },
+    { value: 'vendredi', label: 'Vendredi', champ: 'vendrediDispo' },
+    { value: 'samedi', label: 'Samedi', champ: 'samediDispo' }
   ];
 
   const heuresDisponibles = [
-    '11:30', '12:00', '12:30', '13:00', '13:30', '14:00',
-    '18:30', '19:00', '19:30', '20:00', '20:30', '21:00'
+    '18:30', '19:00', '19:30', '20:00', '20:30'
   ];
 
-  // Filtrer les plats selon le jour sélectionné et les données Airtable
-  const platsDisponibles = plats.filter(plat => {
-    if (!jourSelectionne || !plat.disponible) return false;
-    const cleDisponibilite = `${jourSelectionne}_dispo` as keyof typeof plat;
-    return plat[cleDisponibilite] === 'oui';
-  });
+  const platsDisponibles = getPlatsDisponibles(jourSelectionne);
 
   const ajouterAuPanier = (plat: typeof plats[0]) => {
     setPanier(prev => {
@@ -72,7 +62,7 @@ const Commander = () => {
       } else {
         return [...prev, { 
           id: plat.id, 
-          nom: plat.nom, 
+          nom: plat.plat,
           prix: plat.prix || 0, 
           quantite: 1 
         }];
@@ -81,7 +71,7 @@ const Commander = () => {
     
     toast({
       title: "Plat ajouté !",
-      description: `${plat.nom} a été ajouté à votre panier.`,
+      description: `${plat.plat} a été ajouté à votre panier.`,
     });
   };
 
@@ -111,7 +101,7 @@ const Commander = () => {
       return;
     }
 
-    if (!dateRetrait || !heureRetrait || !clientEmail) {
+    if (!dateRetrait || !heureRetrait) {
       toast({
         title: "Informations manquantes",
         description: "Veuillez remplir tous les champs obligatoires.",
@@ -121,37 +111,36 @@ const Commander = () => {
     }
 
     try {
+      const dateHeureRetrait = new Date(dateRetrait);
+      const [heures, minutes] = heureRetrait.split(':');
+      dateHeureRetrait.setHours(parseInt(heures), parseInt(minutes));
+
       await createCommande.mutateAsync({
-        clientEmail,
+        clientEmail: "client@example.com", // À récupérer du profil utilisateur
         panier,
-        dateRetrait: dateRetrait.toISOString(),
-        heureRetrait,
-        demandesSpeciales,
-        total: calculerTotal()
+        dateHeureRetrait: dateHeureRetrait.toISOString(),
+        demandesSpeciales
       });
       
       toast({
         title: "Commande envoyée !",
-        description: `Votre commande de ${calculerTotal()}€ a été enregistrée. Vous recevrez une confirmation par email.`,
+        description: `Votre commande de ${calculerTotal()}€ a été enregistrée. Paiement sur place par carte bleue.`,
       });
       
-      // Réinitialiser le formulaire
       setPanier([]);
       setDateRetrait(undefined);
       setHeureRetrait('');
       setDemandesSpeciales('');
-      setClientEmail('');
       
     } catch (error) {
       toast({
         title: "Erreur",
-        description: "Une erreur est survenue lors de l'envoi de votre commande.",
+        description: error instanceof Error ? error.message : "Une erreur est survenue lors de l'envoi de votre commande.",
         variant: "destructive",
       });
     }
   };
 
-  // Configuration Airtable manquante
   if (!config) {
     return (
       <div className="min-h-screen bg-gradient-thai py-8 px-4">
@@ -177,11 +166,20 @@ const Commander = () => {
   return (
     <div className="min-h-screen bg-gradient-thai py-8 px-4">
       <div className="container mx-auto max-w-4xl">
+        {/* Vérification du profil obligatoire */}
+        <Alert className="mb-6 border-blue-200 bg-blue-50">
+          <AlertCircle className="h-4 w-4 text-blue-600" />
+          <AlertDescription className="text-blue-800">
+            <strong>Profil requis :</strong> Pour commander, vous devez d'abord remplir les mentions obligatoires de votre profil.
+            <Link to="/profil" className="ml-2 underline font-medium">Compléter mon profil</Link>
+          </AlertDescription>
+        </Alert>
+
         <Card className="shadow-xl border-thai-orange/20 mb-8">
           <CardHeader className="text-center bg-gradient-to-r from-thai-orange to-thai-gold text-white rounded-t-lg">
             <div className="flex items-center justify-center mb-2">
               <Utensils className="h-8 w-8 mr-2" />
-              <CardTitle className="text-3xl font-bold">Commander à la Carte</CardTitle>
+              <CardTitle className="text-3xl font-bold">Pour Commander</CardTitle>
             </div>
             <p className="text-white/90">
               Découvrez notre cuisine thaïlandaise authentique d'Isan
@@ -189,7 +187,6 @@ const Commander = () => {
           </CardHeader>
           
           <CardContent className="p-8">
-            {/* Gestion des erreurs */}
             {platsError && (
               <Alert className="mb-6 border-red-200 bg-red-50">
                 <AlertCircle className="h-4 w-4 text-red-600" />
@@ -198,6 +195,14 @@ const Commander = () => {
                 </AlertDescription>
               </Alert>
             )}
+
+            {/* Horaires d'ouverture */}
+            <Alert className="mb-6 border-thai-orange/30 bg-thai-cream/30">
+              <AlertCircle className="h-4 w-4 text-thai-orange" />
+              <AlertDescription className="text-thai-green">
+                <strong>Horaires d'ouverture :</strong> Lundi, Mercredi, Vendredi, Samedi de 18h30 à 20h30
+              </AlertDescription>
+            </Alert>
 
             {/* Sélection du jour */}
             <div className="mb-8">
@@ -209,7 +214,7 @@ const Commander = () => {
                   <SelectValue placeholder="Sélectionnez un jour" />
                 </SelectTrigger>
                 <SelectContent className="bg-white z-50">
-                  {jours.map(jour => (
+                  {joursOuverture.map(jour => (
                     <SelectItem key={jour.value} value={jour.value}>
                       {jour.label}
                     </SelectItem>
@@ -218,11 +223,11 @@ const Commander = () => {
               </Select>
             </div>
 
-            {/* Affichage des plats disponibles */}
+            {/* Affichage des plats */}
             {jourSelectionne && (
               <div className="mb-8">
                 <h3 className="text-xl font-semibold text-thai-green mb-4">
-                  Plats disponibles le {jours.find(j => j.value === jourSelectionne)?.label.toLowerCase()} :
+                  Plats disponibles le {joursOuverture.find(j => j.value === jourSelectionne)?.label.toLowerCase()} :
                 </h3>
                 
                 {platsLoading ? (
@@ -232,45 +237,33 @@ const Commander = () => {
                 ) : platsDisponibles.length === 0 ? (
                   <div className="text-center py-8 bg-thai-cream/30 rounded-lg">
                     <p className="text-thai-green/70">
-                      Aucun plat disponible ce jour-là ou aucune donnée trouvée. 
-                      {plats.length === 0 && " Vérifiez votre configuration Airtable."}
+                      Aucun plat disponible ce jour-là. Essayez un autre jour !
                     </p>
                   </div>
                 ) : (
                   <div className="grid md:grid-cols-2 gap-6">
                     {platsDisponibles.map(plat => (
                       <Card key={plat.id} className="border-thai-orange/20 hover:shadow-lg transition-shadow duration-300">
-                        {plat.image && (
+                        {plat.photoDuPlat && (
                           <div className="aspect-video overflow-hidden rounded-t-lg">
                             <img 
-                              src={plat.image} 
-                              alt={plat.nom}
+                              src={plat.photoDuPlat} 
+                              alt={plat.plat}
                               className="w-full h-full object-cover"
                               onError={(e) => {
-                                // Image de fallback si l'URL est cassée
                                 (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1562565652-a0d8f0c59eb4?w=400&h=300&fit=crop";
                               }}
                             />
                           </div>
                         )}
                         <CardContent className="p-4">
-                          <h4 className="font-semibold text-thai-green mb-2">{plat.nom}</h4>
+                          <h4 className="font-semibold text-thai-green mb-2">{plat.plat}</h4>
                           {plat.description && (
                             <p className="text-sm text-thai-green/70 mb-3">{plat.description}</p>
                           )}
-                          {plat.ingredients && (
-                            <p className="text-xs text-thai-green/60 mb-2">
-                              <strong>Ingrédients :</strong> {plat.ingredients}
-                            </p>
-                          )}
-                          {plat.allergenes && (
-                            <p className="text-xs text-red-600 mb-3">
-                              <strong>Allergènes :</strong> {plat.allergenes}
-                            </p>
-                          )}
                           <div className="flex items-center justify-between">
                             <Badge variant="secondary" className="bg-thai-gold/20 text-thai-green">
-                              {(plat.prix || 0).toFixed(2)}€
+                              {plat.prixVu || `${(plat.prix || 0).toFixed(2)}€`}
                             </Badge>
                             <Button 
                               onClick={() => ajouterAuPanier(plat)}
@@ -324,6 +317,14 @@ const Commander = () => {
                     Total: {calculerTotal()}€
                   </span>
                 </div>
+
+                {/* Information paiement */}
+                <Alert className="mt-4 border-green-200 bg-green-50">
+                  <CreditCard className="h-4 w-4 text-green-600" />
+                  <AlertDescription className="text-green-800">
+                    <strong>Paiement sur place :</strong> Nous acceptons la carte bleue
+                  </AlertDescription>
+                </Alert>
               </div>
             )}
 
@@ -331,17 +332,6 @@ const Commander = () => {
             {panier.length > 0 && (
               <div className="space-y-6">
                 <h3 className="text-xl font-semibold text-thai-green">Informations de retrait :</h3>
-                
-                <div className="space-y-2">
-                  <Label className="text-thai-green font-medium">Email *</Label>
-                  <Input
-                    type="email"
-                    value={clientEmail}
-                    onChange={(e) => setClientEmail(e.target.value)}
-                    placeholder="votre.email@example.com"
-                    className="border-thai-orange/30 focus:border-thai-orange"
-                  />
-                </div>
                 
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -373,7 +363,7 @@ const Commander = () => {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label className="text-thai-green font-medium">Heure de retrait *</Label>
+                    <Label className="text-thai-green font-medium">Heure de retrait * (18h30 - 20h30)</Label>
                     <Select value={heureRetrait} onValueChange={setHeureRetrait}>
                       <SelectTrigger className="border-thai-orange/30 focus:border-thai-orange">
                         <SelectValue placeholder="Sélectionnez une heure" />

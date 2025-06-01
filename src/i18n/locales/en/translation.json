@@ -1,0 +1,112 @@
+
+{
+  "navigation": {
+    "dashboard": "Dashboard",
+    "order": "Order",
+    "events": "Events",
+    "findUs": "Find Us",
+    "profile": "Profile",
+    "about": "About Us",
+    "administration": "Administration"
+  },
+  "common": {
+    "welcome": "Welcome to",
+    "discover": "Discover",
+    "loading": "Loading...",
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "close": "Close",
+    "required": "*",
+    "optional": "(optional)"
+  },
+  "dashboard": {
+    "welcome": "Welcome to",
+    "subtitle": "An exceptional culinary experience that transports you directly to Thailand",
+    "orderSection": {
+      "title": "Order",
+      "description": "Discover our authentic menu and place your order"
+    },
+    "eventsSection": {
+      "title": "Events",
+      "description": "Organize your events with our customized menus"
+    },
+    "findUsSection": {
+      "title": "Find Us",
+      "description": "Come visit us in Marigny-Marmande"
+    },
+    "profileSection": {
+      "title": "My Profile",
+      "description": "Manage your personal information and preferences"
+    },
+    "aboutSection": {
+      "title": "About Us",
+      "description": "Discover our history and passion"
+    },
+    "cta": {
+      "title": "Ready to Taste Thai Authenticity?",
+      "subtitle": "Create your profile and discover our daily menus prepared with fresh ingredients and traditional recipes.",
+      "createProfile": "Create My Profile",
+      "viewMenu": "View Menu"
+    }
+  },
+  "events": {
+    "title": "Events",
+    "subtitle": "Organize your events with our customized group menus",
+    "form": {
+      "eventName": "Event name",
+      "contactEmail": "Contact email",
+      "eventType": "Event type",
+      "eventDate": "Event date",
+      "guestCount": "Number of guests",
+      "budget": "Client budget",
+      "preSelectedDishes": "Pre-selected dishes",
+      "specialRequests": "Special requests",
+      "selectType": "Select a type",
+      "selectDate": "Select a date",
+      "budgetPlaceholder": "In euros (€)",
+      "specialRequestsPlaceholder": "Allergies, preferences, etc.",
+      "submit": "Send my event request",
+      "sending": "Sending..."
+    },
+    "eventTypes": {
+      "wedding": "Wedding",
+      "birthday": "Birthday",
+      "meeting": "Meeting",
+      "other": "Other"
+    },
+    "toasts": {
+      "missingDate": "Please select a date for your event.",
+      "success": "Your event request has been recorded. We will contact you back soon.",
+      "error": "An error occurred while sending your request."
+    }
+  },
+  "order": {
+    "title": "Order",
+    "subtitle": "Discover our authentic Isan Thai cuisine",
+    "profileRequired": "To order, you must first complete the mandatory information in your profile.",
+    "completeProfile": "Complete my profile",
+    "openingHours": "Monday, Wednesday, Friday, Saturday from 6:30 PM to 8:30 PM",
+    "selectDay": "Choose a day to see the available menu:",
+    "availableDishes": "Available dishes on",
+    "noDisheAvailable": "No dishes available that day. Try another day!",
+    "myCart": "My Cart:",
+    "total": "Total:",
+    "paymentInfo": "We accept credit cards",
+    "pickupInfo": "Pickup information:",
+    "pickupDate": "Pickup date",
+    "pickupTime": "Pickup time",
+    "specialRequests": "Special requests",
+    "specialRequestsPlaceholder": "Allergies, cooking preferences, etc.",
+    "address": "2 impasse de la poste, 37120 Marigny-Marmande, France",
+    "contact": "07 49 28 37 07",
+    "validateOrder": "Validate my order",
+    "validating": "Sending...",
+    "toasts": {
+      "dishAdded": "has been added to your cart.",
+      "emptyCart": "Please add dishes to your cart.",
+      "missingInfo": "Please fill in all required fields.",
+      "success": "has been recorded. Payment on site by credit card.",
+      "error": "An error occurred while sending your order."
+    }
+  }
+}

@@ -59,24 +59,28 @@ const ClientsList = () => {
                 </div>
               )}
               
-              {client.telephone && (
+              {client.numeroTelephone && (
                 <div className="flex items-center space-x-2">
                   <Phone className="w-4 h-4 text-thai-orange" />
-                  <span className="text-sm">{client.telephone}</span>
+                  <span className="text-sm">{client.numeroTelephone}</span>
                 </div>
               )}
               
-              {client.adresse && (
+              {client.adresseNumeroRue && (
                 <div className="flex items-center space-x-2">
                   <MapPin className="w-4 h-4 text-thai-orange" />
-                  <span className="text-sm">{client.adresse}</span>
+                  <span className="text-sm">
+                    {client.adresseNumeroRue}
+                    {client.codePostal && `, ${client.codePostal}`}
+                    {client.ville && ` ${client.ville}`}
+                  </span>
                 </div>
               )}
               
-              {client.preferences && (
+              {client.preferenceClient && (
                 <div className="mt-2">
                   <Badge variant="secondary" className="bg-thai-cream text-thai-green">
-                    {client.preferences}
+                    {client.preferenceClient}
                   </Badge>
                 </div>
               )}
