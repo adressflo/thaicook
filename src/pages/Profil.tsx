@@ -7,9 +7,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/components/ui/use-toast'; // Correct import path
 import { Calendar } from '@/components/ui/calendar';
-import { CalendarIcon, User, LogIn, UserPlus, LogOut, Save, Edit3, Camera } from 'lucide-react'; // Assure-toi que Camera est bien listé ici
+import { CalendarIcon, User, LogIn, UserPlus, LogOut, Save, Edit3, Camera } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { format, parse, isValid as isValidDate, startOfDay, type Locale } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -207,14 +207,14 @@ const Profil = () => {
       const file = event.target.files[0];
       setSelectedPhotoFile(file);
       setProfilePhotoPreview(URL.createObjectURL(file));
-      toast({ description: "Photo sélectionnée. La sauvegarde et l'upload ne sont pas encore implémentés."});
+      toast({ description: "Photo sélectionnée. L'upload et la sauvegarde ne sont pas encore implémentés."});
     }
   };
 
   const handleSubmitAirtableProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentUser || !profileEmail) { toast({ title: "Erreur", description: "Connectez-vous.", variant: "destructive" }); return; }
- if (birthDateInput && !birthDate) { toast({ title: "Date naissance invalide", description: `Format attendu : ${DATE_FORMAT_DISPLAY}.`, variant: "destructive"}); return;}
+    if (birthDateInput && !birthDate) { toast({ title: "Date naissance invalide", description: `Format: ${DATE_FORMAT_DISPLAY}.`, variant: "destructive"}); return;}
     const codePostalValue = formData.codePostal.trim(); let codePostalNum: number | undefined = undefined;
     if (codePostalValue) { codePostalNum = parseInt(codePostalValue, 10); if (isNaN(codePostalNum)) { toast({ title: "Erreur", description: "Code postal doit être un nombre.", variant: "destructive"}); setIsLoadingProfile(false); return;}}
     
@@ -228,6 +228,7 @@ const Profil = () => {
         dateNaissance: birthDate ? format(birthDate, DATE_FORMAT_AIRTABLE) : undefined,
         firebaseUID: currentUser.uid, 
         newsletterOptIn: formData.newsletterPreference || "non",
+        // Le champ 'Photo Client' n'est pas inclus ici car l'upload n'est pas géré
       };
       
       if (airtableRecordId) {
@@ -248,7 +249,7 @@ const Profil = () => {
 
   const optionsCommentConnu = ['Bouche à oreille', 'Réseaux sociaux', 'Recherche Google', 'En passant devant', 'Recommandation d\'un ami', 'Autre'];
 
-  // CORRIGÉ : Chaîne de formatage correcte
+  // CORRECTION DÉFINITIVE ICI pour la chaîne de formatage
   const formatCaptionForCalendar: (date: Date, options?: { locale?: Locale }) => React.ReactNode = (date, options) => {
     return <>{format(date, "LLLL yyyy", { locale: options?.locale })}</>; 
   };
@@ -330,7 +331,7 @@ const Profil = () => {
                       <Input type="text" id="birthDateInput" value={birthDateInput} onChange={handleBirthDateInputChange} placeholder={DATE_FORMAT_DISPLAY} maxLength={10}/>
                       <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
                         <PopoverTrigger asChild><Button variant="outline" id="birthdate-popover-trigger"><CalendarIcon/></Button></PopoverTrigger>
-                        <PopoverContent className="w-auto min-w-[280px] p-0"><Calendar mode="single" selected={birthDate} onSelect={handleCalendarSelect} month={calendarDisplayMonth} onMonthChange={setCalendarDisplayMonth} disabled={(d) => d > new Date() || d < new Date("1900-01-01")} locale={fr} captionLayout="dropdown" fromYear={1900} toYear={new Date().getFullYear()} formatters={{ formatCaption: formatCaptionForCalendar }}/></PopoverContent>
+                        <PopoverContent className="w-auto min-w-[280px] p-0"><Calendar mode="single" selected={birthDate} onSelect={handleCalendarSelect} month={calendarDisplayMonth} onMonthChange={setCalendarDisplayMonth} disabled={(d) => d > new Date() || d < new Date("1900-01-01")} locale={fr} captionLayout="dropdowns" fromYear={1900} toYear={new Date().getFullYear()} formatters={{ formatCaption: formatCaptionForCalendar }}/></PopoverContent>
                       </Popover>
                     </div>
                     {birthDateInput && birthDateInput.length === 10 && !birthDate && <p className="text-xs text-red-500 mt-1">Format incorrect ou date invalide.</p>}

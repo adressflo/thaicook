@@ -14,7 +14,7 @@ const Evenements = lazy(() => import("./pages/Evenements"));
 const Profil = lazy(() => import("./pages/Profil"));
 const NousTrouver = lazy(() => import("./pages/NousTrouver"));
 const APropos = lazy(() => import("./pages/APropos"));
-const AirtableTest = lazy(() => import("./pages/AirtableTest"));
+// La ligne pour AirtableTest a été supprimée
 const AirtableConfig = lazy(() => import("./components/AirtableConfig"));
 const Admin = lazy(() => import("./pages/Admin"));
 const AdminCommandes = lazy(() => import("./pages/AdminCommandes"));
@@ -51,7 +51,7 @@ const App = () => (
                 <Route path="/nous-trouver" element={<NousTrouver />} />
                 <Route path="/a-propos" element={<APropos />} />
                 <Route path="/airtable-config" element={<AirtableConfig />} />
-                <Route path="/airtable-test" element={<AirtableTest />} />
+                {/* La route pour /airtable-test a été supprimée */}
                 <Route path="/admin" element={<Admin />} />
                 <Route path="/admin/commandes" element={<AdminCommandes />} />
                 <Route path="/admin/commandes/:id" element={<AdminCommandeDetail />} />
