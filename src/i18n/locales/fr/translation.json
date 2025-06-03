@@ -1,4 +1,3 @@
-
 {
   "navigation": {
     "dashboard": "Tableau de bord",
@@ -24,23 +23,28 @@
     "subtitle": "Une expérience culinaire exceptionnelle qui vous transporte directement en Thaïlande",
     "orderSection": {
       "title": "Pour Commander",
-      "description": "Découvrez notre menu authentique et passez votre commande"
+      "description": "Découvrez notre menu authentique et passez votre commande",
+      "buttonTitle": "Commander"
     },
     "eventsSection": {
-      "title": "Pour vos Événements", 
-      "description": "Organisez vos événements avec nos menus personnalisés"
+      "title": "Pour vos Événements",
+      "description": "Organisez vos événements avec nos menus personnalisés",
+      "buttonTitle": "Événements"
     },
     "findUsSection": {
       "title": "Nous Trouver",
-      "description": "Venez nous rendre visite à Marigny-Marmande"
+      "description": "Venez nous rendre visite à Marigny-Marmande",
+      "buttonTitle": "Nous Trouver"
     },
     "profileSection": {
       "title": "Mon Profil",
-      "description": "Gérez vos informations personnelles et préférences"
+      "description": "Gérez vos informations personnelles et préférences",
+      "buttonTitle": "Mon Profil"
     },
     "aboutSection": {
       "title": "À propos de nous",
-      "description": "Découvrez notre histoire et notre passion"
+      "description": "Découvrez notre histoire et notre passion",
+      "buttonTitle": "À Propos"
     },
     "cta": {
       "title": "Prêt à Savourer l'Authenticité Thaïlandaise ?",

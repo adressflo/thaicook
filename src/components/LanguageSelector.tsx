@@ -1,13 +1,10 @@
-
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
+// src/components/LanguageSelector.tsx
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Languages } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+// L'import de Languages et useState n'est plus nécessaire si on affiche que le code.
 
 const LanguageSelector = () => {
   const { i18n } = useTranslation();
-  const [isOpen, setIsOpen] = useState(false);
 
   const languages = [
     { code: 'fr', name: 'Français', flag: '🇫🇷' },
@@ -26,10 +23,11 @@ const LanguageSelector = () => {
     <div className="relative">
       <Select value={i18n.language} onValueChange={handleLanguageChange}>
         <SelectTrigger className="w-full border-thai-orange/30 focus:border-thai-orange">
-          <div className="flex items-center gap-2">
-            <Languages className="h-4 w-4" />
-            <span className="text-lg">{currentLanguage.flag}</span>
-            <SelectValue />
+          {/* Modification ici : Afficher uniquement le code de la langue en majuscules */}
+          <div className="flex items-center justify-start w-full"> {/* Vous pouvez ajuster justify-start à justify-center si vous préférez le texte centré */}
+            <span className="font-medium text-sm"> {/* Ajustez la taille/poids de la police si nécessaire */}
+              {currentLanguage.code.toUpperCase()}
+            </span>
           </div>
         </SelectTrigger>
         <SelectContent className="bg-white z-50">

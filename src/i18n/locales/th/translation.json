@@ -1,4 +1,3 @@
-
 {
   "navigation": {
     "dashboard": "แดชบอร์ด",
@@ -24,23 +23,28 @@
     "subtitle": "ประสบการณ์การทำอาหารที่ยอดเยี่ยมที่จะพาคุณไปสู่ประเทศไทยโดยตรง",
     "orderSection": {
       "title": "สั่งอาหาร",
-      "description": "ค้นพบเมนูต้นตำรับของเราและสั่งอาหาร"
+      "description": "ค้นพบเมนูต้นตำรับของเราและสั่งอาหาร",
+      "buttonTitle": "สั่งอาหาร"
     },
     "eventsSection": {
       "title": "จัดงาน",
-      "description": "จัดงานของคุณด้วยเมนูที่ปรับแต่งเฉพาะ"
+      "description": "จัดงานของคุณด้วยเมนูที่ปรับแต่งเฉพาะ",
+      "buttonTitle": "จัดงาน"
     },
     "findUsSection": {
       "title": "ที่ตั้ง",
-      "description": "มาเยี่ยมชมเราที่ Marigny-Marmande"
+      "description": "มาเยี่ยมชมเราที่ Marigny-Marmande",
+      "buttonTitle": "ที่ตั้ง"
     },
     "profileSection": {
       "title": "โปรไฟล์ของฉัน",
-      "description": "จัดการข้อมูลส่วนตัวและความชอบ"
+      "description": "จัดการข้อมูลส่วนตัวและความชอบ",
+      "buttonTitle": "โปรไฟล์"
     },
     "aboutSection": {
       "title": "เกี่ยวกับเรา",
-      "description": "ค้นพบประวัติและความหลงใหลของเรา"
+      "description": "ค้นพบประวัติและความหลงใหลของเรา",
+      "buttonTitle": "เกี่ยวกับ"
     },
     "cta": {
       "title": "พร้อมที่จะลิ้มรสความแท้จริงของไทยหรือยัง?",

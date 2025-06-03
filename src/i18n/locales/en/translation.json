@@ -1,4 +1,3 @@
-
 {
   "navigation": {
     "dashboard": "Dashboard",
@@ -24,23 +23,28 @@
     "subtitle": "An exceptional culinary experience that transports you directly to Thailand",
     "orderSection": {
       "title": "Order",
-      "description": "Discover our authentic menu and place your order"
+      "description": "Discover our authentic menu and place your order",
+      "buttonTitle": "Order"
     },
     "eventsSection": {
       "title": "Events",
-      "description": "Organize your events with our customized menus"
+      "description": "Organize your events with our customized menus",
+      "buttonTitle": "Events"
     },
     "findUsSection": {
       "title": "Find Us",
-      "description": "Come visit us in Marigny-Marmande"
+      "description": "Come visit us in Marigny-Marmande",
+      "buttonTitle": "Find Us"
     },
     "profileSection": {
       "title": "My Profile",
-      "description": "Manage your personal information and preferences"
+      "description": "Manage your personal information and preferences",
+      "buttonTitle": "My Profile"
     },
     "aboutSection": {
       "title": "About Us",
-      "description": "Discover our history and passion"
+      "description": "Discover our history and passion",
+      "buttonTitle": "About Us"
     },
     "cta": {
       "title": "Ready to Taste Thai Authenticity?",
