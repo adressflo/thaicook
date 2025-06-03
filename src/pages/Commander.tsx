@@ -1,21 +1,21 @@
-
+// src/pages/Commander.tsx
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
+import { Calendar as CalendarIconLucide, Database, AlertCircle, Utensils, CreditCard } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
-import { CalendarIcon, Database, AlertCircle, Utensils, CreditCard } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Link } from 'react-router-dom';
-import { usePlats, useAirtableConfig, useCreateCommande } from '@/hooks/useAirtable';
+import { usePlats, useAirtableConfig, useCreateCommande, useClientByFirebaseUID } from '@/hooks/useAirtable';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface PlatPanier {
   id: string;
@@ -29,14 +29,15 @@ const Commander = () => {
   const { config } = useAirtableConfig();
   const { plats, getPlatsDisponibles, isLoading: platsLoading, error: platsError } = usePlats();
   const createCommande = useCreateCommande();
-  
+  const { currentUser } = useAuth();
+  const { airtableRecordId } = useClientByFirebaseUID(currentUser?.uid);
+
   const [jourSelectionne, setJourSelectionne] = useState<string>('');
   const [panier, setPanier] = useState<PlatPanier[]>([]);
   const [dateRetrait, setDateRetrait] = useState<Date>();
   const [heureRetrait, setHeureRetrait] = useState<string>('');
   const [demandesSpeciales, setDemandesSpeciales] = useState<string>('');
 
-  // Jours d'ouverture : lundi, mercredi, vendredi, samedi
   const joursOuverture = [
     { value: 'lundi', label: 'Lundi', champ: 'lundiDispo' },
     { value: 'mercredi', label: 'Mercredi', champ: 'mercrediDispo' },
@@ -45,7 +46,7 @@ const Commander = () => {
   ];
 
   const heuresDisponibles = [
-    '18:30', '19:00', '19:30', '20:00', '20:30'
+    '18:00', '18:30', '19:00', '19:30', '20:00', '20:30'
   ];
 
   const platsDisponibles = getPlatsDisponibles(jourSelectionne);
@@ -54,21 +55,20 @@ const Commander = () => {
     setPanier(prev => {
       const platExistant = prev.find(p => p.id === plat.id);
       if (platExistant) {
-        return prev.map(p => 
-          p.id === plat.id 
+        return prev.map(p =>
+          p.id === plat.id
             ? { ...p, quantite: p.quantite + 1 }
             : p
         );
       } else {
-        return [...prev, { 
-          id: plat.id, 
+        return [...prev, {
+          id: plat.id,
           nom: plat.plat,
-          prix: plat.prix || 0, 
-          quantite: 1 
+          prix: plat.prix || 0,
+          quantite: 1
         }];
       }
     });
-    
     toast({
       title: "Plat ajouté !",
       description: `${plat.plat} a été ajouté à votre panier.`,
@@ -79,8 +79,8 @@ const Commander = () => {
     if (nouvelleQuantite === 0) {
       setPanier(prev => prev.filter(p => p.id !== id));
     } else {
-      setPanier(prev => prev.map(p => 
-        p.id === id 
+      setPanier(prev => prev.map(p =>
+        p.id === id
           ? { ...p, quantite: nouvelleQuantite }
           : p
       ));
@@ -92,50 +92,59 @@ const Commander = () => {
   };
 
   const validerCommande = async () => {
+    if (!currentUser) {
+      toast({ title: "Connexion requise", description: "Veuillez vous connecter et compléter votre profil pour commander.", variant: "destructive" });
+      return;
+    }
+    if (!airtableRecordId) {
+      toast({ title: "Profil incomplet", description: "Veuillez compléter votre profil client pour pouvoir commander. Rendez-vous sur la page Profil.", variant: "destructive" });
+      return;
+    }
     if (panier.length === 0) {
-      toast({
-        title: "Panier vide",
-        description: "Veuillez ajouter des plats à votre panier.",
-        variant: "destructive",
-      });
+      toast({ title: "Panier vide", description: "Veuillez ajouter des plats à votre panier.", variant: "destructive" });
+      return;
+    }
+    if (!dateRetrait || !heureRetrait) {
+      toast({ title: "Informations manquantes", description: "Veuillez sélectionner une date et une heure de retrait.", variant: "destructive" });
       return;
     }
 
-    if (!dateRetrait || !heureRetrait) {
-      toast({
-        title: "Informations manquantes",
-        description: "Veuillez remplir tous les champs obligatoires.",
-        variant: "destructive",
-      });
-      return;
-    }
+    console.log("--- Données envoyées à createCommande.mutateAsync ---");
+    console.log("Client Airtable ID (airtableRecordId):", airtableRecordId);
+    console.log("Panier (pour Plat R):", JSON.stringify(panier.map(p => ({ id: p.id, nom: p.nom, quantite: p.quantite })), null, 2));
+    const dateHeureRetraitISO = dateRetrait ? new Date(dateRetrait.getFullYear(), dateRetrait.getMonth(), dateRetrait.getDate(), parseInt(heureRetrait.split(':')[0]), parseInt(heureRetrait.split(':')[1])).toISOString() : '';
+    console.log("Date et Heure de Retrait (ISO):", dateHeureRetraitISO);
+    console.log("Demandes Spéciales:", demandesSpeciales);
+
 
     try {
-      const dateHeureRetrait = new Date(dateRetrait);
-      const [heures, minutes] = heureRetrait.split(':');
-      dateHeureRetrait.setHours(parseInt(heures), parseInt(minutes));
-
       await createCommande.mutateAsync({
-        clientEmail: "client@example.com", // À récupérer du profil utilisateur
+        clientAirtableId: airtableRecordId,
         panier,
-        dateHeureRetrait: dateHeureRetrait.toISOString(),
+        dateHeureRetrait: dateHeureRetraitISO,
         demandesSpeciales
       });
-      
+
       toast({
         title: "Commande envoyée !",
         description: `Votre commande de ${calculerTotal()}€ a été enregistrée. Paiement sur place par carte bleue.`,
       });
-      
+
       setPanier([]);
       setDateRetrait(undefined);
       setHeureRetrait('');
       setDemandesSpeciales('');
-      
-    } catch (error) {
+      setJourSelectionne('');
+
+    } catch (error: any) {
+      console.error("Erreur validation commande:", error); // Log de l'erreur brute attrapée ici
+      let errorMessage = "Une erreur est survenue lors de l'envoi de votre commande.";
+      if (error && error.message) { // Si l'erreur a une propriété message (ce qui devrait être le cas pour les erreurs relancées)
+        errorMessage = error.message;
+      }
       toast({
-        title: "Erreur",
-        description: error instanceof Error ? error.message : "Une erreur est survenue lors de l'envoi de votre commande.",
+        title: "Erreur de commande",
+        description: errorMessage,
         variant: "destructive",
       });
     }
@@ -166,14 +175,16 @@ const Commander = () => {
   return (
     <div className="min-h-screen bg-gradient-thai py-8 px-4">
       <div className="container mx-auto max-w-4xl">
-        {/* Vérification du profil obligatoire */}
-        <Alert className="mb-6 border-blue-200 bg-blue-50">
-          <AlertCircle className="h-4 w-4 text-blue-600" />
-          <AlertDescription className="text-blue-800">
-            <strong>Profil requis :</strong> Pour commander, vous devez d'abord remplir les mentions obligatoires de votre profil.
-            <Link to="/profil" className="ml-2 underline font-medium">Compléter mon profil</Link>
-          </AlertDescription>
-        </Alert>
+        {!currentUser || !airtableRecordId ? (
+            <Alert className="mb-6 border-blue-200 bg-blue-50">
+                <AlertCircle className="h-4 w-4 text-blue-600" />
+                <AlertDescription className="text-blue-800">
+                <strong>Profil requis :</strong> Pour commander, vous devez être connecté et avoir complété votre profil client.
+                {!currentUser && <Link to="/profil" className="ml-2 underline font-medium">Se connecter / Créer un profil</Link>}
+                {currentUser && !airtableRecordId && <Link to="/profil" className="ml-2 underline font-medium">Compléter mon profil</Link>}
+                </AlertDescription>
+            </Alert>
+        ) : null}
 
         <Card className="shadow-xl border-thai-orange/20 mb-8">
           <CardHeader className="text-center bg-gradient-to-r from-thai-orange to-thai-gold text-white rounded-t-lg">
@@ -181,11 +192,12 @@ const Commander = () => {
               <Utensils className="h-8 w-8 mr-2" />
               <CardTitle className="text-3xl font-bold">Pour Commander</CardTitle>
             </div>
-            <p className="text-white/90">
-              Découvrez notre cuisine thaïlandaise authentique d'Isan
-            </p>
+            <div className="flex items-center justify-center text-white/90 text-sm mt-1">
+              <AlertCircle className="h-4 w-4 mr-2 flex-shrink-0" />
+              <span>Horaires d'ouverture : Lundi, Mercredi, Vendredi, Samedi de 18h00 à 20h30</span>
+            </div>
           </CardHeader>
-          
+
           <CardContent className="p-8">
             {platsError && (
               <Alert className="mb-6 border-red-200 bg-red-50">
@@ -196,40 +208,34 @@ const Commander = () => {
               </Alert>
             )}
 
-            {/* Horaires d'ouverture */}
-            <Alert className="mb-6 border-thai-orange/30 bg-thai-cream/30">
-              <AlertCircle className="h-4 w-4 text-thai-orange" />
-              <AlertDescription className="text-thai-green">
-                <strong>Horaires d'ouverture :</strong> Lundi, Mercredi, Vendredi, Samedi de 18h30 à 20h30
-              </AlertDescription>
-            </Alert>
-
-            {/* Sélection du jour */}
             <div className="mb-8">
               <Label className="text-lg font-semibold text-thai-green mb-4 block">
                 Choisissez un jour pour voir le menu disponible :
               </Label>
-              <Select value={jourSelectionne} onValueChange={setJourSelectionne}>
-                <SelectTrigger className="w-full border-thai-orange/30 focus:border-thai-orange">
-                  <SelectValue placeholder="Sélectionnez un jour" />
-                </SelectTrigger>
-                <SelectContent className="bg-white z-50">
-                  {joursOuverture.map(jour => (
-                    <SelectItem key={jour.value} value={jour.value}>
-                      {jour.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="flex flex-wrap gap-3">
+                {joursOuverture.map(jour => (
+                  <Button
+                    key={jour.value}
+                    variant={jourSelectionne === jour.value ? "default" : "outline"}
+                    onClick={() => setJourSelectionne(jour.value)}
+                    className={cn(
+                      "px-6 py-2 rounded-lg transition-all duration-200",
+                      jourSelectionne === jour.value
+                        ? "bg-thai-orange text-white shadow-md hover:bg-thai-orange/90"
+                        : "border-thai-orange text-thai-orange bg-white hover:bg-thai-orange/10 hover:text-thai-orange"
+                    )}
+                  >
+                    {jour.label}
+                  </Button>
+                ))}
+              </div>
             </div>
 
-            {/* Affichage des plats */}
             {jourSelectionne && (
               <div className="mb-8">
                 <h3 className="text-xl font-semibold text-thai-green mb-4">
                   Plats disponibles le {joursOuverture.find(j => j.value === jourSelectionne)?.label.toLowerCase()} :
                 </h3>
-                
                 {platsLoading ? (
                   <div className="text-center py-8">
                     <p className="text-thai-green/70">Chargement des plats...</p>
@@ -246,8 +252,8 @@ const Commander = () => {
                       <Card key={plat.id} className="border-thai-orange/20 hover:shadow-lg transition-shadow duration-300">
                         {plat.photoDuPlat && (
                           <div className="aspect-video overflow-hidden rounded-t-lg">
-                            <img 
-                              src={plat.photoDuPlat} 
+                            <img
+                              src={plat.photoDuPlat}
                               alt={plat.plat}
                               className="w-full h-full object-cover"
                               onError={(e) => {
@@ -265,7 +271,7 @@ const Commander = () => {
                             <Badge variant="secondary" className="bg-thai-gold/20 text-thai-green">
                               {plat.prixVu || `${(plat.prix || 0).toFixed(2)}€`}
                             </Badge>
-                            <Button 
+                            <Button
                               onClick={() => ajouterAuPanier(plat)}
                               size="sm"
                               className="bg-thai-orange hover:bg-thai-orange-dark"
@@ -281,7 +287,6 @@ const Commander = () => {
               </div>
             )}
 
-            {/* Panier */}
             {panier.length > 0 && (
               <div className="mb-8">
                 <h3 className="text-xl font-semibold text-thai-green mb-4">Mon Panier :</h3>
@@ -293,21 +298,9 @@ const Commander = () => {
                         <span className="text-thai-green/70 ml-2">({plat.prix.toFixed(2)}€)</span>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => modifierQuantite(plat.id, plat.quantite - 1)}
-                        >
-                          -
-                        </Button>
+                        <Button size="sm" variant="outline" onClick={() => modifierQuantite(plat.id, plat.quantite - 1)}>-</Button>
                         <span className="w-8 text-center">{plat.quantite}</span>
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => modifierQuantite(plat.id, plat.quantite + 1)}
-                        >
-                          +
-                        </Button>
+                        <Button size="sm" variant="outline" onClick={() => modifierQuantite(plat.id, plat.quantite + 1)}>+</Button>
                       </div>
                     </div>
                   ))}
@@ -317,8 +310,6 @@ const Commander = () => {
                     Total: {calculerTotal()}€
                   </span>
                 </div>
-
-                {/* Information paiement */}
                 <Alert className="mt-4 border-green-200 bg-green-50">
                   <CreditCard className="h-4 w-4 text-green-600" />
                   <AlertDescription className="text-green-800">
@@ -328,11 +319,9 @@ const Commander = () => {
               </div>
             )}
 
-            {/* Informations de retrait */}
             {panier.length > 0 && (
               <div className="space-y-6">
                 <h3 className="text-xl font-semibold text-thai-green">Informations de retrait :</h3>
-                
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label className="text-thai-green font-medium">Date de retrait *</Label>
@@ -345,7 +334,7 @@ const Commander = () => {
                             !dateRetrait && "text-muted-foreground"
                           )}
                         >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          <CalendarIconLucide className="mr-2 h-4 w-4" />
                           {dateRetrait ? format(dateRetrait, "PPP", { locale: fr }) : "Sélectionner une date"}
                         </Button>
                       </PopoverTrigger>
@@ -361,22 +350,22 @@ const Commander = () => {
                       </PopoverContent>
                     </Popover>
                   </div>
-                  
                   <div className="space-y-2">
-                    <Label className="text-thai-green font-medium">Heure de retrait * (18h30 - 20h30)</Label>
-                    <Select value={heureRetrait} onValueChange={setHeureRetrait}>
-                      <SelectTrigger className="border-thai-orange/30 focus:border-thai-orange">
-                        <SelectValue placeholder="Sélectionnez une heure" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-white z-50">
-                        {heuresDisponibles.map(heure => (
-                          <SelectItem key={heure} value={heure}>{heure}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Label className="text-thai-green font-medium">Heure de retrait *</Label>
+                    <select
+                      value={heureRetrait}
+                      onChange={(e) => setHeureRetrait(e.target.value)}
+                      className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 border-thai-orange/30 focus:border-thai-orange"
+                      required
+                    >
+                      <option value="" disabled>Sélectionnez une heure</option>
+                      {heuresDisponibles.map(heure => (
+                        <option key={heure} value={heure}>{heure}</option>
+                      ))}
+                    </select>
+                    <p className="text-xs text-gray-500">Entre 18h00 et 20h30</p>
                   </div>
                 </div>
-
                 <div className="space-y-2">
                   <Label className="text-thai-green font-medium">Demandes spéciales</Label>
                   <Textarea
@@ -387,7 +376,6 @@ const Commander = () => {
                     placeholder="Allergies, préférences de cuisson, etc."
                   />
                 </div>
-
                 <div className="bg-thai-cream/30 p-4 rounded-lg">
                   <p className="text-sm text-thai-green/80">
                     <strong>📍 Adresse de retrait :</strong><br />
@@ -395,10 +383,9 @@ const Commander = () => {
                     <strong>📞 Contact :</strong> 07 49 28 37 07
                   </p>
                 </div>
-
-                <Button 
+                <Button
                   onClick={validerCommande}
-                  disabled={createCommande.isPending}
+                  disabled={createCommande.isPending || !dateRetrait || !heureRetrait || panier.length === 0 || !currentUser || !airtableRecordId}
                   className="w-full bg-thai-orange hover:bg-thai-orange-dark text-white py-6 text-lg rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
                 >
                   {createCommande.isPending ? 'Envoi...' : `Valider ma commande (${calculerTotal()}€)`}

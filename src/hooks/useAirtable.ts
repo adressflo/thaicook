@@ -7,7 +7,6 @@ import {
   Client,
   Plat,
   Commande,
-  PassageCommande,
   Evenement,
   AirtableRecord,
   AirtableResponse
@@ -49,7 +48,7 @@ export const useAirtableData = (tableName: string, options?: { enabled?: boolean
   const { config } = useAirtableConfig();
   const queryKey = ['airtable', tableName, config?.baseId, config?.apiKey];
 
-  const queryResult = useQuery<AirtableResponse, Error, AirtableResponse, unknown[]>({ // Type pour queryKey
+  const queryResult = useQuery<AirtableResponse, Error, AirtableResponse, unknown[]>({
     queryKey,
     queryFn: async () => {
       if (!config || !config.apiKey || !config.baseId) {
@@ -170,7 +169,6 @@ export const useClients = () => {
     newsletterActualites: record.fields['Souhaitez-vous recevoir les actualités et offres par e-mail ?'] === "Oui, j'accepte",
     dateNaissance: record.fields['Date de naissance'],
     photoClient: record.fields['Photo Client']?.[0]?.url,
-    firebaseUID: record.fields.FirebaseUID,
     commandesR: record.fields['Commandes R'],
     evenementsR: record.fields['Événements R'],
     createdTime: record.createdTime,
@@ -178,16 +176,12 @@ export const useClients = () => {
   return { clients, isLoading, error, refetch };
 };
 
-const createClientMutationFn: UseMutationOptions<AirtableRecord, Error, ClientInputData>['mutationFn'] = 
+const createClientMutationFn: UseMutationOptions<AirtableRecord, Error, ClientInputData>['mutationFn'] =
   async (clientData) => {
-    // Note: getConfigHook n'est pas disponible ici, il faut le passer ou le redéfinir.
-    // Pour simplifier, nous allons le chercher à l'intérieur comme avant, mais ce n'est pas idéal pour la pureté de cette fonction.
-    // Idéalement, la config serait passée en argument ou le hook `useAirtableConfig` serait appelé plus haut.
     const localConfig = JSON.parse(localStorage.getItem('airtable-config') || 'null') as AirtableConfig | null;
     if (!localConfig || !localConfig.baseId || !localConfig.apiKey) {
       throw new Error('Configuration Airtable invalide (createClientMutationFn)');
     }
-
     const fields: Record<string, any> = {
       'Nom': clientData.nom, 'Prénom': clientData.prenom,
       'Préférence client': clientData.preferenceClient, 'Numéro de téléphone': clientData.numeroTelephone,
@@ -197,21 +191,24 @@ const createClientMutationFn: UseMutationOptions<AirtableRecord, Error, ClientIn
       'Souhaitez-vous recevoir les actualités et offres par e-mail ?': clientData.newsletterOptIn,
       'Date de naissance': clientData.dateNaissance, 'FirebaseUID': clientData.firebaseUID,
     };
+    if (clientData['Photo Client']) {
+        fields['Photo Client'] = clientData['Photo Client'];
+    }
     Object.keys(fields).forEach(key => { const v = fields[key]; if (v === undefined || v === null || (typeof v === 'string' && v.trim() === '') || (Array.isArray(v) && v.length === 0)) delete fields[key]; });
     return airtableService.createRecord({ ...localConfig, tableName: 'Client DB' }, fields);
 };
 
 export const useCreateClient = () => {
-  const getConfigHook = useAirtableConfig(); // Utilisé pour onSuccess
+  const getConfigHook = useAirtableConfig();
   const queryClient = useQueryClient();
   return useMutation<AirtableRecord, Error, ClientInputData>({
-    mutationFn: createClientMutationFn, // Utilisation de la fonction séparée
+    mutationFn: createClientMutationFn,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['airtable', 'Client DB', getConfigHook.config?.baseId, getConfigHook.config?.apiKey] });
     },
     onError: (error: Error) => {
       console.error('Erreur dans useCreateClient:', error);
-      throw error; // Rethrow pour que le composant puisse le gérer
+      throw error;
     }
   });
 };
@@ -234,14 +231,17 @@ const updateClientMutationFn: UseMutationOptions<AirtableRecord, Error, { record
     if (clientData.commentConnuChanthana !== undefined) fieldsToUpdate['Comment avez-vous connu ChanthanaThaiCook ?'] = clientData.commentConnuChanthana;
     if (clientData.newsletterOptIn !== undefined) fieldsToUpdate['Souhaitez-vous recevoir les actualités et offres par e-mail ?'] = clientData.newsletterOptIn;
     if (clientData.dateNaissance !== undefined) fieldsToUpdate['Date de naissance'] = clientData.dateNaissance;
-    
+    if (clientData['Photo Client'] !== undefined) fieldsToUpdate['Photo Client'] = clientData['Photo Client'];
+
     Object.keys(clientData).forEach(key => {
       const typedKey = key as keyof Partial<ClientInputData>;
       if (clientData[typedKey] === null) {
-        if (typedKey === 'nom') fieldsToUpdate['Nom'] = null;
-        // ... autres champs à nullifier
+         // On s'assure que la clé existe bien dans notre mappage avant de la mettre à null
+         const airtableFieldName = Object.keys(fieldsToUpdate).find(k => k.toLowerCase() === typedKey.toLowerCase() || k.replace(/[^a-zA-Z0-9]/g, '').toLowerCase() === typedKey.replace(/[^a-zA-Z0-9]/g, '').toLowerCase());
+         if(airtableFieldName) fieldsToUpdate[airtableFieldName] = null;
       }
     });
+    Object.keys(fieldsToUpdate).forEach(key => fieldsToUpdate[key] === undefined && delete fieldsToUpdate[key]);
     return airtableService.updateRecord({ ...localConfig, tableName: 'Client DB' }, recordId, fieldsToUpdate);
 };
 
@@ -252,7 +252,6 @@ export const useUpdateClient = () => {
     mutationFn: updateClientMutationFn,
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['airtable', 'Client DB', getConfigHook.config?.baseId, getConfigHook.config?.apiKey] });
-      queryClient.invalidateQueries({ queryKey: ['airtable', 'Client DB', variables.recordId, getConfigHook.config?.baseId, getConfigHook.config?.apiKey] });
     },
     onError: (error: Error) => {
       console.error('Erreur dans useUpdateClient:', error);
@@ -261,15 +260,17 @@ export const useUpdateClient = () => {
   });
 };
 
-// --- Plats Hooks ---
 export const usePlats = () => {
   const { data, isLoading, error, refetch } = useAirtableData('Plats DB');
   const plats: Plat[] = data?.records.map(record => ({
     id: record.id, plat: record.fields.Plat || '', description: record.fields.Description,
     prix: parseFloat(record.fields.Prix || 0), prixVu: record.fields['Prix vu'],
-    lundiDispo: record.fields.lundi_dispo as 'oui' | 'non', mardiDispo: record.fields.mardi_dispo as 'oui' | 'non',
-    mercrediDispo: record.fields.mercredi_dispo as 'oui' | 'non', jeudiDispo: record.fields.jeudi_dispo as 'oui' | 'non',
-    vendrediDispo: record.fields.vendredi_dispo as 'oui' | 'non', samediDispo: record.fields.samedi_dispo as 'oui' | 'non',
+    lundiDispo: record.fields.lundi_dispo as 'oui' | 'non',
+    mardiDispo: record.fields.mardi_dispo as 'oui' | 'non',
+    mercrediDispo: record.fields.mercredi_dispo as 'oui' | 'non',
+    jeudiDispo: record.fields.jeudi_dispo as 'oui' | 'non',
+    vendrediDispo: record.fields.vendredi_dispo as 'oui' | 'non',
+    samediDispo: record.fields.samedi_dispo as 'oui' | 'non',
     dimancheDispo: record.fields.dimanche_dispo as 'oui' | 'non',
     scoreDisponibilite: record.fields['Score Disponibilité'], photoDuPlat: record.fields['Photo du Plat']?.[0]?.url,
     passageCommandeR: record.fields['passage commande R'], menusEvenementielsR: record.fields['Menus Événementiels R'],
@@ -277,13 +278,12 @@ export const usePlats = () => {
   })) || [];
   const getPlatsDisponibles = (jour?: string) => {
     if (!jour) return plats;
-    const champDispo = `${jour}Dispo` as keyof Plat;
-    return plats.filter(plat => plat[champDispo] === 'oui');
+    const champDispoKey = `${jour.toLowerCase()}Dispo` as keyof Plat; // Assurer la minuscule
+    return plats.filter(plat => plat[champDispoKey] === 'oui');
   };
   return { plats, getPlatsDisponibles, isLoading, error, refetch };
 };
 
-// --- Commandes Hooks ---
 export const useCommandes = () => {
   const { data, isLoading, error, refetch } = useAirtableData('Commandes DB');
   const commandes: Commande[] = data?.records.map(record => ({
@@ -302,7 +302,10 @@ export interface PlatPanier {
   id: string; nom: string; prix: number; quantite: number;
 }
 export type CommandeInputData = {
-  clientAirtableId: string; panier: PlatPanier[]; dateHeureRetrait: string; demandesSpeciales?: string;
+  clientAirtableId: string;
+  panier: PlatPanier[];
+  dateHeureRetrait: string;
+  demandesSpeciales?: string;
 };
 
 const createCommandeMutationFn: UseMutationOptions<AirtableRecord, Error, CommandeInputData>['mutationFn'] =
@@ -315,14 +318,19 @@ const createCommandeMutationFn: UseMutationOptions<AirtableRecord, Error, Comman
       'Client R': [commandeData.clientAirtableId],
       'Date et Heure de Retrait Souhaitées': commandeData.dateHeureRetrait,
       'Demande spécial pour la commande': commandeData.demandesSpeciales,
-      'Statut Commande': 'En attente de confirmation', 'Statut Paiement': 'En attente sur place',
+      'Statut Commande': 'En attente de confirmation',
+      'Statut Paiement': 'En attente sur place',
     };
-    Object.keys(commandeFields).forEach(key => commandeFields[key] === undefined && delete commandeFields[key]);
+    Object.keys(commandeFields).forEach(key => { if (commandeFields[key] === undefined || commandeFields[key] === null) delete commandeFields[key];});
+
     const nouvelleCommande = await airtableService.createRecord({ ...localConfig, tableName: 'Commandes DB' }, commandeFields);
+
     if (nouvelleCommande && nouvelleCommande.id && commandeData.panier) {
       const passageCommandePromises = commandeData.panier.map(item => {
         const passageFields: Record<string, any> = {
-          'Commande R': [nouvelleCommande.id], 'Plat R': [item.id], 'Quantité Plat Commandé': item.quantite,
+          'Commande R': [nouvelleCommande.id],
+          'Plat R': [item.id],
+          'quantité plat commandé': item.quantite, // Nom exact du champ selon votre PDF/document
         };
         return airtableService.createRecord({ ...localConfig, tableName: 'Passage Commande DB' }, passageFields);
       });
@@ -340,14 +348,33 @@ export const useCreateCommande = () => {
       queryClient.invalidateQueries({ queryKey: ['airtable', 'Commandes DB', getConfigHook.config?.baseId, getConfigHook.config?.apiKey] });
       queryClient.invalidateQueries({ queryKey: ['airtable', 'Passage Commande DB', getConfigHook.config?.baseId, getConfigHook.config?.apiKey] });
     },
-    onError: (error: Error) => {
-      console.error('Erreur dans useCreateCommande:', error);
-      throw error;
+    onError: (error: any) => { // Type 'any' pour inspecter l'objet erreur plus librement
+      console.error('ERREUR BRUTE dans useCreateCommande:', error);
+      if (error && error.message) {
+        console.error('Message d\'erreur principal:', error.message);
+      }
+      // Tenter de trouver des détails spécifiques d'Airtable
+      // La structure de l'erreur peut varier.
+      let airtableErrorDetails = null;
+      if (error.response && error.response.data && error.response.data.error) { // Souvent pour les erreurs de fetch/axios
+        airtableErrorDetails = error.response.data.error;
+      } else if (error.error && typeof error.error === 'object') { // Autre format possible
+        airtableErrorDetails = error.error;
+      } else if (error.details) { // Parfois les détails sont ici
+         airtableErrorDetails = error.details;
+      }
+
+      if (airtableErrorDetails) {
+        console.error('DÉTAILS SPÉCIFIQUES AIRTABLE:', JSON.stringify(airtableErrorDetails, null, 2));
+        if (airtableErrorDetails.type && airtableErrorDetails.message) {
+          console.error(`Type d'erreur Airtable: ${airtableErrorDetails.type}, Message: ${airtableErrorDetails.message}`);
+        }
+      }
+      throw error; // Relancer l'erreur pour que le try/catch du composant puisse la gérer
     }
   });
 };
 
-// --- Événements Hooks ---
 export const useEvenements = () => {
   const { data, isLoading, error, refetch } = useAirtableData('Événements DB');
   const evenements: Evenement[] = data?.records.map(record => ({
@@ -368,58 +395,41 @@ export const useEvenements = () => {
 };
 
 export type EvenementInputData = {
-  nomEvenement: string; contactEmail: string; dateEvenement: string; typeEvenement: string;
-  nombrePersonnes: number; budgetClient?: number; demandesSpecialesEvenement?: string;
+  nomEvenement: string;
+  contactEmail: string;
+  dateEvenement: string;
+  typeEvenement: string;
+  nombrePersonnes: number;
+  budgetClient?: number;
+  demandesSpecialesEvenement?: string;
   platsPreSelectionnesR?: string[];
 };
 
-// Séparation de la mutationFn pour la clarté et pour éviter les problèmes de scope avec les hooks à l'intérieur.
 const createEvenementMutationFn: UseMutationOptions<AirtableRecord, Error, EvenementInputData>['mutationFn'] =
   async (evenementData: EvenementInputData) => {
-    // IMPORTANT: `useAirtableConfig` et `useAirtableData` ne peuvent pas être appelés ici directement
-    // car ce n'est pas un hook React. La config et les clientsData doivent être obtenus autrement ou passés.
-    // Pour cette version, nous allons chercher la config depuis localStorage et nous ne pouvons pas utiliser
-    // clientsData directement ici sans le passer en argument ou le récupérer de manière non-hook.
-    // Cela signifie que la recherche de client par email DANS CETTE FONCTION est problématique.
-    // La logique de recherche de client devrait idéalement être faite AVANT d'appeler mutateAsync,
-    // et l'ID client devrait être passé dans EvenementInputData.
-
-    // Temporairement, on récupère la config du localStorage. Ce n'est PAS idéal.
     const localConfig = JSON.parse(localStorage.getItem('airtable-config') || 'null') as AirtableConfig | null;
-    if (!localConfig || !localConfig.baseId || !localConfig.apiKey) {
-        throw new Error('Configuration Airtable invalide (createEvenementMutationFn)');
+     if (!localConfig || !localConfig.baseId || !localConfig.apiKey) {
+        throw new Error('Configuration Airtable invalide (createEvenementMutationFn - interne)');
     }
-    // La recherche de clientsData ici n'est pas possible de manière réactive.
-    // On va donc simplifier et supposer que le composant a déjà fourni un ID client si possible,
-    // ou alors le champ 'Contact Client R' ne sera pas rempli si on ne trouve pas le client
-    // par une autre méthode (par exemple, un appel API séparé pour chercher par email).
-
-    // Solution simplifiée: Si vous ne pouvez pas passer l'ID client, vous ne pourrez pas le lier ici facilement
-    // sans rendre cette fonction plus complexe ou dépendante d'un état externe.
-    // Pour l'instant, on va juste construire les champs sans la recherche client complexe ici.
-    // Le hook useCreateEvenement (ci-dessous) essaiera de gérer cela.
-
-
     const fields: Record<string, any> = {
-      'Nom Événement': evenementData.nomEvenement, 'Date Événement': evenementData.dateEvenement,
-      'Type d\'Événement': evenementData.typeEvenement, 'Nombre de personnes': evenementData.nombrePersonnes,
+      'Nom Événement': evenementData.nomEvenement,
+      'Date Événement': evenementData.dateEvenement,
+      'Type d\'Événement': evenementData.typeEvenement,
+      'Nombre de personnes': evenementData.nombrePersonnes,
       'Budget Client': evenementData.budgetClient,
       'Demandes Spéciales Événement': evenementData.demandesSpecialesEvenement,
       'Plats Pré-sélectionnés (par client) R': evenementData.platsPreSelectionnesR,
       'Statut Événement': 'Demande initiale',
     };
-    // Le champ 'Contact Client R' sera ajouté dans le hook useCreateEvenement ci-dessous.
-
-    Object.keys(fields).forEach(key => fields[key] === undefined && delete fields[key]);
+    Object.keys(fields).forEach(key => { if (fields[key] === undefined) delete fields[key];});
     return airtableService.createRecord({ ...localConfig, tableName: 'Événements DB' }, fields);
 };
 
-
 export const useCreateEvenement = () => {
-  const getConfigHook = useAirtableConfig(); // Pour config et onSuccess
+  const getConfigHook = useAirtableConfig();
   const queryClient = useQueryClient();
   const { data: clientsData, isLoading: isLoadingClients } = useAirtableData('Client DB', {
-    enabled: !!getConfigHook.config?.apiKey && !!getConfigHook.config?.baseId, // Activer seulement si la config est chargée
+    enabled: !!(getConfigHook.config && getConfigHook.config.apiKey && getConfigHook.config.baseId),
   });
 
   const mutationOptions: UseMutationOptions<AirtableRecord, Error, EvenementInputData, unknown> = {
@@ -427,14 +437,6 @@ export const useCreateEvenement = () => {
       const { config } = getConfigHook;
       if (!config || !config.baseId || !config.apiKey) {
         throw new Error('Configuration Airtable invalide ou manquante (useCreateEvenement)');
-      }
-
-      if (isLoadingClients && evenementData.contactEmail) {
-         // Optionnel: attendre la fin du chargement des clients si une recherche par email est nécessaire
-         // Ceci pourrait être géré par une désactivation du bouton de soumission dans l'UI
-         // ou en attendant ici avec une promesse, mais cela peut complexifier.
-         console.warn("Les données clients sont en cours de chargement, la recherche d'email peut être incomplète.");
-         // Pour cet exemple, on continue, mais dans un cas réel, il faudrait une meilleure gestion.
       }
 
       let contactClientId: string | undefined = undefined;
@@ -445,14 +447,17 @@ export const useCreateEvenement = () => {
         if (clientRecord) {
           contactClientId = clientRecord.id;
         } else {
-          console.warn(`Client avec l'email ${evenementData.contactEmail} non trouvé pour l'événement. L'événement sera créé sans lien client si l'ID n'est pas fourni autrement.`);
+          console.warn(`Client avec l'email ${evenementData.contactEmail} non trouvé. L'événement sera créé sans lien client.`);
         }
+      } else if (isLoadingClients && evenementData.contactEmail) {
+        console.warn("Les données clients sont en cours de chargement, la liaison par email pour l'événement peut échouer.");
       }
 
-      // Utilise la fonction séparée createEvenementMutationFn mais enrichit les `fields` avec `contactClientId`
       const fields: Record<string, any> = {
-        'Nom Événement': evenementData.nomEvenement, 'Date Événement': evenementData.dateEvenement,
-        'Type d\'Événement': evenementData.typeEvenement, 'Nombre de personnes': evenementData.nombrePersonnes,
+        'Nom Événement': evenementData.nomEvenement,
+        'Date Événement': evenementData.dateEvenement,
+        'Type d\'Événement': evenementData.typeEvenement,
+        'Nombre de personnes': evenementData.nombrePersonnes,
         'Budget Client': evenementData.budgetClient,
         'Demandes Spéciales Événement': evenementData.demandesSpecialesEvenement,
         'Plats Pré-sélectionnés (par client) R': evenementData.platsPreSelectionnesR,
@@ -461,24 +466,21 @@ export const useCreateEvenement = () => {
       if (contactClientId) {
         fields['Contact Client R'] = [contactClientId];
       }
-      Object.keys(fields).forEach(key => fields[key] === undefined && delete fields[key]);
+      Object.keys(fields).forEach(key => { if (fields[key] === undefined || fields[key] === null) delete fields[key];});
       return airtableService.createRecord({ ...config, tableName: 'Événements DB' }, fields);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['airtable', 'Événements DB', getConfigHook.config?.baseId, getConfigHook.config?.apiKey] });
-      queryClient.invalidateQueries({ queryKey: ['airtable', 'Événements DB'] });
     },
     onError: (error: Error) => {
       console.error('Erreur dans useCreateEvenement:', error);
       throw error;
     }
   };
-  
+
   return useMutation(mutationOptions);
 };
 
-
-// --- Analytics Hook (Placeholder) ---
 export const useAirtableAnalytics = () => {
   const { isLoading: commandesLoading } = useCommandes();
   const { isLoading: evenementsLoading } = useEvenements();
