@@ -16,7 +16,12 @@
     "cancel": "Annuler",
     "close": "Fermer",
     "required": "*",
-    "optional": "(optionnel)"
+    "optional": "(optionnel)",
+    "error": "Erreur",
+    "configRequired": "Configuration requise",
+    "configAirtableEvents": "Veuillez configurer Airtable pour accéder à cette fonctionnalité.",
+    "configureAirtable": "Configurer Airtable",
+    "errorLoadingDishes": "Erreur lors du chargement des plats."
   },
   "dashboard": {
     "welcome": "Bienvenue chez",
@@ -55,33 +60,71 @@
   },
   "events": {
     "title": "Pour vos Événements",
-    "subtitle": "Organisez vos événements avec nos menus personnalisés pour groupes",
+    "subtitle": "Si vous avez une occasion spéciale à célébrer (minimum de 10 personnes), organisez votre événement avec nos menus personnalisés.",
+    "alerts": {
+      "profileRequired": {
+        "title": "Profil requis :",
+        "description": "Pour faire une demande d'événement, vous devez être connecté et avoir complété votre profil client.",
+        "loginLink": "Se connecter / Créer un profil",
+        "completeProfileLink": "Compléter mon profil"
+      }
+    },
+    "cateringInfo": {
+      "title": "Service Traiteur sur Mesure",
+      "description": "Pour vos événements (anniversaires, repas d'affaires, fêtes...), nous proposons un service traiteur personnalisé à partir de 10 personnes. Contactez-nous pour discuter de vos envies !"
+    },
     "form": {
-      "eventName": "Nom de l'événement",
+      "eventNamePlaceholder": "Ex: Anniversaire de Jean",
       "contactEmail": "Email contact",
+      "emailFromProfile": "Email récupéré de votre profil.",
       "eventType": "Type d'événement",
       "eventDate": "Date de l'événement",
+      "eventTimeLabel": "Heure de l'événement",
       "guestCount": "Nombre de personnes",
-      "budget": "Budget du client",
-      "preSelectedDishes": "Plats présélectionnés",
-      "specialRequests": "Demandes spéciales",
+      "guestCountPlaceholder": "Min. 10 personnes",
+      "budget": "Budget indicatif",
+      "preSelectedDishesOptional": "Suggestions de plats (optionnel)",
+      "dishesSelected": "{{count}} plat(s) sélectionné(s)",
+      "specialRequests": "Demandes spéciales / Thème",
+      "specialRequestsPlaceholderEvent": "Allergies, régimes spécifiques, thème de l'événement, etc.",
       "selectType": "Sélectionnez un type",
       "selectDate": "Sélectionner une date",
+      "selectTime": "Sélectionnez une heure",
       "budgetPlaceholder": "En euros (€)",
-      "specialRequestsPlaceholder": "Allergies, préférences, etc.",
-      "submit": "Envoyer ma demande d'événement",
-      "sending": "Envoi..."
+      "submit": "Envoyer ma demande",
+      "sending": "Envoi en cours...",
+      "noticePeriod": "Prévoyez un délai de 14 jours minimum.",
+      "specifyOtherType": "Veuillez préciser le type d'événement.",
+      "specifyOtherTypeLabel": "Précisez le type d'événement si \"Autre\"",
+      "specifyOtherTypePlaceholder": "Ex: Baptême, Crémaillière..."
     },
     "eventTypes": {
-      "wedding": "Mariage",
       "birthday": "Anniversaire",
-      "meeting": "Réunion",
+      "corporateMeal": "Repas d'entreprise",
+      "familyParty": "Fête de famille",
+      "cocktail": "Cocktail dînatoire",
+      "cateringBuffet": "Buffet traiteur",
       "other": "Autre"
     },
+    "confirmationProcess": {
+      "title": "Processus de Confirmation",
+      "description": "Une fois votre demande envoyée :",
+      "step1": "Nous vous contacterons pour affiner vos besoins.",
+      "step2": "Un devis détaillé vous sera proposé.",
+      "step3": "Après acceptation du devis, un acompte pourra être demandé.",
+      "step4": "Nous préparons votre commande avec soin.",
+      "step5": "Vous profitez de votre événement !"
+    },
     "toasts": {
+      "profileRequired": "Veuillez vous connecter pour faire une demande.",
+      "completeProfile": "Veuillez d'abord compléter votre profil client.",
+      "completeProfileForEvent": "Veuillez compléter votre profil avant de demander un événement.",
+      "completeProfileButton": "Compléter mon profil",
+      "missingInfo": "Veuillez remplir tous les champs obligatoires (*).",
       "missingDate": "Veuillez sélectionner une date pour votre événement.",
-      "success": "Votre demande d'événement a été enregistrée. Nous vous recontacterons rapidement.",
-      "error": "Une erreur est survenue lors de l'envoi de votre demande."
+      "success": "Demande envoyée ! Nous vous recontacterons.",
+      "errorSubmit": "Erreur lors de l'envoi de votre demande.",
+      "error": "Erreur"
     }
   },
   "order": {
@@ -89,7 +132,7 @@
     "subtitle": "Découvrez notre cuisine thaïlandaise authentique d'Isan",
     "profileRequired": "Pour commander, vous devez d'abord remplir les mentions obligatoires de votre profil.",
     "completeProfile": "Compléter mon profil",
-    "openingHours": "Lundi, Mercredi, Vendredi, Samedi de 18h30 à 20h30",
+    "openingHours": "Lundi, Mercredi, Vendredi, Samedi de 18h00 à 20h30",
     "selectDay": "Choisissez un jour pour voir le menu disponible :",
     "availableDishes": "Plats disponibles le",
     "noDisheAvailable": "Aucun plat disponible ce jour-là. Essayez un autre jour !",

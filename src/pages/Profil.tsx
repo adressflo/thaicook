@@ -1,5 +1,5 @@
 // src/pages/Profil.tsx
-import { useState, useEffect, ChangeEvent, useRef } from 'react'; // Ajout de useRef
+import { useState, useEffect, ChangeEvent, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -9,12 +9,12 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from '@/components/ui/use-toast';
 import { Calendar } from '@/components/ui/calendar';
-import { CalendarIcon, User, LogIn, UserPlus, LogOut, Save, Edit3, Camera, CheckSquare, XSquare } from 'lucide-react'; // Ajout de CheckSquare, XSquare
+import { CalendarIcon, User, LogIn, UserPlus, LogOut, Save, Edit3, Camera, CheckSquare, XSquare } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { format, parse, isValid as isValidDate, startOfDay, type Locale } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
-import { useCreateClient, useClientByFirebaseUID, useUpdateClient, MappedClientData, ClientInputData } from '@/hooks/useAirtable'; // Ajout de ClientInputData
+import { useCreateClient, useClientByFirebaseUID, useUpdateClient, MappedClientData, ClientInputData } from '@/hooks/useAirtable';
 
 import { auth } from '../firebaseConfig';
 import {
@@ -26,14 +26,12 @@ import {
   type User as FirebaseUser
 } from 'firebase/auth';
 
-// Imports pour react-image-crop
 import ReactCrop, { type Crop, centerCrop, makeAspectCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 
 const DATE_FORMAT_DISPLAY = "dd/MM/yyyy";
 const DATE_FORMAT_AIRTABLE = "yyyy-MM-dd";
 
-// Fonction utilitaire pour centrer le recadrage par défaut (optionnel mais utile)
 function centerAspectCrop(
   mediaWidth: number,
   mediaHeight: number,
@@ -41,18 +39,30 @@ function centerAspectCrop(
 ): Crop {
   return centerCrop(
     makeAspectCrop(
-      {
-        unit: '%',
-        width: 90, // Taille initiale du recadrage
-      },
-      aspect,
-      mediaWidth,
-      mediaHeight
+      { unit: '%', width: 90 },
+      aspect, mediaWidth, mediaHeight
     ),
-    mediaWidth,
-    mediaHeight
+    mediaWidth, mediaHeight
   );
 }
+
+interface FormDataState {
+  nom: string;
+  prenom: string;
+  preferenceClient: string;
+  numeroTelephone: string;
+  adresseNumeroRue: string;
+  codePostal: string;
+  ville: string;
+  commentConnuChanthana: string[];
+  newsletterPreference: 'Oui, j\'accepte' | 'non'; // Type plus strict ici
+}
+
+const initialFormData: FormDataState = {
+  nom: '', prenom: '', preferenceClient: '', numeroTelephone: '',
+  adresseNumeroRue: '', codePostal: '', ville: '',
+  commentConnuChanthana: [], newsletterPreference: 'non'
+};
 
 
 const Profil = () => {
@@ -79,18 +89,12 @@ const Profil = () => {
   const [profilePhotoPreview, setProfilePhotoPreview] = useState<string | null>(defaultProfilePhoto);
   const [selectedPhotoFile, setSelectedPhotoFile] = useState<File | null>(null);
 
-  // États pour react-image-crop
-  const [imgSrcForCrop, setImgSrcForCrop] = useState<string>(''); // Source de l'image pour le recadreur
+  const [imgSrcForCrop, setImgSrcForCrop] = useState<string>('');
   const [crop, setCrop] = useState<Crop>();
-  const imgCropRef = useRef<HTMLImageElement | null>(null); // Réf pour l'élément image dans le recadreur
-  const [aspectRatio, setAspectRatio] = useState<number | undefined>(1); // Pour un recadrage carré
+  const imgCropRef = useRef<HTMLImageElement | null>(null);
+  const [aspectRatio] = useState<number | undefined>(1);
 
-  const initialFormData = {
-    nom: '', prenom: '', preferenceClient: '', numeroTelephone: '',
-    adresseNumeroRue: '', codePostal: '', ville: '',
-    commentConnuChanthana: [] as string[], newsletterPreference: 'non'
-  };
-  const [formData, setFormData] = useState<typeof initialFormData>(initialFormData);
+  const [formData, setFormData] = useState<FormDataState>(initialFormData);
 
   const { client: airtableClientData, airtableRecordId, isLoading: isLoadingAirtableClient, refetchClient } =
     useClientByFirebaseUID(currentUser?.uid);
@@ -101,6 +105,7 @@ const Profil = () => {
       setCurrentUser(user);
       if (user && user.email) {
         setProfileEmail(user.email);
+        // Ne pas réinitialiser formData ici, attendre le chargement de airtableClientData
       } else {
         setLoginEmail(''); setPassword(''); setProfileEmail(''); setIsEditingEmail(false);
         setFormData(initialFormData);
@@ -108,7 +113,7 @@ const Profil = () => {
         setCalendarDisplayMonth(startOfDay(new Date(1990, 0, 1)));
         setProfilePhotoPreview(defaultProfilePhoto);
         setSelectedPhotoFile(null);
-        setImgSrcForCrop(''); // Réinitialiser l'image du recadreur
+        setImgSrcForCrop('');
       }
       setIsLoadingAuth(false);
     });
@@ -127,7 +132,7 @@ const Profil = () => {
           codePostal: airtableClientData.codePostal?.toString() || '',
           ville: airtableClientData.ville || '',
           commentConnuChanthana: airtableClientData.commentConnuChanthana || [],
-          newsletterPreference: airtableClientData.newsletterPreference || 'non',
+          newsletterPreference: airtableClientData.newsletterPreference as ('Oui, j\'accepte' | 'non') || 'non',
         });
         setProfilePhotoPreview(airtableClientData.photoClientUrl || defaultProfilePhoto);
         if (airtableClientData.dateNaissance) {
@@ -136,26 +141,25 @@ const Profil = () => {
             parsedDate = parse(airtableClientData.dateNaissance, "dd/MM/yyyy", new Date());
           }
           if (isValidDate(parsedDate)) {
-            setBirthDate(parsedDate);
-            setCalendarDisplayMonth(parsedDate);
+            setBirthDate(parsedDate); setCalendarDisplayMonth(parsedDate);
           } else {
             setBirthDate(undefined); setBirthDateInput('');
           }
         } else {
           setBirthDate(undefined); setBirthDateInput('');
         }
-      } else {
+      } else if (!isLoadingAuth) { // Ne réinitialiser que si l'auth est chargée et pas de données Airtable
         setFormData(initialFormData);
         setBirthDate(undefined); setBirthDateInput('');
         setProfilePhotoPreview(defaultProfilePhoto);
       }
     }
-  }, [currentUser, airtableClientData, isLoadingAirtableClient, defaultProfilePhoto]);
+  }, [currentUser, airtableClientData, isLoadingAirtableClient, isLoadingAuth, defaultProfilePhoto]);
+
 
   useEffect(() => {
-    if (birthDate) {
-      setBirthDateInput(format(birthDate, DATE_FORMAT_DISPLAY));
-    }
+    if (birthDate) { setBirthDateInput(format(birthDate, DATE_FORMAT_DISPLAY)); }
+    else { setBirthDateInput(''); }
   }, [birthDate]);
 
   const formatInputToDateDisplayHelper = (value: string): string => {
@@ -177,55 +181,88 @@ const Profil = () => {
         const dayInput = parseInt(formattedValue.slice(0, 2), 10); const monthInput = parseInt(formattedValue.slice(3, 5), 10); const yearInput = parseInt(formattedValue.slice(6, 10), 10);
         if (parsedDate.getDate() === dayInput && (parsedDate.getMonth() + 1) === monthInput && parsedDate.getFullYear() === yearInput && parsedDate >= minDate && parsedDate <= maxDate) {
           if (!birthDate || birthDate.getTime() !== parsedDate.getTime()) { setBirthDate(parsedDate); setCalendarDisplayMonth(parsedDate); }
-        }
-        else { if (birthDate !== undefined) setBirthDate(undefined); }
-      }
-      else { if (birthDate !== undefined) setBirthDate(undefined); }
-    }
-    else { if (birthDate !== undefined) setBirthDate(undefined); }
+        } else { if (birthDate !== undefined) setBirthDate(undefined); }
+      } else { if (birthDate !== undefined) setBirthDate(undefined); }
+    } else { if (birthDate !== undefined) setBirthDate(undefined); }
   };
 
   const handleCalendarSelect = (selectedDate: Date | undefined) => {
     setBirthDate(selectedDate);
-    if (selectedDate) { setBirthDateInput(format(selectedDate, DATE_FORMAT_DISPLAY)); setCalendarDisplayMonth(selectedDate); }
-    else { setBirthDateInput(''); }
+    if(selectedDate) setCalendarDisplayMonth(selectedDate);
     setIsCalendarOpen(false);
   };
 
   const handleAuthAction = async (action: 'login' | 'signup') => {
-    // ... (code existant)
+    setIsLoadingAuth(true); setAuthError(null);
+    console.log(`Tentative de ${action} avec :`, loginEmail);
+    try {
+      if (action === 'signup') {
+        await createUserWithEmailAndPassword(auth, loginEmail, password);
+        toast({ title: "Compte créé !" });
+      } else {
+        await signInWithEmailAndPassword(auth, loginEmail, password);
+        toast({ title: "Connecté !" });
+      }
+    } catch (error: any) {
+      console.error("Erreur Firebase Auth:", error);
+      let msg = "Erreur.";
+      if (error.code === 'auth/email-already-in-use') msg = "Email déjà utilisé.";
+      else if (error.code === 'auth/user-disabled') msg = "Compte désactivé.";
+      else if (['auth/wrong-password', 'auth/user-not-found', 'auth/invalid-credential'].includes(error.code)) msg = "Email ou mot de passe incorrect.";
+      else if (error.code === 'auth/weak-password') msg = "Mot de passe trop court (minimum 6 caractères).";
+      else if (error.code === 'auth/invalid-email') msg = "Format de l'email invalide.";
+      else { msg = error.message || "Une erreur inconnue est survenue lors de l'authentification."; }
+      setAuthError(msg);
+      toast({ title: "Erreur d'authentification", description: msg, variant: "destructive" });
+    }
+    setIsLoadingAuth(false);
   };
 
   const handleLogout = async () => {
-    // ... (code existant)
+    setIsLoadingAuth(true);
+    try { await signOut(auth); setLoginEmail(''); setPassword(''); toast({ title: "Déconnecté" });}
+    catch (error: any) { toast({ title: "Erreur", description: error.message, variant: "destructive" });}
+    setIsLoadingAuth(false);
   };
 
   const handleUpdateEmail = async () => {
-    // ... (code existant)
+    if (!currentUser || !profileEmail || profileEmail === currentUser.email) {
+      toast({description: "Aucun changement d'email."}); setIsEditingEmail(false); return;
+    }
+    setIsLoadingAuth(true);
+    try {
+      await updateEmail(currentUser, profileEmail);
+      toast({ title: "Email mis à jour !" }); setIsEditingEmail(false);
+      if (airtableRecordId) {
+        const emailUpdateData: Partial<ClientInputData> = { email: profileEmail };
+        await updateClient.mutateAsync({ recordId: airtableRecordId, clientData: emailUpdateData });
+        refetchClient();
+      }
+    } catch (error: any) {
+      let msg = "Impossible de mettre à jour l'email."; if(error.code === 'auth/requires-recent-login')msg="Reconnexion récente requise pour cette action."; else if (error.code === 'auth/email-already-in-use')msg="Cet email est déjà utilisé par un autre compte."; else if (error.code === 'auth/invalid-email')msg="Format de l'email invalide.";
+      toast({ title: "Erreur de mise à jour email", description: msg, variant: "destructive" }); if(currentUser?.email)setProfileEmail(currentUser.email);
+    } setIsLoadingAuth(false);
   };
 
-  const handleFormInputChange = (field: keyof typeof formData, value: string | string[]) => {
+  const handleFormInputChange = (field: keyof FormDataState, value: string | string[]) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   const handleCommentConnuChange = (option: string, checked: boolean) => {
-    // ... (code existant)
+    const currentKnownFrom = formData.commentConnuChanthana;
+    const newKnownFrom = checked ? [...currentKnownFrom, option] : currentKnownFrom.filter(item => item !== option);
+    setFormData(prev => ({ ...prev, commentConnuChanthana: newKnownFrom }));
   };
 
-  // MODIFIÉ : Gérer la sélection de photo pour le recadrage
   const handlePhotoChange = (event: ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
-      setCrop(undefined); // Réinitialiser le crop
+      setCrop(undefined);
       const reader = new FileReader();
-      reader.addEventListener('load', () => {
-        setImgSrcForCrop(reader.result?.toString() || '');
-      });
+      reader.addEventListener('load', () => { setImgSrcForCrop(reader.result?.toString() || ''); });
       reader.readAsDataURL(event.target.files[0]);
-      // On ne met plus à jour profilePhotoPreview ou selectedPhotoFile ici directement
     }
   };
 
-  // NOUVEAU : Fonction appelée lorsque l'image est chargée dans ReactCrop
   function onImageLoad(e: React.SyntheticEvent<HTMLImageElement>) {
     if (aspectRatio) {
       const { width, height } = e.currentTarget;
@@ -233,93 +270,49 @@ const Profil = () => {
     }
   }
 
-  // NOUVEAU : Fonction pour appliquer le recadrage
   const handleApplyCrop = () => {
-    if (!crop || !imgCropRef.current) {
-      toast({ title: "Erreur", description: "Aucune zone de recadrage valide.", variant: "destructive" });
-      return;
+    if (!crop || !imgCropRef.current || !crop.width || !crop.height) {
+      toast({ title: "Erreur", description: "Zone de recadrage invalide ou image non chargée.", variant: "destructive" }); return;
     }
-
     const image = imgCropRef.current;
     const canvas = document.createElement('canvas');
     const scaleX = image.naturalWidth / image.width;
     const scaleY = image.naturalHeight / image.height;
-
-    canvas.width = crop.width * scaleX;
-    canvas.height = crop.height * scaleY;
-
+    canvas.width = Math.floor(crop.width * scaleX);
+    canvas.height = Math.floor(crop.height * scaleY);
     const ctx = canvas.getContext('2d');
     if (!ctx) {
-      toast({ title: "Erreur", description: "Impossible de recadrer l'image.", variant: "destructive" });
-      return;
+      toast({ title: "Erreur", description: "Impossible de recadrer (contexte canvas).", variant: "destructive" }); return;
     }
-
-    ctx.drawImage(
-      image,
-      crop.x * scaleX,
-      crop.y * scaleY,
-      crop.width * scaleX,
-      crop.height * scaleY,
-      0,
-      0,
-      canvas.width,
-      canvas.height
-    );
-
+    ctx.drawImage(image, crop.x * scaleX, crop.y * scaleY, crop.width * scaleX, crop.height * scaleY, 0, 0, canvas.width, canvas.height);
     canvas.toBlob((blob) => {
       if (blob) {
         const croppedFile = new File([blob], "profile_photo_cropped.png", { type: "image/png" });
-        setSelectedPhotoFile(croppedFile); // Mettre à jour le fichier qui sera uploadé
-        setProfilePhotoPreview(URL.createObjectURL(blob)); // Mettre à jour l'aperçu principal
-        setImgSrcForCrop(''); // Cacher l'interface de recadrage
+        setSelectedPhotoFile(croppedFile);
+        setProfilePhotoPreview(URL.createObjectURL(blob));
+        setImgSrcForCrop('');
         toast({ description: "Image recadrée. Sauvegardez votre profil pour l'appliquer." });
       } else {
-        toast({ title: "Erreur", description: "Erreur lors de la création du blob de l'image recadrée.", variant: "destructive" });
+        toast({ title: "Erreur", description: "Erreur création blob.", variant: "destructive" });
       }
-    }, 'image/png', 0.9); // 0.9 pour la qualité
+    }, 'image/png', 0.9);
   };
 
-  // NOUVEAU : Fonction pour annuler le recadrage
-  const handleCancelCrop = () => {
-    setImgSrcForCrop('');
-    setCrop(undefined);
-    // Ne pas réinitialiser profilePhotoPreview ici, car l'ancienne photo est toujours valide
-    // ou selectedPhotoFile si l'utilisateur avait déjà une photo recadrée prête.
-  };
-
+  const handleCancelCrop = () => { setImgSrcForCrop(''); setCrop(undefined); };
 
   const handleSubmitAirtableProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentUser || !profileEmail) { toast({ title: "Erreur", description: "Connectez-vous.", variant: "destructive" }); return; }
-    if (birthDateInput && !birthDate) { toast({ title: "Date naissance invalide", description: `Format: ${DATE_FORMAT_DISPLAY}.`, variant: "destructive" }); return; }
+    if (birthDateInput && !birthDate) { toast({ title: "Date naissance invalide", description: `Format: ${DATE_FORMAT_DISPLAY}.`, variant: "destructive"}); return;}
     const codePostalValue = formData.codePostal.trim(); let codePostalNum: number | undefined = undefined;
-    if (codePostalValue) { codePostalNum = parseInt(codePostalValue, 10); if (isNaN(codePostalNum)) { toast({ title: "Erreur", description: "Code postal doit être un nombre.", variant: "destructive" }); setIsLoadingProfile(false); return; } }
+    if (codePostalValue) { codePostalNum = parseInt(codePostalValue, 10); if (isNaN(codePostalNum)) { toast({ title: "Erreur", description: "Code postal doit être un nombre.", variant: "destructive"}); setIsLoadingProfile(false); return;}}
 
     setIsLoadingProfile(true);
     try {
-      // ***** GESTION DE L'UPLOAD DE L'IMAGE (selectedPhotoFile) VERS UN SERVICE (Ex: Firebase Storage) *****
-      // CETTE PARTIE EST À IMPLÉMENTER.
-      // Pour l'instant, nous allons supposer que si selectedPhotoFile existe,
-      // il sera téléversé et son URL sera obtenue.
-      // Puis cette URL sera formatée pour Airtable.
-
-      let photoClientField: any[] | undefined = undefined;
+      let photoClientAirtableFormat: any[] | undefined = undefined;
       if (selectedPhotoFile) {
-        // ÉTAPE 1: Téléverser selectedPhotoFile (qui est maintenant l'image recadrée)
-        // vers Firebase Storage ou un autre service.
-        // const uploadResult = await uploadImageToFirebaseStorage(selectedPhotoFile); // Fonction à créer
-        // const imageUrl = uploadResult.url;
-
-        // SIMULATION: Remplacer par la vraie URL après upload
-        // Pour l'instant, si une photo est sélectionnée, on simule une URL pour Airtable.
-        // Idéalement, ce serait l'URL retournée par votre service de stockage.
-        // photoClientField = [{ url: imageUrl }]; // Format attendu par Airtable
-
-        toast({ description: "Le téléversement de la nouvelle photo vers un service de stockage n'est pas encore implémenté. Le profil sera sauvegardé sans la nouvelle photo.", variant: "default" });
-        // Si le téléversement n'est pas encore fait, ne pas essayer de sauvegarder le champ photo
-        // ou sauvegarder le profil sans la photo pour le moment.
+        toast({ description: "Le téléversement de la nouvelle photo n'est pas encore implémenté.", variant: "default" });
       }
-
 
       const dataToSave: ClientInputData = {
         nom: formData.nom.trim(), prenom: formData.prenom.trim(), preferenceClient: formData.preferenceClient.trim(),
@@ -328,38 +321,35 @@ const Profil = () => {
         commentConnuChanthana: formData.commentConnuChanthana,
         dateNaissance: birthDate ? format(birthDate, DATE_FORMAT_AIRTABLE) : undefined,
         firebaseUID: currentUser.uid,
-        newsletterOptIn: formData.newsletterPreference || "non",
-        // 'Photo Client': photoClientField, // Décommenter et utiliser quand l'upload sera prêt
+        newsletterOptIn: formData.newsletterPreference, // Directement la valeur de l'état
+        ...(photoClientAirtableFormat && { 'Photo Client': photoClientAirtableFormat }),
       };
-      // Filtrer les champs undefined pour ne pas les envoyer à Airtable si non désirés
-      Object.keys(dataToSave).forEach(key => (dataToSave as any)[key] === undefined && delete (dataToSave as any)[key]);
+      const cleanDataToSave = Object.fromEntries(Object.entries(dataToSave).filter(([_, v]) => v !== undefined)) as Partial<ClientInputData>;
 
 
       if (airtableRecordId) {
-        const { firebaseUID, ...updateData } = dataToSave as any;
-        await updateClient.mutateAsync({ recordId: airtableRecordId, clientData: updateData as Partial<ClientInputData> });
+        const { firebaseUID, ...updateData } = cleanDataToSave;
+        await updateClient.mutateAsync({ recordId: airtableRecordId, clientData: updateData });
         toast({ title: "Profil mis à jour !" });
       } else {
-        await createClient.mutateAsync(dataToSave);
+        await createClient.mutateAsync(cleanDataToSave as ClientInputData); // Assurer le type complet pour la création
         toast({ title: "Profil sauvegardé !" });
       }
       refetchClient();
-      setSelectedPhotoFile(null); // Réinitialiser après la sauvegarde
+      setSelectedPhotoFile(null);
     } catch (error: any) {
-      toast({ title: "Erreur Profil Airtable", description: error?.message || "Erreur sauvegarde.", variant: "destructive" });
+      toast({ title: "Erreur Profil Airtable", description: error?.message || "Erreur sauvegarde.", variant: "destructive"});
       console.error("Détail erreur Airtable:", error);
     }
     setIsLoadingProfile(false);
   };
 
-
   const optionsCommentConnu = ['Bouche à oreille', 'Réseaux sociaux', 'Recherche Google', 'En passant devant', 'Recommandation d\'un ami', 'Autre'];
-
   const formatCaptionForCalendar: (date: Date, options?: { locale?: Locale }) => React.ReactNode = (date, options) => {
-    return <>{format(date, "LLLL yyyy", { locale: options?.locale })}</>; // Modifié LLLL yyyy pour compatibilité
+    return <>{format(date, "LLLL yyyy", { locale: options?.locale })}</>; // Corrigé: LLLL yyyy (était LLLL Gospodská)
   };
 
-  if (isLoadingAuth && !currentUser) {
+  if (isLoadingAuth && !currentUser && !imgSrcForCrop) {
     return <div className="flex items-center justify-center min-h-screen bg-gradient-thai"><div className="w-16 h-16 border-4 border-thai-orange border-t-transparent rounded-full animate-spin"></div></div>;
   }
 
@@ -370,7 +360,6 @@ const Profil = () => {
           <CardContent className="p-6 md:p-8">
             {authError && (<div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md text-sm"><p>{authError}</p></div>)}
             {!currentUser ? (
-              // ... (formulaire de connexion/inscription existant) ...
               <div className="space-y-6">
                  <div className="text-center mb-8">
                     <img src={defaultProfilePhoto} alt="Logo Chanthana Thai Cook" className="w-24 h-24 mx-auto mb-4 rounded-full object-contain"/>
@@ -393,35 +382,18 @@ const Profil = () => {
               <div className="space-y-6">
                 <div className="flex flex-col items-center space-y-3 pt-4">
                   <div className="relative">
-                    <img
-                      src={profilePhotoPreview || defaultProfilePhoto}
-                      alt="Profil"
-                      className="w-32 h-32 rounded-full object-cover border-4 border-thai-orange shadow-lg" // object-cover est bien ici pour l'aperçu final
-                    />
+                    <img src={profilePhotoPreview || defaultProfilePhoto} alt="Profil" className="w-32 h-32 rounded-full object-cover border-4 border-thai-orange shadow-lg"/>
                     <Label htmlFor="photo-upload" className="absolute bottom-1 right-1 bg-thai-green text-white p-2 rounded-full cursor-pointer hover:bg-thai-green-light transition-colors shadow">
                       <Camera size={16} />
                       <Input id="photo-upload" type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} />
                     </Label>
                   </div>
-                  {/* NOUVEAU : Interface de recadrage */}
                   {imgSrcForCrop && (
                     <Card className="mt-4 w-full p-4">
                       <h4 className="text-center text-lg font-medium text-thai-green mb-2">Recadrer votre photo</h4>
                       <div className="flex justify-center items-center max-h-96 overflow-hidden">
-                        <ReactCrop
-                          crop={crop}
-                          onChange={(_, percentCrop) => setCrop(percentCrop)} // Utilisez percentCrop pour la mise à jour
-                          aspect={aspectRatio} // Pour un recadrage carré
-                          minWidth={100} // Largeur minimale en pixels pour la zone de recadrage
-                          minHeight={100} // Hauteur minimale
-                        >
-                          <img
-                            ref={imgCropRef}
-                            alt="Crop me"
-                            src={imgSrcForCrop}
-                            onLoad={onImageLoad} // Pour centrer le crop initial
-                            style={{ maxHeight: '350px', objectFit: 'contain' }} // Limiter la hauteur de l'aperçu du recadreur
-                          />
+                        <ReactCrop crop={crop} onChange={c => setCrop(c)} aspect={aspectRatio} minWidth={100} minHeight={100}>
+                          <img ref={imgCropRef} alt="Crop me" src={imgSrcForCrop} onLoad={onImageLoad} style={{ maxHeight: '350px', objectFit: 'contain' }} />
                         </ReactCrop>
                       </div>
                       <div className="flex justify-center gap-4 mt-4">
@@ -430,8 +402,6 @@ const Profil = () => {
                       </div>
                     </Card>
                   )}
-                  {/* Fin Interface de recadrage */}
-
                   <h2 className="text-2xl md:text-3xl font-bold text-thai-green text-center">
                     {formData.prenom ? `Bonjour ${formData.prenom} !` : (profileEmail || currentUser.email)}
                   </h2>
@@ -439,11 +409,8 @@ const Profil = () => {
                     <LogOut className="mr-1 h-4 w-4" />Déconnexion
                   </Button>
                 </div>
-
-                {/* Le formulaire reste le même, mais s'affichera en dessous si l'interface de recadrage est visible */}
-                {!imgSrcForCrop && ( // Cacher le formulaire si l'interface de recadrage est active
+                {!imgSrcForCrop && (
                     <form onSubmit={handleSubmitAirtableProfile} className="space-y-6 border-t border-thai-orange/10 pt-6">
-                    {/* ... (contenu du formulaire existant) ... */}
                       <h3 className="text-xl font-semibold text-thai-green">Mes informations personnelles</h3>
                       <div className="grid md:grid-cols-2 gap-4">
                         <div><Label htmlFor="nom">Nom *</Label><Input id="nom" value={formData.nom} onChange={(e) => handleFormInputChange('nom', e.target.value)} required /></div>
@@ -469,7 +436,12 @@ const Profil = () => {
                           <Input type="text" id="birthDateInput" value={birthDateInput} onChange={handleBirthDateInputChange} placeholder={DATE_FORMAT_DISPLAY} maxLength={10}/>
                           <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
                             <PopoverTrigger asChild><Button variant="outline" id="birthdate-popover-trigger"><CalendarIcon/></Button></PopoverTrigger>
-                            <PopoverContent className="w-auto min-w-[280px] p-0"><Calendar mode="single" selected={birthDate} onSelect={handleCalendarSelect} month={calendarDisplayMonth} onMonthChange={setCalendarDisplayMonth} disabled={(d) => d > new Date() || d < new Date("1900-01-01")} locale={fr} captionLayout="dropdowns" fromYear={1900} toYear={new Date().getFullYear()} formatters={{ formatCaption: formatCaptionForCalendar }}/></PopoverContent>
+                            <PopoverContent className="w-auto min-w-[280px] p-0">
+                              <Calendar mode="single" selected={birthDate} onSelect={handleCalendarSelect} month={calendarDisplayMonth} onMonthChange={setCalendarDisplayMonth}
+                                disabled={(d) => d > new Date() || d < new Date("1900-01-01")}
+                                locale={fr} captionLayout="dropdown" fromYear={1900} toYear={new Date().getFullYear()} 
+                                formatters={{ formatCaption: formatCaptionForCalendar }}/>
+                            </PopoverContent>
                           </Popover>
                         </div>
                         {birthDateInput && birthDateInput.length === 10 && !birthDate && <p className="text-xs text-red-500 mt-1">Format incorrect ou date invalide.</p>}
@@ -483,7 +455,7 @@ const Profil = () => {
                       </div>
                        <div className="space-y-2">
                         <Label>Souhaitez-vous recevoir les actualités et offres par e-mail ?</Label>
-                         <RadioGroup value={formData.newsletterPreference} onValueChange={(v) => handleFormInputChange('newsletterPreference', v as string)} className="flex gap-4 pt-1">
+                         <RadioGroup value={formData.newsletterPreference} onValueChange={(v) => handleFormInputChange('newsletterPreference', v as 'Oui, j\'accepte' | 'non')} className="flex gap-4 pt-1">
                             <div className="flex items-center space-x-2"><RadioGroupItem value="Oui, j'accepte" id="nl-oui"/><Label htmlFor="nl-oui" className="font-normal">Oui, j'accepte</Label></div>
                             <div className="flex items-center space-x-2"><RadioGroupItem value="non" id="nl-non"/><Label htmlFor="nl-non" className="font-normal">Non</Label></div>
                           </RadioGroup>
@@ -499,6 +471,6 @@ const Profil = () => {
       </div>
     </div>
   );
-};
+}; // <--- ACCOLADE FERMANTE AJOUTÉE ICI
 
 export default Profil;

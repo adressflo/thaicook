@@ -7,6 +7,7 @@ import {
   Client,
   Plat,
   Commande,
+  PassageCommande,
   Evenement,
   AirtableRecord,
   AirtableResponse
@@ -48,7 +49,7 @@ export const useAirtableData = (tableName: string, options?: { enabled?: boolean
   const { config } = useAirtableConfig();
   const queryKey = ['airtable', tableName, config?.baseId, config?.apiKey];
 
-  const queryResult = useQuery<AirtableResponse, Error, AirtableResponse, unknown[]>({
+  const queryResult = useQuery<AirtableResponse, Error, AirtableResponse, unknown[]>({ // Type pour queryKey
     queryKey,
     queryFn: async () => {
       if (!config || !config.apiKey || !config.baseId) {
@@ -169,6 +170,7 @@ export const useClients = () => {
     newsletterActualites: record.fields['Souhaitez-vous recevoir les actualités et offres par e-mail ?'] === "Oui, j'accepte",
     dateNaissance: record.fields['Date de naissance'],
     photoClient: record.fields['Photo Client']?.[0]?.url,
+    // firebaseUID: record.fields.FirebaseUID, // Ce champ est bien FirebaseUID dans Airtable
     commandesR: record.fields['Commandes R'],
     evenementsR: record.fields['Événements R'],
     createdTime: record.createdTime,
@@ -182,14 +184,20 @@ const createClientMutationFn: UseMutationOptions<AirtableRecord, Error, ClientIn
     if (!localConfig || !localConfig.baseId || !localConfig.apiKey) {
       throw new Error('Configuration Airtable invalide (createClientMutationFn)');
     }
+
     const fields: Record<string, any> = {
-      'Nom': clientData.nom, 'Prénom': clientData.prenom,
-      'Préférence client': clientData.preferenceClient, 'Numéro de téléphone': clientData.numeroTelephone,
-      'e-mail': clientData.email, 'Adresse (Numéro et rue)': clientData.adresseNumeroRue,
-      'Code Postal': clientData.codePostal, 'Ville': clientData.ville,
+      'Nom': clientData.nom,
+      'Prénom': clientData.prenom,
+      'Préférence client': clientData.preferenceClient,
+      'Numéro de téléphone': clientData.numeroTelephone,
+      'e-mail': clientData.email,
+      'Adresse (Numéro et rue)': clientData.adresseNumeroRue,
+      'Code Postal': clientData.codePostal,
+      'Ville': clientData.ville,
       'Comment avez-vous connu ChanthanaThaiCook ?': clientData.commentConnuChanthana,
       'Souhaitez-vous recevoir les actualités et offres par e-mail ?': clientData.newsletterOptIn,
-      'Date de naissance': clientData.dateNaissance, 'FirebaseUID': clientData.firebaseUID,
+      'Date de naissance': clientData.dateNaissance,
+      'FirebaseUID': clientData.firebaseUID,
     };
     if (clientData['Photo Client']) {
         fields['Photo Client'] = clientData['Photo Client'];
@@ -236,7 +244,6 @@ const updateClientMutationFn: UseMutationOptions<AirtableRecord, Error, { record
     Object.keys(clientData).forEach(key => {
       const typedKey = key as keyof Partial<ClientInputData>;
       if (clientData[typedKey] === null) {
-         // On s'assure que la clé existe bien dans notre mappage avant de la mettre à null
          const airtableFieldName = Object.keys(fieldsToUpdate).find(k => k.toLowerCase() === typedKey.toLowerCase() || k.replace(/[^a-zA-Z0-9]/g, '').toLowerCase() === typedKey.replace(/[^a-zA-Z0-9]/g, '').toLowerCase());
          if(airtableFieldName) fieldsToUpdate[airtableFieldName] = null;
       }
@@ -260,6 +267,7 @@ export const useUpdateClient = () => {
   });
 };
 
+// --- Plats Hooks ---
 export const usePlats = () => {
   const { data, isLoading, error, refetch } = useAirtableData('Plats DB');
   const plats: Plat[] = data?.records.map(record => ({
@@ -277,13 +285,14 @@ export const usePlats = () => {
     evenementsR: record.fields['Événements R'], createdTime: record.createdTime
   })) || [];
   const getPlatsDisponibles = (jour?: string) => {
-    if (!jour) return plats;
-    const champDispoKey = `${jour.toLowerCase()}Dispo` as keyof Plat; // Assurer la minuscule
+    if (!jour) return plats; // Si aucun jour n'est sélectionné, on pourrait retourner un tableau vide ou tous les plats
+    const champDispoKey = `${jour.toLowerCase()}Dispo` as keyof Plat;
     return plats.filter(plat => plat[champDispoKey] === 'oui');
   };
   return { plats, getPlatsDisponibles, isLoading, error, refetch };
 };
 
+// --- Commandes Hooks ---
 export const useCommandes = () => {
   const { data, isLoading, error, refetch } = useAirtableData('Commandes DB');
   const commandes: Commande[] = data?.records.map(record => ({
@@ -328,9 +337,11 @@ const createCommandeMutationFn: UseMutationOptions<AirtableRecord, Error, Comman
     if (nouvelleCommande && nouvelleCommande.id && commandeData.panier) {
       const passageCommandePromises = commandeData.panier.map(item => {
         const passageFields: Record<string, any> = {
-          'Commande R': [nouvelleCommande.id],
+          // Assurez-vous que le nom de ce champ correspond EXACTEMENT à celui de votre base Airtable
+          // Si l'erreur était "Unknown field name: "Commande R"", essayez 'commande R' (minuscule)
+          'commande R': [nouvelleCommande.id], // Correction basée sur la découverte de l'utilisateur
           'Plat R': [item.id],
-          'quantité plat commandé': item.quantite, // Nom exact du champ selon votre PDF/document
+          'quantité plat commandé': item.quantite,
         };
         return airtableService.createRecord({ ...localConfig, tableName: 'Passage Commande DB' }, passageFields);
       });
@@ -348,19 +359,17 @@ export const useCreateCommande = () => {
       queryClient.invalidateQueries({ queryKey: ['airtable', 'Commandes DB', getConfigHook.config?.baseId, getConfigHook.config?.apiKey] });
       queryClient.invalidateQueries({ queryKey: ['airtable', 'Passage Commande DB', getConfigHook.config?.baseId, getConfigHook.config?.apiKey] });
     },
-    onError: (error: any) => { // Type 'any' pour inspecter l'objet erreur plus librement
+    onError: (error: any) => {
       console.error('ERREUR BRUTE dans useCreateCommande:', error);
       if (error && error.message) {
         console.error('Message d\'erreur principal:', error.message);
       }
-      // Tenter de trouver des détails spécifiques d'Airtable
-      // La structure de l'erreur peut varier.
       let airtableErrorDetails = null;
-      if (error.response && error.response.data && error.response.data.error) { // Souvent pour les erreurs de fetch/axios
+      if (error.response && error.response.data && error.response.data.error) {
         airtableErrorDetails = error.response.data.error;
-      } else if (error.error && typeof error.error === 'object') { // Autre format possible
+      } else if (error.error && typeof error.error === 'object') {
         airtableErrorDetails = error.error;
-      } else if (error.details) { // Parfois les détails sont ici
+      } else if (error.details) {
          airtableErrorDetails = error.details;
       }
 
@@ -370,11 +379,12 @@ export const useCreateCommande = () => {
           console.error(`Type d'erreur Airtable: ${airtableErrorDetails.type}, Message: ${airtableErrorDetails.message}`);
         }
       }
-      throw error; // Relancer l'erreur pour que le try/catch du composant puisse la gérer
+      throw error;
     }
   });
 };
 
+// --- Événements Hooks ---
 export const useEvenements = () => {
   const { data, isLoading, error, refetch } = useAirtableData('Événements DB');
   const evenements: Evenement[] = data?.records.map(record => ({
@@ -395,7 +405,7 @@ export const useEvenements = () => {
 };
 
 export type EvenementInputData = {
-  nomEvenement: string;
+  nomEvenement?: string; // Rendu optionnel
   contactEmail: string;
   dateEvenement: string;
   typeEvenement: string;
@@ -412,7 +422,7 @@ const createEvenementMutationFn: UseMutationOptions<AirtableRecord, Error, Evene
         throw new Error('Configuration Airtable invalide (createEvenementMutationFn - interne)');
     }
     const fields: Record<string, any> = {
-      'Nom Événement': evenementData.nomEvenement,
+      'Nom Événement': evenementData.nomEvenement, // Sera omis si undefined grâce à la boucle ci-dessous
       'Date Événement': evenementData.dateEvenement,
       'Type d\'Événement': evenementData.typeEvenement,
       'Nombre de personnes': evenementData.nombrePersonnes,
@@ -421,7 +431,8 @@ const createEvenementMutationFn: UseMutationOptions<AirtableRecord, Error, Evene
       'Plats Pré-sélectionnés (par client) R': evenementData.platsPreSelectionnesR,
       'Statut Événement': 'Demande initiale',
     };
-    Object.keys(fields).forEach(key => { if (fields[key] === undefined) delete fields[key];});
+    // 'Contact Client R' sera ajouté par le hook useCreateEvenement
+    Object.keys(fields).forEach(key => { if (fields[key] === undefined || fields[key] === null) delete fields[key];});
     return airtableService.createRecord({ ...localConfig, tableName: 'Événements DB' }, fields);
 };
 
