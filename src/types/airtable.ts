@@ -1,4 +1,3 @@
-
 export interface AirtableRecord {
   id: string;
   fields: Record<string, any>;
@@ -36,6 +35,8 @@ export interface Client {
   // Champs de relation (apparaîtront automatiquement)
   commandesR?: string[]; // Lien vers Commandes DB
   evenementsR?: string[]; // Lien vers Événements DB
+  FirebaseUID?: string; // Ajout du champ FirebaseUID
+  Rôle?: 'client' | 'admin'; // Ajout du champ Rôle
   createdTime: string;
 }
 

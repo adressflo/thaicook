@@ -1,7 +1,7 @@
 // src/hooks/useAirtable.ts
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient, type UseMutationOptions } from '@tanstack/react-query';
-import { airtableService } from '@/services/airtableService';
+import { airtableService } from '@/services/airtableService'; //
 import {
   AirtableConfig,
   Client,
@@ -11,7 +11,7 @@ import {
   Evenement,
   AirtableRecord,
   AirtableResponse
-} from '@/types/airtable';
+} from '@/types/airtable'; //
 
 // --- Configuration Hook ---
 export const useAirtableConfig = () => {
@@ -49,14 +49,14 @@ export const useAirtableData = (tableName: string, options?: { enabled?: boolean
   const { config } = useAirtableConfig();
   const queryKey = ['airtable', tableName, config?.baseId, config?.apiKey];
 
-  const queryResult = useQuery<AirtableResponse, Error, AirtableResponse, unknown[]>({ // Type pour queryKey
+  const queryResult = useQuery<AirtableResponse, Error, AirtableResponse, unknown[]>({
     queryKey,
     queryFn: async () => {
       if (!config || !config.apiKey || !config.baseId) {
         console.warn(`Tentative d'appel à fetchRecords pour ${tableName} sans config valide.`);
         return { records: [] };
       }
-      return airtableService.fetchRecords({ ...config, tableName });
+      return airtableService.fetchRecords({ ...config, tableName }); //
     },
     enabled: !!(config && config.apiKey && config.baseId && (options?.enabled !== undefined ? options.enabled : true)),
     staleTime: 5 * 60 * 1000,
@@ -72,11 +72,12 @@ export const useAirtableData = (tableName: string, options?: { enabled?: boolean
 };
 
 // --- Client Hooks ---
-export type MappedClientData = Omit<Client, 'id' | 'createdTime' | 'client' | 'commandesR' | 'evenementsR' | 'photoClient' | 'newsletterActualites'> & {
+export type MappedClientData = Omit<Client, 'id' | 'createdTime' | 'client' | 'commandesR' | 'evenementsR' | 'photoClient' | 'newsletterActualites' | 'FirebaseUID' | 'Rôle'> & { //
   id?: string;
   newsletterPreference?: string;
   photoClientUrl?: string;
   firebaseUID?: string;
+  role?: 'client' | 'admin';
 };
 
 export type ClientInputData = {
@@ -93,6 +94,7 @@ export type ClientInputData = {
   dateNaissance?: string;
   firebaseUID: string;
   'Photo Client'?: any[];
+  Rôle?: 'client' | 'admin';
 };
 
 export const useClientByFirebaseUID = (firebaseUID?: string) => {
@@ -105,46 +107,62 @@ export const useClientByFirebaseUID = (firebaseUID?: string) => {
   const [isLoadingClient, setIsLoadingClient] = useState(true);
 
   useEffect(() => {
+    console.log('[useClientByFirebaseUID] useEffect triggered. FirebaseUID:', firebaseUID, 'Config loaded:', !!config); // LOG AJOUTÉ
     setIsLoadingClient(true);
     if (firebaseUID && config) {
-      if (!isLoadingAllClients && allClientsData) {
+      if (isLoadingAllClients) { // LOG AJOUTÉ
+        console.log('[useClientByFirebaseUID] Still loading all clients data...');
+      } else if (allClientsData) {
+        console.log('[useClientByFirebaseUID] All clients data fetched:', allClientsData.records.length, 'records'); // LOG AJOUTÉ
         const record = allClientsData.records.find((r) => r.fields.FirebaseUID === firebaseUID);
         if (record) {
+          console.log('[useClientByFirebaseUID] Record found for FirebaseUID', firebaseUID, ':', record.id); // LOG AJOUTÉ
+          console.log('[useClientByFirebaseUID] Record fields:', JSON.stringify(record.fields, null, 2)); // LOG AJOUTÉ
+          console.log('[useClientByFirebaseUID] Value of Role field from Airtable:', record.fields.Role); // LOG AJOUTÉ (TRÈS IMPORTANT)
           setAirtableRecordId(record.id);
           setClientData({
-            id: record.id,
-            nom: record.fields.Nom || '',
-            prenom: record.fields.Prénom || '',
-            preferenceClient: record.fields['Préférence client'],
-            numeroTelephone: record.fields['Numéro de téléphone'],
-            email: record.fields['e-mail'] || '',
-            adresseNumeroRue: record.fields['Adresse (Numéro et rue)'],
-            codePostal: record.fields['Code Postal'],
-            ville: record.fields.Ville,
-            commentConnuChanthana: record.fields['Comment avez-vous connu ChanthanaThaiCook ?'] || [],
-            newsletterPreference: record.fields['Souhaitez-vous recevoir les actualités et offres par e-mail ?'] || 'non',
-            dateNaissance: record.fields['Date de naissance'],
-            firebaseUID: record.fields.FirebaseUID,
-            photoClientUrl: record.fields['Photo Client']?.[0]?.url || undefined,
+            id: record.id, //
+            nom: record.fields.Nom || '', //
+            prenom: record.fields.Prénom || '', //
+            preferenceClient: record.fields['Préférence client'], //
+            numeroTelephone: record.fields['Numéro de téléphone'], //
+            email: record.fields['e-mail'] || '', //
+            adresseNumeroRue: record.fields['Adresse (Numéro et rue)'], //
+            codePostal: record.fields['Code Postal'], //
+            ville: record.fields.Ville, //
+            commentConnuChanthana: record.fields['Comment avez-vous connu ChanthanaThaiCook ?'] || [], //
+            newsletterPreference: record.fields['Souhaitez-vous recevoir les actualités et offres par e-mail ?'] || 'non', //
+            dateNaissance: record.fields['Date de naissance'], //
+            firebaseUID: record.fields.FirebaseUID, //
+            photoClientUrl: record.fields['Photo Client']?.[0]?.url || undefined, //
+            role: record.fields.Role as 'client' | 'admin' | undefined, //
           });
         } else {
+          console.warn('[useClientByFirebaseUID] No record found for FirebaseUID:', firebaseUID); // LOG AJOUTÉ
           setClientData(undefined);
           setAirtableRecordId(undefined);
         }
         setIsLoadingClient(false);
-      } else if (isLoadingAllClients) {
-        setIsLoadingClient(true);
-      } else {
+      } else if (fetchError) { // LOG AJOUTÉ
+        console.error('[useClientByFirebaseUID] Error fetching all clients data:', fetchError);
         setIsLoadingClient(false);
         setClientData(undefined);
         setAirtableRecordId(undefined);
       }
-    } else {
+      else { // LOG AJOUTÉ
+        console.log('[useClientByFirebaseUID] No allClientsData and not loading/error.');
+        setIsLoadingClient(false);
+        setClientData(undefined);
+        setAirtableRecordId(undefined);
+      }
+    } else { // LOGS AJOUTÉS
+      if (!firebaseUID) console.log('[useClientByFirebaseUID] No FirebaseUID provided yet.');
+      if (!config) console.log('[useClientByFirebaseUID] Airtable config not available yet.');
       setIsLoadingClient(false);
       setClientData(undefined);
       setAirtableRecordId(undefined);
     }
-  }, [allClientsData, firebaseUID, isLoadingAllClients, config]);
+  }, [allClientsData, firebaseUID, isLoadingAllClients, config, fetchError]); // fetchError ajouté aux dépendances
 
   const refetchClient = () => {
     if (firebaseUID && config) refetch();
@@ -156,24 +174,25 @@ export const useClientByFirebaseUID = (firebaseUID?: string) => {
 export const useClients = () => {
   const { data, isLoading, error, refetch } = useAirtableData('Client DB');
   const clients: Client[] = data?.records.map(record => ({
-    id: record.id,
-    client: record.fields.Client || `${record.fields.Prénom || ''} ${record.fields.Nom || ''}`,
-    nom: record.fields.Nom || '',
-    prenom: record.fields.Prénom || '',
-    preferenceClient: record.fields['Préférence client'],
-    numeroTelephone: record.fields['Numéro de téléphone'],
-    email: record.fields['e-mail'] || '',
-    adresseNumeroRue: record.fields['Adresse (Numéro et rue)'],
-    codePostal: record.fields['Code Postal'],
-    ville: record.fields.Ville,
-    commentConnuChanthana: record.fields['Comment avez-vous connu ChanthanaThaiCook ?'],
-    newsletterActualites: record.fields['Souhaitez-vous recevoir les actualités et offres par e-mail ?'] === "Oui, j'accepte",
-    dateNaissance: record.fields['Date de naissance'],
-    photoClient: record.fields['Photo Client']?.[0]?.url,
-    // firebaseUID: record.fields.FirebaseUID, // Ce champ est bien FirebaseUID dans Airtable
-    commandesR: record.fields['Commandes R'],
-    evenementsR: record.fields['Événements R'],
-    createdTime: record.createdTime,
+    id: record.id, //
+    client: record.fields.Client || `${record.fields.Prénom || ''} ${record.fields.Nom || ''}`, //
+    nom: record.fields.Nom || '', //
+    prenom: record.fields.Prénom || '', //
+    preferenceClient: record.fields['Préférence client'], //
+    numeroTelephone: record.fields['Numéro de téléphone'], //
+    email: record.fields['e-mail'] || '', //
+    adresseNumeroRue: record.fields['Adresse (Numéro et rue)'], //
+    codePostal: record.fields['Code Postal'], //
+    ville: record.fields.Ville, //
+    commentConnuChanthana: record.fields['Comment avez-vous connu ChanthanaThaiCook ?'], //
+    newsletterActualites: record.fields['Souhaitez-vous recevoir les actualités et offres par e-mail ?'] === "Oui, j'accepte", //
+    dateNaissance: record.fields['Date de naissance'], //
+    photoClient: record.fields['Photo Client']?.[0]?.url, //
+    FirebaseUID: record.fields.FirebaseUID, //
+    Rôle: record.fields.Role as 'client' | 'admin' | undefined, //
+    commandesR: record.fields['Commandes R'], //
+    evenementsR: record.fields['Événements R'], //
+    createdTime: record.createdTime, //
   })) || [];
   return { clients, isLoading, error, refetch };
 };
@@ -198,12 +217,13 @@ const createClientMutationFn: UseMutationOptions<AirtableRecord, Error, ClientIn
       'Souhaitez-vous recevoir les actualités et offres par e-mail ?': clientData.newsletterOptIn,
       'Date de naissance': clientData.dateNaissance,
       'FirebaseUID': clientData.firebaseUID,
+      'Role': clientData.Role || 'client',
     };
     if (clientData['Photo Client']) {
         fields['Photo Client'] = clientData['Photo Client'];
     }
     Object.keys(fields).forEach(key => { const v = fields[key]; if (v === undefined || v === null || (typeof v === 'string' && v.trim() === '') || (Array.isArray(v) && v.length === 0)) delete fields[key]; });
-    return airtableService.createRecord({ ...localConfig, tableName: 'Client DB' }, fields);
+    return airtableService.createRecord({ ...localConfig, tableName: 'Client DB' }, fields); //
 };
 
 export const useCreateClient = () => {
@@ -240,6 +260,8 @@ const updateClientMutationFn: UseMutationOptions<AirtableRecord, Error, { record
     if (clientData.newsletterOptIn !== undefined) fieldsToUpdate['Souhaitez-vous recevoir les actualités et offres par e-mail ?'] = clientData.newsletterOptIn;
     if (clientData.dateNaissance !== undefined) fieldsToUpdate['Date de naissance'] = clientData.dateNaissance;
     if (clientData['Photo Client'] !== undefined) fieldsToUpdate['Photo Client'] = clientData['Photo Client'];
+    if (clientData.Rôle !== undefined) fieldsToUpdate['Rôle'] = clientData.Rôle;
+
 
     Object.keys(clientData).forEach(key => {
       const typedKey = key as keyof Partial<ClientInputData>;
@@ -249,7 +271,7 @@ const updateClientMutationFn: UseMutationOptions<AirtableRecord, Error, { record
       }
     });
     Object.keys(fieldsToUpdate).forEach(key => fieldsToUpdate[key] === undefined && delete fieldsToUpdate[key]);
-    return airtableService.updateRecord({ ...localConfig, tableName: 'Client DB' }, recordId, fieldsToUpdate);
+    return airtableService.updateRecord({ ...localConfig, tableName: 'Client DB' }, recordId, fieldsToUpdate); //
 };
 
 export const useUpdateClient = () => {
@@ -271,21 +293,27 @@ export const useUpdateClient = () => {
 export const usePlats = () => {
   const { data, isLoading, error, refetch } = useAirtableData('Plats DB');
   const plats: Plat[] = data?.records.map(record => ({
-    id: record.id, plat: record.fields.Plat || '', description: record.fields.Description,
-    prix: parseFloat(record.fields.Prix || 0), prixVu: record.fields['Prix vu'],
-    lundiDispo: record.fields.lundi_dispo as 'oui' | 'non',
-    mardiDispo: record.fields.mardi_dispo as 'oui' | 'non',
-    mercrediDispo: record.fields.mercredi_dispo as 'oui' | 'non',
-    jeudiDispo: record.fields.jeudi_dispo as 'oui' | 'non',
-    vendrediDispo: record.fields.vendredi_dispo as 'oui' | 'non',
-    samediDispo: record.fields.samedi_dispo as 'oui' | 'non',
-    dimancheDispo: record.fields.dimanche_dispo as 'oui' | 'non',
-    scoreDisponibilite: record.fields['Score Disponibilité'], photoDuPlat: record.fields['Photo du Plat']?.[0]?.url,
-    passageCommandeR: record.fields['passage commande R'], menusEvenementielsR: record.fields['Menus Événementiels R'],
-    evenementsR: record.fields['Événements R'], createdTime: record.createdTime
+    id: record.id, //
+    plat: record.fields.Plat || '', //
+    description: record.fields.Description, //
+    prix: parseFloat(record.fields.Prix || 0), //
+    prixVu: record.fields['Prix vu'], //
+    lundiDispo: record.fields.lundi_dispo as 'oui' | 'non', //
+    mardiDispo: record.fields.mardi_dispo as 'oui' | 'non', //
+    mercrediDispo: record.fields.mercredi_dispo as 'oui' | 'non', //
+    jeudiDispo: record.fields.jeudi_dispo as 'oui' | 'non', //
+    vendrediDispo: record.fields.vendredi_dispo as 'oui' | 'non', //
+    samediDispo: record.fields.samedi_dispo as 'oui' | 'non', //
+    dimancheDispo: record.fields.dimanche_dispo as 'oui' | 'non', //
+    scoreDisponibilite: record.fields['Score Disponibilité'], //
+    photoDuPlat: record.fields['Photo du Plat']?.[0]?.url, //
+    passageCommandeR: record.fields['passage commande R'], //
+    menusEvenementielsR: record.fields['Menus Événementiels R'], //
+    evenementsR: record.fields['Événements R'], //
+    createdTime: record.createdTime //
   })) || [];
   const getPlatsDisponibles = (jour?: string) => {
-    if (!jour) return plats; // Si aucun jour n'est sélectionné, on pourrait retourner un tableau vide ou tous les plats
+    if (!jour) return plats;
     const champDispoKey = `${jour.toLowerCase()}Dispo` as keyof Plat;
     return plats.filter(plat => plat[champDispoKey] === 'oui');
   };
@@ -296,13 +324,20 @@ export const usePlats = () => {
 export const useCommandes = () => {
   const { data, isLoading, error, refetch } = useAirtableData('Commandes DB');
   const commandes: Commande[] = data?.records.map(record => ({
-    id: record.id, nCommande: record.fields['N commande'], compteurCommande: record.fields['compteur commande'],
-    clientR: record.fields['Client R']?.[0], dateHeureRetraitSouhaitees: record.fields['Date et Heure de Retrait Souhaitées'],
-    datePriseCommande: record.fields['Date de Prise de Commande'], statutCommande: record.fields['Statut Commande'],
-    passageCommandeR: record.fields['Passage Commande R'], demandeSpecialCommande: record.fields['Demande spécial pour la commande'],
-    statutPaiement: record.fields['Statut Paiement'], totalCommande: record.fields['Total Commande'],
-    totalCommandeVu: record.fields['Total Commande vu'], notesInternes: record.fields['Notes Internes'],
-    createdTime: record.createdTime
+    id: record.id, //
+    nCommande: record.fields['N commande'], //
+    compteurCommande: record.fields['compteur commande'], //
+    clientR: record.fields['Client R']?.[0], //
+    dateHeureRetraitSouhaitees: record.fields['Date et Heure de Retrait Souhaitées'], //
+    datePriseCommande: record.fields['Date de Prise de Commande'], //
+    statutCommande: record.fields['Statut Commande'], //
+    passageCommandeR: record.fields['Passage Commande R'], //
+    demandeSpecialCommande: record.fields['Demande spécial pour la commande'], //
+    statutPaiement: record.fields['Statut Paiement'], //
+    totalCommande: record.fields['Total Commande'], //
+    totalCommandeVu: record.fields['Total Commande vu'], //
+    notesInternes: record.fields['Notes Internes'], //
+    createdTime: record.createdTime //
   })) || [];
   return { commandes, isLoading, error, refetch };
 };
@@ -332,18 +367,16 @@ const createCommandeMutationFn: UseMutationOptions<AirtableRecord, Error, Comman
     };
     Object.keys(commandeFields).forEach(key => { if (commandeFields[key] === undefined || commandeFields[key] === null) delete commandeFields[key];});
 
-    const nouvelleCommande = await airtableService.createRecord({ ...localConfig, tableName: 'Commandes DB' }, commandeFields);
+    const nouvelleCommande = await airtableService.createRecord({ ...localConfig, tableName: 'Commandes DB' }, commandeFields); //
 
     if (nouvelleCommande && nouvelleCommande.id && commandeData.panier) {
       const passageCommandePromises = commandeData.panier.map(item => {
         const passageFields: Record<string, any> = {
-          // Assurez-vous que le nom de ce champ correspond EXACTEMENT à celui de votre base Airtable
-          // Si l'erreur était "Unknown field name: "Commande R"", essayez 'commande R' (minuscule)
-          'commande R': [nouvelleCommande.id], // Correction basée sur la découverte de l'utilisateur
+          'commande R': [nouvelleCommande.id],
           'Plat R': [item.id],
           'quantité plat commandé': item.quantite,
         };
-        return airtableService.createRecord({ ...localConfig, tableName: 'Passage Commande DB' }, passageFields);
+        return airtableService.createRecord({ ...localConfig, tableName: 'Passage Commande DB' }, passageFields); //
       });
       await Promise.all(passageCommandePromises);
     }
@@ -388,24 +421,34 @@ export const useCreateCommande = () => {
 export const useEvenements = () => {
   const { data, isLoading, error, refetch } = useAirtableData('Événements DB');
   const evenements: Evenement[] = data?.records.map(record => ({
-    id: record.id, nEvenement: record.fields['N Événement'], idAutonumEvenement: record.fields['ID Autonum Événement'],
-    nomEvenement: record.fields['Nom Événement'], contactClientR: record.fields['Contact Client R']?.[0],
-    dateEvenement: record.fields['Date Événement'], typeEvenement: record.fields['Type d\'Événement'],
-    nombrePersonnes: record.fields['Nombre de personnes'], budgetClient: record.fields['Budget Client'],
-    demandesSpecialesEvenement: record.fields['Demandes Spéciales Événement'],
-    platsPreSelectionnesR: record.fields['Plats Pré-sélectionnés (par client) R'],
-    menuFinalConvenu: record.fields['Menu Final Convenu'], statutEvenement: record.fields['Statut Événement'],
-    prixTotalDevise: record.fields['Prix Total Devisé'], lienDevisPDF: record.fields['Lien Devis PDF'],
-    acompteDemande: record.fields['Acompte Demandé'], acompteRecu: record.fields['Acompte Reçu'],
-    dateAcompteRecu: record.fields['Date Acompte Reçu'], statutAcompte: record.fields['Statut Acompte'],
-    notesInternesEvenement: record.fields['Notes Internes Événement'],
-    menuTypeSuggereR: record.fields['Menu Type Suggéré (interne) R']?.[0], createdTime: record.createdTime,
+    id: record.id, //
+    nEvenement: record.fields['N Événement'], //
+    idAutonumEvenement: record.fields['ID Autonum Événement'], //
+    nomEvenement: record.fields['Nom Événement'], //
+    contactClientR: record.fields['Contact Client R']?.[0], //
+    dateEvenement: record.fields['Date Événement'], //
+    typeEvenement: record.fields['Type d\'Événement'], //
+    nombrePersonnes: record.fields['Nombre de personnes'], //
+    budgetClient: record.fields['Budget Client'], //
+    demandesSpecialesEvenement: record.fields['Demandes Spéciales Événement'], //
+    platsPreSelectionnesR: record.fields['Plats Pré-sélectionnés (par client) R'], //
+    menuFinalConvenu: record.fields['Menu Final Convenu'], //
+    statutEvenement: record.fields['Statut Événement'], //
+    prixTotalDevise: record.fields['Prix Total Devisé'], //
+    lienDevisPDF: record.fields['Lien Devis PDF'], //
+    acompteDemande: record.fields['Acompte Demandé'], //
+    acompteRecu: record.fields['Acompte Reçu'], //
+    dateAcompteRecu: record.fields['Date Acompte Reçu'], //
+    statutAcompte: record.fields['Statut Acompte'], //
+    notesInternesEvenement: record.fields['Notes Internes Événement'], //
+    menuTypeSuggereR: record.fields['Menu Type Suggéré (interne) R']?.[0], //
+    createdTime: record.createdTime, //
   })) || [];
   return { evenements, isLoading, error, refetch };
 };
 
 export type EvenementInputData = {
-  nomEvenement?: string; // Rendu optionnel
+  nomEvenement?: string;
   contactEmail: string;
   dateEvenement: string;
   typeEvenement: string;
@@ -422,7 +465,7 @@ const createEvenementMutationFn: UseMutationOptions<AirtableRecord, Error, Evene
         throw new Error('Configuration Airtable invalide (createEvenementMutationFn - interne)');
     }
     const fields: Record<string, any> = {
-      'Nom Événement': evenementData.nomEvenement, // Sera omis si undefined grâce à la boucle ci-dessous
+      'Nom Événement': evenementData.nomEvenement,
       'Date Événement': evenementData.dateEvenement,
       'Type d\'Événement': evenementData.typeEvenement,
       'Nombre de personnes': evenementData.nombrePersonnes,
@@ -431,9 +474,8 @@ const createEvenementMutationFn: UseMutationOptions<AirtableRecord, Error, Evene
       'Plats Pré-sélectionnés (par client) R': evenementData.platsPreSelectionnesR,
       'Statut Événement': 'Demande initiale',
     };
-    // 'Contact Client R' sera ajouté par le hook useCreateEvenement
     Object.keys(fields).forEach(key => { if (fields[key] === undefined || fields[key] === null) delete fields[key];});
-    return airtableService.createRecord({ ...localConfig, tableName: 'Événements DB' }, fields);
+    return airtableService.createRecord({ ...localConfig, tableName: 'Événements DB' }, fields); //
 };
 
 export const useCreateEvenement = () => {
@@ -478,7 +520,7 @@ export const useCreateEvenement = () => {
         fields['Contact Client R'] = [contactClientId];
       }
       Object.keys(fields).forEach(key => { if (fields[key] === undefined || fields[key] === null) delete fields[key];});
-      return airtableService.createRecord({ ...config, tableName: 'Événements DB' }, fields);
+      return airtableService.createRecord({ ...config, tableName: 'Événements DB' }, fields); //
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['airtable', 'Événements DB', getConfigHook.config?.baseId, getConfigHook.config?.apiKey] });
