@@ -72,7 +72,7 @@ export const useAirtableData = (tableName: string, options?: { enabled?: boolean
 };
 
 // --- Client Hooks ---
-export type MappedClientData = Omit<Client, 'id' | 'createdTime' | 'client' | 'commandesR' | 'evenementsR' | 'photoClient' | 'newsletterActualites' | 'FirebaseUID' | 'Rôle'> & { //
+export type MappedClientData = Omit<Client, 'id' | 'createdTime' | 'client' | 'commandesR' | 'evenementsR' | 'photoClient' | 'newsletterActualites' | 'FirebaseUID' | 'Role'> & { //
   id?: string;
   newsletterPreference?: string;
   photoClientUrl?: string;
@@ -94,7 +94,7 @@ export type ClientInputData = {
   dateNaissance?: string;
   firebaseUID: string;
   'Photo Client'?: any[];
-  Rôle?: 'client' | 'admin';
+  Role?: 'client' | 'admin';
 };
 
 export const useClientByFirebaseUID = (firebaseUID?: string) => {
@@ -189,7 +189,7 @@ export const useClients = () => {
     dateNaissance: record.fields['Date de naissance'], //
     photoClient: record.fields['Photo Client']?.[0]?.url, //
     FirebaseUID: record.fields.FirebaseUID, //
-    Rôle: record.fields.Role as 'client' | 'admin' | undefined, //
+    Role: record.fields.Role as 'client' | 'admin' | undefined, //
     commandesR: record.fields['Commandes R'], //
     evenementsR: record.fields['Événements R'], //
     createdTime: record.createdTime, //
@@ -260,7 +260,7 @@ const updateClientMutationFn: UseMutationOptions<AirtableRecord, Error, { record
     if (clientData.newsletterOptIn !== undefined) fieldsToUpdate['Souhaitez-vous recevoir les actualités et offres par e-mail ?'] = clientData.newsletterOptIn;
     if (clientData.dateNaissance !== undefined) fieldsToUpdate['Date de naissance'] = clientData.dateNaissance;
     if (clientData['Photo Client'] !== undefined) fieldsToUpdate['Photo Client'] = clientData['Photo Client'];
-    if (clientData.Rôle !== undefined) fieldsToUpdate['Rôle'] = clientData.Rôle;
+    if (clientData.Role !== undefined) fieldsToUpdate['Role'] = clientData.Role;
 
 
     Object.keys(clientData).forEach(key => {

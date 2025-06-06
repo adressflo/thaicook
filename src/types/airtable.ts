@@ -1,3 +1,5 @@
+// src/types/airtable.ts
+
 export interface AirtableRecord {
   id: string;
   fields: Record<string, any>;
@@ -15,39 +17,34 @@ export interface AirtableConfig {
   tableName: string;
 }
 
-// Table 1: Client DB - Structure exacte selon cahier des charges
 export interface Client {
   id: string;
-  // Champ principal (formule): CONCATENATE({Prénom}, " ", {Nom})
-  client: string;
+  client?: string;
   nom: string;
   prenom: string;
-  preferenceClient?: string; // Allergies, végan, plat préféré, etc.
+  preferenceClient?: string;
   numeroTelephone?: string;
   email: string;
   adresseNumeroRue?: string;
   codePostal?: number;
   ville?: string;
-  commentConnuChanthana?: string[]; // Liste déroulante à choix multiples
-  newsletterActualites?: boolean; // Checkbox
+  commentConnuChanthana?: string[];
+  newsletterActualites?: boolean;
   dateNaissance?: string;
-  photoClient?: string; // Pièce jointe
-  // Champs de relation (apparaîtront automatiquement)
-  commandesR?: string[]; // Lien vers Commandes DB
-  evenementsR?: string[]; // Lien vers Événements DB
-  FirebaseUID?: string; // Ajout du champ FirebaseUID
-  Rôle?: 'client' | 'admin'; // Ajout du champ Rôle
+  photoClient?: string;
+  commandesR?: string[];
+  evenementsR?: string[];
+  FirebaseUID?: string;
+  Role?: 'client' | 'admin'; // CORRECTION: Standardisé en 'Role' sans accent
   createdTime: string;
 }
 
-// Table 2: Plats DB - Structure exacte selon cahier des charges
 export interface Plat {
   id: string;
-  plat: string; // Champ principal
+  plat: string;
   description?: string;
-  prix?: number; // Type Nombre avec devise €
-  prixVu?: string; // Formule d'affichage formaté
-  // Disponibilité par jour (Liste déroulante: "oui"/"non")
+  prix?: number;
+  prixVu?: string;
   lundiDispo?: 'oui' | 'non';
   mardiDispo?: 'oui' | 'non';
   mercrediDispo?: 'oui' | 'non';
@@ -55,61 +52,57 @@ export interface Plat {
   vendrediDispo?: 'oui' | 'non';
   samediDispo?: 'oui' | 'non';
   dimancheDispo?: 'oui' | 'non';
-  scoreDisponibilite?: number; // Formule de comptage
-  photoDuPlat?: string; // Pièce jointe
-  // Champs de relation
+  scoreDisponibilite?: number;
+  photoDuPlat?: string;
   passageCommandeR?: string[];
   menusEvenementielsR?: string[];
   evenementsR?: string[];
   createdTime: string;
 }
 
-// Table 3: Commandes DB - Structure exacte selon cahier des charges
 export interface Commande {
   id: string;
-  nCommande?: string; // Formule: CONCATENATE("CMD : ", {compteur commande})
-  compteurCommande?: number; // Numéro automatique
-  clientR?: string; // Lien vers Client DB (un seul client)
-  dateHeureRetraitSouhaitees?: string; // Date avec heure
-  datePriseCommande?: string; // Date de création automatique
+  nCommande?: string;
+  compteurCommande?: number;
+  clientR?: string[];
+  dateHeureRetraitSouhaitees?: string;
+  datePriseCommande?: string;
   statutCommande?: 'En attente de confirmation' | 'Confirmée' | 'En préparation' | 'Prête à récupérer' | 'Récupérée' | 'Annulée';
-  passageCommandeR?: string[]; // Lien vers Passage Commande DB (plusieurs lignes)
+  passageCommandeR?: string[];
   demandeSpecialCommande?: string;
   statutPaiement?: 'En attente sur place' | 'Payé sur place' | 'Payé en ligne (futur)' | 'Non payé';
-  totalCommande?: number; // Rollup SUM depuis Passage Commande DB
-  totalCommandeVu?: string; // Formule d'affichage formaté
+  totalCommande?: number;
+  totalCommandeVu?: string;
   notesInternes?: string;
   createdTime: string;
 }
 
-// Table 4: Passage Commande DB - Structure exacte selon cahier des charges
 export interface PassageCommande {
   id: string;
-  nPassageCommande?: string; // Formule avec Client + Commande + Plat
-  clientCommandeR?: string; // Lookup depuis Commande R -> Client R
-  commandeR?: string; // Lien vers Commandes DB
-  platR?: string; // Lien vers Plats DB
+  nPassageCommande?: string;
+  clientCommandeR?: string;
+  commandeR?: string[];
+  platR?: string[];
   quantitePlatCommande?: number;
-  prixDuPlat?: number; // Lookup depuis Plat R -> Prix
-  prixDuPlatVue?: string; // Formule d'affichage formaté
-  sousTotalPlatCommande?: number; // Formule: quantité * prix
-  sousTotalPlatCommandeVue?: string; // Formule d'affichage formaté
+  prixDuPlat?: number;
+  prixDuPlatVue?: string;
+  sousTotalPlatCommande?: number;
+  sousTotalPlatCommandeVue?: string;
   createdTime: string;
 }
 
-// Table 5: Événements DB - Structure exacte selon cahier des charges
 export interface Evenement {
   id: string;
-  nEvenement?: string; // Formule: CONCATENATE("EVT-", {ID Autonum Événement})
-  idAutonumEvenement?: number; // Numéro automatique masqué
+  nEvenement?: string;
+  idAutonumEvenement?: number;
   nomEvenement?: string;
-  contactClientR?: string; // Lien vers Client DB
-  dateEvenement?: string; // Date avec heure
+  contactClientR?: string;
+  dateEvenement?: string;
   typeEvenement?: 'Anniversaire' | 'Repas d\'entreprise' | 'Fête de famille' | 'Cocktail dînatoire' | 'Buffet traiteur' | 'Autre';
   nombrePersonnes?: number;
   budgetClient?: number;
   demandesSpecialesEvenement?: string;
-  platsPreSelectionnesR?: string[]; // Lien vers Plats DB (plusieurs)
+  platsPreSelectionnesR?: string[];
   menuFinalConvenu?: string;
   statutEvenement?: 'Demande initiale' | 'Menu en discussion' | 'Devis à faire' | 'Devis envoyé' | 'Confirmé / Acompte en attente' | 'Confirmé / Acompte reçu' | 'En préparation' | 'Réalisé' | 'Facturé / Solde à payer' | 'Payé intégralement' | 'Annulé';
   prixTotalDevise?: number;
@@ -119,55 +112,6 @@ export interface Evenement {
   dateAcompteRecu?: string;
   statutAcompte?: 'Non applicable' | 'Demandé' | 'Reçu';
   notesInternesEvenement?: string;
-  menuTypeSuggereR?: string; // Lien vers Menus Événementiels Types DB
+  menuTypeSuggereR?: string;
   createdTime: string;
-}
-
-// Table 6: Menus Événementiels Types DB - Structure exacte selon cahier des charges
-export interface MenuEvenementielType {
-  id: string;
-  nomMenuType: string; // Champ principal
-  description?: string;
-  suggestionPlatsInclusR?: string[]; // Lien vers Plats DB (plusieurs)
-  adaptePourTypesEvenement?: string[]; // Liste déroulante à choix multiples
-  prixIndicatifParPersonne?: number;
-  nombreConvivesSuggere?: string; // Ex: "10-20 pers."
-  photoAmbianceMenu?: string; // Pièce jointe
-  notesInternesMenuType?: string;
-  evenementsAssociesR?: string[]; // Lien vers Événements DB
-  createdTime: string;
-}
-
-// Types pour analytics et évolutions futures
-export interface Analytics {
-  totalCommandes: number;
-  commandesAujourdhui: number;
-  totalClients: number;
-  totalEvenements: number;
-  chiffreAffairesMois: number;
-  timestamp: string;
-}
-
-// Types pour la sécurité et l'authentification (Firebase)
-export interface UtilisateurApp {
-  uid: string;
-  email: string;
-  role: 'client' | 'admin';
-  clientAirtableId?: string; // Lien vers l'enregistrement Client DB
-  dernierAcces: string;
-}
-
-// Types pour les workflows n8n
-export interface WebhookResponse {
-  success: boolean;
-  message: string;
-  data?: any;
-  error?: string;
-}
-
-export interface N8nWorkflowTrigger {
-  workflowName: string;
-  data: Record<string, any>;
-  timestamp: string;
-  source: 'profil' | 'commande' | 'evenement' | 'admin';
 }
