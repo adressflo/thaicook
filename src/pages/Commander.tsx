@@ -4,9 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Calendar as CalendarIconLucide, AlertCircle, Utensils, CreditCard, Loader2 } from 'lucide-react';
+import { Calendar as CalendarIconLucide, AlertCircle, Utensils, CreditCard, Loader2, Search } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -25,6 +26,18 @@ const dayNameToNumber: { [key: string]: Day } = {
   dimanche: 0, lundi: 1, mardi: 2, mercredi: 3, jeudi: 4, vendredi: 5, samedi: 6,
 };
 
+const joursDispoMapping = [
+    { key: 'lundi_dispo', value: 'lundi', label: 'Lundi' },
+    { key: 'mercredi_dispo', value: 'mercredi', label: 'Mercredi' },
+    { key: 'vendredi_dispo', value: 'vendredi', label: 'Vendredi' },
+    { key: 'samedi_dispo', value: 'samedi', label: 'Samedi' },
+];
+
+// Helper function to get available days for a dish
+const getAvailableDays = (plat: Plat): { value: string; label: string }[] => {
+    return joursDispoMapping.filter(jour => plat[jour.key as keyof Plat] === 'oui');
+}
+
 const Commander = memo(() => {
   const { toast } = useToast();
   const { config } = useAirtableConfig();
@@ -40,6 +53,19 @@ const Commander = memo(() => {
   const [demandesSpeciales, setDemandesSpeciales] = useState<string>('');
   const [allowedDates, setAllowedDates] = useState<Date[]>([]);
   const [currentCalendarMonth, setCurrentCalendarMonth] = useState<Date>(startOfDay(new Date()));
+
+  // --- NOUVELLE FONCTIONNALITÉ: RECHERCHE ---
+  const [recherche, setRecherche] = useState('');
+
+  const platsFiltres = useMemo(() => {
+      if (!recherche) return [];
+      if (!plats) return [];
+      return plats.filter(plat =>
+          plat.Plat?.toLowerCase().includes(recherche.toLowerCase())
+      );
+  }, [recherche, plats]);
+  // --- FIN NOUVELLE FONCTIONNALITÉ ---
+
 
   const platsDisponibles = useMemo(() => {
     if (!jourSelectionne || !plats) return [];
@@ -143,7 +169,7 @@ const Commander = memo(() => {
   };
 
   if (!config) {
-    return <div className="p-8"><Alert variant="destructive">Configuration Airtable requise.</Alert></div>;
+    return <div className="p-8"><Alert variant="destructive">Configuration Airtable requise. Veuillez vous rendre sur la page <Link to="/airtable-config" className="underline">Configuration</Link>.</Alert></div>;
   }
   if (dataError) {
     return <div className="p-8"><Alert variant="destructive">Erreur de chargement: {dataError.message}</Alert></div>;
@@ -168,7 +194,9 @@ const Commander = memo(() => {
           </CardHeader>
 
           <CardContent className="p-6 md:p-8">
-            <div className="mb-6">
+            
+            {/* --- SECTION CHOIX DU JOUR --- */}
+            <div className="mb-8 pb-8 border-b border-thai-orange/10">
               <Label className="text-md font-semibold text-thai-green mb-3 block">Choisissez un jour pour voir le menu :</Label>
               <div className="flex flex-wrap gap-2 sm:gap-3">
                 {joursOuverture.map(jour => (
@@ -179,9 +207,58 @@ const Commander = memo(() => {
                 ))}
               </div>
             </div>
+
+            {/* --- SECTION RECHERCHE --- */}
+            <div className="mb-8">
+              <Label htmlFor="recherche-plat" className="text-md font-semibold text-thai-green mb-3 block">
+                Ou rechercher un plat pour voir sa disponibilité
+              </Label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  id="recherche-plat"
+                  placeholder="Ex: Pad Thaï, Curry, Nems..."
+                  value={recherche}
+                  onChange={(e) => setRecherche(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              {recherche && platsFiltres.length > 0 && (
+                <div className="mt-4 space-y-2 rounded-lg bg-thai-cream/30 p-4">
+                  {platsFiltres.map(plat => (
+                    <div key={plat.id} className="p-2 border-b last:border-b-0 border-thai-orange/20 flex flex-col sm:flex-row justify-between sm:items-center gap-2">
+                      <span className="font-medium text-thai-green">{plat.Plat}</span>
+                      <div className="flex gap-2 flex-wrap">
+                        {getAvailableDays(plat).length > 0 ? (
+                          getAvailableDays(plat).map(jour => (
+                            <Badge
+                              key={jour.value}
+                              variant="secondary"
+                              className="cursor-pointer hover:bg-thai-orange/20"
+                              onClick={() => {
+                                setJourSelectionne(jour.value);
+                                setRecherche(''); // Vider la recherche après la sélection
+                              }}
+                            >
+                              {jour.label}
+                            </Badge>
+                          ))
+                        ) : (
+                          <Badge variant="destructive">Indisponible</Badge>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+               {recherche && platsFiltres.length === 0 && (
+                <p className="text-center text-sm text-gray-500 mt-4">Aucun plat ne correspond à votre recherche.</p>
+              )}
+            </div>
+            {/* --- FIN SECTION RECHERCHE --- */}
             
             {jourSelectionne && (
-              <div className="mb-6">
+              <div className="mb-6 pt-6 border-t border-thai-orange/10 animate-fade-in">
                 <h3 className="text-lg font-semibold text-thai-green mb-3">Plats disponibles le {jourSelectionne} :</h3>
                 {dataIsLoading ? (<div className="text-center py-6"><Loader2 className="h-6 w-6 animate-spin mx-auto text-thai-orange" /></div>
                 ) : platsDisponibles.length === 0 ? (<div className="text-center py-6 bg-thai-cream/30 rounded-lg"><p className="text-thai-green/70">Aucun plat disponible ce jour-là.</p></div>
@@ -206,7 +283,7 @@ const Commander = memo(() => {
             )}
             
             {panier.length > 0 && (
-              <div className="space-y-6 border-t pt-6 mt-6">
+              <div className="space-y-6 border-t pt-6 mt-6 animate-fade-in">
                 <h3 className="text-lg font-semibold text-thai-green">Mon Panier</h3>
                 <div className="space-y-2">
                   {panier.map(item => (
@@ -244,7 +321,7 @@ const Commander = memo(() => {
                     </div>
                 </div>
                 
-                <Button onClick={validerCommande} disabled={createCommande.isPending} className="w-full bg-thai-orange text-lg py-6">
+                <Button onClick={validerCommande} disabled={createCommande.isPending || !currentUser || !airtableRecordId} className="w-full bg-thai-orange text-lg py-6">
                   {createCommande.isPending ? <Loader2 className="animate-spin mr-2"/> : <CreditCard className="mr-2"/>}
                   Valider ma commande
                 </Button>
@@ -256,5 +333,7 @@ const Commander = memo(() => {
     </div>
   );
 });
+
+Commander.displayName = 'Commander';
 
 export default Commander;

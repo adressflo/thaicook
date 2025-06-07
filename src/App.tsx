@@ -53,11 +53,14 @@ const App = () => (
                   <Route path="/nous-trouver" element={<NousTrouver />} />
                   <Route path="/a-propos" element={<APropos />} />
                   
+                  {/* MODIFICATION: La route AirtableConfig est sortie de AdminRoute pour être accessible */}
+                  <Route path="/airtable-config" element={<AirtableConfig />} />
+
+                  {/* Les routes admin restent protégées */}
                   <Route element={<AdminRoute />}>
                     <Route path="/admin" element={<Admin />} />
                     <Route path="/admin/commandes" element={<AdminCommandes />} />
                     <Route path="/admin/commandes/:id" element={<AdminCommandeDetail />} />
-                    <Route path="/airtable-config" element={<AirtableConfig />} />
                   </Route>
 
                   <Route path="*" element={<NotFound />} />

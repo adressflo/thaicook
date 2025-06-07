@@ -18,7 +18,7 @@ import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, on
 import ReactCrop, { type Crop, centerCrop, makeAspectCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 
-// CORRECTION 1: Les imports sont mis à jour pour la nouvelle architecture
+// Les imports sont mis à jour pour la nouvelle architecture
 import { useAuth } from '@/hooks/useAuth';
 import { useCreateClient, useUpdateClient } from '@/hooks/useAirtable';
 import type { ClientInputData } from '@/types/airtable';
@@ -51,8 +51,8 @@ const initialFormData: FormDataState = {
 
 const Profil = memo(() => {
   const { toast } = useToast();
-  // CORRECTION 2: Utilisation du hook d'authentification centralisé
-  const { currentUser, isLoadingAuth, currentUserAirtableData, refetchClient } = useAuth();
+  // MODIFICATION 1: Ajout de isLoadingUserRole
+  const { currentUser, isLoadingAuth, currentUserAirtableData, isLoadingUserRole, refetchClient } = useAuth();
   
   const createClientMutation = useCreateClient();
   const updateClientMutation = useUpdateClient();
@@ -77,7 +77,7 @@ const Profil = memo(() => {
   const [aspectRatio] = useState<number | undefined>(1);
   const [formData, setFormData] = useState<FormDataState>(initialFormData);
 
-  // CORRECTION 3: Simplification de la synchronisation des données
+  // Simplification de la synchronisation des données
   useEffect(() => {
     if (currentUser) {
         setProfileEmail(currentUser.email || '');
@@ -149,9 +149,9 @@ const Profil = memo(() => {
     }
   };
   const handleCalendarSelect = (date: Date | undefined) => { setBirthDate(date); setIsCalendarOpen(false); };
-  const formatCaptionForCalendar = (date: Date, options?: { locale?: Locale }) => <>{format(date, "LLLL yyyy", { locale: options?.locale })}</>;
+  const formatCaptionForCalendar = (date: Date, options?: { locale?: Locale }) => <>{format(date, "LLLL", { locale: options?.locale })}</>;
 
-  // CORRECTION 4: La fonction de sauvegarde utilise les bons noms de champs pour Airtable
+  // La fonction de sauvegarde utilise les bons noms de champs pour Airtable
   const handleSubmitAirtableProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentUser?.email) return;
@@ -188,7 +188,8 @@ const Profil = memo(() => {
     }
   };
 
-  const isLoading = isLoadingAuth || (currentUser && !currentUserAirtableData);
+  // MODIFICATION 2: Correction de la logique de chargement
+  const isLoading = isLoadingAuth || isLoadingUserRole;
   if (isLoading) {
     return <div className="flex items-center justify-center min-h-screen"><Loader2 className="w-16 h-16 animate-spin text-thai-orange"/></div>;
   }
@@ -250,5 +251,7 @@ const Profil = memo(() => {
     </div>
   );
 });
+
+Profil.displayName = 'Profil';
 
 export default Profil;
