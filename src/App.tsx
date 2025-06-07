@@ -1,13 +1,15 @@
-// src/App.tsx
-import './firebaseConfig';
+import { Suspense, lazy } from 'react';
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-// QueryClient et QueryClientProvider sont retirés d'ici
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { Suspense, lazy } from "react";
+import { AuthProvider } from './contexts/AuthContext';
+import { DataProvider } from './contexts/DataContext';
 import Sidebar from "./components/Sidebar";
 import AdminRoute from './components/AdminRoute';
+import { Loader2 } from 'lucide-react';
+import './firebaseConfig';
+import './index.css';
 
 // Lazy load pages for better performance
 const TableauDeBord = lazy(() => import("./pages/TableauDeBord"));
@@ -22,52 +24,51 @@ const AdminCommandes = lazy(() => import("./pages/AdminCommandes"));
 const AdminCommandeDetail = lazy(() => import("./pages/AdminCommandeDetail"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
-// const queryClient = new QueryClient(); // Retiré d'ici
-
 // Loading component
 const PageLoader = () => (
-  <div className="flex items-center justify-center min-h-screen bg-gradient-thai">
+  <div className="flex items-center justify-center h-full w-full">
     <div className="text-center">
-      <div className="w-16 h-16 border-4 border-thai-orange border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+      <Loader2 className="w-12 h-12 animate-spin text-thai-orange mx-auto mb-4" />
       <p className="text-thai-green font-medium">Chargement...</p>
     </div>
   </div>
 );
 
 const App = () => (
-  // QueryClientProvider est retiré d'ici
-  <TooltipProvider>
-    <Toaster />
-    <Sonner />
-    <BrowserRouter>
-      <div className="min-h-screen bg-background flex w-full">
-        <Sidebar />
-        <main className="flex-1 ml-16 lg:ml-64 transition-all duration-300">
-          <Suspense fallback={<PageLoader />}>
-            <Routes>
-              <Route path="/" element={<TableauDeBord />} />
-              <Route path="/commander" element={<Commander />} />
-              <Route path="/evenements" element={<Evenements />} />
-              <Route path="/profil" element={<Profil />} />
-              <Route path="/nous-trouver" element={<NousTrouver />} />
-              <Route path="/a-propos" element={<APropos />} />
-              <Route path="/airtable-config" element={<AirtableConfig />} />
+  <BrowserRouter>
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <AuthProvider>
+        <DataProvider>
+          <div className="min-h-screen bg-background flex w-full">
+            <Sidebar />
+            <main className="flex-1 lg:ml-64 transition-all duration-300">
+              <Suspense fallback={<PageLoader />}>
+                <Routes>
+                  <Route path="/" element={<TableauDeBord />} />
+                  <Route path="/commander" element={<Commander />} />
+                  <Route path="/evenements" element={<Evenements />} />
+                  <Route path="/profil" element={<Profil />} />
+                  <Route path="/nous-trouver" element={<NousTrouver />} />
+                  <Route path="/a-propos" element={<APropos />} />
+                  
+                  <Route element={<AdminRoute />}>
+                    <Route path="/admin" element={<Admin />} />
+                    <Route path="/admin/commandes" element={<AdminCommandes />} />
+                    <Route path="/admin/commandes/:id" element={<AdminCommandeDetail />} />
+                    <Route path="/airtable-config" element={<AirtableConfig />} />
+                  </Route>
 
-              {/* Routes Admin Protégées */}
-              <Route element={<AdminRoute />}>
-                <Route path="/admin" element={<Admin />} />
-                <Route path="/admin/commandes" element={<AdminCommandes />} />
-                <Route path="/admin/commandes/:id" element={<AdminCommandeDetail />} />
-              </Route>
-
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Suspense>
-        </main>
-      </div>
-    </BrowserRouter>
-  </TooltipProvider>
-  // QueryClientProvider est retiré d'ici
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </Suspense>
+            </main>
+          </div>
+        </DataProvider>
+      </AuthProvider>
+    </TooltipProvider>
+  </BrowserRouter>
 );
 
 export default App;

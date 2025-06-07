@@ -1,24 +1,19 @@
-// src/components/AdminRoute.tsx
 import React from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/useAuth'; // CORRECTION : Import depuis le bon fichier de hook
+import { Loader2 } from 'lucide-react';
 
 const AdminRoute: React.FC = () => {
   const { currentUser, currentUserRole, isLoadingAuth, isLoadingUserRole } = useAuth();
   const location = useLocation();
 
-  // Logs pour débogage
-  console.log('[AdminRoute] isLoadingAuth:', isLoadingAuth);
-  console.log('[AdminRoute] isLoadingUserRole:', isLoadingUserRole);
-  console.log('[AdminRoute] currentUser:', currentUser?.uid);
-  console.log('[AdminRoute] currentUserRole from context:', currentUserRole);
+  const isLoading = isLoadingAuth || isLoadingUserRole;
 
-  if (isLoadingAuth || isLoadingUserRole) {
-    console.log('[AdminRoute] Showing loading indicator...');
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-thai">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-thai-orange border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <Loader2 className="w-16 h-16 border-4 border-thai-orange border-t-transparent rounded-full animate-spin mx-auto mb-4" />
           <p className="text-thai-green font-medium">Vérification de l'accès...</p>
         </div>
       </div>
@@ -26,16 +21,16 @@ const AdminRoute: React.FC = () => {
   }
 
   if (!currentUser) {
-    console.log('[AdminRoute] No current Firebase user, redirecting to /profil');
+    // Redirige vers la page de profil pour se connecter, en gardant en mémoire la page de départ
     return <Navigate to="/profil" state={{ from: location }} replace />;
   }
 
   if (currentUserRole !== 'admin') {
-    console.log(`[AdminRoute] Role is "${currentUserRole}" (expected "admin"). Redirecting to /`);
+    // Si l'utilisateur n'est pas admin, redirige vers la page d'accueil
     return <Navigate to="/" replace />;
   }
 
-  console.log('[AdminRoute] User is admin, rendering Outlet.');
+  // Si tout est bon, affiche le contenu de la route admin
   return <Outlet />;
 };
 

@@ -1,61 +1,52 @@
-// src/contexts/AuthContext.tsx
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useState, useEffect, ReactNode } from 'react';
 import { onAuthStateChanged, type User as FirebaseUser } from 'firebase/auth';
 import { auth } from '../firebaseConfig';
-import { useClientByFirebaseUID, type MappedClientData } from '@/hooks/useAirtable';
+import { useClients } from '@/hooks/useAirtable'; // Utilise notre fichier de hooks unifié
+import type { Client } from '@/types/airtable'; // Utilise notre fichier de types unifié
 
+// Définit la forme des données que notre contexte va fournir
 interface AuthContextType {
   currentUser: FirebaseUser | null;
   isLoadingAuth: boolean;
-  currentUserAirtableData: MappedClientData | undefined;
-  currentUserRole: 'client' | 'admin' | undefined;
+  currentUserAirtableData: Client | undefined;
+  currentUserRole: Client['Role'];
   isLoadingUserRole: boolean;
+  refetchClient: () => void;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+// Nous exportons le Contexte pour que le hook useAuth puisse l'utiliser
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Le composant "Provider" qui englobe l'application et fournit les données
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<FirebaseUser | null>(null);
   const [isLoadingAuth, setIsLoadingAuth] = useState(true);
 
-  const { client: currentUserAirtableData, isLoading: isLoadingAirtableClient, error: airtableError } = useClientByFirebaseUID(currentUser?.uid);
+  // On récupère la liste de tous les clients et la fonction pour rafraîchir
+  const { clients, isLoading: isLoadingClients, refetch } = useClients();
 
   useEffect(() => {
-    setIsLoadingAuth(true);
+    // Met en place un observateur pour l'état de connexion de Firebase
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      console.log('[AuthContext] onAuthStateChanged - Firebase user:', user?.uid);
       setCurrentUser(user);
       setIsLoadingAuth(false);
     });
+    // Nettoie l'observateur quand le composant est démonté
     return unsubscribe;
   }, []);
-
-  const derivedUserRole = currentUserAirtableData?.role;
-
-  // Logs pour débogage
-  console.log('[AuthContext] currentUser:', currentUser?.uid);
-  console.log('[AuthContext] isLoadingAuth:', isLoadingAuth);
-  console.log('[AuthContext] currentUserAirtableData:', currentUserAirtableData);
-  console.log('[AuthContext] isLoadingAirtableClient (isLoadingUserRole):', isLoadingAirtableClient);
-  console.log('[AuthContext] Airtable Error (if any):', airtableError);
-  console.log('[AuthContext] Derived currentUserRole:', derivedUserRole);
-
-
+  
+  // On cherche le client Airtable qui correspond à l'utilisateur Firebase connecté
+  const currentUserAirtableData = currentUser && clients ? clients.find(c => c.FirebaseUID === currentUser.uid) : undefined;
+  
+  // On prépare la valeur à fournir au reste de l'application
   const value = {
     currentUser,
     isLoadingAuth,
     currentUserAirtableData,
-    currentUserRole: derivedUserRole,
-    isLoadingUserRole: isLoadingAirtableClient,
+    currentUserRole: currentUserAirtableData?.Role,
+    isLoadingUserRole: isLoadingClients,
+    refetchClient: refetch,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-};
-
-export const useAuth = (): AuthContextType => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
 };
