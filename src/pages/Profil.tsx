@@ -18,19 +18,16 @@ import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, on
 import ReactCrop, { type Crop, centerCrop, makeAspectCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 
-// Les imports sont mis à jour pour la nouvelle architecture
 import { useAuth } from '@/hooks/useAuth';
 import { useCreateClient, useUpdateClient } from '@/hooks/useAirtable';
 import type { ClientInputData } from '@/types/airtable';
 
-const DATE_FORMAT_DISPLAY = "dd/MM/yyyy";
 const DATE_FORMAT_AIRTABLE = "yyyy-MM-dd";
 
 function centerAspectCrop(mediaWidth: number, mediaHeight: number, aspect: number): Crop {
     return centerCrop(makeAspectCrop({ unit: '%', width: 90 }, aspect, mediaWidth, mediaHeight), mediaWidth, mediaHeight);
 }
 
-// L'état du formulaire local, basé sur votre structure originale
 interface FormDataState {
   nom: string;
   prenom: string;
@@ -51,13 +48,11 @@ const initialFormData: FormDataState = {
 
 const Profil = memo(() => {
   const { toast } = useToast();
-  // MODIFICATION 1: Ajout de isLoadingUserRole
   const { currentUser, isLoadingAuth, currentUserAirtableData, isLoadingUserRole, refetchClient } = useAuth();
   
   const createClientMutation = useCreateClient();
   const updateClientMutation = useUpdateClient();
 
-  // Le reste de votre code original est conservé
   const [loginEmail, setLoginEmail] = useState('');
   const [password, setPassword] = useState('');
   const [authError, setAuthError] = useState<string | null>(null);
@@ -65,7 +60,6 @@ const Profil = memo(() => {
   const [isEditingEmail, setIsEditingEmail] = useState(false);
   const [isLoadingProfile, setIsLoadingProfile] = useState(false);
   const [birthDate, setBirthDate] = useState<Date | undefined>();
-  const [birthDateInput, setBirthDateInput] = useState<string>('');
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [calendarDisplayMonth, setCalendarDisplayMonth] = useState<Date>(startOfDay(new Date(1990, 0, 1)));
   const defaultProfilePhoto = "/lovable-uploads/62d46b15-aa56-45d2-ab7d-75dfee70f70d.png";
@@ -77,7 +71,6 @@ const Profil = memo(() => {
   const [aspectRatio] = useState<number | undefined>(1);
   const [formData, setFormData] = useState<FormDataState>(initialFormData);
 
-  // Simplification de la synchronisation des données
   useEffect(() => {
     if (currentUser) {
         setProfileEmail(currentUser.email || '');
@@ -97,17 +90,16 @@ const Profil = memo(() => {
       setProfilePhotoPreview(currentUserAirtableData['Photo Client']?.[0]?.url || defaultProfilePhoto);
       if (currentUserAirtableData['Date de naissance']) {
         const parsedDate = parse(currentUserAirtableData['Date de naissance'], DATE_FORMAT_AIRTABLE, new Date());
-        if (isValidDate(parsedDate)) setBirthDate(parsedDate);
+        if (isValidDate(parsedDate)) {
+          setBirthDate(parsedDate);
+          setCalendarDisplayMonth(parsedDate);
+        }
       }
     } else {
         setFormData(initialFormData);
     }
   }, [currentUser, currentUserAirtableData]);
 
-  useEffect(() => {
-    if (birthDate) setBirthDateInput(format(birthDate, DATE_FORMAT_DISPLAY));
-  }, [birthDate]);
-  
   const handleAuthAction = async (action: 'login' | 'signup') => {
     setAuthError(null);
     try {
@@ -134,24 +126,8 @@ const Profil = memo(() => {
   const onImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => { /* ... */ };
   const handleApplyCrop = () => { /* ... */ };
   const handleCancelCrop = () => { setImgSrcForCrop(''); };
-  const formatInputToDateDisplayHelper = (value: string): string => {
-    const digits = value.replace(/\D/g, '');
-    if (digits.length <= 2) return digits;
-    if (digits.length <= 4) return `${digits.slice(0, 2)}/${digits.slice(2)}`;
-    return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4, 8)}`;
-  };
-  const handleBirthDateInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const formattedValue = formatInputToDateDisplayHelper(e.target.value);
-    setBirthDateInput(formattedValue);
-    if(formattedValue.length === 10){
-        const parsed = parse(formattedValue, DATE_FORMAT_DISPLAY, new Date());
-        if(isValidDate(parsed)) setBirthDate(parsed);
-    }
-  };
   const handleCalendarSelect = (date: Date | undefined) => { setBirthDate(date); setIsCalendarOpen(false); };
-  const formatCaptionForCalendar = (date: Date, options?: { locale?: Locale }) => <>{format(date, "LLLL", { locale: options?.locale })}</>;
 
-  // La fonction de sauvegarde utilise les bons noms de champs pour Airtable
   const handleSubmitAirtableProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentUser?.email) return;
@@ -188,7 +164,6 @@ const Profil = memo(() => {
     }
   };
 
-  // MODIFICATION 2: Correction de la logique de chargement
   const isLoading = isLoadingAuth || isLoadingUserRole;
   if (isLoading) {
     return <div className="flex items-center justify-center min-h-screen"><Loader2 className="w-16 h-16 animate-spin text-thai-orange"/></div>;
@@ -236,7 +211,39 @@ const Profil = memo(() => {
                       <div><Label htmlFor="codePostal">Code Postal</Label><Input id="codePostal" name="codePostal" type="text" pattern="[0-9]*" value={formData.codePostal} onChange={(e) => handleFormInputChange("codePostal", e.target.value)} /></div>
                       <div><Label htmlFor="ville">Ville</Label><Input id="ville" name="ville" value={formData.ville} onChange={(e) => handleFormInputChange("ville", e.target.value)} /></div>
                     </div>
-                    <div className="space-y-2"><Label htmlFor="birthDateInput">Date de naissance ({DATE_FORMAT_DISPLAY})</Label><div className="flex items-center gap-2"><Input type="text" id="birthDateInput" value={birthDateInput} onChange={handleBirthDateInputChange} placeholder={DATE_FORMAT_DISPLAY} maxLength={10}/><Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}><PopoverTrigger asChild><Button type="button" variant="outline" id="birthdate-popover-trigger"><CalendarIcon/></Button></PopoverTrigger><PopoverContent className="w-auto min-w-[280px] p-0"><Calendar mode="single" selected={birthDate} onSelect={handleCalendarSelect} month={calendarDisplayMonth} onMonthChange={setCalendarDisplayMonth} disabled={(d) => d > new Date() || d < new Date("1900-01-01")} locale={fr} captionLayout="dropdown" fromYear={1900} toYear={new Date().getFullYear()} formatters={{ formatCaption: formatCaptionForCalendar }}/></PopoverContent></Popover></div>{birthDateInput && birthDateInput.length === 10 && !birthDate && <p className="text-xs text-red-500 mt-1">Format incorrect ou date invalide.</p>}</div>
+                    <div className="space-y-2">
+                      <Label>Date de naissance</Label>
+                        <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+                          <PopoverTrigger asChild>
+                            <Button type="button" variant="outline" className={cn("w-full justify-start text-left font-normal", !birthDate && "text-muted-foreground")}>
+                              <CalendarIcon className="mr-2 h-4 w-4"/>
+                                {birthDate ? format(birthDate, 'dd/MM/yyyy') : <span>Sélectionner une date</span>}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto min-w-[280px] p-0">
+                            <Calendar
+                              mode="single"
+                              selected={birthDate}
+                              onSelect={handleCalendarSelect}
+                              month={calendarDisplayMonth}
+                              onMonthChange={setCalendarDisplayMonth}
+                              disabled={(d) => d > new Date() || d < new Date("1900-01-01")}
+                              locale={fr}
+                              captionLayout="dropdown-buttons"
+                              fromYear={1900}
+                              toYear={new Date().getFullYear()}
+                              classNames={{
+                                caption_label: 'hidden', 
+                                caption_dropdowns: 'flex gap-2 justify-center',
+                                dropdown: 'appearance-none bg-background border border-input rounded-md px-2 py-1.5 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring',
+                                dropdown_month: 'w-[120px]',
+                                dropdown_year: 'w-[90px]',
+                                vhidden: 'hidden',
+                              }}
+                            />
+                          </PopoverContent>
+                        </Popover>
+                    </div>
                     <div><Label htmlFor="preferenceClient">Vos Préférences</Label><Textarea id="preferenceClient" name="preferenceClient" value={formData.preferenceClient} onChange={(e) => handleFormInputChange("preferenceClient", e.target.value)} rows={3} placeholder="Allergies, végan, plat préféré..."/></div>
                     <div className="space-y-3"><Label>Comment avez-vous connu ChanthanaThaiCook ?</Label><div className="grid md:grid-cols-2 gap-3">{optionsCommentConnu.map((o) => (<div key={o} className="flex items-center space-x-2"><Checkbox id={`connu-${o}`} checked={formData.commentConnuChanthana.includes(o)} onCheckedChange={(c)=>handleCommentConnuChange(o,c as boolean)}/><Label htmlFor={`connu-${o}`} className="text-sm font-normal">{o}</Label></div>))}</div></div>
                     <div className="space-y-2"><Label>Souhaitez-vous recevoir les actualités et offres par e-mail ?</Label><RadioGroup value={formData.newsletterPreference} onValueChange={(v) => handleFormInputChange('newsletterPreference', v as any)} className="flex gap-4 pt-1"><div className="flex items-center space-x-2"><RadioGroupItem value="Oui, j'accepte" id="nl-oui"/><Label htmlFor="nl-oui" className="font-normal">Oui, j'accepte</Label></div><div className="flex items-center space-x-2"><RadioGroupItem value="non" id="nl-non"/><Label htmlFor="nl-non" className="font-normal">Non</Label></div></RadioGroup></div>

@@ -1,15 +1,19 @@
-import { Suspense, lazy } from 'react';
+import { Suspense, lazy, useState } from 'react'; // MODIFICATION: Ajout de useState
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from './contexts/AuthContext';
 import { DataProvider } from './contexts/DataContext';
+import { CartProvider } from './contexts/CartContext';
 import Sidebar from "./components/Sidebar";
 import AdminRoute from './components/AdminRoute';
 import { Loader2 } from 'lucide-react';
 import './firebaseConfig';
 import './index.css';
+import FloatingCartIcon from './components/FloatingCartIcon';
+import LanguageSelector from './components/LanguageSelector';
+import { cn } from './lib/utils'; // MODIFICATION: Import de cn
 
 // Lazy load pages for better performance
 const TableauDeBord = lazy(() => import("./pages/TableauDeBord"));
@@ -34,44 +38,56 @@ const PageLoader = () => (
   </div>
 );
 
-const App = () => (
-  <BrowserRouter>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <AuthProvider>
-        <DataProvider>
-          <div className="min-h-screen bg-background flex w-full">
-            <Sidebar />
-            <main className="flex-1 lg:ml-64 transition-all duration-300">
-              <Suspense fallback={<PageLoader />}>
-                <Routes>
-                  <Route path="/" element={<TableauDeBord />} />
-                  <Route path="/commander" element={<Commander />} />
-                  <Route path="/evenements" element={<Evenements />} />
-                  <Route path="/profil" element={<Profil />} />
-                  <Route path="/nous-trouver" element={<NousTrouver />} />
-                  <Route path="/a-propos" element={<APropos />} />
-                  
-                  {/* MODIFICATION: La route AirtableConfig est sortie de AdminRoute pour être accessible */}
-                  <Route path="/airtable-config" element={<AirtableConfig />} />
+const App = () => {
+  // MODIFICATION: L'état de la sidebar est maintenant géré ici
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
-                  {/* Les routes admin restent protégées */}
-                  <Route element={<AdminRoute />}>
-                    <Route path="/admin" element={<Admin />} />
-                    <Route path="/admin/commandes" element={<AdminCommandes />} />
-                    <Route path="/admin/commandes/:id" element={<AdminCommandeDetail />} />
-                  </Route>
+  return (
+    <BrowserRouter>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <AuthProvider>
+          <DataProvider>
+            <CartProvider>
+              <div className="min-h-screen bg-background flex w-full">
+                {/* MODIFICATION: On passe l'état et la fonction pour le modifier à la Sidebar */}
+                <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
+                <LanguageSelector />
+                {/* MODIFICATION: La marge de la page principale est maintenant dynamique */}
+                <main className={cn(
+                  "flex-1 transition-all duration-300",
+                  isSidebarOpen ? "lg:ml-64" : "lg:ml-20"
+                )}>
+                  <Suspense fallback={<PageLoader />}>
+                    <Routes>
+                      <Route path="/" element={<TableauDeBord />} />
+                      <Route path="/commander" element={<Commander />} />
+                      <Route path="/evenements" element={<Evenements />} />
+                      <Route path="/profil" element={<Profil />} />
+                      <Route path="/nous-trouver" element={<NousTrouver />} />
+                      <Route path="/a-propos" element={<APropos />} />
+                      
+                      <Route path="/airtable-config" element={<AirtableConfig />} />
 
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </Suspense>
-            </main>
-          </div>
-        </DataProvider>
-      </AuthProvider>
-    </TooltipProvider>
-  </BrowserRouter>
-);
+                      <Route element={<AdminRoute />}>
+                        <Route path="/admin" element={<Admin />} />
+                        <Route path="/admin/commandes" element={<AdminCommandes />} />
+                        <Route path="/admin/commandes/:id" element={<AdminCommandeDetail />} />
+                      </Route>
+
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                  </Suspense>
+                </main>
+                <FloatingCartIcon />
+              </div>
+            </CartProvider>
+          </DataProvider>
+        </AuthProvider>
+      </TooltipProvider>
+    </BrowserRouter>
+  );
+};
 
 export default App;

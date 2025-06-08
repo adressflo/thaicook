@@ -2,7 +2,7 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Utensils, Calendar, MapPin, User, Users, Heart } from 'lucide-react';
+import { Utensils, Calendar, MapPin, User, Users } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { memo } from 'react';
 
@@ -54,34 +54,8 @@ const TableauDeBord = memo(() => {
 
   return (
     <div className="min-h-screen bg-gradient-thai">
-      {/* CTA Section */}
-      <section className="py-20 px-4 bg-gradient-to-r from-thai-orange to-thai-gold">
-        <div className="container mx-auto text-center">
-          <div className="max-w-3xl mx-auto text-white animate-fade-in">
-            <Heart className="h-16 w-16 mx-auto mb-6" />
-            <h2 className="text-4xl font-bold mb-6">
-              {t('dashboard.cta.title')}
-            </h2>
-            <p className="text-xl mb-8 opacity-90">
-              {t('dashboard.cta.subtitle')}
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button asChild size="lg" variant="secondary" className="bg-white text-thai-orange hover:bg-thai-cream px-8 py-6 text-lg rounded-xl">
-                <Link to="/profil">{t('dashboard.cta.createProfile')}</Link>
-              </Button>
-              {/* MODIFICATION DU BOUTON "Voir le Menu" CI-DESSOUS */}
-              <Button
-                asChild
-                size="lg"
-                variant="secondary" // Changé de "outline" à "secondary"
-                className="bg-white text-thai-orange hover:bg-thai-cream px-8 py-6 text-lg rounded-xl" // Classes copiées du bouton "Créer Mon Profil"
-              >
-                <Link to="/commander">{t('dashboard.cta.viewMenu')}</Link>
-              </Button>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Section orange sans texte */}
+      <section className="h-20 bg-gradient-to-r from-thai-orange to-thai-gold" />
 
       {/* Sections Grid */}
       <section className="py-16 px-4">

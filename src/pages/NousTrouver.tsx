@@ -73,9 +73,9 @@ const NousTrouver = () => {
                 className="rounded-lg shadow-lg"
                 title="Carte de localisation Chanthanacook"
               ></iframe>
-               <p className="text-xs text-center text-gray-500 dark:text-gray-400 mt-2">
-                N'oubliez pas de remplacer `VOTRE_CLE_API_GOOGLE_MAPS` dans le code si la carte ne s'affiche pas correctement.
-              </p>
+               
+               
+              
             </div>
 
             <div className="grid md:grid-cols-2 gap-x-8 gap-y-6"> {/* Ajustement du gap */}

@@ -1,7 +1,12 @@
-// src/components/LanguageSelector.tsx
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
 import { useTranslation } from 'react-i18next';
-// L'import de Languages et useState n'est plus nécessaire si on affiche que le code.
+import { Languages } from 'lucide-react';
 
 const LanguageSelector = () => {
   const { i18n } = useTranslation();
@@ -12,35 +17,30 @@ const LanguageSelector = () => {
     { code: 'th', name: 'ไทย', flag: '🇹🇭' }
   ];
 
-  const currentLanguage = languages.find(lang => lang.code === i18n.language) || languages[0];
-
   const handleLanguageChange = (languageCode: string) => {
     i18n.changeLanguage(languageCode);
     localStorage.setItem('language', languageCode);
   };
 
+  const currentLanguage = languages.find(lang => lang.code === i18n.language) || languages[0];
+
   return (
-    <div className="relative">
-      <Select value={i18n.language} onValueChange={handleLanguageChange}>
-        <SelectTrigger className="w-full border-thai-orange/30 focus:border-thai-orange">
-          {/* Modification ici : Afficher uniquement le code de la langue en majuscules */}
-          <div className="flex items-center justify-start w-full"> {/* Vous pouvez ajuster justify-start à justify-center si vous préférez le texte centré */}
-            <span className="font-medium text-sm"> {/* Ajustez la taille/poids de la police si nécessaire */}
-              {currentLanguage.code.toUpperCase()}
-            </span>
-          </div>
-        </SelectTrigger>
-        <SelectContent className="bg-white z-50">
+    <div className="fixed top-5 right-20 z-50">
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" size="icon" className="rounded-full bg-white/80 backdrop-blur-sm">
+            <Languages className="h-5 w-5 text-thai-orange" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="bg-white">
           {languages.map((language) => (
-            <SelectItem key={language.code} value={language.code}>
-              <div className="flex items-center gap-2">
-                <span className="text-lg">{language.flag}</span>
-                <span>{language.name}</span>
-              </div>
-            </SelectItem>
+            <DropdownMenuItem key={language.code} onClick={() => handleLanguageChange(language.code)}>
+              <span className="text-lg mr-2">{language.flag}</span>
+              <span>{language.name}</span>
+            </DropdownMenuItem>
           ))}
-        </SelectContent>
-      </Select>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 };

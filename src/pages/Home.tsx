@@ -8,19 +8,16 @@ const Home = () => {
     {
       title: "Cuisine Authentique",
       description: "Des recettes traditionnelles thaïlandaises préparées avec amour et des ingrédients frais",
-      image: "https://images.unsplash.com/photo-1562565652-a0d8f0c59eb4?w=400&h=300&fit=crop",
       icon: Heart
     },
     {
       title: "Commande Facile",
       description: "Commandez vos plats préférés en quelques clics pour une récupération rapide",
-      image: "https://images.unsplash.com/photo-1551218808-94e220e084d2?w=400&h=300&fit=crop",
       icon: Utensils
     },
     {
       title: "Événements Spéciaux",
       description: "Organisez vos événements avec nos menus personnalisés pour groupes",
-      image: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400&h=300&fit=crop",
       icon: Calendar
     }
   ];
@@ -181,17 +178,9 @@ const Home = () => {
       <section className="py-20 px-4 bg-gradient-to-r from-thai-orange to-thai-gold">
         <div className="container mx-auto text-center">
           <div className="max-w-3xl mx-auto text-white">
-            <p className="text-2xl md:text-3xl mb-8 opacity-90 leading-relaxed">
+            <p className="text-2xl md:text-3xl opacity-90 leading-relaxed">
               Une expérience culinaire exceptionnelle qui vous transporte directement en Thaïlande
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button asChild size="lg" variant="secondary" className="bg-white text-thai-orange hover:bg-thai-cream px-8 py-6 text-lg rounded-xl">
-                <Link to="/profil">Créer Mon Profil</Link>
-              </Button>
-              <Button asChild size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-thai-orange px-8 py-6 text-lg rounded-xl">
-                <Link to="/commander">Voir le Menu</Link>
-              </Button>
-            </div>
           </div>
         </div>
       </section>
