@@ -12,16 +12,16 @@ import { ArrowLeft, Search, Filter, Eye } from 'lucide-react';
 
 const AdminCommandes = () => {
   const navigate = useNavigate();
-  const { commandes, isLoading } = useCommandes();
+  const { data: commandes, isLoading } = useCommandes();
   const [filtreStatut, setFiltreStatut] = useState<string>('tous');
   const [recherche, setRecherche] = useState('');
 
   // Filtrage des commandes
   const commandesFiltrees = commandes?.filter(commande => {
-    const matchStatut = filtreStatut === 'tous' || commande.statutCommande === filtreStatut;
+    const matchStatut = filtreStatut === 'tous' || commande['Statut Commande'] === filtreStatut;
     const matchRecherche = !recherche || 
-      commande.nCommande?.toLowerCase().includes(recherche.toLowerCase()) ||
-      commande.clientR?.toLowerCase().includes(recherche.toLowerCase());
+      commande['Numéro de Commande']?.toLowerCase().includes(recherche.toLowerCase()) ||
+      (commande['Client R'] && commande['Client R'].some(client => client.toLowerCase().includes(recherche.toLowerCase())));
     return matchStatut && matchRecherche;
   }) || [];
 
@@ -152,14 +152,14 @@ const AdminCommandes = () => {
                   {commandesFiltrees.map((commande) => (
                     <TableRow key={commande.id}>
                       <TableCell className="font-medium text-thai-green">
-                        {commande.nCommande}
+                        {commande['Numéro de Commande']}
                       </TableCell>
                       <TableCell className="text-thai-green">
-                        {commande.clientR || 'N/A'}
+                        {commande['Client R']?.join(', ') || 'N/A'}
                       </TableCell>
                       <TableCell className="text-thai-green">
-                        {commande.dateHeureRetraitSouhaitees ? 
-                          new Date(commande.dateHeureRetraitSouhaitees).toLocaleDateString('fr-FR', {
+                        {commande['Date & Heure de retrait'] ? 
+                          new Date(commande['Date & Heure de retrait']).toLocaleDateString('fr-FR', {
                             day: '2-digit',
                             month: '2-digit',
                             year: 'numeric',
@@ -169,16 +169,16 @@ const AdminCommandes = () => {
                         }
                       </TableCell>
                       <TableCell className="font-medium text-thai-orange">
-                        {commande.totalCommandeVu || '0,00 €'}
+                        {commande['Total Commande'] ? `${commande['Total Commande'].toFixed(2)} €` : '0,00 €'}
                       </TableCell>
                       <TableCell>
-                        <Badge variant={getBadgeVariant(commande.statutCommande || '')}>
-                          {commande.statutCommande}
+                        <Badge variant={getBadgeVariant(commande['Statut Commande'] || '')}>
+                          {commande['Statut Commande']}
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge variant={commande.statutPaiement === 'Payé sur place' ? 'default' : 'secondary'}>
-                          {commande.statutPaiement}
+                        <Badge variant={commande['Statut Paiement'] === 'Payé sur place' ? 'default' : 'secondary'}>
+                          {commande['Statut Paiement']}
                         </Badge>
                       </TableCell>
                       <TableCell>

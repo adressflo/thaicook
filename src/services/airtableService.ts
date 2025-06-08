@@ -1,5 +1,18 @@
 // src/services/airtableService.ts
-import { AirtableConfig, AirtableResponse, AirtableRecord } from '@/types/airtable';
+// import { AirtableConfig, AirtableResponse, AirtableRecord } from '@/types/airtable'; // Types commentés
+
+// Définition locale des types nécessaires si non importés, ou utilisation de 'any'
+interface AirtableConfig {
+  apiKey: string;
+  baseId: string;
+  tableName: string; // Ajout de tableName ici car il est utilisé
+}
+
+// Utilisation de 'any' pour AirtableResponse et AirtableRecord pour simplifier si les types exacts ne sont pas cruciaux ici
+// ou s'ils sont complexes et non définis dans le scope actuel.
+// Pour une meilleure typage, ces types devraient être correctement définis et exportés depuis '@/types/airtable'.
+type AirtableResponse = any; 
+type AirtableRecord = any;
 
 class AirtableService {
   private baseUrl = 'https://api.airtable.com/v0';

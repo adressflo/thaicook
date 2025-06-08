@@ -5,7 +5,7 @@ import { useClients } from '@/hooks/useAirtable';
 import { Users, Mail, Phone, MapPin, Loader2 } from 'lucide-react';
 
 const ClientsList = () => {
-  const { clients, isLoading, error } = useClients();
+  const { data: clients, isLoading, error } = useClients();
 
   if (isLoading) {
     return (
@@ -44,43 +44,43 @@ const ClientsList = () => {
           <Card key={client.id} className="border-thai-orange/20">
             <CardHeader>
               <CardTitle className="text-thai-green">
-                {client.prenom} {client.nom}
+                {client['Prénom']} {client['Nom']}
               </CardTitle>
-              <CardDescription>
+              {/* <CardDescription>
                 Client depuis le {new Date(client.createdTime).toLocaleDateString('fr-FR')}
-              </CardDescription>
+              </CardDescription> */}
             </CardHeader>
             
             <CardContent className="space-y-2">
-              {client.email && (
+              {client['e-mail'] && (
                 <div className="flex items-center space-x-2">
                   <Mail className="w-4 h-4 text-thai-orange" />
-                  <span className="text-sm">{client.email}</span>
+                  <span className="text-sm">{client['e-mail']}</span>
                 </div>
               )}
               
-              {client.numeroTelephone && (
+              {client['Numéro de téléphone'] && (
                 <div className="flex items-center space-x-2">
                   <Phone className="w-4 h-4 text-thai-orange" />
-                  <span className="text-sm">{client.numeroTelephone}</span>
+                  <span className="text-sm">{client['Numéro de téléphone']}</span>
                 </div>
               )}
               
-              {client.adresseNumeroRue && (
+              {client['Adresse (numéro et rue)'] && (
                 <div className="flex items-center space-x-2">
                   <MapPin className="w-4 h-4 text-thai-orange" />
                   <span className="text-sm">
-                    {client.adresseNumeroRue}
-                    {client.codePostal && `, ${client.codePostal}`}
-                    {client.ville && ` ${client.ville}`}
+                    {client['Adresse (numéro et rue)']}
+                    {client['Code postal'] && `, ${client['Code postal']}`}
+                    {client['Ville'] && ` ${client['Ville']}`}
                   </span>
                 </div>
               )}
               
-              {client.preferenceClient && (
+              {client['Préférence client'] && (
                 <div className="mt-2">
                   <Badge variant="secondary" className="bg-thai-cream text-thai-green">
-                    {client.preferenceClient}
+                    {client['Préférence client']}
                   </Badge>
                 </div>
               )}

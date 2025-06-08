@@ -10,15 +10,14 @@ import { useToast } from '@/hooks/use-toast';
 import { Calendar } from '@/components/ui/calendar';
 import { CalendarIcon, User, LogIn, UserPlus, LogOut, Save, Edit3, Camera, CheckSquare, XSquare, Loader2 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { format, parse, isValid as isValidDate, startOfDay, type Locale } from 'date-fns';
+import { format, parse, isValid as isValidDate, startOfDay } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { auth } from '../firebaseConfig';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateEmail, type User as FirebaseUser } from 'firebase/auth';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateEmail } from 'firebase/auth';
 import ReactCrop, { type Crop, centerCrop, makeAspectCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
-
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/contexts/AuthContext';
 import { useCreateClient, useUpdateClient } from '@/hooks/useAirtable';
 import type { ClientInputData } from '@/types/airtable';
 
@@ -91,15 +90,15 @@ const Profil = memo(() => {
       if (currentUserAirtableData['Date de naissance']) {
         const parsedDate = parse(currentUserAirtableData['Date de naissance'], DATE_FORMAT_AIRTABLE, new Date());
         if (isValidDate(parsedDate)) {
-          setBirthDate(parsedDate);
-          setCalendarDisplayMonth(parsedDate);
+             setBirthDate(parsedDate);
+             setCalendarDisplayMonth(parsedDate);
         }
       }
     } else {
         setFormData(initialFormData);
     }
   }, [currentUser, currentUserAirtableData]);
-
+  
   const handleAuthAction = async (action: 'login' | 'signup') => {
     setAuthError(null);
     try {
@@ -217,10 +216,10 @@ const Profil = memo(() => {
                           <PopoverTrigger asChild>
                             <Button type="button" variant="outline" className={cn("w-full justify-start text-left font-normal", !birthDate && "text-muted-foreground")}>
                               <CalendarIcon className="mr-2 h-4 w-4"/>
-                                {birthDate ? format(birthDate, 'dd/MM/yyyy') : <span>Sélectionner une date</span>}
+                                {birthDate ? format(birthDate, 'dd MMMM yyyy', { locale: fr }) : <span>Sélectionner une date</span>}
                             </Button>
                           </PopoverTrigger>
-                          <PopoverContent className="w-auto min-w-[280px] p-0">
+                          <PopoverContent className="w-auto p-0">
                             <Calendar
                               mode="single"
                               selected={birthDate}
@@ -234,7 +233,7 @@ const Profil = memo(() => {
                               toYear={new Date().getFullYear()}
                               classNames={{
                                 caption_label: 'hidden', 
-                                caption_dropdowns: 'flex gap-2 justify-center',
+                                caption_dropdowns: 'flex gap-2 justify-center p-2',
                                 dropdown: 'appearance-none bg-background border border-input rounded-md px-2 py-1.5 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring',
                                 dropdown_month: 'w-[120px]',
                                 dropdown_year: 'w-[90px]',

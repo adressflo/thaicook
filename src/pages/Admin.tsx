@@ -12,33 +12,36 @@ import { useToast } from "@/hooks/use-toast";
 import { memo } from 'react';
 
 // Imports corrigés pour pointer vers le fichier unique
-import { useCommandes, useUpdateCommande, useEvenements, useClients, useIngredients } from '@/hooks/useAirtable';
+// import { useCommandes, useUpdateCommande, useEvenements, useClients, useIngredients } from '@/hooks/useAirtable';
+import { useCommandes, useClients } from '@/hooks/useAirtable'; // useUpdateCommande, useEvenements, useIngredients sont commentés
 import type { Commande } from '@/types/airtable';
 
 const Admin = memo(() => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const { commandes, isLoading: commandesLoading } = useCommandes();
-  const { evenements, isLoading: evenementsLoading } = useEvenements();
-  const { clients, isLoading: clientsLoading } = useClients();
-  const { ingredients, isLoading: ingredientsLoading } = useIngredients();
-  const updateCommande = useUpdateCommande();
+  const { data: commandes, isLoading: commandesLoading } = useCommandes();
+  // const { data: evenements, isLoading: evenementsLoading } = useEvenements();
+  const { data: clients, isLoading: clientsLoading } = useClients();
+  // const { data: ingredients, isLoading: ingredientsLoading } = useIngredients();
+  // const updateCommande = useUpdateCommande();
 
-  const isLoading = commandesLoading || evenementsLoading || clientsLoading || ingredientsLoading;
+  // const isLoading = commandesLoading || evenementsLoading || clientsLoading || ingredientsLoading;
+  const isLoading = commandesLoading || clientsLoading; // evenementsLoading et ingredientsLoading sont commentés
 
   // Utilisation des noms de champs exacts d'Airtable
   const commandesFutures = commandes
-    ?.filter(c => c['Date et Heure de Retrait Souhaitées'] && isFuture(new Date(c['Date et Heure de Retrait Souhaitées'])))
-    .sort((a, b) => new Date(a['Date et Heure de Retrait Souhaitées']!).getTime() - new Date(b['Date et Heure de Retrait Souhaitées']!).getTime()) 
+    ?.filter(c => c['Date & Heure de retrait'] && isFuture(new Date(c['Date & Heure de retrait']))) // Correction du nom du champ
+    .sort((a, b) => new Date(a['Date & Heure de retrait']!).getTime() - new Date(b['Date & Heure de retrait']!).getTime()) 
     || [];
   
-  const listeDeCourses = ingredients?.filter(i => i.Statut === 'À acheter !') || [];
+  // const listeDeCourses = ingredients?.filter(i => i.Statut === 'À acheter !') || [];
+  const listeDeCourses: any[] = []; // ingredients est commenté
 
   const groupCommandsByDate = (cmds: Commande[]) => {
     const today = startOfToday();
     return cmds.reduce((acc, commande) => {
-      const date = new Date(commande['Date et Heure de Retrait Souhaitées']!);
+      const date = new Date(commande['Date & Heure de retrait']!); // Correction du nom du champ
       const diff = differenceInDays(date, today);
       let key = format(date, "EEEE d MMMM", { locale: fr });
       if (diff === 0) key = 'Aujourd\'hui';
@@ -50,20 +53,20 @@ const Admin = memo(() => {
     }, {} as Record<string, Commande[]>);
   };
 
-  const commandesFuturesGroupees = groupCommandsByDate(commandesFutures);
+  const commandesFuturesGroupees = groupCommandsByDate(commandesFutures || []); // Assurer que commandesFutures est un tableau
 
-  const handleConfirmCommande = async (commandeId: string) => {
-    toast({ title: "Confirmation en cours..." });
-    try {
-      await updateCommande.mutateAsync({
-        recordId: commandeId,
-        data: { 'Statut Commande': 'Confirmée' }
-      });
-      toast({ title: "Succès", description: "La commande a été confirmée." });
-    } catch (error) {
-      toast({ title: "Erreur", description: "Impossible de confirmer la commande.", variant: "destructive" });
-    }
-  };
+  // const handleConfirmCommande = async (commandeId: string) => {
+  //   toast({ title: "Confirmation en cours..." });
+  //   try {
+  //     await updateCommande.mutateAsync({
+  //       recordId: commandeId,
+  //       data: { 'Statut Commande': 'Confirmée' }
+  //     });
+  //     toast({ title: "Succès", description: "La commande a été confirmée." });
+  //   } catch (error) {
+  //     toast({ title: "Erreur", description: "Impossible de confirmer la commande.", variant: "destructive" });
+  //   }
+  // };
 
   if (isLoading) {
     return (
@@ -95,11 +98,14 @@ const Admin = memo(() => {
                     {cmdsDuJour.map(commande => (
                       <div key={commande.id} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-md">
                         <div>
-                          <p className="font-semibold text-thai-green">{commande.clientName}</p>
-                          <p className="text-sm text-gray-500">{commande['N commande']} - {commande['Total Commande vu']}</p>
+                          {/* <p className="font-semibold text-thai-green">{commande.clientName}</p> */}
+                          <p className="font-semibold text-thai-green">Client ID: {commande['Client R']?.join(', ')}</p> {/* Affiche les IDs client pour l'instant */}
+                          <p className="text-sm text-gray-500">{commande['Numéro de Commande']} - {commande['Total Commande']}</p> {/* Correction: N commande -> Numéro de Commande, Total Commande vu -> Total Commande */}
                         </div>
                         {commande['Statut Commande'] === 'En attente de confirmation' && (
-                           <Button size="sm" variant="secondary" onClick={() => handleConfirmCommande(commande.id)} disabled={updateCommande.isPending} className="bg-green-100 text-green-800 hover:bg-green-200">
+                           <Button size="sm" variant="secondary" 
+                           // onClick={() => handleConfirmCommande(commande.id)} disabled={updateCommande.isPending}  // updateCommande et handleConfirmCommande commentés
+                           className="bg-green-100 text-green-800 hover:bg-green-200">
                              <CheckCircle className="h-4 w-4 mr-1"/> Confirmer
                            </Button>
                         )}
@@ -113,9 +119,9 @@ const Admin = memo(() => {
 
           <TabsContent value="clients">
             <Card>
-              <CardHeader><CardTitle className="text-thai-green">Tous les Clients ({clients.length})</CardTitle></CardHeader>
+              <CardHeader><CardTitle className="text-thai-green">Tous les Clients ({clients?.length || 0})</CardTitle></CardHeader>
               <CardContent className="max-h-[60vh] overflow-y-auto space-y-2">
-                {clients.map(client => (
+                {clients?.map(client => (
                    <div key={client.id} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-md">
                      <div>
                       <p className="font-semibold text-thai-green">{client.Prénom} {client.Nom}</p>

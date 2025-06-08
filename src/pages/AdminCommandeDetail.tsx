@@ -14,13 +14,13 @@ const AdminCommandeDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { commandes, isLoading } = useCommandes();
+  const { data: commandes, isLoading } = useCommandes();
   
   const commande = commandes?.find(c => c.id === id);
   
-  const [statutCommande, setStatutCommande] = useState(commande?.statutCommande || '');
-  const [statutPaiement, setStatutPaiement] = useState(commande?.statutPaiement || '');
-  const [notesInternes, setNotesInternes] = useState(commande?.notesInternes || '');
+  const [statutCommande, setStatutCommande] = useState(commande?.['Statut Commande'] || '');
+  const [statutPaiement, setStatutPaiement] = useState(commande?.['Statut Paiement'] || ''); // Supposant que 'Statut Paiement' est le nom du champ
+  const [notesInternes, setNotesInternes] = useState(commande?.['Notes Internes'] || ''); // Supposant que 'Notes Internes' est le nom du champ
 
   const statutCommandeOptions = [
     'En attente de confirmation',
@@ -95,7 +95,7 @@ const AdminCommandeDetail = () => {
               Retour
             </Button>
             <div>
-              <h1 className="text-3xl font-bold text-thai-green">{commande.nCommande}</h1>
+              <h1 className="text-3xl font-bold text-thai-green">{commande['Numéro de Commande']}</h1>
               <p className="text-thai-green/70">Détail de la commande</p>
             </div>
           </div>
@@ -117,14 +117,14 @@ const AdminCommandeDetail = () => {
             <CardContent className="space-y-4">
               <div>
                 <label className="text-sm font-medium text-thai-green">Client</label>
-                <p className="text-thai-green">{commande.clientR || 'N/A'}</p>
+                <p className="text-thai-green">{commande['Client R']?.join(', ') || 'N/A'}</p>
               </div>
               
               <div>
                 <label className="text-sm font-medium text-thai-green">Date de prise de commande</label>
                 <p className="text-thai-green">
-                  {commande.datePriseCommande ? 
-                    new Date(commande.datePriseCommande).toLocaleDateString('fr-FR') : 'N/A'
+                  {commande.createdTime ? // Utilisation de createdTime qui est disponible
+                    new Date(commande.createdTime).toLocaleDateString('fr-FR') : 'N/A'
                   }
                 </p>
               </div>
@@ -132,8 +132,8 @@ const AdminCommandeDetail = () => {
               <div>
                 <label className="text-sm font-medium text-thai-green">Date et heure de retrait souhaitées</label>
                 <p className="text-thai-green">
-                  {commande.dateHeureRetraitSouhaitees ?
-                    new Date(commande.dateHeureRetraitSouhaitees).toLocaleDateString('fr-FR', {
+                  {commande['Date & Heure de retrait'] ?
+                    new Date(commande['Date & Heure de retrait']).toLocaleDateString('fr-FR', {
                       day: '2-digit',
                       month: '2-digit',
                       year: 'numeric',
@@ -146,7 +146,7 @@ const AdminCommandeDetail = () => {
 
               <div>
                 <label className="text-sm font-medium text-thai-green">Total commande</label>
-                <p className="text-xl font-bold text-thai-orange">{commande.totalCommandeVu || '0,00 €'}</p>
+                <p className="text-xl font-bold text-thai-orange">{commande['Total Commande'] ? `${commande['Total Commande'].toFixed(2)} €` : '0,00 €'}</p>
               </div>
             </CardContent>
           </Card>
@@ -205,7 +205,7 @@ const AdminCommandeDetail = () => {
           </Card>
 
           {/* Demandes spéciales */}
-          {commande.demandeSpecialCommande && (
+          {commande['Demandes spéciales'] && ( // Correction du nom du champ
             <Card className="border-thai-orange/20 lg:col-span-2">
               <CardHeader>
                 <CardTitle className="text-thai-green flex items-center">
@@ -214,7 +214,7 @@ const AdminCommandeDetail = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-thai-green">{commande.demandeSpecialCommande}</p>
+                <p className="text-thai-green">{commande['Demandes spéciales']}</p>
               </CardContent>
             </Card>
           )}

@@ -17,7 +17,7 @@ import { fr } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/contexts/AuthContext'; // CORRECTION: Le chemin d'import a été mis à jour
 import { useData } from '@/contexts/DataContext';
 import { useCreateCommande, useAirtableConfig } from '@/hooks/useAirtable';
 import { useCart } from '@/contexts/CartContext';
@@ -135,11 +135,13 @@ const Commander = memo(() => {
     const dateHeureRetraitISO = tempDateRetrait.toISOString();
 
     try {
+      if (!currentUser?.uid) throw new Error("Utilisateur non identifié");
       await createCommande.mutateAsync({
         clientAirtableId: airtableRecordId,
         panier,
         dateHeureRetrait: dateHeureRetraitISO,
-        demandesSpeciales
+        demandesSpeciales,
+        firebaseUID: currentUser.uid
       });
       toast({ title: "Commande envoyée !", description: `Votre commande de ${totalPrix.toFixed(2)}€ est enregistrée.` });
       viderPanier();
@@ -245,7 +247,7 @@ const Commander = memo(() => {
             
             {panier.length > 0 && (
               <div className="space-y-6 border-t pt-6 mt-6 animate-fade-in">
-                <h3 className="text-xl font-medium text-thai-green">Mon Panier</h3>
+                <h3 className="text-xl font-semibold text-thai-green">Mon Panier</h3>
                 <div className="space-y-2">
                   {panier.map(item => {
                     const platData = plats.find(p => p.id === item.id);
@@ -255,7 +257,7 @@ const Commander = memo(() => {
                         <div className="flex-1">
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <p className="text-thai-green text-base font-medium hover:text-thai-orange cursor-pointer underline decoration-dotted decoration-thai-orange/50">
+                              <p className="text-thai-green text-base font-bold hover:text-thai-orange cursor-pointer underline decoration-dotted decoration-thai-orange/50">
                                 {item.nom}
                               </p>
                             </TooltipTrigger>
@@ -278,12 +280,12 @@ const Commander = memo(() => {
                         </div>
                         
                         <div className="flex items-center gap-3">
-                          <div className="flex items-center space-x-2">
+                           <p className="font-medium w-16 text-right text-base">{(item.prix * item.quantite).toFixed(2)}€</p>
+                           <div className="flex items-center space-x-2">
                             <Button size="sm" variant="outline" className="h-7 w-7 p-0" onClick={() => modifierQuantite(item.id, item.quantite - 1)}>-</Button>
                             <span className="w-6 text-center text-base font-medium">{item.quantite}</span>
                             <Button size="sm" variant="outline" className="h-7 w-7 p-0" onClick={() => modifierQuantite(item.id, item.quantite + 1)}>+</Button>
                           </div>
-                          <p className="font-medium w-16 text-right text-base">{(item.prix * item.quantite).toFixed(2)}€</p>
                           <Button
                             size="icon"
                             variant="ghost"

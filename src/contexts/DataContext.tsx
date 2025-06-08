@@ -1,59 +1,43 @@
-import React, { createContext, useContext, ReactNode } from 'react';
-import { useClients, usePlats, useCommandes, useEvenements, useIngredients } from '@/hooks/useAirtable';
-import type { Client, Plat, Commande, Evenement, Ingredient } from '@/types/airtable';
-import { Loader2 } from 'lucide-react';
+import { createContext, useContext, ReactNode } from 'react';
+import { usePlats, useClients, useCommandes } from '../hooks/useAirtable';
+import type { Plat, Client, Commande } from '../types/airtable';
 
 interface DataContextType {
-    clients: Client[];
-    plats: Plat[];
-    commandes: Commande[];
-    evenements: Evenement[];
-    ingredients: Ingredient[];
-    isLoading: boolean;
-    error: Error | null; // Ajout de la propriété d'erreur
+  plats: Plat[] | undefined;
+  clients: Client[] | undefined;
+  commandes: Commande[] | undefined;
+  isLoading: boolean;
+  error: Error | null;
 }
 
-const DataContext = createContext<DataContextType | undefined>(undefined);
-
-export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const { clients, isLoading: isLoadingClients, error: errorClients } = useClients();
-    const { plats, isLoading: isLoadingPlats, error: errorPlats } = usePlats();
-    const { commandes, isLoading: isLoadingCommandes, error: errorCommandes } = useCommandes();
-    const { evenements, isLoading: isLoadingEvenements, error: errorEvenements } = useEvenements();
-    const { ingredients, isLoading: isLoadingIngredients, error: errorIngredients } = useIngredients();
-
-    const isLoading = isLoadingClients || isLoadingPlats || isLoadingCommandes || isLoadingEvenements || isLoadingIngredients;
-    // On prend la première erreur rencontrée
-    const error = errorClients || errorPlats || errorCommandes || errorEvenements || errorIngredients || null;
-
-    if (isLoading) {
-        return (
-            <div className="flex h-screen w-screen items-center justify-center bg-gradient-thai">
-                <div className="text-center">
-                    <Loader2 className="w-12 h-12 animate-spin text-thai-orange mx-auto mb-4" />
-                    <p className="text-thai-green font-semibold">Chargement des données...</p>
-                </div>
-            </div>
-        );
-    }
-    
-    const value = {
-        clients,
-        plats,
-        commandes,
-        evenements,
-        ingredients,
-        isLoading,
-        error, // On fournit l'erreur au contexte
-    };
-
-    return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
-};
+const DataContext = createContext<DataContextType>({
+  plats: [],
+  clients: [],
+  commandes: [],
+  isLoading: true,
+  error: null,
+});
 
 export const useData = () => {
-    const context = useContext(DataContext);
-    if (context === undefined) {
-        throw new Error('useData must be used within a DataProvider');
-    }
-    return context;
+  return useContext(DataContext);
+};
+
+interface DataProviderProps {
+  children: ReactNode;
+}
+
+export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
+  const { data: plats, isLoading: platsLoading, error: platsError } = usePlats();
+  // CORRECTION: 'useClientsList' a été remplacé par 'useClients'
+  const { data: clients, isLoading: clientsLoading, error: clientsError } = useClients(); 
+  const { data: commandes, isLoading: commandesLoading, error: commandesError } = useCommandes();
+
+  const isLoading = platsLoading || clientsLoading || commandesLoading;
+  const error = platsError || clientsError || commandesError;
+
+  return (
+    <DataContext.Provider value={{ plats, clients, commandes, isLoading, error }}>
+      {children}
+    </DataContext.Provider>
+  );
 };

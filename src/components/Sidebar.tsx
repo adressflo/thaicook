@@ -1,4 +1,4 @@
-import { useEffect } from 'react'; // MODIFICATION: useState a été retiré
+import { useEffect, Dispatch, SetStateAction } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { 
@@ -10,25 +10,24 @@ import {
   Users, 
   Menu,
   X,
-  Shield
+  Shield,
+  History
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/contexts/AuthContext';
 
-// MODIFICATION: Définition des props que le composant va recevoir
 interface SidebarProps {
   isOpen: boolean;
-  setIsOpen: (isOpen: boolean) => void;
+  setIsOpen: Dispatch<SetStateAction<boolean>>;
 }
 
-const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => { // MODIFICATION: Utilisation des props
+export const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => {
   const isMobile = useIsMobile();
-  // MODIFICATION: L'état local est supprimé, on utilise les props à la place
   const location = useLocation();
   const { t } = useTranslation();
-  const { currentUserRole } = useAuth();
+  const { currentUserRole, currentUser } = useAuth();
 
   const logoPath = "/lovable-uploads/62d46b15-aa56-45d2-ab7d-75dfee70f70d.png"; 
 
@@ -40,21 +39,18 @@ const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => { // MODIFICATION: Util
   
   useEffect(() => {
     if(isMobile === undefined) return;
-    if (isMobile) {
-        setIsOpen(false);
-    } else {
-        setIsOpen(true);
-    }
+    setIsOpen(!isMobile);
   }, [isMobile, setIsOpen]);
 
   const navigation = [
-    
-    { name: t('navigation.order'), href: '/commander', icon: ShoppingCart }, 
+    { name: t('navigation.dashboard'), href: '/', icon: LayoutDashboard },
+    { name: t('navigation.order'), href: '/commander', icon: ShoppingCart },
+    currentUser && { name: "Historique", href: '/historique', icon: History },
     { name: t('navigation.events'), href: '/evenements', icon: Calendar },
     { name: t('navigation.findUs'), href: '/nous-trouver', icon: MapPin },
     { name: t('navigation.profile'), href: '/profil', icon: User },
     { name: t('navigation.about'), href: '/a-propos', icon: Users },
-  ];
+  ].filter(Boolean);
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -115,7 +111,7 @@ const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => { // MODIFICATION: Util
         </div>
 
         <nav className="flex-grow p-3 space-y-1 overflow-y-auto">
-          {navigation.map((item) => (
+          {navigation.map((item) => item && (
             <Link
               key={item.name}
               to={item.href}
@@ -146,10 +142,10 @@ const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => { // MODIFICATION: Util
                     : "text-thai-green/80 hover:bg-thai-green/10 hover:text-thai-green",
                   !isOpen && "justify-center"
                 )}
-                title={isOpen ? "" : t('navigation.administration')}
+                title={"Administration"}
               >
                 <Shield className={cn("h-5 w-5 flex-shrink-0", isActive('/admin') || location.pathname.startsWith('/admin') ? "text-white" : "text-thai-green/80 group-hover:text-thai-green")} />
-                {isOpen && <span className="ml-3 text-sm font-medium">{t('navigation.administration')}</span>}
+                {isOpen && <span className="ml-3 text-sm font-medium">Administration</span>}
               </Link>
             </div>
           )}
@@ -164,5 +160,3 @@ const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => { // MODIFICATION: Util
     </>
   );
 };
-
-export default Sidebar;

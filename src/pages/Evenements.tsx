@@ -19,10 +19,11 @@ import { useTranslation } from 'react-i18next';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 // CORRECTION : Imports mis à jour pour la nouvelle architecture
-import { useAuth } from '@/hooks/useAuth';
 import { useData } from '@/contexts/DataContext';
 import { useCreateEvenement, useAirtableConfig } from '@/hooks/useAirtable';
-import type { EvenementInputData, Plat } from '@/types/airtable';
+// import type { EvenementInputData, Plat } from '@/types/airtable'; // EvenementInputData commenté
+import type { Plat } from '@/types/airtable';
+import { useAuth } from '@/contexts/AuthContext'; // Ajout de l'import pour useAuth
 
 const Evenements = memo(() => {
   const { toast } = useToast();
@@ -101,7 +102,8 @@ const Evenements = memo(() => {
         dateEvenementISO = dateEvenement.toISOString();
     }
     
-    const evenementData: EvenementInputData = {
+    // const evenementData: EvenementInputData = { // Type EvenementInputData commenté
+    const evenementData: any = { // Utilisation de any pour l'instant
         'Nom Événement': formData.typeEvenement === 'Autre' ? autreTypeEvenementPrecision.trim() : formData.typeEvenement,
         contactEmail: currentUser.email,
         'Date Événement': dateEvenementISO,
@@ -110,6 +112,8 @@ const Evenements = memo(() => {
         'Budget Client': formData.budgetClient ? parseFloat(formData.budgetClient) : undefined,
         'Demandes Spéciales Événement': formData.demandesSpeciales,
         'Plats Pré-sélectionnés (par client) R': platsPreSelectionnes.length > 0 ? platsPreSelectionnes : undefined,
+        // Ajout du champ Client R pour lier à l'enregistrement client dans Airtable
+        'Client R': airtableRecordId ? [airtableRecordId] : undefined 
     };
 
     try {
@@ -245,4 +249,3 @@ const Evenements = memo(() => {
 });
 
 export default Evenements;
-
