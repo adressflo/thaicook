@@ -19,7 +19,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
-import { useCommandeById, useUpdateCommande, useDeleteDetail, useCreateDetail } from '@/hooks/useSupabaseData';
+import { useCommandeById, useUpdateCommande, useDeleteDetailsCommande, useCreateDetailsCommande } from '@/hooks/useSupabaseData';
 import type { PlatUI as Plat, CommandeWithDetails } from '@/types/app';
 
 const dayNameToNumber: { [key: string]: Day } = {
@@ -51,7 +51,7 @@ interface NewPlatDetail {
   isNew: true;
 }
 
-const ModifierCommande = memo(() => {
+const ModifierCommandeComponent = () => {
   const { id } = useParams<{ id: string }>();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -59,8 +59,8 @@ const ModifierCommande = memo(() => {
   const { currentUser, isLoadingAuth } = useAuth();
   const { data: commande, isLoading: isLoadingCommande, error } = useCommandeById(id ? Number(id) : undefined);
   const updateCommande = useUpdateCommande();
-  const deleteDetail = useDeleteDetail();
-  const createDetail = useCreateDetail();
+  const deleteDetailsCommande = useDeleteDetailsCommande();
+  const createDetailsCommande = useCreateDetailsCommande();
 
   // États pour la modification
   const [dateRetrait, setDateRetrait] = useState<Date | undefined>();
@@ -271,66 +271,74 @@ const ModifierCommande = memo(() => {
 
   // Fonction pour sauvegarder les modifications
   const sauvegarderModifications = async () => {
-    if (!commande || !currentUser) {
-      toast({ title: "Erreur", description: "Commande ou utilisateur non trouvé.", variant: "destructive" });
-      return;
+  if (!commande || !currentUser) {
+    toast({ title: "Erreur", description: "Commande ou utilisateur non trouvé.", variant: "destructive" });
+    return;
+  }
+
+  if (!dateRetrait || !heureRetrait) {
+    toast({ title: "Informations requises", description: "Veuillez sélectionner une date et une heure de retrait.", variant: "destructive" });
+    return;
+  }
+
+  setIsModifying(true);
+
+  try {
+    // Créer la nouvelle date avec l'heure
+    const dateCompleteRetrait = new Date(dateRetrait);
+    const [heures, minutes] = heureRetrait.split(':');
+    dateCompleteRetrait.setHours(parseInt(heures), parseInt(minutes), 0, 0);
+
+    // 1. Mettre à jour les informations de la commande
+    await updateCommande.mutateAsync({
+      id: commande.idcommande,
+      date_et_heure_de_retrait_souhaitees: dateCompleteRetrait.toISOString(),
+      demande_special_pour_la_commande: demandesSpeciales,
+      statut_commande: 'En attente de confirmation' // Remettre en attente lors de la modification
+    });
+
+    // 2. Supprimer TOUS les anciens détails de la commande
+    await deleteDetailsCommande.mutateAsync(commande.idcommande);
+
+    // 3. Recréer tous les détails avec les modifications
+    const detailsACreer = [
+      // Garder les détails non supprimés avec leurs nouvelles quantités
+      ...details.filter(detail => !detail.toDelete).map(detail => ({
+        commande_r: commande.idcommande,
+        plat_r: detail.plat_r,
+        quantite_plat_commande: detail.quantite_plat_commande
+      })),
+      // Ajouter les nouveaux plats
+      ...nouveauxPlats.map(nouveauPlat => ({
+        commande_r: commande.idcommande,
+        plat_r: nouveauPlat.plat_r,
+        quantite_plat_commande: nouveauPlat.quantite_plat_commande
+      }))
+    ];
+
+    if (detailsACreer.length > 0) {
+      await createDetailsCommande.mutateAsync(detailsACreer);
     }
 
-    if (!dateRetrait || !heureRetrait) {
-      toast({ title: "Informations requises", description: "Veuillez sélectionner une date et une heure de retrait.", variant: "destructive" });
-      return;
-    }
+    toast({ 
+      title: "Modifications sauvegardées !", 
+      description: "Votre commande a été modifiée avec succès." 
+    });
 
-    setIsModifying(true);
+    // Rediriger vers le suivi de commande
+    navigate(`/suivi-commande/${commande.idcommande}`);
 
-    try {
-      // Créer la nouvelle date avec l'heure
-      const dateCompleteRetrait = new Date(dateRetrait);
-      const [heures, minutes] = heureRetrait.split(':');
-      dateCompleteRetrait.setHours(parseInt(heures), parseInt(minutes), 0, 0);
-
-      // 1. Mettre à jour les informations de la commande
-      await updateCommande.mutateAsync({
-        id: commande.idcommande,
-        date_et_heure_de_retrait_souhaitees: dateCompleteRetrait.toISOString(),
-        demande_special_pour_la_commande: demandesSpeciales,
-        statut_commande: 'En attente de confirmation' // Remettre en attente lors de la modification
-      });
-
-      // 2. Supprimer les détails marqués pour suppression
-      for (const detail of details.filter(d => d.toDelete)) {
-        await deleteDetail.mutateAsync(detail.iddetails);
-      }
-
-      // 3. Ajouter les nouveaux plats
-      for (const nouveauPlat of nouveauxPlats) {
-        await createDetail.mutateAsync({
-          commande_r: commande.idcommande,
-          plat_r: nouveauPlat.plat_r,
-          quantite_plat_commande: nouveauPlat.quantite_plat_commande
-        });
-      }
-
-      toast({ 
-        title: "Modifications sauvegardées !", 
-        description: "Votre commande a été modifiée avec succès." 
-      });
-
-      // Rediriger vers le suivi de commande
-      navigate(`/suivi-commande/${commande.idcommande}`);
-
-    } catch (error: any) {
-      console.error('Erreur modification commande:', error);
-      toast({ 
-        title: "Erreur", 
-        description: error.message || "Erreur lors de la modification de la commande.", 
-        variant: "destructive" 
-      });
-    } finally {
-      setIsModifying(false);
-    }
-  };
-
+  } catch (error: any) {
+    console.error('Erreur modification commande:', error);
+    toast({ 
+      title: "Erreur", 
+      description: error.message || "Erreur lors de la modification de la commande.", 
+      variant: "destructive" 
+    });
+  } finally {
+    setIsModifying(false);
+  }
+};
   if (isLoadingAuth || isLoadingCommande || dataIsLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
@@ -383,10 +391,11 @@ const ModifierCommande = memo(() => {
     return <div className="p-8"><Alert variant="destructive">Erreur de chargement: {dataError.message}</Alert></div>;
   }
 
+  // Rendu principal du composant
   return (
-    <TooltipProvider>
+    <div>
       <div className="min-h-screen bg-gradient-thai py-8 px-4">
-        <div className="container mx-auto max-w-4xl">
+        <div className="container mx-auto max-w-7xl">
           <Button asChild variant="outline" className="mb-6 group">
             <Link to={`/suivi-commande/${commande.idcommande}`}>
               <ArrowLeft className="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-1" />
@@ -394,6 +403,7 @@ const ModifierCommande = memo(() => {
             </Link>
           </Button>
 
+          {/* Header */}
           <Card className="shadow-xl border-thai-orange/20 mb-8">
             <CardHeader className="text-center bg-gradient-to-r from-thai-orange to-thai-gold text-white rounded-t-lg py-4">
               <div className="flex items-center justify-center mb-1">
@@ -402,22 +412,292 @@ const ModifierCommande = memo(() => {
               </div>
               <p className="text-white/90 text-sm">Commande N°{commande.idcommande} • Statut: {commande.statut_commande}</p>
             </CardHeader>
+          </Card>
 
-            <CardContent className="p-6 md:p-8">
-              {/* Avertissement */}
-              <Alert className="mb-6 border-blue-200 bg-blue-50 text-blue-800">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>
-                  <strong>Attention :</strong> Modifier votre commande remettra son statut à "En attente de confirmation".
-                </AlertDescription>
-              </Alert>
+          {/* Avertissement */}
+          <Alert className="mb-6 border-blue-200 bg-blue-50 text-blue-800">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              <strong>Attention :</strong> Modifier votre commande remettra son statut à "En attente de confirmation".
+            </AlertDescription>
+          </Alert>
 
+          {/* Layout en deux colonnes */}
+          <div className="grid lg:grid-cols-2 gap-6">
+            
+            {/* COLONNE GAUCHE - Modification date/heure et plats existants */}
+            <div className="space-y-6">
+              
+
+              {/* Section plats existants */}
+              <Card className="shadow-lg border-thai-orange/20">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-thai-green">
+                    <ShoppingCart className="h-5 w-5 text-thai-orange" />
+                    Plats de votre commande
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                
+                {details.length > 0 ? (
+                  <div className="space-y-3">
+                    {details.filter(detail => !detail.toDelete).map((detail) => (
+                      <div key={detail.iddetails} className="flex items-center justify-between p-3 rounded-lg bg-white/60 border border-thai-orange/20">
+                        <div className="flex-1">
+                          <h4 className="font-medium text-thai-green">{detail.plat?.plat}</h4>
+                          <p className="text-sm text-gray-600">{formatPrix(detail.plat?.prix || 0)} × {detail.quantite_plat_commande} = {formatPrix((detail.plat?.prix || 0) * detail.quantite_plat_commande)}</p>
+                        </div>
+                        
+                        <div className="flex items-center gap-3">
+                          <div className="flex items-center space-x-2">
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              className="h-7 w-7 p-0" 
+                              onClick={() => modifierQuantiteDetail(detail.iddetails, detail.quantite_plat_commande - 1)}
+                            >
+                              -
+                            </Button>
+                            <span className="w-6 text-center text-base font-medium">{detail.quantite_plat_commande}</span>
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              className="h-7 w-7 p-0" 
+                              onClick={() => modifierQuantiteDetail(detail.iddetails, detail.quantite_plat_commande + 1)}
+                            >
+                              +
+                            </Button>
+                          </div>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => supprimerDetail(detail.iddetails)}
+                            className="h-8 w-8 text-gray-400 hover:text-red-500 hover:bg-red-50"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-center text-gray-500 py-4">Aucun plat dans cette commande</p>
+                )}
+                              {/* Section nouveaux plats ajoutés */}
+              {nouveauxPlats.length > 0 && (
+                <Card className="shadow-lg border-thai-orange/20">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-thai-green">
+                      <ShoppingCart className="h-5 w-5 text-thai-orange" />
+                      Nouveaux plats ajoutés ({nouveauxPlats.length})
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                  
+                  <div className="space-y-3">
+                    {nouveauxPlats.map((item) => {
+                      const plat = plats?.find(p => p.idplats === item.plat_r);
+                      return (
+                        <div key={item.plat_r} className="flex items-center justify-between p-3 rounded-lg bg-green-50 border border-green-200">
+                          <div className="flex-1">
+                            <h4 className="font-medium text-thai-green">{plat?.plat}</h4>
+                            <p className="text-sm text-gray-600">
+                              {formatPrix(plat?.prix || 0)} × {item.quantite_plat_commande} = {formatPrix((plat?.prix || 0) * item.quantite_plat_commande)}
+                            </p>
+                          </div>
+                          
+                          <div className="flex items-center gap-3">
+                            <div className="flex items-center space-x-2">
+                              <Button 
+                                size="sm" 
+                                variant="outline" 
+                                className="h-7 w-7 p-0" 
+                                onClick={() => modifierQuantiteNouveauPlat(item.plat_r, item.quantite_plat_commande - 1)}
+                              >
+                                -
+                              </Button>
+                              <span className="w-6 text-center text-base font-medium">{item.quantite_plat_commande}</span>
+                              <Button 
+                                size="sm" 
+                                variant="outline" 
+                                className="h-7 w-7 p-0" 
+                                onClick={() => modifierQuantiteNouveauPlat(item.plat_r, item.quantite_plat_commande + 1)}
+                              >
+                                +
+                              </Button>
+                            </div>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              onClick={() => modifierQuantiteNouveauPlat(item.plat_r, 0)}
+                              className="h-8 w-8 text-gray-400 hover:text-red-500 hover:bg-red-50"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  </CardContent>
+                </Card>
+              )}
+
+                </CardContent>
+              </Card>
+
+                          {/* Section demandes spéciales et récapitulatif */}
+              <Card className="shadow-lg border-thai-orange/20">
+                <CardHeader>
+                  <CardTitle className="text-thai-green">Finalisation</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  
+                  {/* Demandes spéciales */}
+                  <div>
+                    <Label className="text-sm font-semibold text-thai-green mb-2 block">Demandes spéciales</Label>
+                    <Textarea 
+                      placeholder="Allergies, préférences particulières..." 
+                      value={demandesSpeciales} 
+                      onChange={(e) => setDemandesSpeciales(e.target.value)} 
+                      rows={3}
+                    />
+                  </div>
+
+                  {/* Récapitulatif des modifications */}
+                  <div className="p-4 bg-thai-cream/30 rounded-lg border border-thai-orange/20">
+                    <h4 className="font-semibold text-thai-green mb-3">Récapitulatif des modifications</h4>
+                  </div>
+                <div className="space-y-3">
+                  {/* Date et heure */}
+                  {dateRetrait && heureRetrait && (
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-thai-orange" />
+                      <span className="text-sm">
+                        <strong>Nouveau retrait :</strong> {format(dateRetrait, 'eeee dd MMMM yyyy', {locale: fr})} à {heureRetrait}
+                      </span>
+                    </div>
+                  )}
+                  
+                  {/* Plats supprimés */}
+                  {details.filter(d => d.toDelete).length > 0 && (
+                    <div>
+                      <p className="text-sm font-medium text-red-600 mb-1">Plats supprimés :</p>
+                      <ul className="text-sm text-red-600 ml-4">
+                        {details.filter(d => d.toDelete).map(detail => (
+                          <li key={detail.iddetails}>• {detail.plat?.plat}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  
+                  {/* Plats modifiés */}
+                  {details.filter(d => d.modified && !d.toDelete).length > 0 && (
+                    <div>
+                      <p className="text-sm font-medium text-blue-600 mb-1">Quantités modifiées :</p>
+                      <ul className="text-sm text-blue-600 ml-4">
+                        {details.filter(d => d.modified && !d.toDelete).map(detail => (
+                          <li key={detail.iddetails}>• {detail.plat?.plat} : {detail.quantite_plat_commande}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  
+                  {/* Nouveaux plats */}
+                  {nouveauxPlats.length > 0 && (
+                    <div>
+                      <p className="text-sm font-medium text-green-600 mb-1">Nouveaux plats ajoutés :</p>
+                      <ul className="text-sm text-green-600 ml-4">
+                        {nouveauxPlats.map(item => {
+                          const plat = plats?.find(p => p.idplats === item.plat_r);
+                          return (
+                            <li key={item.plat_r}>• {plat?.plat} × {item.quantite_plat_commande}</li>
+                          );
+                        })}
+                      </ul>
+                    </div>
+                  )}
+                  
+                  {/* Nouveau total */}
+                  <div className="pt-3 border-t border-thai-orange/20">
+                    <div className="flex justify-between items-center">
+                      <span className="font-bold text-thai-green">Nouveau total :</span>
+                      <span className="text-xl font-bold text-thai-orange">
+                        {formatPrix(calculerNouveauTotal())}
+                      </span>
+                    </div>
+                  </div>
+                  </div>
+
+                  {/* Informations de paiement */}
+                  <Alert className="bg-green-50/50 border-green-200 text-green-800 mb-4">
+                    <CreditCard className="h-4 w-4 !text-green-700" />
+                    <AlertDescription className="font-medium">
+                      Paiement sur place : Nous acceptons la carte bleue.
+                    </AlertDescription>
+                  </Alert>
+
+                  {/* Adresse et contact */}
+                  <div className="text-center text-sm text-thai-green/80 p-3 bg-thai-cream/50 rounded-lg mb-4">
+                    <div className="flex items-center justify-center gap-2">
+                      <MapPin className="h-4 w-4 text-thai-orange" />
+                      <span>Adresse de retrait : 2 impasse de la poste 37120 Marigny Marmande</span>
+                    </div>
+                    <div className="flex items-center justify-center gap-2 mt-1">
+                      <Phone className="h-4 w-4 text-thai-orange" />
+                      <span>Contact : 07 49 28 37 07</span>
+                    </div>
+                  </div>
+
+                  {/* Boutons d'action */}
+                  <div className="flex gap-4">
+                    <Button 
+                      asChild 
+                      variant="outline" 
+                      className="flex-1"
+                    >
+                      <Link to={`/suivi-commande/${commande.idcommande}`}>
+                        Annuler les modifications
+                      </Link>
+                    </Button>
+                    
+                    <Button 
+                      onClick={sauvegarderModifications} 
+                      disabled={isModifying || (!dateRetrait || !heureRetrait)} 
+                      className="flex-1 bg-thai-orange text-lg py-6"
+                    >
+                      {isModifying ? (
+                        <>
+                          <Loader2 className="animate-spin mr-2 h-4 w-4"/> 
+                          Sauvegarde...
+                        </>
+                      ) : (
+                        <>
+                          <Edit className="mr-2 h-4 w-4"/>
+                          Sauvegarder les modifications
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                  
+                </CardContent>
+              </Card>
+
+
+            </div>
+
+            {/* COLONNE DROITE - Ajout de nouveaux plats et récapitulatif */}
+            <div className="space-y-6">
+              
               {/* Section modification date et heure */}
-              <div className="mb-8 pb-8 border-b border-thai-orange/10">
-                <h3 className="text-lg font-semibold text-thai-green mb-4 flex items-center gap-2">
-                  <CalendarIconLucide className="h-5 w-5 text-thai-orange" />
-                  Modifier la date et l'heure de retrait
-                </h3>
+              <Card className="shadow-lg border-thai-orange/20">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-thai-green">
+                    <CalendarIconLucide className="h-5 w-5 text-thai-orange" />
+                    Date et heure de retrait
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
                 
                 <div className="mb-4">
                   <Label className="text-md font-semibold text-thai-green mb-3 block">Choisissez un jour :</Label>
@@ -469,73 +749,20 @@ const ModifierCommande = memo(() => {
                     </div>
                   </div>
                 )}
+                </CardContent>
+              </Card>
 
-                {dateRetrait && heureRetrait && (
-                  <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
-                    <p className="text-sm text-green-800 font-medium">
-                      ✓ Nouveau retrait prévu le {format(dateRetrait, 'eeee dd MMMM yyyy', {locale: fr})} à {heureRetrait}
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {/* Section plats existants */}
-              <div className="mb-8 pb-8 border-b border-thai-orange/10">
-                <h3 className="text-lg font-semibold text-thai-green mb-4 flex items-center gap-2">
-                  <ShoppingCart className="h-5 w-5 text-thai-orange" />
-                  Plats actuels de votre commande
-                </h3>
-                
-                {details.length > 0 ? (
-                  <div className="space-y-3">
-                    {details.filter(detail => !detail.toDelete).map((detail) => (
-                      <div key={detail.iddetails} className="flex items-center justify-between p-3 rounded-lg bg-white/60 border border-thai-orange/20">
-                        <div className="flex-1">
-                          <h4 className="font-medium text-thai-green">{detail.plat?.plat}</h4>
-                          <p className="text-sm text-gray-600">{formatPrix(detail.plat?.prix || 0)} × {detail.quantite_plat_commande} = {formatPrix((detail.plat?.prix || 0) * detail.quantite_plat_commande)}</p>
-                        </div>
-                        
-                        <div className="flex items-center gap-3">
-                          <div className="flex items-center space-x-2">
-                            <Button 
-                              size="sm" 
-                              variant="outline" 
-                              className="h-7 w-7 p-0" 
-                              onClick={() => modifierQuantiteDetail(detail.iddetails, detail.quantite_plat_commande - 1)}
-                            >
-                              -
-                            </Button>
-                            <span className="w-6 text-center text-base font-medium">{detail.quantite_plat_commande}</span>
-                            <Button 
-                              size="sm" 
-                              variant="outline" 
-                              className="h-7 w-7 p-0" 
-                              onClick={() => modifierQuantiteDetail(detail.iddetails, detail.quantite_plat_commande + 1)}
-                            >
-                              +
-                            </Button>
-                          </div>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            onClick={() => supprimerDetail(detail.iddetails)}
-                            className="h-8 w-8 text-gray-400 hover:text-red-500 hover:bg-red-50"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-center text-gray-500 py-4">Aucun plat dans cette commande</p>
-                )}
-              </div>
 
               {/* Section ajouter de nouveaux plats */}
               {jourSelectionne && dateRetrait && heureRetrait && (
-                <div className="mb-8 pb-8 border-b border-thai-orange/10">
-                  <h3 className="text-lg font-semibold text-thai-green mb-4">Ajouter des plats pour le {jourSelectionne}</h3>
+                <Card className="shadow-lg border-thai-orange/20">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-thai-green">
+                      <ShoppingCart className="h-5 w-5 text-thai-orange" />
+                      Ajouter des plats pour le {jourSelectionne}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
                   
                   {/* Recherche de plats */}
                   <div className="mb-4">
@@ -598,199 +825,22 @@ const ModifierCommande = memo(() => {
                       ))}
                     </div>
                   )}
-                </div>
+                  </CardContent>
+                </Card>
               )}
 
-              {/* Section nouveaux plats ajoutés */}
-              {nouveauxPlats.length > 0 && (
-                <div className="mb-8 pb-8 border-b border-thai-orange/10">
-                  <h3 className="text-lg font-semibold text-thai-green mb-4 flex items-center gap-2">
-                    <ShoppingCart className="h-5 w-5 text-thai-orange" />
-                    Nouveaux plats ajoutés ({nouveauxPlats.length})
-                  </h3>
-                  
-                  <div className="space-y-3">
-                    {nouveauxPlats.map((item) => {
-                      const plat = plats?.find(p => p.idplats === item.plat_r);
-                      return (
-                        <div key={item.plat_r} className="flex items-center justify-between p-3 rounded-lg bg-green-50 border border-green-200">
-                          <div className="flex-1">
-                            <h4 className="font-medium text-thai-green">{plat?.plat}</h4>
-                            <p className="text-sm text-gray-600">
-                              {formatPrix(plat?.prix || 0)} × {item.quantite_plat_commande} = {formatPrix((plat?.prix || 0) * item.quantite_plat_commande)}
-                            </p>
-                          </div>
-                          
-                          <div className="flex items-center gap-3">
-                            <div className="flex items-center space-x-2">
-                              <Button 
-                                size="sm" 
-                                variant="outline" 
-                                className="h-7 w-7 p-0" 
-                                onClick={() => modifierQuantiteNouveauPlat(item.plat_r, item.quantite_plat_commande - 1)}
-                              >
-                                -
-                              </Button>
-                              <span className="w-6 text-center text-base font-medium">{item.quantite_plat_commande}</span>
-                              <Button 
-                                size="sm" 
-                                variant="outline" 
-                                className="h-7 w-7 p-0" 
-                                onClick={() => modifierQuantiteNouveauPlat(item.plat_r, item.quantite_plat_commande + 1)}
-                              >
-                                +
-                              </Button>
-                            </div>
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              onClick={() => modifierQuantiteNouveauPlat(item.plat_r, 0)}
-                              className="h-8 w-8 text-gray-400 hover:text-red-500 hover:bg-red-50"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
 
-              {/* Section demandes spéciales */}
-              <div className="mb-8 pb-8 border-b border-thai-orange/10">
-                <h3 className="text-lg font-semibold text-thai-green mb-4">Demandes spéciales</h3>
-                <Textarea 
-                  placeholder="Allergies, préférences particulières..." 
-                  value={demandesSpeciales} 
-                  onChange={(e) => setDemandesSpeciales(e.target.value)} 
-                  rows={3}
-                />
-              </div>
-
-              {/* Récapitulatif des modifications */}
-              <div className="mb-8 p-4 bg-thai-cream/30 rounded-lg border border-thai-orange/20">
-                <h3 className="text-lg font-semibold text-thai-green mb-4">Récapitulatif des modifications</h3>
-                
-                <div className="space-y-3">
-                  {/* Date et heure */}
-                  {dateRetrait && heureRetrait && (
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-thai-orange" />
-                      <span className="text-sm">
-                        <strong>Nouveau retrait :</strong> {format(dateRetrait, 'eeee dd MMMM yyyy', {locale: fr})} à {heureRetrait}
-                      </span>
-                    </div>
-                  )}
-                  
-                  {/* Plats supprimés */}
-                  {details.filter(d => d.toDelete).length > 0 && (
-                    <div>
-                      <p className="text-sm font-medium text-red-600 mb-1">Plats supprimés :</p>
-                      <ul className="text-sm text-red-600 ml-4">
-                        {details.filter(d => d.toDelete).map(detail => (
-                          <li key={detail.iddetails}>• {detail.plat?.plat}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                  
-                  {/* Plats modifiés */}
-                  {details.filter(d => d.modified && !d.toDelete).length > 0 && (
-                    <div>
-                      <p className="text-sm font-medium text-blue-600 mb-1">Quantités modifiées :</p>
-                      <ul className="text-sm text-blue-600 ml-4">
-                        {details.filter(d => d.modified && !d.toDelete).map(detail => (
-                          <li key={detail.iddetails}>• {detail.plat?.plat} : {detail.quantite_plat_commande}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                  
-                  {/* Nouveaux plats */}
-                  {nouveauxPlats.length > 0 && (
-                    <div>
-                      <p className="text-sm font-medium text-green-600 mb-1">Nouveaux plats ajoutés :</p>
-                      <ul className="text-sm text-green-600 ml-4">
-                        {nouveauxPlats.map(item => {
-                          const plat = plats?.find(p => p.idplats === item.plat_r);
-                          return (
-                            <li key={item.plat_r}>• {plat?.plat} × {item.quantite_plat_commande}</li>
-                          );
-                        })}
-                      </ul>
-                    </div>
-                  )}
-                  
-                  {/* Nouveau total */}
-                  <div className="pt-3 border-t border-thai-orange/20">
-                    <div className="flex justify-between items-center">
-                      <span className="font-bold text-thai-green">Nouveau total :</span>
-                      <span className="text-xl font-bold text-thai-orange">
-                        {formatPrix(calculerNouveauTotal())}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Informations de paiement */}
-              <Alert className="bg-green-50/50 border-green-200 text-green-800 mb-6">
-                <CreditCard className="h-4 w-4 !text-green-700" />
-                <AlertDescription className="font-medium">
-                  Paiement sur place : Nous acceptons la carte bleue.
-                </AlertDescription>
-              </Alert>
-
-              {/* Adresse et contact */}
-              <div className="text-center text-sm text-thai-green/80 p-3 bg-thai-cream/50 rounded-lg mb-6">
-                <div className="flex items-center justify-center gap-2">
-                  <MapPin className="h-4 w-4 text-thai-orange" />
-                  <span>Adresse de retrait : 2 impasse de la poste 37120 Marigny Marmande</span>
-                </div>
-                <div className="flex items-center justify-center gap-2 mt-1">
-                  <Phone className="h-4 w-4 text-thai-orange" />
-                  <span>Contact : 07 49 28 37 07</span>
-                </div>
-              </div>
-
-              {/* Boutons d'action */}
-              <div className="flex gap-4">
-                <Button 
-                  asChild 
-                  variant="outline" 
-                  className="flex-1"
-                >
-                  <Link to={`/suivi-commande/${commande.idcommande}`}>
-                    Annuler les modifications
-                  </Link>
-                </Button>
-                
-                <Button 
-                  onClick={sauvegarderModifications} 
-                  disabled={isModifying || (!dateRetrait || !heureRetrait)} 
-                  className="flex-1 bg-thai-orange text-lg py-6"
-                >
-                  {isModifying ? (
-                    <>
-                      <Loader2 className="animate-spin mr-2 h-4 w-4"/> 
-                      Sauvegarde...
-                    </>
-                  ) : (
-                    <>
-                      <Edit className="mr-2 h-4 w-4"/>
-                      Sauvegarder les modifications
-                    </>
-                  )}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+              
+            </div>
+            
+          </div>
         </div>
       </div>
-    </TooltipProvider>
+    </div>
   );
-});
+};
+
+const ModifierCommande = memo(ModifierCommandeComponent);
 
 ModifierCommande.displayName = 'ModifierCommande';
 

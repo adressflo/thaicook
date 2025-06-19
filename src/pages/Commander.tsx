@@ -8,8 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Calendar as CalendarIconLucide, AlertCircle, ShoppingCart, CreditCard, Loader2, Search, Trash2, MapPin, Phone } from 'lucide-react';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { format, isSameDay, isFuture, getDay, startOfDay, addDays, startOfMonth, endOfMonth, addMonths, type Day } from 'date-fns';
@@ -65,7 +64,6 @@ const Commander = memo(() => {
   const [heureRetrait, setHeureRetrait] = useState<string>('');
   const [demandesSpeciales, setDemandesSpeciales] = useState<string>('');
   const [allowedDates, setAllowedDates] = useState<Date[]>([]);
-  const [currentCalendarMonth, setCurrentCalendarMonth] = useState<Date>(startOfDay(new Date()));
   const [recherche, setRecherche] = useState('');
 
   const platsFiltres = useMemo(() => {
@@ -117,17 +115,19 @@ const Commander = memo(() => {
       const targetDayNumber = dayNameToNumber[jourSelectionne];
       const today = startOfDay(new Date());
       const calculatedDates: Date[] = [];
-      const startMonth = startOfMonth(currentCalendarMonth);
-      const endNextMonth = endOfMonth(addMonths(startMonth, 1));
-      let currentDateIterator = startMonth;
-      while (currentDateIterator <= endNextMonth) {
-        if (getDay(currentDateIterator) === targetDayNumber) {
-          if (isSameDay(currentDateIterator, today) || isFuture(currentDateIterator)) {
-            calculatedDates.push(startOfDay(currentDateIterator));
-          }
+      
+      // Générer les 8 prochaines occurrences du jour sélectionné
+      let currentDate = today;
+      let foundDates = 0;
+      
+      while (foundDates < 8) {
+        if (getDay(currentDate) === targetDayNumber && (isSameDay(currentDate, today) || isFuture(currentDate))) {
+          calculatedDates.push(startOfDay(currentDate));
+          foundDates++;
         }
-        currentDateIterator = addDays(currentDateIterator, 1);
+        currentDate = addDays(currentDate, 1);
       }
+      
       setAllowedDates(calculatedDates);
       if (dateRetrait && !calculatedDates.some(d => isSameDay(d, dateRetrait))) {
         setDateRetrait(undefined);
@@ -135,7 +135,7 @@ const Commander = memo(() => {
     } else {
       setAllowedDates([]);
     }
-  }, [jourSelectionne, currentCalendarMonth, dateRetrait]);
+  }, [jourSelectionne, dateRetrait]);
 
   const handleAjouterAuPanier = (plat: Plat) => {
     if (!plat.idplats || !plat.plat || plat.prix === undefined) return;
@@ -310,17 +310,22 @@ const Commander = memo(() => {
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="dateRetrait">Date de retrait *</Label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button variant={"outline"} className={cn("w-full justify-start text-left font-normal", !dateRetrait && "text-muted-foreground")}>
-                            <CalendarIconLucide className="mr-2 h-4 w-4"/>
-                            {dateRetrait ? format(dateRetrait, 'eeee dd MMMM yyyy', {locale: fr}) : <span className="text-green-700">Sélectionner une date</span>}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0">
-                          <Calendar mode="single" selected={dateRetrait} onSelect={setDateRetrait} disabled={(date) => !allowedDates.some(d => isSameDay(d, date))}/>
-                        </PopoverContent>
-                      </Popover>
+                      <Select 
+                        onValueChange={(value) => setDateRetrait(new Date(value))} 
+                        value={dateRetrait?.toISOString() || ''}
+                      >
+                        <SelectTrigger className={cn("w-full", !dateRetrait && "text-muted-foreground")}>
+                          <CalendarIconLucide className="mr-2 h-4 w-4"/>
+                          <SelectValue placeholder="Sélectionner une date" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {allowedDates.map(date => (
+                            <SelectItem key={date.toISOString()} value={date.toISOString()}>
+                              {format(date, 'eeee dd MMMM yyyy', {locale: fr})}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                     <div>
                       <Label htmlFor="heureRetrait">Heure de retrait *</Label>
