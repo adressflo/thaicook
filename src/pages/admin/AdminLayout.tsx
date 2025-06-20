@@ -1,16 +1,9 @@
 import { ReactNode } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { usePermissions } from '@/components/PermissionGuard';
 import { 
-  BarChart3, 
-  ShoppingBasket, 
-  Users, 
-  CookingPot, 
-  Settings, 
-  TrendingUp,
   ArrowLeft,
   Bell
 } from 'lucide-react';
@@ -24,52 +17,20 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
   const location = useLocation();
   const { clientProfile } = usePermissions();
 
-  const menuItems = [
-    {
-      path: '/admin/dashboard',
-      label: 'Tableau de Bord',
-      icon: BarChart3,
-      description: 'Vue d\'ensemble et statistiques'
-    },
-    {
-      path: '/admin/commandes',
-      label: 'Commandes',
-      icon: ShoppingBasket,
-      description: 'Gestion des commandes'
-    },
-    {
-      path: '/admin/plats',
-      label: 'Gestion Plats',
-      icon: CookingPot,
-      description: 'Créer et modifier les plats'
-    },
-    {
-      path: '/admin/clients',
-      label: 'Clients',
-      icon: Users,
-      description: 'Gestion des utilisateurs'
-    },
-    {
-      path: '/admin/statistiques',
-      label: 'Statistiques',
-      icon: TrendingUp,
-      description: 'Analyses détaillées'
-    },
-    {
-      path: '/admin/parametres',
-      label: 'Paramètres',
-      icon: Settings,
-      description: 'Configuration système'
-    }
-  ];
-
   const getCurrentPageTitle = () => {
-    const currentItem = menuItems.find(item => item.path === location.pathname);
-    return currentItem?.label || 'Administration';
+    const path = location.pathname;
+    if (path.includes('centre-commandement') || path === '/admin') return 'Centre de Commandement';
+    if (path.includes('courses')) return 'Centrale d\'Approvisionnement';
+    if (path.includes('commandes')) return 'Commandes';
+    if (path.includes('plats')) return 'Gestion Plats';
+    if (path.includes('clients')) return 'Clients';
+    if (path.includes('statistiques')) return 'Statistiques';
+    if (path.includes('parametres')) return 'Paramètres';
+    return 'Administration';
   };
 
   return (
-    <div className="min-h-screen bg-gradient-thai">
+    <div className="min-h-screen">
       {/* Header Admin */}
       <div className="bg-white shadow-lg border-b-4 border-thai-orange">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -87,7 +48,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
               </Button>
               <div className="h-8 w-px bg-gray-300" />
               <h1 className="text-2xl font-bold text-thai-green">
-                Administration
+                {getCurrentPageTitle()}
               </h1>
             </div>
 
@@ -115,66 +76,12 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
         </div>
       </div>
 
+      {/* Contenu principal */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex gap-8">
-          {/* Navigation latérale */}
-          <div className="w-80 flex-shrink-0">
-            <Card className="p-6 sticky top-8">
-              <h2 className="text-lg font-semibold text-thai-green mb-4">
-                Navigation
-              </h2>
-              <nav className="space-y-2">
-                {menuItems.map((item) => {
-                  const Icon = item.icon;
-                  const isActive = location.pathname === item.path;
-                  
-                  return (
-                    <Button
-                      key={item.path}
-                      variant={isActive ? "default" : "ghost"}
-                      className={`w-full justify-start h-auto p-4 ${
-                        isActive 
-                          ? 'bg-thai-orange hover:bg-thai-orange/90 text-white' 
-                          : 'text-thai-green hover:bg-thai-green/10'
-                      }`}
-                      onClick={() => navigate(item.path)}
-                    >
-                      <div className="flex items-start gap-3 text-left">
-                        <Icon className="w-5 h-5 mt-0.5 flex-shrink-0" />
-                        <div>
-                          <div className="font-medium">{item.label}</div>
-                          <div className={`text-xs mt-1 ${
-                            isActive ? 'text-white/80' : 'text-gray-500'
-                          }`}>
-                            {item.description}
-                          </div>
-                        </div>
-                      </div>
-                    </Button>
-                  );
-                })}
-              </nav>
-            </Card>
-          </div>
-
-          {/* Contenu principal */}
-          <div className="flex-1 min-w-0">
-            {/* Titre de la page */}
-            <div className="mb-6">
-              <h1 className="text-3xl font-bold text-thai-green">
-                {getCurrentPageTitle()}
-              </h1>
-              <p className="text-thai-green/70 mt-1">
-                Gérez votre restaurant thaïlandais depuis ce panel d'administration
-              </p>
-            </div>
-
-            {/* Contenu de la page */}
-            {children}
-          </div>
-        </div>
+        {children}
       </div>
     </div>
   );
 };
+
 export default AdminLayout;

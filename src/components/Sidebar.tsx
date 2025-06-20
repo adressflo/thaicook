@@ -13,7 +13,13 @@ import {
   ChevronRight,
   Shield,
   History,
-  Utensils
+  Utensils,
+  Command,
+  BarChart3,
+  ShoppingBasket,
+  CookingPot,
+  Settings,
+  TrendingUp
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -51,7 +57,18 @@ export const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => {
     { name: "À propos", href: '/a-propos', icon: Users },
   ].filter(Boolean);
 
+  const adminMenuItems = [
+    { name: 'Centre de Commandement', href: '/admin/centre-commandement', icon: Command },
+    { name: 'Approvisionnement', href: '/admin/courses', icon: ShoppingCart },
+    { name: 'Commandes', href: '/admin/commandes', icon: ShoppingBasket },
+    { name: 'Gestion Plats', href: '/admin/plats', icon: CookingPot },
+    { name: 'Clients', href: '/admin/clients', icon: Users },
+    { name: 'Statistiques', href: '/admin/statistiques', icon: TrendingUp },
+    { name: 'Paramètres', href: '/admin/parametres', icon: Settings },
+  ];
+
   const isActive = (path: string) => location.pathname === path;
+  const isAdminActive = () => location.pathname.startsWith('/admin');
 
   return (
     <>
@@ -145,12 +162,13 @@ export const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => {
           {/* Section Admin */}
           {currentUserRole === 'admin' && (
             <div className="pt-4 mt-4 border-t border-thai-orange/10">
+              {/* En-tête Administration */}
               <Link
                 to="/admin"
                 onClick={handleLinkClick}
                 className={cn(
-                  "flex items-center px-3 py-2.5 rounded-lg transition-colors duration-200 group relative",
-                  isActive('/admin') || location.pathname.startsWith('/admin')
+                  "flex items-center px-3 py-2.5 rounded-lg transition-colors duration-200 group relative mb-2",
+                  isAdminActive()
                     ? "bg-thai-green text-white shadow-md"
                     : "text-thai-green/80 hover:bg-thai-green/10 hover:text-thai-green",
                   !isOpen && "justify-center"
@@ -158,7 +176,7 @@ export const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => {
               >
                 <Shield className={cn(
                   "h-5 w-5 flex-shrink-0", 
-                  isActive('/admin') || location.pathname.startsWith('/admin') 
+                  isAdminActive() 
                     ? "text-white" 
                     : "text-thai-green/80 group-hover:text-thai-green"
                 )} />
@@ -171,6 +189,31 @@ export const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => {
                   </div>
                 )}
               </Link>
+
+              {/* Sous-menus admin - visibles uniquement quand sidebar ouverte et sur pages admin */}
+              {isOpen && isAdminActive() && (
+                <div className="ml-4 space-y-1">
+                  {adminMenuItems.map((item) => (
+                    <Link
+                      key={item.name}
+                      to={item.href}
+                      onClick={handleLinkClick}
+                      className={cn(
+                        "flex items-center px-3 py-2 rounded-lg transition-colors duration-200 group relative text-sm",
+                        isActive(item.href)
+                          ? "bg-thai-orange text-white shadow-sm"
+                          : "text-thai-green/70 hover:bg-thai-orange/10 hover:text-thai-orange"
+                      )}
+                    >
+                      <item.icon className={cn(
+                        "h-4 w-4 flex-shrink-0 mr-3", 
+                        isActive(item.href) ? "text-white" : "text-thai-orange/70 group-hover:text-thai-orange"
+                      )} />
+                      <span className="truncate">{item.name}</span>
+                    </Link>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </nav>

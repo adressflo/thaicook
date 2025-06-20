@@ -15,16 +15,20 @@ import {
   Package,
   Euro,
   Image,
-  Clock
+  Clock,
+  Eye,
+  EyeOff,
+  CheckCircle2,
+  XCircle
 } from 'lucide-react';
 import { usePlats, useCreatePlat, useUpdatePlat } from '@/hooks/useSupabaseData';
 
 interface PlatForm {
-  nom_plat: string;
+  plat: string;
   description: string;
   prix: number;
-  url_photo: string;
-  disponible: boolean;
+  photo_du_plat: string;
+  // Utiliser les vrais noms de champs de la base
   lundi: boolean;
   mardi: boolean;
   mercredi: boolean;
@@ -35,11 +39,10 @@ interface PlatForm {
 }
 
 const initialForm: PlatForm = {
-  nom_plat: '',
+  plat: '',
   description: '',
   prix: 0,
-  url_photo: '',
-  disponible: true,
+  photo_du_plat: '',
   lundi: true,
   mardi: true,
   mercredi: true,
@@ -47,10 +50,13 @@ const initialForm: PlatForm = {
   vendredi: true,
   samedi: true,
   dimanche: true
-};const AdminGestionPlats = () => {
+};
+
+const AdminGestionPlats = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [form, setForm] = useState<PlatForm>(initialForm);
+  const [filtreDisponibilite, setFiltreDisponibilite] = useState<'tous' | 'disponibles' | 'indisponibles'>('tous');
   
   const { data: plats, refetch } = usePlats();
   const createPlatMutation = useCreatePlat();
@@ -67,6 +73,46 @@ const initialForm: PlatForm = {
     { key: 'dimanche', label: 'Dim' }
   ];
 
+  // Fonction pour changer rapidement la disponibilité
+  const toggleDisponibilite = async (platId: number, nouveauStatut: boolean) => {
+    try {
+      await updatePlatMutation.mutateAsync({
+        id: platId,
+        updateData: { disponible: nouveauStatut }
+      });
+      
+      toast({
+        title: "Succès",
+        description: nouveauStatut ? "Plat rendu disponible" : "Plat rendu indisponible"
+      });
+      
+      refetch();
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de modifier la disponibilité",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Statistiques avec vérification des propriétés
+  const platsFiltres = plats?.filter(plat => {
+    // @ts-ignore - propriété disponible peut ne pas exister sur tous les plats
+    const isDisponible = plat.disponible !== false; // par défaut disponible si propriété manquante
+    if (filtreDisponibilite === 'disponibles') return isDisponible;
+    if (filtreDisponibilite === 'indisponibles') return !isDisponible;
+    return true;
+  }) || [];
+
+  const stats = {
+    total: plats?.length || 0,
+    // @ts-ignore
+    disponibles: plats?.filter(p => p.disponible !== false).length || 0,
+    // @ts-ignore
+    indisponibles: plats?.filter(p => p.disponible === false).length || 0
+  };
+
   const handleCreate = () => {
     setIsCreating(true);
     setEditingId(null);
@@ -77,27 +123,28 @@ const initialForm: PlatForm = {
     setEditingId(plat.idplats);
     setIsCreating(false);
     setForm({
-      nom_plat: plat.nom_plat || '',
+      plat: plat.plat || '',
       description: plat.description || '',
       prix: plat.prix || 0,
-      url_photo: plat.url_photo || '',
-      disponible: plat.disponible,
-      lundi: plat.lundi,
-      mardi: plat.mardi,
-      mercredi: plat.mercredi,
-      jeudi: plat.jeudi,
-      vendredi: plat.vendredi,
-      samedi: plat.samedi,
-      dimanche: plat.dimanche
+      photo_du_plat: plat.photo_du_plat || '',
+      lundi: plat.lundi !== false,
+      mardi: plat.mardi !== false,
+      mercredi: plat.mercredi !== false,
+      jeudi: plat.jeudi !== false,
+      vendredi: plat.vendredi !== false,
+      samedi: plat.samedi !== false,
+      dimanche: plat.dimanche !== false
     });
-  };  const handleCancel = () => {
+  };
+
+  const handleCancel = () => {
     setIsCreating(false);
     setEditingId(null);
     setForm(initialForm);
   };
 
   const handleSubmit = async () => {
-    if (!form.nom_plat.trim()) {
+    if (!form.plat.trim()) {
       toast({
         title: "Erreur",
         description: "Le nom du plat est requis",
@@ -108,7 +155,7 @@ const initialForm: PlatForm = {
 
     try {
       if (isCreating) {
-        await createPlatMutation.mutateAsync(form);
+        await createPlatMutation.mutateAsync({ data: form });
         toast({
           title: "Succès",
           description: "Plat créé avec succès"
@@ -116,7 +163,7 @@ const initialForm: PlatForm = {
       } else if (editingId) {
         await updatePlatMutation.mutateAsync({
           id: editingId,
-          updates: form
+          updateData: form
         });
         toast({
           title: "Succès",
@@ -137,8 +184,55 @@ const initialForm: PlatForm = {
 
   const updateForm = (field: keyof PlatForm, value: any) => {
     setForm(prev => ({ ...prev, [field]: value }));
-  };  return (
+  };
+
+  return (
     <div className="space-y-6">
+      {/* Statistiques en haut */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-green-100 rounded-lg">
+                <CheckCircle2 className="w-6 h-6 text-green-600" />
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-green-600">{stats.disponibles}</div>
+                <div className="text-sm text-gray-600">Plats disponibles</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-red-100 rounded-lg">
+                <XCircle className="w-6 h-6 text-red-600" />
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-red-600">{stats.indisponibles}</div>
+                <div className="text-sm text-gray-600">Plats indisponibles</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-thai-orange/20 rounded-lg">
+                <Package className="w-6 h-6 text-thai-orange" />
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-thai-orange">{stats.total}</div>
+                <div className="text-sm text-gray-600">Total des plats</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       {/* Bouton créer + Formulaire */}
       <Card>
         <CardHeader>
@@ -161,11 +255,11 @@ const initialForm: PlatForm = {
             {/* Informations de base */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="nom_plat">Nom du plat *</Label>
+                <Label htmlFor="plat">Nom du plat *</Label>
                 <Input
-                  id="nom_plat"
-                  value={form.nom_plat}
-                  onChange={(e) => updateForm('nom_plat', e.target.value)}
+                  id="plat"
+                  value={form.plat}
+                  onChange={(e) => updateForm('plat', e.target.value)}
                   placeholder="Ex: Pad Thaï"
                 />
               </div>
@@ -181,7 +275,9 @@ const initialForm: PlatForm = {
                   placeholder="12.90"
                 />
               </div>
-            </div>            <div>
+            </div>
+
+            <div>
               <Label htmlFor="description">Description *</Label>
               <Textarea
                 id="description"
@@ -193,23 +289,13 @@ const initialForm: PlatForm = {
             </div>
 
             <div>
-              <Label htmlFor="url_photo">URL de la photo</Label>
+              <Label htmlFor="photo_du_plat">URL de la photo</Label>
               <Input
-                id="url_photo"
-                value={form.url_photo}
-                onChange={(e) => updateForm('url_photo', e.target.value)}
+                id="photo_du_plat"
+                value={form.photo_du_plat}
+                onChange={(e) => updateForm('photo_du_plat', e.target.value)}
                 placeholder="https://..."
               />
-            </div>
-
-            {/* Disponibilité */}
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="disponible"
-                checked={form.disponible}
-                onCheckedChange={(checked) => updateForm('disponible', checked)}
-              />
-              <Label htmlFor="disponible">Plat disponible</Label>
             </div>
 
             {/* Disponibilité par jour */}
@@ -226,7 +312,9 @@ const initialForm: PlatForm = {
                   </div>
                 ))}
               </div>
-            </div>            {/* Actions */}
+            </div>
+
+            {/* Actions */}
             <div className="flex gap-2 pt-4">
               <Button onClick={handleSubmit} className="bg-thai-orange hover:bg-thai-orange/90">
                 <Save className="w-4 h-4 mr-2" />
@@ -241,79 +329,135 @@ const initialForm: PlatForm = {
         )}
       </Card>
 
+      {/* Filtres de disponibilité */}
+      <div className="flex flex-wrap gap-2">
+        <Button
+          variant={filtreDisponibilite === 'tous' ? 'default' : 'outline'}
+          onClick={() => setFiltreDisponibilite('tous')}
+          className={filtreDisponibilite === 'tous' ? 'bg-thai-orange hover:bg-thai-orange/90' : ''}
+        >
+          Tous les plats ({stats.total})
+        </Button>
+        <Button
+          variant={filtreDisponibilite === 'disponibles' ? 'default' : 'outline'}
+          onClick={() => setFiltreDisponibilite('disponibles')}
+          className={filtreDisponibilite === 'disponibles' ? 'bg-green-600 hover:bg-green-700' : ''}
+        >
+          <Eye className="w-4 h-4 mr-2" />
+          Disponibles ({stats.disponibles})
+        </Button>
+        <Button
+          variant={filtreDisponibilite === 'indisponibles' ? 'default' : 'outline'}
+          onClick={() => setFiltreDisponibilite('indisponibles')}
+          className={filtreDisponibilite === 'indisponibles' ? 'bg-red-600 hover:bg-red-700' : ''}
+        >
+          <EyeOff className="w-4 h-4 mr-2" />
+          Indisponibles ({stats.indisponibles})
+        </Button>
+      </div>
+
       {/* Liste des plats */}
       <Card>
         <CardHeader>
           <CardTitle className="text-thai-green">
-            Plats Existants ({plats?.length || 0})
+            Plats Existants ({platsFiltres.length})
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {plats?.map((plat) => (
-              <Card key={plat.idplats} className="overflow-hidden">
-                <div className="aspect-video relative">
-                  {plat.url_photo ? (
-                    <img 
-                      src={plat.url_photo} 
-                      alt={plat.nom_plat}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                      <Image className="w-8 h-8 text-gray-400" />
-                    </div>
-                  )}
-                  <Badge 
-                    className={`absolute top-2 right-2 ${
-                      plat.disponible ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                    }`}
-                  >
-                    {plat.disponible ? 'Disponible' : 'Indisponible'}
-                  </Badge>
-                </div>                <CardContent className="p-4">
-                  <h3 className="font-bold text-thai-green mb-2">{plat.nom_plat}</h3>
-                  <p className="text-sm text-gray-600 mb-3 line-clamp-2">{plat.description}</p>
-                  
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-lg font-bold text-thai-orange flex items-center gap-1">
-                      <Euro className="w-4 h-4" />
-                      {plat.prix}€
-                    </span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleEdit(plat)}
-                      className="text-thai-green hover:bg-thai-green/10"
+            {platsFiltres.map((plat) => {
+              // @ts-ignore - vérification de la propriété disponible
+              const estDisponible = plat.disponible !== false;
+              
+              return (
+                <Card 
+                  key={plat.idplats} 
+                  className={`overflow-hidden transition-all ${
+                    !estDisponible ? 'opacity-75 grayscale' : ''
+                  }`}
+                >
+                  <div className="aspect-video relative">
+                    {plat.photo_du_plat ? (
+                      <img 
+                        src={plat.photo_du_plat} 
+                        alt={plat.plat}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                        <Image className="w-8 h-8 text-gray-400" />
+                      </div>
+                    )}
+                    <Badge 
+                      className={`absolute top-2 right-2 ${
+                        estDisponible ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                      }`}
                     >
-                      <Edit2 className="w-4 h-4 mr-1" />
-                      Modifier
-                    </Button>
+                      {estDisponible ? 'Disponible' : 'Indisponible'}
+                    </Badge>
                   </div>
 
-                  {/* Jours de disponibilité */}
-                  <div className="flex flex-wrap gap-1">
-                    {jours.map((jour) => (
-                      <Badge
-                        key={jour.key}
-                        variant={plat[jour.key as keyof typeof plat] ? "default" : "secondary"}
-                        className={`text-xs ${
-                          plat[jour.key as keyof typeof plat] 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-gray-100 text-gray-500'
-                        }`}
+                  <CardContent className="p-4">
+                    <h3 className="font-bold text-thai-green mb-2">{plat.plat}</h3>
+                    <p className="text-sm text-gray-600 mb-3 line-clamp-2">{plat.description}</p>
+                    
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-lg font-bold text-thai-orange flex items-center gap-1">
+                        <Euro className="w-4 h-4" />
+                        {plat.prix}€
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEdit(plat)}
+                        className="text-thai-green hover:bg-thai-green/10"
                       >
-                        {jour.label}
-                      </Badge>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                        <Edit2 className="w-4 h-4 mr-1" />
+                        Modifier
+                      </Button>
+                    </div>
+
+                    {/* Toggle rapide de disponibilité */}
+                    <div className="flex items-center justify-between mb-3 p-2 bg-gray-50 rounded-lg">
+                      <span className="text-sm font-medium">
+                        {estDisponible ? 'Disponible' : 'Indisponible'}
+                      </span>
+                      <Switch
+                        checked={estDisponible}
+                        onCheckedChange={(checked) => toggleDisponibilite(plat.idplats, checked)}
+                        className="data-[state=checked]:bg-green-600"
+                      />
+                    </div>
+
+                    {/* Jours de disponibilité */}
+                    <div className="flex flex-wrap gap-1">
+                      {jours.map((jour) => {
+                        // @ts-ignore
+                        const jourDisponible = plat[jour.key] !== false;
+                        return (
+                          <Badge
+                            key={jour.key}
+                            variant={jourDisponible ? "default" : "secondary"}
+                            className={`text-xs ${
+                              jourDisponible
+                                ? 'bg-green-100 text-green-800' 
+                                : 'bg-gray-100 text-gray-500'
+                            }`}
+                          >
+                            {jour.label}
+                          </Badge>
+                        );
+                      })}
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         </CardContent>
       </Card>
     </div>
   );
 };
+
 export default AdminGestionPlats;

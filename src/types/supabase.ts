@@ -305,6 +305,99 @@ export type Database = {
           },
         ]
       }
+      historique_communication: {
+        Row: {
+          id: number
+          client_id: number | null
+          message: string
+          canal: string | null
+          timestamp: string | null
+          envoye_par: string | null
+          statut: string | null
+        }
+        Insert: {
+          id?: number
+          client_id?: number | null
+          message: string
+          canal?: string | null
+          timestamp?: string | null
+          envoye_par?: string | null
+          statut?: string | null
+        }
+        Update: {
+          id?: number
+          client_id?: number | null
+          message?: string
+          canal?: string | null
+          timestamp?: string | null
+          envoye_par?: string | null
+          statut?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "historique_communication_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "client_db"
+            referencedColumns: ["idclient"]
+          },
+        ]
+      }
+      activites_flux: {
+        Row: {
+          id: number
+          type_activite: string
+          description: string
+          client_id: number | null
+          commande_id: number | null
+          evenement_id: number | null
+          timestamp: string | null
+          lu: boolean | null
+        }
+        Insert: {
+          id?: number
+          type_activite: string
+          description: string
+          client_id?: number | null
+          commande_id?: number | null
+          evenement_id?: number | null
+          timestamp?: string | null
+          lu?: boolean | null
+        }
+        Update: {
+          id?: number
+          type_activite?: string
+          description?: string
+          client_id?: number | null
+          commande_id?: number | null
+          evenement_id?: number | null
+          timestamp?: string | null
+          lu?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activites_flux_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "client_db"
+            referencedColumns: ["idclient"]
+          },
+          {
+            foreignKeyName: "activites_flux_commande_id_fkey"
+            columns: ["commande_id"]
+            isOneToOne: false
+            referencedRelation: "commande_db"
+            referencedColumns: ["idcommande"]
+          },
+          {
+            foreignKeyName: "activites_flux_evenement_id_fkey"
+            columns: ["evenement_id"]
+            isOneToOne: false
+            referencedRelation: "evenements_db"
+            referencedColumns: ["idevenements"]
+          },
+        ]
+      }
       plats_db: {
         Row: {
           description: string | null
@@ -319,6 +412,7 @@ export type Database = {
           prix: number | null
           samedi_dispo: Database["public"]["Enums"]["jour_dispo"] | null
           vendredi_dispo: Database["public"]["Enums"]["jour_dispo"] | null
+          est_epuise: boolean | null
         }
         Insert: {
           description?: string | null
@@ -434,9 +528,64 @@ export type Plat = Database['public']['Tables']['plats_db']['Row']
 export type Commande = Database['public']['Tables']['commande_db']['Row']
 export type DetailsCommande = Database['public']['Tables']['details_commande_db']['Row']
 export type Evenement = Database['public']['Tables']['evenements_db']['Row']
+export type HistoriqueCommunication = Database['public']['Tables']['historique_communication']['Row']
+export type ActiviteFlux = Database['public']['Tables']['activites_flux']['Row']
+
+// Nouveaux types pour l'approvisionnement
+export type ListeCourse = {
+  id: number
+  nom_liste: string
+  description?: string
+  date_creation?: string
+  date_derniere_modification?: string
+  statut?: 'en_cours' | 'terminee' | 'archivee'
+  created_by?: string
+  total_estimatif?: number
+}
+
+export type ArticleListeCourse = {
+  id: number
+  liste_id: number
+  nom_article: string
+  quantite: number
+  unite?: string
+  prix_unitaire_estime?: number
+  prix_total_estime?: number
+  achete?: boolean
+  date_achat?: string
+  commentaire?: string
+  ordre_affichage?: number
+  created_at?: string
+}
+
+export type CatalogueArticle = {
+  id: number
+  nom_article: string
+  unite_habituelle?: string
+  prix_moyen?: number
+  categorie?: string
+  fournisseur_habituel?: string
+  frequence_utilisation?: number
+  derniere_utilisation?: string
+  created_at?: string
+}
+
+export type CategorieArticle = {
+  id: number
+  nom_categorie: string
+  couleur?: string
+  icone?: string
+  ordre_affichage?: number
+}
 
 // Types d'entrée
 export type ClientInputData = Database['public']['Tables']['client_db']['Insert']
 export type PlatInputData = Database['public']['Tables']['plats_db']['Insert']
 export type CommandeInputData = Database['public']['Tables']['commande_db']['Insert']
 export type EvenementInputData = Database['public']['Tables']['evenements_db']['Insert']
+export type HistoriqueCommunicationInputData = Database['public']['Tables']['historique_communication']['Insert']
+export type ActiviteFluxInputData = Database['public']['Tables']['activites_flux']['Insert']
+
+export type ListeCourseInputData = Omit<ListeCourse, 'id' | 'date_creation' | 'date_derniere_modification'>
+export type ArticleListeCourseInputData = Omit<ArticleListeCourse, 'id' | 'created_at'>
+export type CatalogueArticleInputData = Omit<CatalogueArticle, 'id' | 'created_at' | 'derniere_utilisation'>
