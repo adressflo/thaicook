@@ -10,6 +10,7 @@ import { Sidebar } from "./components/Sidebar";
 import AdminRoute from './components/AdminRoute';
 import PrivateRoute from './components/PrivateRoute';
 import ErrorBoundary from './components/ErrorBoundary';
+import FloatingUserIcon from './components/FloatingUserIcon';
 import { Loader2 } from 'lucide-react';
 import './firebaseConfig';
 import './index.css';
@@ -94,6 +95,7 @@ const App = () => {
                     </Suspense>
                   </main>
                   <FloatingCartIcon />
+                  <FloatingUserIcon />
                 </div>
               </CartProvider>
             </DataProvider>
