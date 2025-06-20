@@ -4,6 +4,16 @@ import type { Client, Plat, Commande, Evenement, ClientInputData, CommandeInputD
 import type { PlatUI, CommandeUI, EvenementUI, ClientUI, CreateCommandeData, CreateEvenementData } from '@/types/app'
 import { useToast } from '@/hooks/use-toast'
 
+// Types pour les mises à jour
+export type CommandeUpdate = {
+  statut_commande?: 'En attente de confirmation' | 'Confirmée' | 'En préparation' | 'Prête à récupérer' | 'Récupérée' | 'Annulée'
+  statut_paiement?: 'En attente sur place' | 'Payé sur place' | 'Payé en ligne' | 'Non payé' | 'Payée'
+  notes_internes?: string
+  date_et_heure_de_retrait_souhaitees?: string
+  type_livraison?: 'À emporter' | 'Livraison'
+  adresse_specifique?: string
+}
+
 // Hook pour récupérer les clients par firebase_uid
 export const useClient = (firebase_uid?: string) => {
   return useQuery({
@@ -120,6 +130,7 @@ export const useCommandeById = (idcommande?: number) => {
         .from('commande_db')
         .select(`
           *,
+          client:client_db!commande_db_client_r_id_fkey (*),
           details:details_commande_db (
             *,
             plat:plats_db (*)
@@ -133,7 +144,8 @@ export const useCommandeById = (idcommande?: number) => {
       // Mapper idcommande vers id pour l'UI
       return {
         ...data,
-        id: data.idcommande
+        id: data.idcommande,
+        client: data.client || null
       } as CommandeUI
     },
     enabled: !!idcommande
@@ -180,21 +192,45 @@ export const useCommandes = () => {
         .from('commande_db')
         .select(`
           *,
-          client:client_db!commande_db_client_r_id_fkey (*),
-          details:details_commande_db (
+          client_db!commande_db_client_r_id_fkey (*),
+          details_commande_db (
             *,
-            plat:plats_db (*)
+            plats_db (*)
           )
         `)
-        .order('date_de_prise_de_commande', { ascending: false })
+        .order('idcommande', { ascending: false })
       
       if (error) throw error
       
-      // Mapper idcommande vers id pour l'UI
-      return (data || []).map(commande => ({
-        ...commande,
-        id: commande.idcommande
-      })) as CommandeUI[]
+      // Mapper les données pour l'UI avec calcul du prix total
+      return (data || []).map(commande => {
+        // Calculer le prix total depuis les détails
+        const prix_total = commande.details_commande_db?.reduce((total: number, detail: any) => {
+          return total + (detail.quantite_plat_commande * (detail.plats_db?.prix || 0))
+        }, 0) || 0
+        
+        return {
+          ...commande,
+          id: commande.idcommande,
+          statut: mapStatutCommande(commande.statut_commande),
+          prix_total,
+          client_db: {
+            nom: commande.client_db?.nom,
+            prenom: commande.client_db?.prenom, 
+            email: commande.client_db?.email,
+            telephone: commande.client_db?.numero_de_telephone,
+            adresse: commande.client_db?.adresse_numero_et_rue
+          },
+          contient_liaison: commande.details_commande_db?.map((detail: any) => ({
+            quantite: detail.quantite_plat_commande,
+            plats: {
+              nom_plat: detail.plats_db?.plat,
+              prix: detail.plats_db?.prix,
+              url_photo: detail.plats_db?.photo_du_plat
+            }
+          })) || []
+        }
+      }) as CommandeUI[]
     }
   })
 }
@@ -374,41 +410,6 @@ export const useEvenementById = (idevenements?: number) => {
   })
 }
 
-// Hook pour mettre à jour une commande
-export const useUpdateCommande = () => {
-  const queryClient = useQueryClient()
-  const { toast } = useToast()
-  
-  return useMutation({
-    mutationFn: async ({ id, ...updateData }: { id: number; [key: string]: any }) => {
-      const { data: updatedData, error } = await supabase
-        .from('commande_db')
-        .update(updateData)
-        .eq('idcommande', id)
-        .select()
-        .single()
-      
-      if (error) throw error
-      return updatedData
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['commandes'] })
-      toast({ 
-        title: "Commande mise à jour",
-        description: "Vos modifications ont été sauvegardées"
-      })
-    },
-    onError: (error) => {
-      console.error('Erreur mise à jour commande:', error)
-      toast({ 
-        title: "Erreur", 
-        description: "Impossible de mettre à jour la commande",
-        variant: "destructive" 
-      })
-    }
-  })
-}
-
 // Hook pour supprimer un détail de commande spécifique
 export const useDeleteDetail = () => {
   const queryClient = useQueryClient()
@@ -548,22 +549,6 @@ export const useEvenementsByClient = (firebase_uid?: string) => {
   })
 }
 
-// Hook pour récupérer tous les clients (admin)
-export const useClients = () => {
-  return useQuery({
-    queryKey: ['clients'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('client_db')
-        .select('*')
-        .order('nom', { ascending: true })
-      
-      if (error) throw error
-      return data || []
-    }
-  })
-}
-
 // Hook pour créer un nouveau plat
 export const useCreatePlat = () => {
   const queryClient = useQueryClient()
@@ -621,5 +606,225 @@ export const useData = () => {
     plats: plats || [],
     isLoading,
     error
+  }
+}
+
+// Hook pour récupérer tous les clients (ADMIN)
+export const useClients = () => {
+  return useQuery({
+    queryKey: ['clients'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('client_db')
+        .select('*')
+        .order('nom', { ascending: true })
+      
+      if (error) throw error
+      
+      return (data || []).map(client => ({
+        ...client,
+        id: client.firebase_uid // Pour compatibilité
+      })) as ClientUI[]
+    }
+  })
+}
+
+// Hook pour mettre à jour une commande (ADMIN) - Version moderne
+export const useUpdateCommande = () => {
+  const queryClient = useQueryClient()
+  const { toast } = useToast()
+  
+  return useMutation({
+    mutationFn: async ({ id, updates }: { id: number, updates: { statut?: string } }) => {
+      // Mapper le statut vers la base de données
+      const dbUpdates: any = {}
+      if (updates.statut) {
+        dbUpdates.statut_commande = mapStatutToDatabase(updates.statut)
+      }
+      
+      const { data, error } = await supabase
+        .from('commande_db')
+        .update(dbUpdates)
+        .eq('idcommande', id)
+        .select(`
+          *,
+          client_db!commande_db_client_r_id_fkey (*),
+          details_commande_db (
+            *,
+            plats_db (*)
+          )
+        `)
+        .single()
+      
+      if (error) throw error
+      
+      // Calculer le prix total
+      const prix_total = data.details_commande_db?.reduce((total: number, detail: any) => {
+        return total + (detail.quantite_plat_commande * (detail.plats_db?.prix || 0))
+      }, 0) || 0
+      
+      return {
+        ...data,
+        id: data.idcommande,
+        statut: mapStatutCommande(data.statut_commande),
+        prix_total,
+        contient_liaison: data.details_commande_db?.map((detail: any) => ({
+          quantite: detail.quantite_plat_commande,
+          plats: {
+            nom_plat: detail.plats_db?.plat,
+            prix: detail.plats_db?.prix,
+            url_photo: detail.plats_db?.photo_du_plat
+          }
+        })) || []
+      } as CommandeUI
+    },
+    onSuccess: (data) => {
+      // Invalider toutes les requêtes de commandes
+      queryClient.invalidateQueries({ queryKey: ['commandes'] })
+      queryClient.invalidateQueries({ queryKey: ['commande', data.id] })
+      
+      toast({ 
+        title: "Commande mise à jour", 
+        description: "Les modifications ont été sauvegardées avec succès" 
+      })
+    },
+    onError: (error) => {
+      console.error('Erreur mise à jour commande:', error)
+      toast({ 
+        title: "Erreur", 
+        description: "Impossible de mettre à jour la commande",
+        variant: "destructive" 
+      })
+    }
+  })
+}
+
+// Hook pour mettre à jour une commande (LEGACY) - Pour compatibilité avec ModifierCommande.tsx
+export const useUpdateCommandeLegacy = () => {
+  const queryClient = useQueryClient()
+  const { toast } = useToast()
+  
+  return useMutation({
+    mutationFn: async ({ id, ...updateData }: { id: number; [key: string]: any }) => {
+      const { data: updatedData, error } = await supabase
+        .from('commande_db')
+        .update(updateData)
+        .eq('idcommande', id)
+        .select()
+        .single()
+      
+      if (error) throw error
+      return updatedData
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['commandes'] })
+      toast({ 
+        title: "Commande mise à jour",
+        description: "Vos modifications ont été sauvegardées"
+      })
+    },
+    onError: (error) => {
+      console.error('Erreur mise à jour commande:', error)
+      toast({ 
+        title: "Erreur", 
+        description: "Impossible de mettre à jour la commande",
+        variant: "destructive" 
+      })
+    }
+  })
+}
+
+// Hook pour récupérer les statistiques des commandes (ADMIN)
+export const useCommandesStats = () => {
+  return useQuery({
+    queryKey: ['commandes-stats'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('commande_db')
+        .select('statut_commande, statut_paiement, date_de_prise_de_commande')
+      
+      if (error) throw error
+      
+      const total = data.length
+      const parStatut = data.reduce((acc, cmd) => {
+        acc[cmd.statut_commande || 'Inconnu'] = (acc[cmd.statut_commande || 'Inconnu'] || 0) + 1
+        return acc
+      }, {} as Record<string, number>)
+      
+      const parPaiement = data.reduce((acc, cmd) => {
+        acc[cmd.statut_paiement || 'Inconnu'] = (acc[cmd.statut_paiement || 'Inconnu'] || 0) + 1
+        return acc
+      }, {} as Record<string, number>)
+      
+      const aujourdhui = new Date().toISOString().split('T')[0]
+      const commandesAujourdhui = data.filter(cmd => 
+        cmd.date_de_prise_de_commande?.startsWith(aujourdhui)
+      ).length
+      
+      return {
+        total,
+        parStatut,
+        parPaiement,
+        commandesAujourdhui
+      }
+    }
+  })
+}
+
+// Hook pour activer la mise à jour en temps réel des commandes
+export const useCommandesRealtime = () => {
+  const queryClient = useQueryClient()
+  
+  return useQuery({
+    queryKey: ['commandes-realtime'],
+    queryFn: async () => {
+      // Écouter les changements en temps réel
+      const channel = supabase
+        .channel('commandes-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'commande_db',
+          },
+          (payload) => {
+            console.log('Changement détecté dans commande_db:', payload)
+            // Invalider les queries pour refetch les données
+            queryClient.invalidateQueries({ queryKey: ['commandes'] })
+            queryClient.invalidateQueries({ queryKey: ['commandes-stats'] })
+          }
+        )
+        .subscribe()
+      
+      return channel
+    },
+    enabled: true,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+  })
+}
+// Fonction pour mapper les statuts de la base vers l'UI
+const mapStatutCommande = (statut: string): string => {
+  switch (statut) {
+    case 'En attente de confirmation': return 'en_attente'
+    case 'Confirmée': return 'en_attente'
+    case 'En préparation': return 'en_preparation'
+    case 'Prête à récupérer': return 'en_preparation'
+    case 'Récupérée': return 'terminee'
+    case 'Annulée': return 'annulee'
+    default: return 'en_attente'
+  }
+}
+
+// Fonction pour mapper les statuts de l'UI vers la base
+const mapStatutToDatabase = (statut: string): string => {
+  switch (statut) {
+    case 'en_attente': return 'En attente de confirmation'
+    case 'en_preparation': return 'En préparation'
+    case 'terminee': return 'Récupérée'
+    case 'annulee': return 'Annulée'
+    default: return 'En attente de confirmation'
   }
 }

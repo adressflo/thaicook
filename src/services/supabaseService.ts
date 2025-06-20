@@ -210,11 +210,19 @@ class SupabaseService {
     return data
   }
 
-  async updateCommande(id: number, updates: Partial<Commande>): Promise<Commande> {
+  async updateCommande(idcommande: number, updates: Partial<Commande>): Promise<Commande> {
     const { data, error } = await supabase
       .from('commande_db')
-      .update(updates)      .eq('id', id)
-      .select()
+      .update(updates)
+      .eq('idcommande', idcommande)
+      .select(`
+        *,
+        client:client_db!commande_db_client_r_id_fkey (*),
+        details:details_commande_db (
+          *,
+          plat:plats_db (*)
+        )
+      `)
       .single()
 
     if (error) throw error

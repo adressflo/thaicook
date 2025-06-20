@@ -1,3 +1,4 @@
+import { memo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,16 +9,44 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { 
-  Loader2, CheckCircle, Eye, History, CookingPot, ShoppingBasket, Users, Settings, Plus, Save, Edit2, Check, X
+  Loader2, 
+  CheckCircle, 
+  Eye, 
+  History, 
+  CookingPot, 
+  ShoppingBasket, 
+  Users, 
+  Settings, 
+  Plus, 
+  Save, 
+  Edit2, 
+  Check, 
+  X,
+  BarChart3,
+  Clock,
+  DollarSign,
+  TrendingUp,
+  Package,
+  Calendar,
+  AlertCircle,
+  RefreshCw
 } from 'lucide-react';
 import { format, isToday, isFuture, isPast, differenceInDays, startOfToday } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useToast } from "@/hooks/use-toast";
-import { memo, useState } from 'react';
 
 // Imports corrigés pour pointer vers le fichier unique
 // Utilisation des hooks Supabase
-import { useCommandes, useClients, usePlats, useUpdatePlat, useCreatePlat } from '@/hooks/useSupabaseData';
+import { 
+  useCommandes, 
+  useClients, 
+  usePlats, 
+  useUpdatePlat, 
+  useCreatePlat,
+  useCommandesStats 
+} from '@/hooks/useSupabaseData';
+import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
+import { PermissionGuard } from '@/components/PermissionGuard';
 import type { CommandeUI } from '@/types/app'
 
 const Admin = memo(() => {
@@ -46,8 +75,12 @@ const Admin = memo(() => {
   const { data: commandes, isLoading: commandesLoading } = useCommandes();
   const { data: clients, isLoading: clientsLoading } = useClients();
   const { data: plats, isLoading: platsLoading, refetch: refetchPlats } = usePlats();
+  const { data: stats } = useCommandesStats();
   const updatePlat = useUpdatePlat();
   const createPlat = useCreatePlat();
+  
+  // Activer les notifications en temps réel
+  useRealtimeNotifications();
   
   const isLoading = commandesLoading || clientsLoading;
 
@@ -260,18 +293,240 @@ const Admin = memo(() => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-thai p-4 sm:p-6 md:p-8">
+    <PermissionGuard requireAdmin={true} fallback={
+      <div className="min-h-screen bg-gradient-thai flex items-center justify-center">
+        <div className="text-center">
+          <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-thai-green mb-2">Accès Refusé</h2>
+          <p className="text-thai-green/70">Vous devez être administrateur pour accéder à cette page.</p>
+          <Button onClick={() => navigate('/')} className="mt-4 bg-thai-orange hover:bg-thai-orange/90">
+            Retour à l'accueil
+          </Button>
+        </div>
+      </div>
+    }>
+      <div className="min-h-screen bg-gradient-thai p-4 sm:p-6 md:p-8">
       <div className="container mx-auto max-w-7xl">
-        <h1 className="text-3xl font-bold text-thai-green mb-8 text-center">Administration</h1>
-        <Tabs defaultValue="futures" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-5">
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="text-3xl font-bold text-thai-green">Administration</h1>
+          <Button
+            onClick={() => navigate('/admin/commandes')}
+            className="bg-thai-orange hover:bg-thai-orange/90"
+          >
+            <Package className="w-4 h-4 mr-2" />
+            Gestion Complète des Commandes
+          </Button>
+        </div>
+        
+        <Tabs defaultValue="dashboard" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-6">
+            <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
             <TabsTrigger value="futures">Commandes Futures</TabsTrigger>
             <TabsTrigger value="historique">Historique</TabsTrigger>
             <TabsTrigger value="clients">Clients</TabsTrigger>
             <TabsTrigger value="plats">Gestion Plats</TabsTrigger>
             <TabsTrigger value="courses">Liste de Courses</TabsTrigger>
           </TabsList>
-          
+
+          {/* Dashboard Tab */}
+          <TabsContent value="dashboard" className="space-y-6">
+            {/* Statistiques rapides */}
+            {stats && (
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <Card className="border-thai-orange/20">
+                  <CardContent className="p-6">
+                    <div className="flex items-center">
+                      <BarChart3 className="h-8 w-8 text-thai-orange" />
+                      <div className="ml-4">
+                        <p className="text-sm font-medium text-thai-green/70">Total Commandes</p>
+                        <p className="text-2xl font-bold text-thai-green">{stats.total}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                <Card className="border-thai-orange/20">
+                  <CardContent className="p-6">
+                    <div className="flex items-center">
+                      <Clock className="h-8 w-8 text-yellow-500" />
+                      <div className="ml-4">
+                        <p className="text-sm font-medium text-thai-green/70">En Attente</p>
+                        <p className="text-2xl font-bold text-thai-green">
+                          {stats.parStatut['En attente de confirmation'] || 0}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                <Card className="border-thai-orange/20">
+                  <CardContent className="p-6">
+                    <div className="flex items-center">
+                      <RefreshCw className="h-8 w-8 text-blue-500" />
+                      <div className="ml-4">
+                        <p className="text-sm font-medium text-thai-green/70">En Préparation</p>
+                        <p className="text-2xl font-bold text-thai-green">
+                          {stats.parStatut['En préparation'] || 0}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                <Card className="border-thai-orange/20">
+                  <CardContent className="p-6">
+                    <div className="flex items-center">
+                      <TrendingUp className="h-8 w-8 text-green-500" />
+                      <div className="ml-4">
+                        <p className="text-sm font-medium text-thai-green/70">Aujourd'hui</p>
+                        <p className="text-2xl font-bold text-thai-green">{stats.commandesAujourdhui}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {/* Commandes récentes et actions rapides */}
+            <div className="grid lg:grid-cols-2 gap-6">
+              {/* Commandes récentes */}
+              <Card className="border-thai-orange/20">
+                <CardHeader>
+                  <CardTitle className="text-thai-green flex items-center justify-between">
+                    <div className="flex items-center">
+                      <Package className="w-5 h-5 mr-2" />
+                      Commandes Récentes
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => navigate('/admin/commandes')}
+                      className="border-thai-orange text-thai-orange hover:bg-thai-orange/10"
+                    >
+                      Voir toutes
+                    </Button>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {commandes && commandes.length > 0 ? (
+                    <div className="space-y-3">
+                      {commandes.slice(0, 5).map((commande) => (
+                        <div 
+                          key={commande.idcommande} 
+                          className="flex items-center justify-between p-3 bg-thai-cream/30 rounded-lg hover:bg-thai-cream/50 transition-colors cursor-pointer"
+                          onClick={() => navigate(`/admin/commandes/${commande.idcommande}`)}
+                        >
+                          <div>
+                            <p className="font-medium text-thai-green">
+                              Commande #{commande.idcommande}
+                            </p>
+                            <p className="text-sm text-thai-green/70">
+                              {commande.client?.nom} {commande.client?.prenom}
+                            </p>
+                            <p className="text-xs text-thai-green/60">
+                              {commande.date_et_heure_de_retrait_souhaitees ?
+                                format(new Date(commande.date_et_heure_de_retrait_souhaitees), "dd/MM/yyyy à HH:mm") :
+                                'Date non définie'
+                              }
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <Badge 
+                              variant={
+                                commande.statut_commande === 'En attente de confirmation' ? 'destructive' :
+                                commande.statut_commande === 'Confirmée' ? 'default' :
+                                commande.statut_commande === 'En préparation' ? 'secondary' :
+                                'outline'
+                              }
+                            >
+                              {commande.statut_commande}
+                            </Badge>
+                            <p className="text-sm font-medium text-thai-orange mt-1">
+                              {commande.details?.reduce((sum: number, detail: any) => 
+                                sum + (parseFloat(detail.plat?.prix || 0) * detail.quantite_plat_commande), 0
+                              ).toFixed(2) || '0.00'} €
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-thai-green/70 text-center py-4">Aucune commande récente</p>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Actions rapides */}
+              <Card className="border-thai-orange/20">
+                <CardHeader>
+                  <CardTitle className="text-thai-green flex items-center">
+                    <Settings className="w-5 h-5 mr-2" />
+                    Actions Rapides
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid gap-3">
+                    <Button
+                      onClick={() => navigate('/admin/commandes')}
+                      className="w-full bg-thai-orange hover:bg-thai-orange/90 text-left justify-start"
+                    >
+                      <Package className="w-4 h-4 mr-2" />
+                      Gérer toutes les commandes
+                    </Button>
+                    
+                    <Button
+                      variant="outline"
+                      onClick={() => navigate('/commander')}
+                      className="w-full border-thai-green text-thai-green hover:bg-thai-green/10 justify-start"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Créer une commande
+                    </Button>
+                    
+                    <Button
+                      variant="outline"
+                      onClick={() => navigate('/evenements')}
+                      className="w-full border-thai-green text-thai-green hover:bg-thai-green/10 justify-start"
+                    >
+                      <Calendar className="w-4 h-4 mr-2" />
+                      Gérer les événements
+                    </Button>
+                    
+                    <Button
+                      variant="outline"
+                      className="w-full border-thai-green text-thai-green hover:bg-thai-green/10 justify-start"
+                    >
+                      <BarChart3 className="w-4 h-4 mr-2" />
+                      Voir les rapports
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Commandes par statut */}
+            {stats && Object.keys(stats.parStatut).length > 0 && (
+              <Card className="border-thai-orange/20">
+                <CardHeader>
+                  <CardTitle className="text-thai-green flex items-center">
+                    <BarChart3 className="w-5 h-5 mr-2" />
+                    Répartition des Commandes par Statut
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                    {Object.entries(stats.parStatut).map(([statut, count]) => (
+                      <div key={statut} className="text-center p-4 bg-thai-cream/30 rounded-lg">
+                        <p className="text-2xl font-bold text-thai-orange">{count}</p>
+                        <p className="text-sm text-thai-green/70">{statut}</p>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
           <TabsContent value="futures">
             <Card>
               <CardHeader><CardTitle className="text-thai-green">Commandes Futures ({commandesFutures.length})</CardTitle></CardHeader>
@@ -647,6 +902,7 @@ const Admin = memo(() => {
         </Tabs>
       </div>
     </div>
+    </PermissionGuard>
   );
 });
 

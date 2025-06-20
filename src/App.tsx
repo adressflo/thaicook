@@ -30,9 +30,7 @@ const SuiviCommande = lazy(() => import('./pages/SuiviCommande'));
 const SuiviEvenement = lazy(() => import('./pages/SuiviEvenement'));
 const ModifierEvenement = lazy(() => import('./pages/ModifierEvenement'));
 const ModifierCommande = lazy(() => import('./pages/ModifierCommande'));
-const Admin = lazy(() => import("./pages/Admin"));
-const AdminCommandes = lazy(() => import("./pages/AdminCommandes"));
-const AdminCommandeDetail = lazy(() => import("./pages/AdminCommandeDetail"));
+const AdminRouter = lazy(() => import("./pages/admin/AdminRouter"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const PageLoader = () => (
@@ -88,12 +86,8 @@ const App = () => {
                           <Route path="/modifier-evenement/:id" element={<ModifierEvenement />} />
                         </Route>
 
-                        {/* Private Routes for Admin */}
-                        <Route element={<AdminRoute />}>
-                          <Route path="/admin" element={<Admin />} />
-                          <Route path="/admin/commandes" element={<AdminCommandes />} />
-                          <Route path="/admin/commandes/:id" element={<AdminCommandeDetail />} />
-                        </Route>
+                        {/* Admin Routes - Now Modular */}
+                        <Route path="/admin/*" element={<AdminRouter />} />
 
                         <Route path="*" element={<NotFound />} />
                       </Routes>

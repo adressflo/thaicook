@@ -33,6 +33,7 @@ export interface PlatPanier {
 export interface CommandeUI extends Commande {
   id: number // Mappage de idcommande vers id pour l'UI
   client_r: string // Assurer la compatibilité
+  client?: Client // Données du client jointes
   details?: Array<DetailCommande & {
     plat?: Plat
   }>

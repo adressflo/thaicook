@@ -19,7 +19,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
-import { useCommandeById, useUpdateCommande, useDeleteDetailsCommande, useCreateDetailsCommande } from '@/hooks/useSupabaseData';
+import { useCommandeById, useUpdateCommandeLegacy as useUpdateCommande, useDeleteDetailsCommande, useCreateDetailsCommande } from '@/hooks/useSupabaseData';
 import type { PlatUI as Plat, CommandeWithDetails } from '@/types/app';
 
 const dayNameToNumber: { [key: string]: Day } = {

@@ -123,7 +123,7 @@ const TableauDeBord = memo(() => {
         <div className="container mx-auto text-center">
           <div className="max-w-3xl mx-auto">
             <p className="text-xl md:text-2xl text-thai-green/80 leading-relaxed italic">
-              Découvrez notre cuisine thaïlandaise authentique d'Isan
+              Une expérience culinaire exceptionnelle qui vous transporte directement en Thaïlande
             </p>
           </div>
         </div>
