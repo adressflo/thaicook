@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test des couleurs Thai - Tailwind v4</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Intégration des couleurs Thai v4 */
+        :root {
+            --color-thai-orange: #FF7B54;
+            --color-thai-orange-light: #FFB386;
+            --color-thai-orange-dark: #E85A31;
+            --color-thai-green: #2D5016;
+            --color-thai-green-light: #4A7C23;
+            --color-thai-green-dark: #1A300C;
+            --color-thai-gold: #FFD700;
+            --color-thai-gold-light: #FFED4E;
+            --color-thai-gold-dark: #B8860B;
+            --color-thai-red: #DC2626;
+            --color-thai-cream: #FEF7E0;
+        }
+    </style>
+</head>
+<body class="p-8 bg-gray-50">
+    <h1 class="text-3xl font-bold mb-8">Test des couleurs Thai - Tailwind CSS v4</h1>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Test Orange -->
+        <div class="bg-white p-6 rounded-lg shadow-lg border-4 border-thai-orange/20">
+            <h2 class="text-xl font-semibold text-thai-orange mb-4">Couleurs Orange</h2>
+            <div class="space-y-2">
+                <div class="p-3 bg-thai-orange text-white rounded">bg-thai-orange (#FF7B54)</div>
+                <div class="p-3 bg-thai-orange-light text-white rounded">bg-thai-orange-light (#FFB386)</div>
+                <div class="p-3 bg-thai-orange-dark text-white rounded">bg-thai-orange-dark (#E85A31)</div>
+            </div>
+        </div>
+        
+        <!-- Test Green -->
+        <div class="bg-white p-6 rounded-lg shadow-lg border-4 border-thai-green/20">
+            <h2 class="text-xl font-semibold text-thai-green mb-4">Couleurs Green</h2>
+            <div class="space-y-2">
+                <div class="p-3 bg-thai-green text-white rounded">bg-thai-green (#2D5016)</div>
+                <div class="p-3 bg-thai-green-light text-white rounded">bg-thai-green-light (#4A7C23)</div>
+                <div class="p-3 bg-thai-green-dark text-white rounded">bg-thai-green-dark (#1A300C)</div>
+            </div>
+        </div>
+        
+        <!-- Test Gold -->
+        <div class="bg-white p-6 rounded-lg shadow-lg border-4 border-thai-gold/20">
+            <h2 class="text-xl font-semibold text-thai-gold-dark mb-4">Couleurs Gold</h2>
+            <div class="space-y-2">
+                <div class="p-3 bg-thai-gold text-black rounded">bg-thai-gold (#FFD700)</div>
+                <div class="p-3 bg-thai-gold-light text-black rounded">bg-thai-gold-light (#FFED4E)</div>
+                <div class="p-3 bg-thai-gold-dark text-white rounded">bg-thai-gold-dark (#B8860B)</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-8">
+        <h2 class="text-2xl font-semibold text-thai-green mb-4">Test des éléments d'interface</h2>
+        <div class="flex gap-4 flex-wrap">
+            <button class="px-6 py-3 bg-thai-orange text-white rounded-lg font-medium hover:bg-thai-orange-dark transition-colors">
+                Bouton Orange (principal)
+            </button>
+            <button class="px-6 py-3 bg-thai-green text-white rounded-lg font-medium hover:bg-thai-green-dark transition-colors">
+                Bouton Green (secondaire)
+            </button>
+            <button class="px-6 py-3 border-2 border-thai-orange text-thai-orange rounded-lg font-medium hover:bg-thai-orange/10 transition-colors">
+                Bouton Outline Orange
+            </button>
+        </div>
+    </div>
+
+    <div class="mt-8 p-4 border-l-4 border-thai-orange bg-thai-cream rounded">
+        <p class="text-thai-green font-medium">
+            Si vous voyez ces couleurs correctement, alors la configuration Tailwind v4 fonctionne !
+        </p>
+        <p class="text-sm text-thai-orange-dark mt-2">
+            Orange doit être #FF7B54 et Green doit être #2D5016
+        </p>
+    </div>
+</body>
+</html>

@@ -1,0 +1,410 @@
+@source "./app/**/*.{ts,tsx}";
+@source "./components/**/*.{ts,tsx}";
+
+@import 'tailwindcss';
+
+@theme {
+  /* Couleurs Thai - Configuration v4 avec structure objet correcte */
+  --color-thai-orange: #ff7b54;
+  --color-thai-orange-light: #ffb386;
+  --color-thai-orange-dark: #e85a31;
+  --color-thai-green: #2d5016;
+  --color-thai-green-light: #4a7c23;
+  --color-thai-green-dark: #1a300c;
+  --color-thai-gold: #ffd700;
+  --color-thai-gold-light: #ffed4e;
+  --color-thai-gold-dark: #b8860b;
+  --color-thai-red: #dc2626;
+  --color-thai-cream: #fef7e0;
+}
+
+/* Configuration Tailwind v4 */
+@plugin "tailwindcss-animate";
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Container responsive optimisé */
+@utility container {
+  max-width: 100%;
+  margin-inline: auto;
+  padding-inline: 1rem;
+  
+  /* Breakpoints progressifs */
+  @media (min-width: 640px) {
+    max-width: 640px;
+    padding-inline: 1.5rem;
+  }
+  
+  @media (min-width: 768px) {
+    max-width: 768px;
+    padding-inline: 2rem;
+  }
+  
+  @media (min-width: 1024px) {
+    max-width: 1024px;
+  }
+  
+  @media (min-width: 1280px) {
+    max-width: 1200px;
+  }
+  
+  @media (min-width: 1536px) {
+    max-width: 1280px;
+  }
+}
+
+/* Animations personnalisées */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-in {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%) skewX(-12deg); }
+  100% { transform: translateX(200%) skewX(-12deg); }
+}
+
+@keyframes pulse-soft {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Optimisations critiques de performance */
+/* Preload et prefetch pour images critiques */
+.hero-image,
+.critical-image {
+  content-visibility: auto;
+  contain-intrinsic-size: 300px 200px;
+}
+
+/* Optimisation animations avec transform3d pour GPU */
+.smooth-transform {
+  transform: translate3d(0, 0, 0);
+  will-change: transform;
+}
+
+.smooth-transform:hover {
+  transform: translate3d(0, -2px, 0);
+}
+
+/* Scroll smooth performance */
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Layout Shift prevention */
+.skeleton-box {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes bounce-subtle {
+  0%, 20%, 53%, 80%, 100% {
+    transform: translate3d(0, 0, 0);
+  }
+  40%, 43% {
+    transform: translate3d(0, -10px, 0);
+  }
+  70% {
+    transform: translate3d(0, -5px, 0);
+  }
+  90% {
+    transform: translate3d(0, -2px, 0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.6s ease-out;
+}
+
+.animate-slide-in {
+  animation: slide-in 0.5s ease-out;
+}
+
+.animate-shimmer {
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 3s ease-in-out infinite;
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.6s ease-out;
+}
+
+.animate-scaleIn {
+  animation: scaleIn 0.4s ease-out;
+}
+
+.animate-bounce-subtle {
+  animation: bounce-subtle 1.2s ease-in-out;
+}
+
+/* Calendar hover effects - Multiple selectors for better coverage */
+.rdp-day:hover,
+button.rdp-day:hover,
+.rdp-button:hover {
+  background-color: #ff7b54 !important;
+  color: white !important;
+  border-radius: 50% !important;
+  transition: all 0.2s ease !important;
+}
+
+.rdp-day[aria-selected="true"],
+button.rdp-day[aria-selected="true"],
+.rdp-button[aria-selected="true"] {
+  background-color: #ff7b54 !important;
+  color: white !important;
+  border-radius: 50% !important;
+}
+
+.rdp-day_today,
+button.rdp-day_today,
+.rdp-button.rdp-day_today {
+  background-color: #fef7e0 !important;
+  color: #ff7b54 !important;
+  border: 2px solid #ff7b54 !important;
+  border-radius: 50% !important;
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@layer base {
+  :root {
+    --background: 43 100% 98%;
+    --foreground: 120 40% 15%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 120 40% 15%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 120 40% 15%;
+
+    --primary: 16 100% 66%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 43 100% 90%;
+    --secondary-foreground: 120 40% 15%;
+
+    --muted: 43 100% 95%;
+    --muted-foreground: 120 20% 50%;
+
+    --accent: 45 100% 82%;
+    --accent-foreground: 120 40% 15%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 43 60% 85%;
+    --input: 43 60% 85%;
+    --ring: 16 100% 66%;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 43 100% 98%;
+    --sidebar-foreground: 120 40% 15%;
+    --sidebar-primary: 16 100% 66%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 43 100% 90%;
+    --sidebar-accent-foreground: 120 40% 15%;
+    --sidebar-border: 43 60% 85%;
+    --sidebar-ring: 16 100% 66%;
+  }
+
+  .dark {
+    --background: 120 40% 8%;
+    --foreground: 43 100% 95%;
+
+    --card: 120 40% 10%;
+    --card-foreground: 43 100% 95%;
+
+    --popover: 120 40% 10%;
+    --popover-foreground: 43 100% 95%;
+
+    --primary: 16 100% 66%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 120 30% 15%;
+    --secondary-foreground: 43 100% 95%;
+
+    --muted: 120 30% 15%;
+    --muted-foreground: 43 50% 70%;
+
+    --accent: 120 30% 15%;
+    --accent-foreground: 43 100% 95%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 120 30% 20%;
+    --input: 120 30% 20%;
+    --ring: 16 100% 66%;
+    --sidebar-background: 120 40% 8%;
+    --sidebar-foreground: 43 100% 95%;
+    --sidebar-primary: 16 100% 66%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 120 30% 15%;
+    --sidebar-accent-foreground: 43 100% 95%;
+    --sidebar-border: 120 30% 20%;
+    --sidebar-ring: 16 100% 66%;
+  }
+
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: system-ui, sans-serif;
+  }
+}
+
+@layer components {
+  /* Styles par défaut pour le composant Card */
+  .card {
+    background-color: hsl(var(--card));
+    color: hsl(var(--card-foreground));
+  }
+
+  /* Styles de focus par défaut - Orange au lieu de vert */
+  *:focus-visible:not(.floating-user-icon *) {
+    outline: 2px solid var(--color-thai-orange) !important;
+    outline-offset: 2px;
+  }
+
+  /* Styles pour les éléments interactifs */
+  input:focus:not(.floating-user-icon *),
+  textarea:focus:not(.floating-user-icon *),
+  select:focus:not(.floating-user-icon *),
+  button:focus:not(.floating-user-icon *) {
+    border-color: var(--color-thai-orange) !important;
+    box-shadow: 0 0 0 3px rgba(255, 123, 84, 0.2) !important;
+  }
+
+  /* Suppression complète des styles de focus pour FloatingUserIcon */
+  .floating-user-icon *:focus,
+  .floating-user-icon *:focus-visible,
+  .floating-user-icon *:active {
+    outline: none !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  /* Styles pour les cardes cliquables */
+  .card:hover,
+  .card.active,
+  .card[data-state="selected"] {
+    border-color: var(--color-thai-orange) !important;
+    box-shadow: 0 0 0 2px rgba(255, 123, 84, 0.3) !important;
+  }
+}
+
+@layer utilities {
+  .text-gradient {
+    background: linear-gradient(
+      to right,
+      var(--color-thai-orange),
+      var(--color-thai-gold)
+    );
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+  }
+
+  .bg-gradient-thai {
+    background: linear-gradient(
+      to bottom right,
+      rgba(255, 123, 84, 0.1),
+      var(--color-thai-cream),
+      rgba(45, 80, 22, 0.1)
+    );
+  }
+
+  /* Utilitaires pour les focus et states orange par défaut */
+  .focus-orange:focus {
+    outline: 2px solid var(--color-thai-orange);
+    outline-offset: 2px;
+  }
+
+  .ring-orange {
+    box-shadow: 0 0 0 3px rgba(255, 123, 84, 0.3);
+  }
+
+  .border-focus-orange:focus {
+    border-color: var(--color-thai-orange);
+  }
+
+  /* Override des styles par défaut de Tailwind pour utiliser l'orange */
+  .focus\:ring-2:focus {
+    box-shadow: 0 0 0 2px rgba(255, 123, 84, 0.5);
+  }
+
+  .focus\:ring-offset-2:focus {
+    box-shadow: 0 0 0 2px var(--background), 0 0 0 4px rgba(255, 123, 84, 0.5);
+  }
+}
