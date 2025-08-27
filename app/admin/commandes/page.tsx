@@ -49,10 +49,15 @@ const QuickActionButtons = ({
   commande: CommandeUI;
   onStatusChange: (id: number, status: string) => void;
 }) => {
-  const [loadingAction, setLoadingAction] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const currentStatus = commande.statut_commande;
 
-  const handleQuickAction = async (newStatus: string) => {
+  const handleStatusChange = async (newStatus: string) => {
+    // Ne rien faire si c'est le même statut
+    if (newStatus === currentStatus) {
+      return;
+    }
+
     // Confirmation spéciale pour l'annulation
     if (newStatus === 'Annulée') {
       const clientName = commande.client?.nom && commande.client?.prenom 
@@ -69,134 +74,90 @@ const QuickActionButtons = ({
       }
     }
 
-    setLoadingAction(newStatus);
+    setIsLoading(true);
     try {
       await onStatusChange(commande.idcommande, newStatus);
     } finally {
-      setLoadingAction(null);
+      setIsLoading(false);
     }
   };
 
-  // Actions contextuelles selon le statut actuel
-  const getContextualActions = () => {
-    switch (currentStatus) {
-      case 'En attente de confirmation':
-        return (
-          <div className="flex gap-1 flex-wrap">
-            <Button 
-              size="sm" 
-              className="bg-green-600 hover:bg-green-700 text-white text-xs px-2 py-1 flex-1 min-w-fit"
-              onClick={() => handleQuickAction('Confirmée')}
-              disabled={loadingAction === 'Confirmée'}
-            >
-              {loadingAction === 'Confirmée' ? (
-                <RefreshCw className="w-3 h-3 mr-1 animate-spin" />
-              ) : (
-                <CheckCircle className="w-3 h-3 mr-1" />
-              )}
-              <span className="hidden sm:inline">Confirmer</span>
-              <span className="sm:hidden">✓</span>
-            </Button>
-            <Button 
-              size="sm" 
-              variant="outline" 
-              className="border-red-500 text-red-600 hover:bg-red-50 text-xs px-2 py-1 flex-1 min-w-fit"
-              onClick={() => handleQuickAction('Annulée')}
-              disabled={loadingAction === 'Annulée'}
-            >
-              {loadingAction === 'Annulée' ? (
-                <RefreshCw className="w-3 h-3 mr-1 animate-spin" />
-              ) : (
-                <X className="w-3 h-3 mr-1" />
-              )}
-              <span className="hidden sm:inline">Annuler</span>
-              <span className="sm:hidden">✗</span>
-            </Button>
-          </div>
-        );
+  // Si la commande est déjà récupérée ou annulée, affichage en lecture seule
+  if (currentStatus === 'Récupérée') {
+    return (
+      <div className="min-h-[32px] flex items-center">
+        <div className="text-xs text-green-700 font-medium flex items-center gap-1">
+          <CheckCircle2 className="w-3 h-3" />
+          Terminée
+        </div>
+      </div>
+    );
+  }
 
-      case 'Confirmée':
-        return (
-          <div className="flex gap-1">
-            <Button 
-              size="sm" 
-              className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-2 py-1 w-full"
-              onClick={() => handleQuickAction('En préparation')}
-              disabled={loadingAction === 'En préparation'}
-            >
-              {loadingAction === 'En préparation' ? (
-                <RefreshCw className="w-3 h-3 mr-1 animate-spin" />
-              ) : (
-                <ChefHat className="w-3 h-3 mr-1" />
-              )}
-              <span className="hidden sm:inline">Préparer</span>
-              <span className="sm:hidden">👨‍🍳</span>
-            </Button>
-          </div>
-        );
+  if (currentStatus === 'Annulée') {
+    return (
+      <div className="min-h-[32px] flex items-center">
+        <div className="text-xs text-red-700 font-medium flex items-center gap-1">
+          <XCircle className="w-3 h-3" />
+          Annulée
+        </div>
+      </div>
+    );
+  }
 
-      case 'En préparation':
-        return (
-          <div className="flex gap-1">
-            <Button 
-              size="sm" 
-              className="bg-orange-600 hover:bg-orange-700 text-white text-xs px-2 py-1 w-full"
-              onClick={() => handleQuickAction('Prête à récupérer')}
-              disabled={loadingAction === 'Prête à récupérer'}
-            >
-              {loadingAction === 'Prête à récupérer' ? (
-                <RefreshCw className="w-3 h-3 mr-1 animate-spin" />
-              ) : (
-                <Clock className="w-3 h-3 mr-1" />
-              )}
-              <span className="hidden sm:inline">Prête</span>
-              <span className="sm:hidden">🕐</span>
-            </Button>
-          </div>
-        );
-
-      case 'Prête à récupérer':
-        return (
-          <div className="flex gap-1">
-            <Button 
-              size="sm" 
-              className="bg-thai-green hover:bg-thai-green/90 text-white text-xs px-2 py-1 w-full"
-              onClick={() => handleQuickAction('Récupérée')}
-              disabled={loadingAction === 'Récupérée'}
-            >
-              {loadingAction === 'Récupérée' ? (
-                <RefreshCw className="w-3 h-3 mr-1 animate-spin" />
-              ) : (
-                <Package className="w-3 h-3 mr-1" />
-              )}
-              <span className="hidden sm:inline">Récupérée</span>
-              <span className="sm:hidden">📦</span>
-            </Button>
-          </div>
-        );
-
-      case 'Récupérée':
-        return (
-          <div className="text-xs text-green-700 font-medium flex items-center gap-1">
-            <CheckCircle2 className="w-3 h-3" />
-            Terminée
-          </div>
-        );
-
-      case 'Annulée':
-        return (
-          <div className="text-xs text-red-700 font-medium flex items-center gap-1">
-            <XCircle className="w-3 h-3" />
-            Annulée
-          </div>
-        );
-
-      default:
-        return null;
-    }
-  };
-
-  return <div className="min-h-[32px] flex items-center">{getContextualActions()}</div>;
+  // Menu déroulant avec tous les statuts disponibles
+  return (
+    <div className="min-h-[32px] flex items-center">
+      <Select
+        value={currentStatus}
+        onValueChange={handleStatusChange}
+        disabled={isLoading}
+      >
+        <SelectTrigger className="h-8 text-xs w-auto min-w-[120px] max-w-[140px]">
+          <SelectValue />
+          {isLoading && <RefreshCw className="w-3 h-3 ml-1 animate-spin" />}
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="En attente de confirmation">
+            <div className="flex items-center gap-2">
+              <Clock className="w-3 h-3 text-orange-500" />
+              En Attente
+            </div>
+          </SelectItem>
+          <SelectItem value="Confirmée">
+            <div className="flex items-center gap-2">
+              <CheckCircle className="w-3 h-3 text-green-500" />
+              Confirmée
+            </div>
+          </SelectItem>
+          <SelectItem value="En préparation">
+            <div className="flex items-center gap-2">
+              <ChefHat className="w-3 h-3 text-blue-500" />
+              En Préparation
+            </div>
+          </SelectItem>
+          <SelectItem value="Prête à récupérer">
+            <div className="flex items-center gap-2">
+              <Package className="w-3 h-3 text-orange-600" />
+              Prête
+            </div>
+          </SelectItem>
+          <SelectItem value="Récupérée">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="w-3 h-3 text-green-600" />
+              Récupérée
+            </div>
+          </SelectItem>
+          <SelectItem value="Annulée">
+            <div className="flex items-center gap-2">
+              <X className="w-3 h-3 text-red-500" />
+              Annulée
+            </div>
+          </SelectItem>
+        </SelectContent>
+      </Select>
+    </div>
+  );
 };
 
 // Composant pour les actions de paiement et notes rapides
@@ -331,7 +292,7 @@ const QuickActionsModal = ({
           Actions+
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md bg-white border border-thai-orange shadow-lg">
         <DialogHeader>
           <DialogTitle>Actions Commande #{commande.idcommande}</DialogTitle>
         </DialogHeader>
@@ -455,7 +416,7 @@ const PlatCommandeCard = ({
 
   const handleRemovePlat = async () => {
     const isConfirmed = window.confirm(
-      `Êtes-vous sûr de vouloir supprimer "${item.plat?.plat}" de cette commande ?`
+      `Êtes-vous sûr de vouloir supprimer "${item.type === 'complement_divers' ? (item.nom_plat || item.plat?.plat) : (item.plat?.plat || item.nom_plat)}" de cette commande ?`
     );
     
     if (!isConfirmed) return;
@@ -470,11 +431,17 @@ const PlatCommandeCard = ({
 
   return (
     <div className="flex items-start gap-4 p-4 bg-white rounded-lg border border-gray-200 transition-all duration-300 hover:shadow-xl hover:bg-thai-cream/20 hover:border-thai-orange hover:ring-2 hover:ring-thai-orange/30 hover:scale-[1.02] transform">
-      {/* Image du plat - exactement comme dans le panier */}
-      {item.plat?.photo_du_plat ? (
+      {/* Image du plat ou extra */}
+      {item.type === 'complement_divers' ? (
+        <img 
+          src="https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png" 
+          alt="Extra"
+          className="w-24 h-16 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity duration-200"
+        />
+      ) : item.plat?.photo_du_plat ? (
         <img 
           src={item.plat.photo_du_plat} 
-          alt={item.plat?.plat || 'Plat'}
+          alt={item.type === 'complement_divers' ? (item.nom_plat || item.plat?.plat || 'Extra') : (item.plat?.plat || item.nom_plat || 'Plat')}
           className="w-24 h-16 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity duration-200"
         />
       ) : (
@@ -486,7 +453,12 @@ const PlatCommandeCard = ({
       {/* Informations du plat - exactement comme dans le panier */}
       <div className="flex-1">
         <h4 className="font-medium text-thai-green text-lg mb-1 cursor-pointer hover:text-thai-orange transition-colors duration-200 hover:underline decoration-thai-orange/50">
-          {item.plat?.plat}
+          {item.type === 'complement_divers' ? (item.nom_plat || item.plat?.plat) : (item.plat?.plat || item.nom_plat)}
+          {item.type === 'complement_divers' && (
+            <span className="ml-2 text-xs bg-thai-orange/20 text-thai-orange px-2 py-1 rounded-full">
+              Extra
+            </span>
+          )}
         </h4>
         <div className="flex items-center gap-4 text-sm text-gray-600">
           <span className="flex items-center gap-1">
@@ -498,7 +470,7 @@ const PlatCommandeCard = ({
           <span className="flex items-center gap-1">
             <span className="font-medium">Prix unitaire:</span> 
             <span className="text-thai-green font-semibold">
-              {formatPrix(item.plat?.prix || 0)}
+              {formatPrix(item.prix_unitaire || item.plat?.prix || 0)}
             </span>
           </span>
         </div>
@@ -507,7 +479,7 @@ const PlatCommandeCard = ({
       {/* Prix total et contrôles - exactement comme dans le panier */}
       <div className="text-right">
         <div className="text-2xl font-bold text-thai-orange mb-4">
-          {formatPrix((item.plat?.prix || 0) * (item.quantite_plat_commande || 0))}
+          {formatPrix((item.prix_unitaire ?? item.plat?.prix ?? 0) * (item.quantite_plat_commande || 0))}
         </div>
         <div className="flex items-center gap-2">
           <Button 
@@ -557,6 +529,130 @@ const PlatCommandeCard = ({
         </div>
       </div>
     </div>
+  );
+};
+
+// Modal pour ajouter un Extra à une commande
+const AddComplementModal = ({ 
+  commandeId, 
+  isOpen, 
+  onClose, 
+  toast 
+}: {
+  commandeId: number | null;
+  isOpen: boolean;
+  onClose: () => void;
+  toast: any;
+}) => {
+  const [nomComplement, setNomComplement] = useState('');
+  const [prixComplement, setPrixComplement] = useState('');
+  const addPlatMutation = useAddPlatToCommande();
+  const isLoading = addPlatMutation.isPending;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!commandeId || !nomComplement.trim() || !prixComplement || parseFloat(prixComplement) <= 0) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez saisir un nom et un prix valide pour le complément",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      // Utiliser le hook existant pour ajouter le complément comme un "plat" spécial
+      await addPlatMutation.mutateAsync({
+        commandeId: commandeId,
+        platId: null, // Pas d'ID plat pour un Extra
+        nomPlat: nomComplement.trim(),
+        prixUnitaire: parseFloat(prixComplement),
+        quantite: 1,
+        type: 'complement_divers'
+      });
+
+      toast({
+        title: "Succès",
+        description: `Complément "${nomComplement}" ajouté à la commande`,
+      });
+
+      onClose();
+      setNomComplement('');
+      setPrixComplement('');
+    } catch (error) {
+      console.error('Erreur lors de l\'ajout du complément:', error);
+      toast({
+        title: "Erreur",
+        description: "Erreur lors de l'ajout du complément",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleClose = () => {
+    setNomComplement('');
+    setPrixComplement('');
+    onClose();
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <Dialog open={isOpen} onOpenChange={handleClose}>
+      <DialogContent className="sm:max-w-[425px] bg-white border border-thai-orange shadow-lg">
+        <DialogHeader>
+          <DialogTitle className="text-thai-orange">Ajouter un Extra</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4 mt-4">
+          <div>
+            <Label htmlFor="nom-complement" className="text-sm font-medium">
+              Nom du complément *
+            </Label>
+            <Input
+              id="nom-complement"
+              value={nomComplement}
+              onChange={(e) => setNomComplement(e.target.value)}
+              placeholder="Ex: Sauce supplémentaire, Riz jasmin..."
+              className="mt-1"
+              required
+            />
+          </div>
+          <div>
+            <Label htmlFor="prix-complement" className="text-sm font-medium">
+              Prix (€) *
+            </Label>
+            <Input
+              id="prix-complement"
+              type="number"
+              step="0.01"
+              min="0.01"
+              value={prixComplement}
+              onChange={(e) => setPrixComplement(e.target.value)}
+              placeholder="Ex: 3.00"
+              className="mt-1"
+              required
+            />
+          </div>
+          <div className="flex justify-end space-x-2 pt-4">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={handleClose}
+              disabled={isLoading}
+            >
+              Annuler
+            </Button>
+            <Button 
+              type="submit" 
+              disabled={isLoading}
+              className="bg-thai-orange hover:bg-thai-orange/90 text-white"
+            >
+              {isLoading ? 'Ajout...' : 'Ajouter'}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 };
 
@@ -621,7 +717,7 @@ const AddPlatModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto bg-white border-2 border-red-500">
+      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto bg-white border-2 border-thai-orange shadow-lg">
         <DialogHeader>
           <DialogTitle>Ajouter des plats à la commande #{commandeId}</DialogTitle>
         </DialogHeader>
@@ -752,15 +848,23 @@ export default function AdminCommandes() {
     isOpen: false,
     commandeId: null
   });
+  const [addComplementModal, setAddComplementModal] = useState<{ isOpen: boolean; commandeId: number | null }>({
+    isOpen: false,
+    commandeId: null
+  });
   
   const { data: commandes, refetch } = useCommandes();
   const updateCommandeMutation = useUpdateCommande();
   const { toast } = useToast();
 
-  // Filtres et recherche (exclure les commandes annulées)
+  // Filtres et recherche (exclure les commandes annulées et récupérées par défaut)
   const filteredCommandes = commandes?.filter(commande => {
-    // Masquer les commandes annulées
-    if (commande.statut_commande === 'Annulée') return false;
+    // Par défaut, masquer les commandes annulées et récupérées
+    if (statusFilter === 'all') {
+      if (commande.statut_commande === 'Annulée' || commande.statut_commande === 'Récupérée') {
+        return false;
+      }
+    }
     
     const matchesSearch = 
       commande.idcommande.toString().includes(searchTerm) ||
@@ -772,8 +876,12 @@ export default function AdminCommandes() {
     let matchesDate = true;
     if (dateFilter === 'today' && commande.date_et_heure_de_retrait_souhaitees) {
       matchesDate = isToday(new Date(commande.date_et_heure_de_retrait_souhaitees));
-    } else if (dateFilter === 'tomorrow' && commande.date_et_heure_de_retrait_souhaitees) {
-      matchesDate = isTomorrow(new Date(commande.date_et_heure_de_retrait_souhaitees));
+    } else if (dateFilter === 'future' && commande.date_et_heure_de_retrait_souhaitees) {
+      // Futur = demain et après (pas aujourd'hui ni passé)
+      const dateRetrait = new Date(commande.date_et_heure_de_retrait_souhaitees);
+      const today = new Date();
+      today.setHours(23, 59, 59, 999); // Fin de journée
+      matchesDate = dateRetrait > today;
     } else if (dateFilter === 'past' && commande.date_et_heure_de_retrait_souhaitees) {
       matchesDate = isPast(new Date(commande.date_et_heure_de_retrait_souhaitees));
     }
@@ -787,7 +895,12 @@ export default function AdminCommandes() {
     enAttente: commandes?.filter(c => c.statut_commande === 'En attente de confirmation').length || 0,
     enPreparation: commandes?.filter(c => c.statut_commande === 'En préparation').length || 0,
     pretes: commandes?.filter(c => c.statut_commande === 'Prête à récupérer').length || 0,
-    terminees: commandes?.filter(c => c.statut_commande === 'Récupérée').length || 0
+    terminees: commandes?.filter(c => c.statut_commande === 'Récupérée').length || 0,
+    aujourd_hui: commandes?.filter(c => 
+      c.date_et_heure_de_retrait_souhaitees && 
+      isToday(new Date(c.date_et_heure_de_retrait_souhaitees)) &&
+      c.statut_commande !== 'Annulée'
+    ).length || 0
   };
 
   const getStatusColor = (statut: string) => {
@@ -858,56 +971,15 @@ export default function AdminCommandes() {
     });
   };
 
+  const handleAddComplement = (commandeId: number) => {
+    setAddComplementModal({
+      isOpen: true,
+      commandeId: commandeId
+    });
+  };
+
   return (
     <div className="space-y-6">
-      {/* Statistiques essentielles */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <Card className="bg-gradient-to-r from-blue-50 to-blue-100 border-blue-200">
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-blue-700">{stats.total}</div>
-            <div className="text-sm text-blue-600 flex items-center gap-1 justify-center">
-              <ShoppingBasket className="w-3 h-3" />
-              Total
-            </div>
-          </CardContent>
-        </Card>
-        <Card className={`${stats.enAttente > 0 ? 'animate-pulse' : ''} bg-gradient-to-r from-red-50 to-red-100 border-red-200`}>
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-red-700">{stats.enAttente}</div>
-            <div className="text-sm text-red-600 flex items-center gap-1 justify-center">
-              <AlertTriangle className="w-3 h-3" />
-              En Attente
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="bg-gradient-to-r from-yellow-50 to-yellow-100 border-yellow-200">
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-yellow-700">{stats.enPreparation}</div>
-            <div className="text-sm text-yellow-600 flex items-center gap-1 justify-center">
-              <ChefHat className="w-3 h-3" />
-              En Préparation
-            </div>
-          </CardContent>
-        </Card>
-        <Card className={`${stats.pretes > 0 ? 'animate-pulse bg-gradient-to-r from-thai-green/20 to-thai-green/30 border-thai-green' : 'bg-gradient-to-r from-green-50 to-green-100 border-green-200'}`}>
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-thai-green">{stats.pretes}</div>
-            <div className="text-sm text-thai-green flex items-center gap-1 justify-center">
-              <Clock className="w-3 h-3" />
-              Prêtes
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="bg-gradient-to-r from-green-50 to-green-100 border-green-200">
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-green-700">{stats.terminees}</div>
-            <div className="text-sm text-green-600 flex items-center gap-1 justify-center">
-              <CheckCircle className="w-3 h-3" />
-              Terminées
-            </div>
-          </CardContent>
-        </Card>
-      </div>
 
       {/* Filtres et Actions */}
       <Card>
@@ -963,7 +1035,7 @@ export default function AdminCommandes() {
               <SelectContent>
                 <SelectItem value="all">Toutes les dates</SelectItem>
                 <SelectItem value="today">Aujourd'hui</SelectItem>
-                <SelectItem value="tomorrow">Demain</SelectItem>
+                <SelectItem value="future">Futur</SelectItem>
                 <SelectItem value="past">Passées</SelectItem>
               </SelectContent>
             </Select>
@@ -983,7 +1055,7 @@ export default function AdminCommandes() {
 
           {/* Onglets par statut */}
           <Tabs defaultValue="all" className="w-full">
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className="w-full">
               <TabsTrigger value="all">Toutes ({stats.total})</TabsTrigger>
               <TabsTrigger value="En attente de confirmation">Attente ({stats.enAttente})</TabsTrigger>
               <TabsTrigger value="En préparation">Préparation ({stats.enPreparation})</TabsTrigger>
@@ -1003,6 +1075,7 @@ export default function AdminCommandes() {
                   getStatusBgColor={getStatusBgColor}
                   toast={toast}
                   onAddPlat={handleAddPlat}
+                  onAddComplement={handleAddComplement}
                 />
               ))}
             </TabsContent>
@@ -1021,7 +1094,8 @@ export default function AdminCommandes() {
                     getStatusBgColor={getStatusBgColor}
                     toast={toast}
                     onAddPlat={handleAddPlat}
-                  />
+                    onAddComplement={handleAddComplement}
+                    />
                 ))}
               </TabsContent>
             ))}
@@ -1042,6 +1116,7 @@ export default function AdminCommandes() {
                   getStatusBgColor={getStatusBgColor}
                   toast={toast}
                   onAddPlat={handleAddPlat}
+                  onAddComplement={handleAddComplement}
                 />
               ))}
             </TabsContent>
@@ -1067,6 +1142,16 @@ export default function AdminCommandes() {
           toast={toast}
         />
       )}
+
+      {/* Modal Ajouter Complément Divers */}
+      {addComplementModal.isOpen && addComplementModal.commandeId && (
+        <AddComplementModal
+          commandeId={addComplementModal.commandeId}
+          isOpen={addComplementModal.isOpen}
+          onClose={() => setAddComplementModal({ isOpen: false, commandeId: null })}
+          toast={toast}
+        />
+      )}
     </div>
   );
 }
@@ -1080,7 +1165,8 @@ const CommandeCard = ({
   getStatusIcon,
   getStatusBgColor,
   toast,
-  onAddPlat
+  onAddPlat,
+  onAddComplement
 }: {
   commande: CommandeUI;
   onStatusChange: (id: number, status: string) => void;
@@ -1090,6 +1176,7 @@ const CommandeCard = ({
   getStatusBgColor: (status: string) => string;
   toast: any;
   onAddPlat: (commandeId: number) => void;
+  onAddComplement: (commandeId: number) => void;
 }) => {
   const isUrgent = commande.date_et_heure_de_retrait_souhaitees && 
     new Date(commande.date_et_heure_de_retrait_souhaitees) < new Date(Date.now() + 2 * 60 * 60 * 1000); // 2h
@@ -1098,7 +1185,8 @@ const CommandeCard = ({
   const calculateTotal = () => {
     if (!commande.details || !Array.isArray(commande.details)) return 0;
     return commande.details.reduce((sum, detail) => {
-      const prix = detail.plat?.prix ?? 0;
+      // Pour les compléments divers, utiliser prix_unitaire, sinon utiliser le prix du plat
+      const prix = detail.prix_unitaire ?? detail.plat?.prix ?? 0;
       const quantite = detail.quantite_plat_commande ?? 0;
       return sum + (prix * quantite);
     }, 0);
@@ -1299,12 +1387,23 @@ const CommandeCard = ({
                   
                   return (
                     <div className="mb-3 pb-2 border-b border-thai-orange/10">
-                      <h4 className="font-semibold text-thai-green flex items-center gap-2">
-                        <Calendar className="h-4 w-4 text-thai-orange" />
-                        Retrait prévu le <span className="text-thai-orange font-bold">
-                          {dateCapitalisee} à {heureFormatee}
-                        </span>
-                      </h4>
+                      <div className="flex justify-between items-center">
+                        <h4 className="font-semibold text-thai-green flex items-center gap-2">
+                          <Calendar className="h-4 w-4 text-thai-orange" />
+                          Retrait prévu le <span className="text-thai-orange font-bold">
+                            {dateCapitalisee} à {heureFormatee}
+                          </span>
+                        </h4>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="border-thai-orange text-thai-orange hover:bg-thai-orange hover:text-white border-dashed"
+                          onClick={() => onAddComplement(commande.idcommande)}
+                        >
+                          <Plus className="w-4 h-4 mr-2" />
+                          Extra
+                        </Button>
+                      </div>
                     </div>
                   );
                 })()}
@@ -1320,7 +1419,7 @@ const CommandeCard = ({
                   ))}
                   
                   {/* Bouton ajouter plat */}
-                  <div className="mt-4">
+                  <div className="mt-4 space-y-2">
                     <Button
                       variant="outline"
                       className="w-full border-thai-green text-thai-green hover:bg-thai-green hover:text-white border-dashed"
@@ -1329,6 +1428,7 @@ const CommandeCard = ({
                       <Plus className="w-4 h-4 mr-2" />
                       Ajouter un plat
                     </Button>
+                    
                   </div>
                 </div>
                 
@@ -1360,7 +1460,8 @@ const CommandeDetailsModal = ({ commande, onClose, onStatusChange }: {
   const calculateTotal = () => {
     if (!commande.details || !Array.isArray(commande.details)) return 0;
     return commande.details.reduce((sum, detail) => {
-      const prix = detail.plat?.prix ?? 0;
+      // Pour les compléments divers, utiliser prix_unitaire, sinon utiliser le prix du plat
+      const prix = detail.prix_unitaire ?? detail.plat?.prix ?? 0;
       const quantite = detail.quantite_plat_commande ?? 0;
       return sum + (prix * quantite);
     }, 0);
@@ -1463,18 +1564,25 @@ const CommandeDetailsModal = ({ commande, onClose, onStatusChange }: {
                           {item.plat?.photo_du_plat && (
                             <img 
                               src={item.plat.photo_du_plat} 
-                              alt={item.plat?.plat || 'Plat'}
+                              alt={item.type === 'complement_divers' ? (item.nom_plat || item.plat?.plat || 'Extra') : (item.plat?.plat || item.nom_plat || 'Plat')}
                               className="w-12 h-12 object-cover rounded"
                             />
                           )}
                           <div>
-                            <p className="font-medium">{item.plat?.plat}</p>
+                            <p className="font-medium">
+                              {item.type === 'complement_divers' ? (item.nom_plat || item.plat?.plat) : (item.plat?.plat || item.nom_plat)}
+                              {item.type === 'complement_divers' && (
+                                <span className="ml-2 text-xs bg-thai-orange/20 text-thai-orange px-2 py-1 rounded-full">
+                                  Complément
+                                </span>
+                              )}
+                            </p>
                             <p className="text-sm text-gray-600">Quantité: {item.quantite_plat_commande || 0}</p>
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="font-medium">{((item.plat?.prix ?? 0) * (item.quantite_plat_commande || 0)).toFixed(2)}€</p>
-                          <p className="text-sm text-gray-600">{item.plat?.prix}€ × {item.quantite_plat_commande || 0}</p>
+                          <p className="font-medium">{((item.prix_unitaire ?? item.plat?.prix ?? 0) * (item.quantite_plat_commande || 0)).toFixed(2)}€</p>
+                          <p className="text-sm text-gray-600">{item.prix_unitaire ?? item.plat?.prix ?? 0}€ × {item.quantite_plat_commande || 0}</p>
                         </div>
                       </div>
                     ))}

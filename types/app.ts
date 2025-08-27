@@ -5,7 +5,12 @@ import type { Database } from './supabase'
 export type Client = Database['public']['Tables']['client_db']['Row']
 export type Plat = Database['public']['Tables']['plats_db']['Row']
 export type Commande = Database['public']['Tables']['commande_db']['Row']
-export type DetailCommande = Database['public']['Tables']['details_commande_db']['Row']
+export type DetailCommande = Database['public']['Tables']['details_commande_db']['Row'] & {
+  // Extensions pour les compléments divers
+  prix_unitaire?: number | null // Prix custom pour les compléments
+  nom_plat?: string | null // Nom custom pour les compléments
+  type?: 'plat' | 'complement' | 'complement_divers' | null // Type pour distinguer plats vs compléments
+}
 export type Evenement = Database['public']['Tables']['evenements_db']['Row']
 
 // Types d'approvisionnement

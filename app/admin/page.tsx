@@ -30,7 +30,7 @@ import { fr } from 'date-fns/locale';
 
 interface StatsData {
   commandesAujourdhui: number;
-  commandesDemain: number;
+  commandesFutur: number;
   chiffreAffairesJour: number;
   chiffreAffairesSemaine: number;
   clientsActifs: number;
@@ -84,9 +84,13 @@ export default function AdminCentreCommandement() {
       return isToday(new Date(cmd.date_et_heure_de_retrait_souhaitees));
     }).length;
 
-    const commandesDemain = commandes.filter(cmd => {
+    const commandesFutur = commandes.filter(cmd => {
       if (!cmd.date_et_heure_de_retrait_souhaitees) return false;
-      return isTomorrow(new Date(cmd.date_et_heure_de_retrait_souhaitees));
+      // Futur = demain et après (pas aujourd'hui ni passé)
+      const dateRetrait = new Date(cmd.date_et_heure_de_retrait_souhaitees);
+      const today = new Date();
+      today.setHours(23, 59, 59, 999); // Fin de journée
+      return dateRetrait > today;
     }).length;
 
     // Calcul des chiffres d'affaires
@@ -134,7 +138,7 @@ export default function AdminCentreCommandement() {
 
     return {
       commandesAujourdhui,
-      commandesDemain,
+      commandesFutur,
       chiffreAffairesJour,
       chiffreAffairesSemaine,
       clientsActifs: clients.length,
@@ -266,7 +270,7 @@ export default function AdminCentreCommandement() {
           <CardContent>
             <div className="text-2xl font-bold text-blue-800">{stats.commandesAujourdhui}</div>
             <p className="text-xs text-blue-600 mt-1">
-              +{stats.commandesDemain} prévues demain
+              +{stats.commandesFutur} prévues futur
             </p>
           </CardContent>
         </Card>

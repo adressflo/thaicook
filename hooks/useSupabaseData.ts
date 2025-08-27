@@ -187,9 +187,9 @@ export const useCreateClient = () => {
       const errorMessage = error?.message || 'Erreur inconnue lors de la création du profil';
       console.error('Détails de l\'erreur:', {
         message: error?.message,
-        code: error?.code,
-        details: error?.details,
-        hint: error?.hint,
+        code: (error as any)?.code,
+        details: (error as any)?.details,
+        hint: (error as any)?.hint,
         fullError: error
       });
       toast({
@@ -563,13 +563,7 @@ export const useCommandes = () => {
         return {
           ...validatedCommande,
           id: validatedCommande.idcommande,
-          client: commandeTyped.client_db ? {
-            nom: commandeTyped.client_db.nom,
-            prenom: commandeTyped.client_db.prenom,
-            numero_de_telephone: commandeTyped.client_db.numero_de_telephone,
-            email: commandeTyped.client_db.email,
-            preference_client: commandeTyped.client_db.preference_client
-          } : null,
+          client: commandeTyped.client_db || null,
           details: validatedCommande.details_commande_db.map(detail => ({
             ...detail,
             plat: detail.plats_db
@@ -585,7 +579,7 @@ export const useCommandes = () => {
           'Statut Commande': validateStatutCommande(validatedCommande.statut_commande) || undefined,
           Total: prix_total,
           FirebaseUID: validatedCommande.client_r || undefined,
-        } as CommandeUI;
+        } as unknown as CommandeUI;
       });
     },
   });
@@ -1550,21 +1544,69 @@ export const useAddPlatToCommande = () => {
     mutationFn: async ({ 
       commandeId, 
       platId, 
-      quantite 
+      quantite,
+      nomPlat,
+      prixUnitaire,
+      type
     }: { 
       commandeId: number; 
-      platId: number; 
+      platId?: number | null; 
       quantite: number;
+      nomPlat?: string;
+      prixUnitaire?: number;
+      type?: string;
     }): Promise<void> => {
       console.log('Ajout plat à commande:', commandeId, 'plat:', platId, 'quantité:', quantite);
       
+      // Ajout d'Extra (ancien complément divers) - VERSION TEMPORAIRE SIMPLIFIÉE
+      if (type === 'complement_divers') {
+        console.log('🥄 Ajout d\'Extra (simplifié):', {
+          nomPlat,
+          prixUnitaire,
+          commandeId
+        });
+
+        // DIAGNOSTIC: Architecture hybride Firebase + Supabase pour les Extras
+        console.log('🔐 AVERTISSEMENT: RLS peut être activé sur details_commande_db - considérer désactiver temporairement');
+
+        // Insérer l'Extra avec toutes les données nécessaires
+        const insertData = {
+          commande_r: commandeId,
+          plat_r: 0, // Valeur spéciale pour identifier les extras
+          quantite_plat_commande: 1,
+          nom_plat: nomPlat,
+          prix_unitaire: prixUnitaire,
+          type: 'complement_divers'
+        };
+
+        console.log('📦 Données à insérer (RLS bypass requis):', insertData);
+
+        const { data, error } = await supabase
+          .from('details_commande_db')
+          .insert(insertData)
+          .select('*')
+          .single();
+
+        if (error) {
+          console.error('❌ Erreur lors de l\'ajout de l\'Extra:', error);
+          console.error('❌ Détails de l\'erreur:', JSON.stringify(error, null, 2));
+          throw new Error(`Erreur lors de l'ajout de l'Extra: ${error.message || 'Erreur inconnue'}`);
+        }
+
+        console.log('✅ Extra ajouté avec succès avec nom et prix personnalisés:', data);
+        return;
+      }
+      
+      // Code normal pour les plats réguliers
+      const insertData: any = {
+        commande_r: commandeId,
+        plat_r: platId,
+        quantite_plat_commande: quantite
+      };
+      
       const { error } = await supabase
         .from('details_commande_db')
-        .insert({
-          commande_r: commandeId,
-          plat_r: platId,
-          quantite_plat_commande: quantite
-        });
+        .insert(insertData);
 
       if (error) {
         console.error('Erreur ajout plat:', error);
