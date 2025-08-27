@@ -76,3 +76,6 @@ nul
 # Cache directories
 .cache/
 .parcel-cache/
+
+# Claude configuration
+.claude/settings.local.json
