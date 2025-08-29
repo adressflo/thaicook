@@ -34,12 +34,16 @@ import {
   MessageCircle,
   Plus,
   Minus,
-  Trash2
+  Trash2,
+  ClipboardCheck,
+  Package2,
+  PackageCheck
 } from 'lucide-react';
 import { useCommandes, useUpdateCommande, useUpdatePlatQuantite, useRemovePlatFromCommande, useAddPlatToCommande, usePlats } from '@/hooks/useSupabaseData';
-import { format, isToday, isTomorrow, isPast } from 'date-fns';
+import { format, isToday, isTomorrow, isPast, isFuture } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import type { CommandeUI, CommandeUpdate } from '@/types/app';
+
 
 // Composant pour les actions rapides selon le statut
 const QuickActionButtons = ({ 
@@ -51,6 +55,8 @@ const QuickActionButtons = ({
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const currentStatus = commande.statut_commande;
+  // Gérer la transition Récupérée → Terminée
+  const displayStatus = currentStatus === 'Récupérée' ? 'Terminée' : currentStatus;
 
   const handleStatusChange = async (newStatus: string) => {
     // Ne rien faire si c'est le même statut
@@ -76,82 +82,63 @@ const QuickActionButtons = ({
 
     setIsLoading(true);
     try {
-      await onStatusChange(commande.idcommande, newStatus);
+      // Convertir Terminée → Récupérée pour la base de données
+      const dbStatus = newStatus === 'Terminée' ? 'Récupérée' : newStatus;
+      await onStatusChange(commande.idcommande, dbStatus);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Si la commande est déjà récupérée ou annulée, affichage en lecture seule
-  if (currentStatus === 'Récupérée') {
-    return (
-      <div className="min-h-[32px] flex items-center">
-        <div className="text-xs text-green-700 font-medium flex items-center gap-1">
-          <CheckCircle2 className="w-3 h-3" />
-          Terminée
-        </div>
-      </div>
-    );
-  }
-
-  if (currentStatus === 'Annulée') {
-    return (
-      <div className="min-h-[32px] flex items-center">
-        <div className="text-xs text-red-700 font-medium flex items-center gap-1">
-          <XCircle className="w-3 h-3" />
-          Annulée
-        </div>
-      </div>
-    );
-  }
+  // Toutes les commandes restent modifiables
 
   // Menu déroulant avec tous les statuts disponibles
   return (
     <div className="min-h-[32px] flex items-center">
       <Select
-        value={currentStatus}
+        value={displayStatus}
         onValueChange={handleStatusChange}
         disabled={isLoading}
       >
-        <SelectTrigger className="h-8 text-xs w-auto min-w-[120px] max-w-[140px]">
+        <SelectTrigger className="h-12 text-xl w-auto min-w-[200px] max-w-[250px] border-2 border-thai-orange/40 bg-gradient-to-r from-white to-thai-cream/20 hover:from-thai-orange/10 hover:to-thai-orange/20 hover:border-thai-orange focus:border-thai-orange shadow-lg hover:shadow-xl transition-all duration-300 font-bold rounded-xl backdrop-blur-sm hover:scale-105 group">
           <SelectValue />
-          {isLoading && <RefreshCw className="w-3 h-3 ml-1 animate-spin" />}
+          {isLoading && <RefreshCw className="w-4 h-4 ml-2 animate-spin text-thai-orange" />}
         </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="En attente de confirmation">
-            <div className="flex items-center gap-2">
-              <Clock className="w-3 h-3 text-orange-500" />
-              En Attente
+        <SelectContent className="bg-white/95 backdrop-blur-md border-2 border-thai-orange/20 shadow-xl rounded-xl overflow-hidden">
+          <SelectItem value="En attente de confirmation" className="bg-thai-orange/10 hover:bg-thai-orange/20 border-l-4 border-thai-orange transition-all duration-200 cursor-pointer my-1">
+            <div className="flex items-center gap-3 py-2">
+              <Clock className="w-5 h-5 text-thai-orange animate-pulse transition-all duration-300 group-hover:scale-110" />
+              <span className="font-semibold text-lg text-thai-orange">En Attente</span>
             </div>
           </SelectItem>
-          <SelectItem value="Confirmée">
-            <div className="flex items-center gap-2">
-              <CheckCircle className="w-3 h-3 text-green-500" />
-              Confirmée
+          <SelectItem value="Confirmée" className="bg-blue-50/90 hover:bg-blue-100/90 border-l-4 border-blue-500 transition-all duration-200 cursor-pointer my-1">
+            <div className="flex items-center gap-3 py-2">
+              <ClipboardCheck className="w-5 h-5 text-blue-600 transition-all duration-300 group-hover:scale-110 group-hover:rotate-12" />
+              <span className="font-semibold text-lg text-blue-700">Confirmée</span>
             </div>
           </SelectItem>
-          <SelectItem value="En préparation">
-            <div className="flex items-center gap-2">
-              <ChefHat className="w-3 h-3 text-blue-500" />
-              En Préparation
+          <SelectItem value="En préparation" className="bg-yellow-50/90 hover:bg-yellow-100/90 border-l-4 border-yellow-500 transition-all duration-200 cursor-pointer my-1">
+            <div className="flex items-center gap-3 py-2">
+              <ChefHat className="w-5 h-5 text-yellow-600 transition-all duration-300 group-hover:scale-110 group-hover:rotate-6" />
+              <span className="font-semibold text-lg text-yellow-700">En Préparation</span>
             </div>
           </SelectItem>
-          <SelectItem value="Prête à récupérer">
-            <div className="flex items-center gap-2">
-              <Package className="w-3 h-3 text-orange-600" />
-              Prête
+          <SelectItem value="Prête à récupérer" className="bg-thai-gold/10 hover:bg-thai-gold/20 border-l-4 border-thai-gold transition-all duration-200 cursor-pointer my-1">
+            <div className="flex items-center gap-3 py-2">
+              <Package2 className="w-5 h-5 text-thai-gold animate-bounce transition-all duration-300 group-hover:scale-110" />
+              <span className="font-semibold text-lg text-thai-gold">Prête</span>
             </div>
           </SelectItem>
-          <SelectItem value="Récupérée">
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-3 h-3 text-green-600" />
-              Récupérée
+          <SelectItem value="Terminée" className="bg-thai-green/10 hover:bg-thai-green/20 border-l-4 border-thai-green transition-all duration-200 cursor-pointer my-1">
+            <div className="flex items-center gap-3 py-2">
+              <PackageCheck className="w-5 h-5 text-thai-green transition-all duration-300 group-hover:scale-125 group-hover:rotate-12" />
+              <span className="font-semibold text-lg text-thai-green">Terminée</span>
             </div>
           </SelectItem>
-          <SelectItem value="Annulée">
-            <div className="flex items-center gap-2">
-              <X className="w-3 h-3 text-red-500" />
-              Annulée
+          <SelectItem value="Annulée" className="bg-red-50/80 hover:bg-red-100/90 border-l-4 border-red-500 transition-all duration-200 cursor-pointer my-1">
+            <div className="flex items-center gap-3 py-2">
+              <X className="w-5 h-5 text-red-500 transition-all duration-300 group-hover:scale-110 group-hover:rotate-90" />
+              <span className="font-semibold text-lg text-red-600">Annulée</span>
             </div>
           </SelectItem>
         </SelectContent>
@@ -840,8 +827,7 @@ const AddPlatModal = ({
 
 export default function AdminCommandes() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [dateFilter, setDateFilter] = useState('all');
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [selectedCommande, setSelectedCommande] = useState<CommandeUI | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [addPlatModal, setAddPlatModal] = useState<{ isOpen: boolean; commandeId: number | null }>({
@@ -857,79 +843,82 @@ export default function AdminCommandes() {
   const updateCommandeMutation = useUpdateCommande();
   const { toast } = useToast();
 
-  // Filtres et recherche (exclure les commandes annulées et récupérées par défaut)
-  const filteredCommandes = commandes?.filter(commande => {
-    // Par défaut, masquer les commandes annulées et récupérées
-    if (statusFilter === 'all') {
-      if (commande.statut_commande === 'Annulée' || commande.statut_commande === 'Récupérée') {
-        return false;
-      }
-    }
+  // Filtrage par recherche et tri par date
+  const filteredAndSortedCommandes = commandes?.filter(commande => {
+    if (!searchTerm) return true;
     
-    const matchesSearch = 
+    const searchLower = searchTerm.toLowerCase();
+    const clientName = `${commande.client?.prenom || ''} ${commande.client?.nom || ''}`.toLowerCase();
+    const dateFormatted = commande.date_et_heure_de_retrait_souhaitees ? 
+      format(new Date(commande.date_et_heure_de_retrait_souhaitees), 'dd/MM/yyyy', { locale: fr }) : '';
+    
+    return (
       commande.idcommande.toString().includes(searchTerm) ||
-      (commande.client?.nom?.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (commande.client?.prenom?.toLowerCase().includes(searchTerm.toLowerCase()));
+      clientName.includes(searchLower) ||
+      dateFormatted.includes(searchTerm)
+    );
+  })?.sort((a, b) => {
+    const dateA = a.date_et_heure_de_retrait_souhaitees ? new Date(a.date_et_heure_de_retrait_souhaitees) : new Date(0);
+    const dateB = b.date_et_heure_de_retrait_souhaitees ? new Date(b.date_et_heure_de_retrait_souhaitees) : new Date(0);
     
-    const matchesStatus = statusFilter === 'all' || commande.statut_commande === statusFilter;
-    
-    let matchesDate = true;
-    if (dateFilter === 'today' && commande.date_et_heure_de_retrait_souhaitees) {
-      matchesDate = isToday(new Date(commande.date_et_heure_de_retrait_souhaitees));
-    } else if (dateFilter === 'future' && commande.date_et_heure_de_retrait_souhaitees) {
-      // Futur = demain et après (pas aujourd'hui ni passé)
-      const dateRetrait = new Date(commande.date_et_heure_de_retrait_souhaitees);
-      const today = new Date();
-      today.setHours(23, 59, 59, 999); // Fin de journée
-      matchesDate = dateRetrait > today;
-    } else if (dateFilter === 'past' && commande.date_et_heure_de_retrait_souhaitees) {
-      matchesDate = isPast(new Date(commande.date_et_heure_de_retrait_souhaitees));
-    }
-    
-    return matchesSearch && matchesStatus && matchesDate;
+    return dateA.getTime() - dateB.getTime();
   }) || [];
 
-  // Statistiques essentielles (excluant les annulées)
+  // Statistiques pour les onglets
   const stats = {
-    total: commandes?.filter(c => c.statut_commande !== 'Annulée').length || 0,
     enAttente: commandes?.filter(c => c.statut_commande === 'En attente de confirmation').length || 0,
-    enPreparation: commandes?.filter(c => c.statut_commande === 'En préparation').length || 0,
-    pretes: commandes?.filter(c => c.statut_commande === 'Prête à récupérer').length || 0,
-    terminees: commandes?.filter(c => c.statut_commande === 'Récupérée').length || 0,
+    confirmees: commandes?.filter(c => c.statut_commande === 'Confirmée').length || 0,
+    enCours: commandes?.filter(c => 
+      c.statut_commande !== 'Annulée' && 
+      c.statut_commande !== 'Récupérée' &&
+      c.statut_commande !== 'Terminée'
+    ).length || 0,
+    terminees: commandes?.filter(c => c.statut_commande === 'Récupérée' || c.statut_commande === 'Terminée').length || 0,
+    passees: commandes?.filter(c => 
+      c.date_et_heure_de_retrait_souhaitees && 
+      isPast(new Date(c.date_et_heure_de_retrait_souhaitees)) &&
+      c.statut_commande !== 'Annulée'
+    ).length || 0,
     aujourd_hui: commandes?.filter(c => 
       c.date_et_heure_de_retrait_souhaitees && 
       isToday(new Date(c.date_et_heure_de_retrait_souhaitees)) &&
       c.statut_commande !== 'Annulée'
-    ).length || 0
+    ).length || 0,
+    futur: commandes?.filter(c => 
+      c.date_et_heure_de_retrait_souhaitees && 
+      isFuture(new Date(c.date_et_heure_de_retrait_souhaitees)) &&
+      c.statut_commande !== 'Annulée'
+    ).length || 0,
+    annulees: commandes?.filter(c => c.statut_commande === 'Annulée').length || 0
   };
 
   const getStatusColor = (statut: string) => {
     switch (statut) {
-      case 'Récupérée': return 'bg-green-100 text-green-800 border-green-200';
-      case 'Prête à récupérer': return 'bg-thai-green/20 text-thai-green border-thai-green animate-pulse';
-      case 'En préparation': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'Confirmée': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'En attente de confirmation': return 'bg-red-100 text-red-800 border-red-200 animate-pulse';
-      case 'Annulée': return 'bg-gray-100 text-gray-800 border-gray-200 line-through';
+      case 'Terminée': return 'bg-thai-green/20 text-thai-green border-thai-green';
+      case 'Prête à récupérer': return 'bg-thai-gold/20 text-thai-gold border-thai-gold animate-pulse';
+      case 'En préparation': return 'bg-yellow-100 text-yellow-700 border-yellow-500';
+      case 'Confirmée': return 'bg-blue-100 text-blue-700 border-blue-500';
+      case 'En attente de confirmation': return 'bg-thai-orange/20 text-thai-orange border-thai-orange animate-pulse';
+      case 'Annulée': return 'bg-red-100 text-red-700 border-red-500 line-through';
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
   const getStatusBgColor = (statut: string) => {
     switch (statut) {
-      case 'Récupérée': return 'bg-green-50 border-l-green-500';
-      case 'Prête à récupérer': return 'bg-thai-green/10 border-l-thai-green';
+      case 'Terminée': return 'bg-thai-green/10 border-l-thai-green';
+      case 'Prête à récupérer': return 'bg-thai-gold/10 border-l-thai-gold';
       case 'En préparation': return 'bg-yellow-50 border-l-yellow-500';
       case 'Confirmée': return 'bg-blue-50 border-l-blue-500';
-      case 'En attente de confirmation': return 'bg-red-50 border-l-red-500';
-      case 'Annulée': return 'bg-gray-50 border-l-gray-400';
+      case 'En attente de confirmation': return 'bg-thai-orange/10 border-l-thai-orange';
+      case 'Annulée': return 'bg-red-50 border-l-red-500';
       default: return 'bg-white border-l-gray-300';
     }
   };
 
   const getStatusIcon = (statut: string) => {
     switch (statut) {
-      case 'Récupérée': return <CheckCircle className="w-4 h-4" />;
+      case 'Terminée': return <CheckCircle className="w-4 h-4" />;
       case 'En préparation': return <Package className="w-4 h-4" />;
       case 'En attente de confirmation': return <Clock className="w-4 h-4" />;
       case 'Annulée': return <AlertTriangle className="w-4 h-4" />;
@@ -985,86 +974,102 @@ export default function AdminCommandes() {
       <Card>
         <CardHeader>
           <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
-            <CardTitle className="text-thai-green flex items-center gap-2">
-              <ShoppingBasket className="w-5 h-5" />
-              Gestion des Commandes ({filteredCommandes.length})
-            </CardTitle>
-            
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={() => refetch()}>
-                <RefreshCw className="w-4 h-4 mr-2" />
-                Actualiser
-              </Button>
-              <Button variant="outline" size="sm">
-                <Download className="w-4 h-4 mr-2" />
-                Export
-              </Button>
+            <div className="flex items-center gap-4">
+              <CardTitle className="text-thai-green flex items-center gap-2">
+                <ShoppingBasket className="w-5 h-5" />
+                Gestion des Commandes ({filteredAndSortedCommandes.length})
+              </CardTitle>
+              
+              {/* Bouton de recherche */}
+              <div className="relative">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsSearchOpen(!isSearchOpen)}
+                  className="border-thai-orange text-thai-orange hover:bg-thai-orange hover:text-white transition-all duration-200"
+                >
+                  <Search className="w-4 h-4 mr-2" />
+                  Rechercher
+                </Button>
+                
+                {/* Menu de recherche déroulant */}
+                {isSearchOpen && (
+                  <div className="absolute top-full left-0 mt-2 w-80 bg-white border-2 border-thai-orange/30 rounded-lg shadow-xl z-50 p-4">
+                    <div className="space-y-3">
+                      <div>
+                        <label className="text-sm font-medium text-thai-green mb-2 block">
+                          Rechercher par client ou date :
+                        </label>
+                        <div className="relative">
+                          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-thai-orange w-4 h-4" />
+                          <Input
+                            placeholder="Nom client ou dd/mm/yyyy..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="pl-10 border-2 border-thai-orange/30 focus:border-thai-orange"
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setSearchTerm('');
+                          }}
+                          className="text-thai-red border-thai-red hover:bg-thai-red hover:text-white"
+                        >
+                          Effacer
+                        </Button>
+                        <Button
+                          size="sm"
+                          onClick={() => setIsSearchOpen(false)}
+                          className="bg-thai-green hover:bg-thai-green/90 text-white"
+                        >
+                          Fermer
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {/* Barre de recherche et filtres */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <Input
-                placeholder="Rechercher commande, client..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="Statut" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tous les statuts</SelectItem>
-                <SelectItem value="En attente de confirmation">En Attente</SelectItem>
-                <SelectItem value="En préparation">En Préparation</SelectItem>
-                <SelectItem value="Récupérée">Terminée</SelectItem>
-                <SelectItem value="Annulée">Annulée</SelectItem>
-              </SelectContent>
-            </Select>
-            
-            <Select value={dateFilter} onValueChange={setDateFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="Date" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Toutes les dates</SelectItem>
-                <SelectItem value="today">Aujourd'hui</SelectItem>
-                <SelectItem value="future">Futur</SelectItem>
-                <SelectItem value="past">Passées</SelectItem>
-              </SelectContent>
-            </Select>
             
             <Button 
               variant="outline" 
-              onClick={() => {
-                setSearchTerm('');
-                setStatusFilter('all');
-                setDateFilter('all');
-              }}
+              size="sm" 
+              onClick={() => refetch()}
+              className="border-thai-orange text-thai-orange hover:bg-thai-orange hover:text-white transition-all duration-200 shadow-md hover:shadow-lg"
             >
-              <Filter className="w-4 h-4 mr-2" />
-              Reset
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Actualiser
             </Button>
           </div>
+        </CardHeader>
+        <CardContent>
 
-          {/* Onglets par statut */}
-          <Tabs defaultValue="all" className="w-full">
-            <TabsList className="w-full">
-              <TabsTrigger value="all">Toutes ({stats.total})</TabsTrigger>
+          {/* Onglets par statut et date */}
+          <Tabs defaultValue="en_cours" className="w-full">
+            <TabsList className="w-full grid grid-cols-4 lg:grid-cols-8">
               <TabsTrigger value="En attente de confirmation">Attente ({stats.enAttente})</TabsTrigger>
-              <TabsTrigger value="En préparation">Préparation ({stats.enPreparation})</TabsTrigger>
-              <TabsTrigger value="Récupérée">Terminées ({stats.terminees})</TabsTrigger>
+              <TabsTrigger value="Confirmée">Confirmée ({stats.confirmees})</TabsTrigger>
+              <TabsTrigger value="en_cours">En cours ({stats.enCours})</TabsTrigger>
+              <TabsTrigger value="Terminée">Terminées ({stats.terminees})</TabsTrigger>
+              <TabsTrigger value="past">Passées ({stats.passees})</TabsTrigger>
               <TabsTrigger value="today">Aujourd'hui ({stats.aujourd_hui})</TabsTrigger>
+              <TabsTrigger value="future">Futur ({stats.futur})</TabsTrigger>
+              <TabsTrigger value="Annulée">Annulées ({stats.annulees})</TabsTrigger>
             </TabsList>
             
-            <TabsContent value="all" className="space-y-4 mt-6">
-              {filteredCommandes.map((commande) => (
+            {/* Onglet En Attente */}
+            <TabsContent value="En attente de confirmation" className="space-y-4 mt-6">
+              {filteredAndSortedCommandes?.filter(c => c.statut_commande === 'En attente de confirmation')
+                .sort((a, b) => {
+                  const dateA = a.date_et_heure_de_retrait_souhaitees ? new Date(a.date_et_heure_de_retrait_souhaitees) : new Date(0);
+                  const dateB = b.date_et_heure_de_retrait_souhaitees ? new Date(b.date_et_heure_de_retrait_souhaitees) : new Date(0);
+                  return dateA.getTime() - dateB.getTime();
+                }).map((commande) => (
                 <CommandeCard 
                   key={commande.idcommande} 
                   commande={commande}
@@ -1076,36 +1081,19 @@ export default function AdminCommandes() {
                   toast={toast}
                   onAddPlat={handleAddPlat}
                   onAddComplement={handleAddComplement}
+                  updateCommandeMutation={updateCommandeMutation}
                 />
               ))}
             </TabsContent>
             
-            {/* Autres onglets avec filtres automatiques */}
-            {['En attente de confirmation', 'En préparation', 'Récupérée'].map(status => (
-              <TabsContent key={status} value={status} className="space-y-4 mt-6">
-                {commandes?.filter(c => c.statut_commande === status && c.statut_commande !== 'Annulée').map((commande) => (
-                  <CommandeCard 
-                    key={commande.idcommande} 
-                    commande={commande}
-                    onStatusChange={handleStatusChange}
-                    onViewDetails={openDetails}
-                    getStatusColor={getStatusColor}
-                    getStatusIcon={getStatusIcon}
-                    getStatusBgColor={getStatusBgColor}
-                    toast={toast}
-                    onAddPlat={handleAddPlat}
-                    onAddComplement={handleAddComplement}
-                    />
-                ))}
-              </TabsContent>
-            ))}
-            
-            <TabsContent value="today" className="space-y-4 mt-6">
-              {commandes?.filter(c => 
-                c.date_et_heure_de_retrait_souhaitees && 
-                isToday(new Date(c.date_et_heure_de_retrait_souhaitees)) &&
-                c.statut_commande !== 'Annulée'
-              ).map((commande) => (
+            {/* Onglet Confirmée */}
+            <TabsContent value="Confirmée" className="space-y-4 mt-6">
+              {filteredAndSortedCommandes?.filter(c => c.statut_commande === 'Confirmée')
+                .sort((a, b) => {
+                  const dateA = a.date_et_heure_de_retrait_souhaitees ? new Date(a.date_et_heure_de_retrait_souhaitees) : new Date(0);
+                  const dateB = b.date_et_heure_de_retrait_souhaitees ? new Date(b.date_et_heure_de_retrait_souhaitees) : new Date(0);
+                  return dateA.getTime() - dateB.getTime();
+                }).map((commande) => (
                 <CommandeCard 
                   key={commande.idcommande} 
                   commande={commande}
@@ -1117,6 +1105,163 @@ export default function AdminCommandes() {
                   toast={toast}
                   onAddPlat={handleAddPlat}
                   onAddComplement={handleAddComplement}
+                  updateCommandeMutation={updateCommandeMutation}
+                />
+              ))}
+            </TabsContent>
+            
+            {/* Onglet En cours */}
+            <TabsContent value="en_cours" className="space-y-4 mt-6">
+              {filteredAndSortedCommandes?.filter(c => 
+                c.statut_commande !== 'Annulée' && 
+                c.statut_commande !== 'Terminée' &&
+                c.statut_commande !== 'Récupérée'
+              ).sort((a, b) => {
+                const dateA = a.date_et_heure_de_retrait_souhaitees ? new Date(a.date_et_heure_de_retrait_souhaitees) : new Date(0);
+                const dateB = b.date_et_heure_de_retrait_souhaitees ? new Date(b.date_et_heure_de_retrait_souhaitees) : new Date(0);
+                return dateA.getTime() - dateB.getTime();
+              }).map((commande) => (
+                <CommandeCard 
+                  key={commande.idcommande} 
+                  commande={commande}
+                  onStatusChange={handleStatusChange}
+                  onViewDetails={openDetails}
+                  getStatusColor={getStatusColor}
+                  getStatusIcon={getStatusIcon}
+                  getStatusBgColor={getStatusBgColor}
+                  toast={toast}
+                  onAddPlat={handleAddPlat}
+                  onAddComplement={handleAddComplement}
+                  updateCommandeMutation={updateCommandeMutation}
+                />
+              ))}
+            </TabsContent>
+            
+            {/* Onglet Terminées */}
+            <TabsContent value="Terminée" className="space-y-4 mt-6">
+              {filteredAndSortedCommandes?.filter(c => c.statut_commande === 'Récupérée' || c.statut_commande === 'Terminée')
+                .sort((a, b) => {
+                  const dateA = a.date_et_heure_de_retrait_souhaitees ? new Date(a.date_et_heure_de_retrait_souhaitees) : new Date(0);
+                  const dateB = b.date_et_heure_de_retrait_souhaitees ? new Date(b.date_et_heure_de_retrait_souhaitees) : new Date(0);
+                  return dateB.getTime() - dateA.getTime(); // Plus récentes en premier
+                }).map((commande) => (
+                <CommandeCard 
+                  key={commande.idcommande} 
+                  commande={commande}
+                  onStatusChange={handleStatusChange}
+                  onViewDetails={openDetails}
+                  getStatusColor={getStatusColor}
+                  getStatusIcon={getStatusIcon}
+                  getStatusBgColor={getStatusBgColor}
+                  toast={toast}
+                  onAddPlat={handleAddPlat}
+                  onAddComplement={handleAddComplement}
+                  updateCommandeMutation={updateCommandeMutation}
+                />
+              ))}
+            </TabsContent>
+            
+            {/* Onglet Aujourd'hui */}
+            <TabsContent value="today" className="space-y-4 mt-6">
+              {filteredAndSortedCommandes?.filter(c => 
+                c.date_et_heure_de_retrait_souhaitees && 
+                isToday(new Date(c.date_et_heure_de_retrait_souhaitees)) &&
+                c.statut_commande !== 'Annulée'
+              ).sort((a, b) => {
+                const dateA = new Date(a.date_et_heure_de_retrait_souhaitees!);
+                const dateB = new Date(b.date_et_heure_de_retrait_souhaitees!);
+                return dateA.getTime() - dateB.getTime();
+              }).map((commande) => (
+                <CommandeCard 
+                  key={commande.idcommande} 
+                  commande={commande}
+                  onStatusChange={handleStatusChange}
+                  onViewDetails={openDetails}
+                  getStatusColor={getStatusColor}
+                  getStatusIcon={getStatusIcon}
+                  getStatusBgColor={getStatusBgColor}
+                  toast={toast}
+                  onAddPlat={handleAddPlat}
+                  onAddComplement={handleAddComplement}
+                  updateCommandeMutation={updateCommandeMutation}
+                />
+              ))}
+            </TabsContent>
+            
+            {/* Onglet Futur */}
+            <TabsContent value="future" className="space-y-4 mt-6">
+              {filteredAndSortedCommandes?.filter(c => 
+                c.date_et_heure_de_retrait_souhaitees && 
+                isFuture(new Date(c.date_et_heure_de_retrait_souhaitees)) &&
+                c.statut_commande !== 'Annulée'
+              ).sort((a, b) => {
+                const dateA = new Date(a.date_et_heure_de_retrait_souhaitees!);
+                const dateB = new Date(b.date_et_heure_de_retrait_souhaitees!);
+                return dateA.getTime() - dateB.getTime();
+              }).map((commande) => (
+                <CommandeCard 
+                  key={commande.idcommande} 
+                  commande={commande}
+                  onStatusChange={handleStatusChange}
+                  onViewDetails={openDetails}
+                  getStatusColor={getStatusColor}
+                  getStatusIcon={getStatusIcon}
+                  getStatusBgColor={getStatusBgColor}
+                  toast={toast}
+                  onAddPlat={handleAddPlat}
+                  onAddComplement={handleAddComplement}
+                  updateCommandeMutation={updateCommandeMutation}
+                />
+              ))}
+            </TabsContent>
+            
+            {/* Onglet Passées */}
+            <TabsContent value="past" className="space-y-4 mt-6">
+              {filteredAndSortedCommandes?.filter(c => 
+                c.date_et_heure_de_retrait_souhaitees && 
+                isPast(new Date(c.date_et_heure_de_retrait_souhaitees)) &&
+                c.statut_commande !== 'Annulée'
+              ).sort((a, b) => {
+                const dateA = new Date(a.date_et_heure_de_retrait_souhaitees!);
+                const dateB = new Date(b.date_et_heure_de_retrait_souhaitees!);
+                return dateB.getTime() - dateA.getTime(); // Plus récentes en premier
+              }).map((commande) => (
+                <CommandeCard 
+                  key={commande.idcommande} 
+                  commande={commande}
+                  onStatusChange={handleStatusChange}
+                  onViewDetails={openDetails}
+                  getStatusColor={getStatusColor}
+                  getStatusIcon={getStatusIcon}
+                  getStatusBgColor={getStatusBgColor}
+                  toast={toast}
+                  onAddPlat={handleAddPlat}
+                  onAddComplement={handleAddComplement}
+                  updateCommandeMutation={updateCommandeMutation}
+                />
+              ))}
+            </TabsContent>
+            
+            {/* Onglet Annulées */}
+            <TabsContent value="Annulée" className="space-y-4 mt-6">
+              {filteredAndSortedCommandes?.filter(c => c.statut_commande === 'Annulée')
+                .sort((a, b) => {
+                  const dateA = a.date_et_heure_de_retrait_souhaitees ? new Date(a.date_et_heure_de_retrait_souhaitees) : new Date(0);
+                  const dateB = b.date_et_heure_de_retrait_souhaitees ? new Date(b.date_et_heure_de_retrait_souhaitees) : new Date(0);
+                  return dateB.getTime() - dateA.getTime(); // Plus récentes en premier
+                }).map((commande) => (
+                <CommandeCard 
+                  key={commande.idcommande} 
+                  commande={commande}
+                  onStatusChange={handleStatusChange}
+                  onViewDetails={openDetails}
+                  getStatusColor={getStatusColor}
+                  getStatusIcon={getStatusIcon}
+                  getStatusBgColor={getStatusBgColor}
+                  toast={toast}
+                  onAddPlat={handleAddPlat}
+                  onAddComplement={handleAddComplement}
+                  updateCommandeMutation={updateCommandeMutation}
                 />
               ))}
             </TabsContent>
@@ -1166,7 +1311,8 @@ const CommandeCard = ({
   getStatusBgColor,
   toast,
   onAddPlat,
-  onAddComplement
+  onAddComplement,
+  updateCommandeMutation
 }: {
   commande: CommandeUI;
   onStatusChange: (id: number, status: string) => void;
@@ -1177,9 +1323,61 @@ const CommandeCard = ({
   toast: any;
   onAddPlat: (commandeId: number) => void;
   onAddComplement: (commandeId: number) => void;
+  updateCommandeMutation: any;
 }) => {
+  const [isEditingTime, setIsEditingTime] = useState(false);
+  const [newTime, setNewTime] = useState('');
+  const [isLoadingTime, setIsLoadingTime] = useState(false);
+
   const isUrgent = commande.date_et_heure_de_retrait_souhaitees && 
     new Date(commande.date_et_heure_de_retrait_souhaitees) < new Date(Date.now() + 2 * 60 * 60 * 1000); // 2h
+
+  // Fonctions pour l'édition d'heure
+  const handleTimeEdit = () => {
+    if (commande.date_et_heure_de_retrait_souhaitees) {
+      const currentTime = format(new Date(commande.date_et_heure_de_retrait_souhaitees), 'HH:mm');
+      setNewTime(currentTime);
+      setIsEditingTime(true);
+    }
+  };
+
+  const handleTimeSave = async () => {
+    if (!newTime || !commande.date_et_heure_de_retrait_souhaitees) return;
+    
+    setIsLoadingTime(true);
+    try {
+      const currentDate = new Date(commande.date_et_heure_de_retrait_souhaitees);
+      const [hours, minutes] = newTime.split(':');
+      currentDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+      
+      await updateCommandeMutation.mutateAsync({
+        id: commande.idcommande,
+        updates: { 
+          date_et_heure_de_retrait_souhaitees: currentDate.toISOString()
+        }
+      });
+
+      toast({
+        title: "✅ Heure modifiée",
+        description: `Nouvelle heure de retrait: ${newTime}`
+      });
+      
+      setIsEditingTime(false);
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de modifier l'heure",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoadingTime(false);
+    }
+  };
+
+  const handleTimeCancel = () => {
+    setIsEditingTime(false);
+    setNewTime('');
+  };
 
   // Calculer le prix total
   const calculateTotal = () => {
@@ -1216,11 +1414,24 @@ const CommandeCard = ({
     return 'U';
   };
 
+  // Obtenir la couleur du point selon le statut
+  const getStatusPointColor = (status: string) => {
+    switch (status) {
+      case 'En attente de confirmation': return 'bg-thai-orange animate-pulse';
+      case 'Confirmée': return 'bg-blue-500';
+      case 'En préparation': return 'bg-yellow-500 animate-pulse';
+      case 'Prête à récupérer': return 'bg-thai-gold animate-bounce';
+      case 'Terminée': return 'bg-thai-green';
+      case 'Annulée': return 'bg-red-500';
+      default: return 'bg-thai-orange animate-pulse';
+    }
+  };
+
   return (
     <Card className={`border-l-4 ${getStatusBgColor(commande.statut_commande || '')} hover:shadow-lg transition-shadow`}>
       <CardContent className="p-0">
         {/* En-tête de la commande */}
-        <div className="bg-white p-4 border-b border-gray-100">
+        <div className="bg-white p-4 border-b border-gray-100 relative min-h-[120px]">
           <div className="flex justify-between items-start">
             {/* Informations client à gauche */}
             <div className="flex-1">
@@ -1261,115 +1472,160 @@ const CommandeCard = ({
                   </div>
                 )}
               </div>
+              
+              {isUrgent && (
+                <div className="absolute top-2 right-2">
+                  <Badge variant="destructive" className="animate-pulse px-3 py-1">
+                    <AlertTriangle className="w-4 h-4 mr-1" />
+                    URGENT
+                  </Badge>
+                </div>
+              )}
             </div>
-            
-            {/* Date au centre avec format français complet - Style historique */}
-            {commande.date_et_heure_de_retrait_souhaitees && (
-              <div className="flex justify-center px-6">
-                <div className="group relative">
-                  <div className="flex flex-col items-center justify-center bg-gradient-to-br from-thai-orange to-thai-orange/90 text-white px-6 py-4 rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 hover:-rotate-1 min-w-[200px]">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Calendar className="w-5 h-5 group-hover:scale-110 transition-transform duration-200" />
-                      <div className="text-lg font-bold text-center">
-                        {format(new Date(commande.date_et_heure_de_retrait_souhaitees), 'eeee dd MMMM', { locale: fr })}
-                      </div>
+          </div>
+          
+          {/* Date au centre avec format français complet - Positionnement absolu */}
+          {commande.date_et_heure_de_retrait_souhaitees && (
+            <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-10">
+              <div className="group relative">
+                <div className="flex flex-col items-center justify-center bg-gradient-to-br from-thai-green to-thai-orange text-white px-6 py-4 rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 hover:-rotate-1 min-w-[200px]">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Calendar className="w-5 h-5 group-hover:scale-110 transition-transform duration-200" />
+                    <div className="text-lg font-bold text-center">
+                      {format(new Date(commande.date_et_heure_de_retrait_souhaitees), 'eeee dd MMMM', { locale: fr })}
                     </div>
-                    <div className="text-2xl font-black text-center border-t border-white/30 pt-2 mt-1 w-full">
+                  </div>
+                  
+                  
+                  {/* Heure - affichage simple */}
+                  <div className="border-t border-white/30 pt-2 mt-1 w-full">
+                    <div className="text-2xl font-black text-center">
                       {format(new Date(commande.date_et_heure_de_retrait_souhaitees), 'HH:mm', { locale: fr })}
                     </div>
                   </div>
-                  <div className="absolute -inset-0.5 bg-gradient-to-br from-thai-orange/60 to-thai-gold/60 rounded-xl opacity-0 group-hover:opacity-40 transition-opacity duration-200" />
+                </div>
+                <div className="absolute -inset-0.5 bg-gradient-to-br from-thai-green/60 to-thai-orange/60 rounded-xl opacity-0 group-hover:opacity-40 transition-opacity duration-200" />
+              </div>
+            </div>
+          )}
+          
+          {/* Interface de modification d'heure - design Thai */}
+          {commande.date_et_heure_de_retrait_souhaitees && isEditingTime && (
+            <div className="absolute top-32 left-1/2 transform -translate-x-1/2 z-20">
+              <div className="bg-gradient-to-br from-thai-cream to-white rounded-xl shadow-xl p-4 flex flex-col items-center gap-3 border-2 border-thai-orange/20">
+                <div className="text-sm font-medium text-thai-green mb-1">
+                  Nouvelle heure de retrait
+                </div>
+                <input
+                  type="time"
+                  value={newTime}
+                  onChange={(e) => setNewTime(e.target.value)}
+                  className="bg-white border-2 border-thai-orange/30 rounded-lg px-4 py-3 text-xl font-bold text-thai-green text-center focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-thai-orange shadow-sm"
+                />
+                <div className="flex gap-3">
+                  <Button
+                    size="sm"
+                    onClick={handleTimeSave}
+                    disabled={isLoadingTime}
+                    className="bg-thai-green hover:bg-thai-green/90 text-white px-4 py-2 font-medium shadow-md hover:shadow-lg transition-all duration-200"
+                  >
+                    {isLoadingTime ? <RefreshCw className="w-4 h-4 animate-spin mr-1" /> : <CheckCircle className="w-4 h-4 mr-1" />}
+                    Sauvegarder
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleTimeCancel}
+                    disabled={isLoadingTime}
+                    className="border-2 border-thai-red text-thai-red hover:bg-thai-red hover:text-white px-4 py-2 font-medium shadow-md hover:shadow-lg transition-all duration-200"
+                  >
+                    <X className="w-4 h-4 mr-1" />
+                    Annuler
+                  </Button>
                 </div>
               </div>
-            )}
-            
-            {/* Statut à droite */}
-            <div className="flex flex-col items-end justify-center">
-              <Badge className={`${getStatusColor(commande.statut_commande || '')} flex items-center gap-1 px-4 py-2 text-lg`}>
-                {getStatusIcon(commande.statut_commande || '')}
-                <span className="font-medium">{commande.statut_commande}</span>
-              </Badge>
-              {isUrgent && (
-                <Badge variant="destructive" className="animate-pulse px-3 py-1 mt-2">
-                  <AlertTriangle className="w-4 h-4 mr-1" />
-                  URGENT
-                </Badge>
-              )}
+            </div>
+          )}
+          
+          {/* Dropdown de changement de statut en haut à droite - Style Premium */}
+          <div className="absolute right-4 top-4 z-10">
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-3 shadow-lg border border-thai-orange/20 hover:shadow-xl transition-all duration-300 relative">
+              <div className="flex items-center gap-2 mb-2">
+                <div className={`w-3 h-3 rounded-full ${getStatusPointColor(commande.statut_commande || '')}`}></div>
+                <span className="text-sm font-medium text-thai-green">Changer le statut</span>
+                {/* Croix verte Thai pour fermer */}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="absolute -top-1 -right-1 h-6 w-6 p-0 bg-thai-green text-white hover:bg-thai-green/80 rounded-full shadow-md hover:shadow-lg transition-all duration-200 hover:scale-110"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onStatusChange(commande.idcommande, 'Annulée');
+                  }}
+                  title="Annuler la commande"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+              <QuickActionButtons 
+                commande={commande}
+                onStatusChange={onStatusChange}
+              />
             </div>
           </div>
         </div>
 
         {/* Section actions */}
         <div className="px-4 py-3 bg-gray-50 border-b border-gray-100">
-          <div className="flex flex-wrap gap-3 items-center justify-between">
-            {/* Actions de contact à gauche */}
-            <div className="flex flex-wrap gap-2">
-              <Button 
-                size="sm"
-                variant="outline"
-                className="border-thai-green text-thai-green hover:bg-thai-green hover:text-white"
-                onClick={() => {
-                  const clientName = getClientName();
-                  if (commande.client?.numero_de_telephone) {
-                    toast({
-                      title: "📱 Contact à venir",
-                      description: `WhatsApp avec ${clientName} sera disponible prochainement`
-                    });
-                  } else {
-                    toast({
-                      title: "❌ Pas de numéro",
-                      description: "Ce client n'a pas de numéro de téléphone"
-                    });
-                  }
-                }}
-              >
-                <MessageCircle className="w-4 h-4 mr-2" />
-                <span className="hidden sm:inline">Contacter</span>
-              </Button>
-              
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => onViewDetails(commande)}
-              >
-                <Eye className="w-4 h-4 mr-2" />
-                <span className="hidden sm:inline">Détails</span>
-              </Button>
-              
-              {/* Bouton annuler commande (toujours visible) */}
-              {commande.statut_commande !== 'Annulée' && commande.statut_commande !== 'Récupérée' && (
+          <div className="flex items-center justify-between w-full">
+            {/* Bouton Contacter à gauche */}
+            <Button 
+              size="sm"
+              variant="outline"
+              className="border-thai-green text-thai-green hover:bg-thai-green hover:text-white"
+              onClick={() => {
+                const clientName = getClientName();
+                if (commande.client?.numero_de_telephone) {
+                  toast({
+                    title: "📱 Contact à venir",
+                    description: `WhatsApp avec ${clientName} sera disponible prochainement`
+                  });
+                } else {
+                  toast({
+                    title: "❌ Pas de numéro",
+                    description: "Ce client n'a pas de numéro de téléphone"
+                  });
+                }
+              }}
+            >
+              <MessageCircle className="w-4 h-4 mr-2" />
+              <span className="hidden sm:inline">Contacter</span>
+            </Button>
+            
+            {/* Bouton modifier l'heure au centre */}
+            <div className="flex justify-center">
+              {commande.date_et_heure_de_retrait_souhaitees && !isEditingTime && (
                 <Button 
-                  variant="outline"
                   size="sm"
-                  className="border-red-500 text-red-600 hover:bg-red-50"
-                  onClick={() => {
-                    const clientName = commande.client?.nom && commande.client?.prenom 
-                      ? `${commande.client.prenom} ${commande.client.nom}`
-                      : 'ce client';
-                    
-                    const isConfirmed = window.confirm(
-                      `⚠️ Êtes-vous sûr de vouloir annuler la commande de ${clientName} ?\n\n` +
-                      `Cette action ne peut pas être annulée et le client sera notifié automatiquement.`
-                    );
-                    
-                    if (isConfirmed) {
-                      onStatusChange(commande.idcommande, 'Annulée');
-                    }
-                  }}
+                  variant="outline"
+                  className="border-thai-orange text-thai-orange hover:bg-thai-orange hover:text-white transition-colors duration-200"
+                  onClick={handleTimeEdit}
                 >
-                  <XCircle className="w-4 h-4 mr-2" />
-                  <span className="hidden sm:inline">Annuler</span>
+                  <Clock className="w-4 h-4 mr-2" />
+                  <span className="hidden sm:inline">Modifier l'heure</span>
                 </Button>
               )}
             </div>
             
-            {/* Actions rapides contextuelles à droite */}
-            <div className="flex gap-2">
-              <QuickActionButtons 
-                commande={commande}
-                onStatusChange={onStatusChange}
-              />
-            </div>
+            {/* Bouton Détails à droite */}
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => onViewDetails(commande)}
+            >
+              <Eye className="w-4 h-4 mr-2" />
+              <span className="hidden sm:inline">Détails</span>
+            </Button>
           </div>
         </div>
         
@@ -1534,7 +1790,7 @@ const CommandeDetailsModal = ({ commande, onClose, onStatusChange }: {
                       <SelectItem value="Confirmée">Confirmée</SelectItem>
                       <SelectItem value="En préparation">En Préparation</SelectItem>
                       <SelectItem value="Prête à récupérer">Prête</SelectItem>
-                      <SelectItem value="Récupérée">Récupérée</SelectItem>
+                      <SelectItem value="Terminée">Terminée</SelectItem>
                       <SelectItem value="Annulée">Annulée</SelectItem>
                     </SelectContent>
                   </Select>
