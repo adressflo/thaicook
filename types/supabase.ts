@@ -6,6 +6,18 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
+// Types pour les énumérations
+export type StatutCommande = 
+  | 'En attente de confirmation'
+  | 'Confirmée' 
+  | 'En préparation'
+  | 'Prête à récupérer'
+  | 'Récupérée'
+  | 'Annulée'
+
+// Type étendu pour l'affichage (inclut "Terminée" pour l'interface)
+export type StatutCommandeAffichage = StatutCommande | 'Terminée'
+
 export type Database = {
   public: {
     Tables: {
@@ -164,7 +176,7 @@ export type Database = {
           idcommande: number
           nom_evenement: string | null
           notes_internes: string | null
-          statut_commande: string | null
+          statut_commande: StatutCommande | null
           statut_paiement: string | null
           type_livraison: string | null
         }
@@ -178,7 +190,7 @@ export type Database = {
           idcommande?: number
           nom_evenement?: string | null
           notes_internes?: string | null
-          statut_commande?: string | null
+          statut_commande?: StatutCommande | null
           statut_paiement?: string | null
           type_livraison?: string | null
         }
@@ -192,7 +204,7 @@ export type Database = {
           idcommande?: number
           nom_evenement?: string | null
           notes_internes?: string | null
-          statut_commande?: string | null
+          statut_commande?: StatutCommande | null
           statut_paiement?: string | null
           type_livraison?: string | null
         }
