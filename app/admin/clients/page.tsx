@@ -34,12 +34,13 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { useClients, useCommandes, useUpdateClient, useEvenementsByClient } from '@/hooks/useSupabaseData';
-import { format } from 'date-fns';
+import { format, parse, isValid as isValidDate } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import type { ClientUI, CommandeUI, ClientInputData } from '@/types/app';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { StatusBadge } from '@/components/historique/StatusBadge';
 import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
 import {
   Select,
   SelectContent,
@@ -48,8 +49,10 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
+const DATE_FORMAT_DB = 'yyyy-MM-dd';
+
 // --- Sous-composant : Fiche Client Détaillée ---
-const FicheClient = ({ client, commandes, onBack }: { client: ClientUI, commandes: CommandeUI[], onBack: () => void }) => {
+const FicheClient = ({ client, commandes, onBack, router }: { client: ClientUI, commandes: CommandeUI[], onBack: () => void, router: any }) => {
   const [formData, setFormData] = useState({
     nom: client.nom || '',
     prenom: client.prenom || '',
@@ -58,8 +61,17 @@ const FicheClient = ({ client, commandes, onBack }: { client: ClientUI, commande
     adresse_numero_et_rue: client.adresse_numero_et_rue || '',
     code_postal: client.code_postal?.toString() || '',
     ville: client.ville || '',
-    preference_client: client.preference_client || '',
-    date_de_naissance: client.date_de_naissance || ''
+    preference_client: client.preference_client || ''
+  });
+
+  const [birthDate, setBirthDate] = useState<Date | undefined>(() => {
+    if (client.date_de_naissance) {
+      const parsedDate = parse(client.date_de_naissance, DATE_FORMAT_DB, new Date());
+      if (isValidDate(parsedDate)) {
+        return parsedDate;
+      }
+    }
+    return undefined;
   });
   
   const updateClientMutation = useUpdateClient();
@@ -67,6 +79,37 @@ const FicheClient = ({ client, commandes, onBack }: { client: ClientUI, commande
   
   // Hook pour récupérer les événements du client
   const { data: evenements } = useEvenementsByClient(client.firebase_uid);
+
+  // Fonction pour gérer les changements de date de naissance avec sauvegarde automatique
+  const handleBirthDateChange = async (newDate: Date | undefined) => {
+    setBirthDate(newDate);
+    
+    try {
+      const dataToUpdate: Partial<ClientInputData> = {
+        date_de_naissance: newDate && !isNaN(newDate.getTime()) 
+          ? format(newDate, DATE_FORMAT_DB) 
+          : null
+      };
+
+      await updateClientMutation.mutateAsync({
+        firebase_uid: client.firebase_uid,
+        data: dataToUpdate,
+      });
+
+      toast({ 
+        title: 'Sauvegardé', 
+        description: 'Date de naissance mise à jour automatiquement.',
+        duration: 1500
+      });
+    } catch (error) {
+      toast({ 
+        title: 'Erreur', 
+        description: 'Impossible de sauvegarder la date de naissance.', 
+        variant: 'destructive' 
+      });
+      console.error('Error updating birth date:', error);
+    }
+  };
 
   // Calcul des 5 dernières commandes modifiables et dernier événement
   const commandesRecentes = useMemo(() => {
@@ -114,19 +157,19 @@ const FicheClient = ({ client, commandes, onBack }: { client: ClientUI, commande
 
   // Fonctions de navigation vers les pages dédiées
   const navigateToStats = () => {
-    window.open(`/admin/clients/${client.firebase_uid}/stats`, '_blank');
+    router.push(`/admin/clients/${client.firebase_uid}/stats`);
   };
 
   const navigateToContact = () => {
-    window.open(`/admin/clients/${client.firebase_uid}/contact`, '_blank');
+    router.push(`/admin/clients/${client.firebase_uid}/contact`);
   };
 
   const navigateToOrders = () => {
-    window.open(`/admin/clients/${client.firebase_uid}/orders`, '_blank');
+    router.push(`/admin/clients/${client.firebase_uid}/orders`);
   };
 
   const navigateToEvents = () => {
-    window.open(`/admin/clients/${client.firebase_uid}/events`, '_blank');
+    router.push(`/admin/clients/${client.firebase_uid}/events`);
   };
 
   return (
@@ -258,14 +301,151 @@ const FicheClient = ({ client, commandes, onBack }: { client: ClientUI, commande
                   />
                 </div>
                 <div>
-                  <Label htmlFor="date_naissance" className="text-thai-green font-medium">Date de naissance</Label>
-                  <Input
-                    id="date_naissance"
-                    type="date"
-                    value={formData.date_de_naissance}
-                    onChange={(e) => handleFieldChange('date_de_naissance', e.target.value)}
-                    className="border-thai-orange/30 focus:border-thai-orange focus:ring-thai-orange/30"
-                  />
+                  <Label className="flex items-center gap-2 text-thai-green font-medium">
+                    <Calendar className="h-4 w-4" />
+                    Date de naissance
+                  </Label>
+                  <div className="flex gap-2 mt-1">
+                    <Select
+                      value={
+                        birthDate
+                          ? birthDate.getDate().toString().padStart(2, '0')
+                          : ''
+                      }
+                      onValueChange={day => {
+                        if (birthDate) {
+                          const newDate = new Date(birthDate);
+                          newDate.setDate(parseInt(day));
+                          // Vérifier si la date est valide après modification
+                          if (!isNaN(newDate.getTime())) {
+                            handleBirthDateChange(newDate);
+                          }
+                        } else {
+                          handleBirthDateChange(new Date(1990, 0, parseInt(day)));
+                        }
+                      }}
+                    >
+                      <SelectTrigger className="w-20 text-center [&>span]:text-center">
+                        <SelectValue placeholder="Jour" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Array.from({ length: 31 }, (_, i) => i + 1).map(
+                          day => (
+                            <SelectItem
+                              key={day}
+                              value={day.toString().padStart(2, '0')}
+                              className="justify-center"
+                            >
+                              {day}
+                            </SelectItem>
+                          )
+                        )}
+                      </SelectContent>
+                    </Select>
+                    <Select
+                      value={
+                        birthDate
+                          ? (birthDate.getMonth() + 1)
+                              .toString()
+                              .padStart(2, '0')
+                          : ''
+                      }
+                      onValueChange={month => {
+                        if (birthDate) {
+                          const newDate = new Date(birthDate);
+                          newDate.setMonth(parseInt(month) - 1);
+                          // Vérifier si la date est valide après modification
+                          if (!isNaN(newDate.getTime())) {
+                            handleBirthDateChange(newDate);
+                          }
+                        } else {
+                          handleBirthDateChange(
+                            new Date(1990, parseInt(month) - 1, 1)
+                          );
+                        }
+                      }}
+                    >
+                      <SelectTrigger className="w-32 text-center [&>span]:text-center [&>span]:w-full [&>span]:block">
+                        <SelectValue placeholder="Mois" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="01" className="justify-center">
+                          Janvier
+                        </SelectItem>
+                        <SelectItem value="02" className="justify-center">
+                          Février
+                        </SelectItem>
+                        <SelectItem value="03" className="justify-center">
+                          Mars
+                        </SelectItem>
+                        <SelectItem value="04" className="justify-center">
+                          Avril
+                        </SelectItem>
+                        <SelectItem value="05" className="justify-center">
+                          Mai
+                        </SelectItem>
+                        <SelectItem value="06" className="justify-center">
+                          Juin
+                        </SelectItem>
+                        <SelectItem value="07" className="justify-center">
+                          Juillet
+                        </SelectItem>
+                        <SelectItem value="08" className="justify-center">
+                          Août
+                        </SelectItem>
+                        <SelectItem value="09" className="justify-center">
+                          Septembre
+                        </SelectItem>
+                        <SelectItem value="10" className="justify-center">
+                          Octobre
+                        </SelectItem>
+                        <SelectItem value="11" className="justify-center">
+                          Novembre
+                        </SelectItem>
+                        <SelectItem value="12" className="justify-center">
+                          Décembre
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Select
+                      value={
+                        birthDate ? birthDate.getFullYear().toString() : ''
+                      }
+                      onValueChange={year => {
+                        if (birthDate) {
+                          const newDate = new Date(birthDate);
+                          newDate.setFullYear(parseInt(year));
+                          // Vérifier si la date est valide après modification
+                          if (!isNaN(newDate.getTime())) {
+                            handleBirthDateChange(newDate);
+                          }
+                        } else {
+                          handleBirthDateChange(new Date(parseInt(year), 0, 1));
+                        }
+                      }}
+                    >
+                      <SelectTrigger className="w-24 text-center [&>span]:text-center">
+                        <SelectValue placeholder="Année" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Array.from(
+                          { length: new Date().getFullYear() - 1900 + 1 },
+                          (_, i) => new Date().getFullYear() - i
+                        ).map(year => (
+                          <SelectItem
+                            key={year}
+                            value={year.toString()}
+                            className="justify-center"
+                          >
+                            {year}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <p className="text-sm text-gray-600 mt-2">
+                    Sélectionnez le jour, mois et année de naissance dans les menus déroulants ci-dessus.
+                  </p>
                 </div>
                 <div className="md:col-span-2">
                   <Label htmlFor="preferences" className="text-thai-green font-medium">Préférences & Allergies</Label>
@@ -277,6 +457,31 @@ const FicheClient = ({ client, commandes, onBack }: { client: ClientUI, commande
                     className="border-thai-orange/30 focus:border-thai-orange focus:ring-thai-orange/30"
                     placeholder="Allergies, plats préférés, remarques spéciales..."
                   />
+                </div>
+                
+                {/* Boutons Contact et Stats - Déplacés en bas */}
+                <div className="md:col-span-2 mt-6">
+                  <div className="flex gap-3 p-4 bg-thai-cream/10 rounded-lg border border-thai-orange/20">
+                    <Button 
+                      onClick={navigateToContact}
+                      className="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
+                    >
+                      <Headphones className="w-4 h-4 mr-2" />
+                      <div className="text-left">
+                        <div className="font-semibold text-sm">Communication</div>
+                      </div>
+                    </Button>
+
+                    <Button 
+                      onClick={navigateToStats}
+                      className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
+                    >
+                      <BarChart3 className="w-4 h-4 mr-2" />
+                      <div className="text-left">
+                        <div className="font-semibold text-sm">Statistiques</div>
+                      </div>
+                    </Button>
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -428,64 +633,6 @@ const FicheClient = ({ client, commandes, onBack }: { client: ClientUI, commande
             </CardContent>
           </Card>
 
-          {/* 4 Boutons Navigation vers Pages Dédiées */}
-          <Card className="border-thai-orange/20 bg-white/95 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle className="text-thai-green flex items-center gap-2">
-                <ArrowRight className="w-5 h-5" />
-                Actions Rapides
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Button 
-                onClick={navigateToStats}
-                className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
-              >
-                <BarChart3 className="w-5 h-5 mr-3" />
-                <div className="text-left flex-1">
-                  <div className="font-semibold">Statistiques</div>
-                  <div className="text-xs opacity-90">Analytics & métriques client</div>
-                </div>
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-
-              <Button 
-                onClick={navigateToContact}
-                className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
-              >
-                <Headphones className="w-5 h-5 mr-3" />
-                <div className="text-left flex-1">
-                  <div className="font-semibold">Communication</div>
-                  <div className="text-xs opacity-90">Messages & automation n8n</div>
-                </div>
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-
-              <Button 
-                onClick={navigateToOrders}
-                className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
-              >
-                <Package className="w-5 h-5 mr-3" />
-                <div className="text-left flex-1">
-                  <div className="font-semibold">Toutes Commandes</div>
-                  <div className="text-xs opacity-90">Historique & gestion complète</div>
-                </div>
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-
-              <Button 
-                onClick={navigateToEvents}
-                className="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
-              >
-                <Calendar className="w-5 h-5 mr-3" />
-                <div className="text-left flex-1">
-                  <div className="font-semibold">Tous Événements</div>
-                  <div className="text-xs opacity-90">Planning & calendrier</div>
-                </div>
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-            </CardContent>
-          </Card>
         </div>
       </div>
     </div>
@@ -496,6 +643,7 @@ const FicheClient = ({ client, commandes, onBack }: { client: ClientUI, commande
 export default function AdminClients() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedClient, setSelectedClient] = useState<ClientUI | null>(null);
+  const router = useRouter();
   
   const { data: clients } = useClients();
   const { data: commandes } = useCommandes();
@@ -538,6 +686,7 @@ export default function AdminClients() {
         client={selectedClient} 
         commandes={commandes?.filter(c => c.client_r_id === selectedClient.idclient) || []}
         onBack={() => setSelectedClient(null)}
+        router={router}
       />
     );
   }
@@ -666,12 +815,18 @@ export default function AdminClients() {
                           {client.email}
                         </div>
                       )}
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-xs bg-thai-green/20 text-thai-green px-2 py-1 rounded-full font-medium">
-                          ID: {client.idclient}
-                        </span>
+                      <div className="flex flex-col gap-1 mt-1 text-xs text-gray-500">
                         {client.numero_de_telephone && (
-                          <Phone className="w-3 h-3 text-thai-green" />
+                          <div className="flex items-center gap-1.5">
+                            <Phone className="w-3 h-3 text-thai-green" />
+                            <span>{client.numero_de_telephone}</span>
+                          </div>
+                        )}
+                        {client.adresse_numero_et_rue && (
+                          <div className="flex items-center gap-1.5">
+                            <MapPin className="w-3 h-3 text-thai-green" />
+                            <span className="truncate">{client.adresse_numero_et_rue}</span>
+                          </div>
                         )}
                       </div>
                     </div>

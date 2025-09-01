@@ -45,7 +45,7 @@ export interface PlatPanier {
 export interface CommandeUI extends Omit<Commande, 'statut_commande' | 'statut_paiement' | 'type_livraison'> {
   id: number // Mappage de idcommande vers id pour l'UI
   client_r: string // Assurer la compatibilité
-  client?: Client | null // Données du client jointes
+  client?: Pick<Client, 'nom' | 'prenom' | 'numero_de_telephone' | 'email' | 'preference_client' | 'photo_client' | 'firebase_uid' | 'adresse_numero_et_rue' | 'code_postal' | 'ville'> | null // Données du client jointes (partielles)
   details?: Array<DetailCommande & {
     plat?: Plat
   }>

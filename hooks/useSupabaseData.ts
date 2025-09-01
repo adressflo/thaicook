@@ -329,6 +329,18 @@ export const useCommandeById = (idcommande?: number) => {
         .select(
           `
           *,
+          client_db (
+            nom,
+            prenom,
+            numero_de_telephone,
+            email,
+            preference_client,
+            photo_client,
+            firebase_uid,
+            adresse_numero_et_rue,
+            code_postal,
+            ville
+          ),
           details_commande_db (
             *,
             plats_db (*)
@@ -360,6 +372,7 @@ export const useCommandeById = (idcommande?: number) => {
         statut_commande: string | null;
         statut_paiement: string | null;
         type_livraison: string | null;
+        client_db?: Client | null;
         details_commande_db?: Array<DetailsCommande & { plats_db?: Plat }>;
       };
       
@@ -388,7 +401,7 @@ export const useCommandeById = (idcommande?: number) => {
       return {
         ...validatedCommande,
         id: validatedCommande.idcommande,
-        client: null, // Sera résolu par une requête séparée si nécessaire
+        client: commande.client_db || null,
         details: validatedCommande.details_commande_db.map(detail => ({
           ...detail,
           plat: detail.plats_db
@@ -420,6 +433,18 @@ export const useCommandesByClient = (firebase_uid?: string) => {
         .select(
           `
           *,
+          client_db (
+            nom,
+            prenom,
+            numero_de_telephone,
+            email,
+            preference_client,
+            photo_client,
+            firebase_uid,
+            adresse_numero_et_rue,
+            code_postal,
+            ville
+          ),
           details_commande_db (
             *,
             plats_db (*)
@@ -446,6 +471,18 @@ export const useCommandesByClient = (firebase_uid?: string) => {
           statut_commande: string | null;
           statut_paiement: string | null;
           type_livraison: string | null;
+          client_db?: {
+            nom: string | null;
+            prenom: string | null;
+            numero_de_telephone: string | null;
+            email: string | null;
+            preference_client: string | null;
+            photo_client: string | null;
+            firebase_uid: string | null;
+            adresse_numero_et_rue: string | null;
+            code_postal: number | null;
+            ville: string | null;
+          };
           details_commande_db?: Array<DetailsCommande & { plats_db?: Plat }>;
         };
         
@@ -471,6 +508,7 @@ export const useCommandesByClient = (firebase_uid?: string) => {
         return {
           ...validatedCommande,
           id: validatedCommande.idcommande,
+          client: commandeTyped.client_db || null,
           details: validatedCommande.details_commande_db.map((detail: DetailsCommande & { plats_db?: Plat }) => ({
             ...detail,
             plat: detail.plats_db
@@ -502,7 +540,12 @@ export const useCommandes = () => {
             prenom,
             numero_de_telephone,
             email,
-            preference_client
+            preference_client,
+            photo_client,
+            firebase_uid,
+            adresse_numero_et_rue,
+            code_postal,
+            ville
           ),
           details_commande_db (
             *,
@@ -1614,7 +1657,12 @@ export const useAddPlatToCommande = () => {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['commandes'] });
+      // Invalider toutes les queries liées aux commandes
+      queryClient.invalidateQueries({ 
+        predicate: (query) => {
+          return query.queryKey[0] === 'commandes' || query.queryKey[0] === 'commande';
+        }
+      });
       toast({
         title: '✅ Plat ajouté',
         description: 'Le plat a été ajouté à la commande',
@@ -1659,7 +1707,12 @@ export const useUpdatePlatQuantite = () => {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['commandes'] });
+      // Invalider toutes les queries liées aux commandes
+      queryClient.invalidateQueries({ 
+        predicate: (query) => {
+          return query.queryKey[0] === 'commandes' || query.queryKey[0] === 'commande';
+        }
+      });
       toast({
         title: '✅ Quantité modifiée',
         description: 'La quantité a été mise à jour avec succès',
@@ -1698,7 +1751,12 @@ export const useRemovePlatFromCommande = () => {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['commandes'] });
+      // Invalider toutes les queries liées aux commandes
+      queryClient.invalidateQueries({ 
+        predicate: (query) => {
+          return query.queryKey[0] === 'commandes' || query.queryKey[0] === 'commande';
+        }
+      });
       toast({
         title: '✅ Plat supprimé',
         description: 'Le plat a été retiré de la commande',

@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
 import {
   Dialog,
   DialogContent,
@@ -45,6 +46,10 @@ import {
   ClipboardCheck,
   Package2,
   PackageCheck,
+  Check,
+  ArrowLeft,
+  MapPin,
+  Phone,
 } from 'lucide-react';
 import {
   useCommandes,
@@ -53,6 +58,7 @@ import {
   useRemovePlatFromCommande,
   useAddPlatToCommande,
   usePlats,
+  useCommandeById,
 } from '@/hooks/useSupabaseData';
 import { format, isToday, isPast, isFuture } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -951,6 +957,7 @@ const AddPlatModal = ({
 };
 
 export default function AdminCommandes() {
+  const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [selectedCommande, setSelectedCommande] = useState<CommandeUI | null>(
@@ -1295,6 +1302,7 @@ export default function AdminCommandes() {
                     onAddPlat={handleAddPlat}
                     onAddComplement={handleAddComplement}
                     updateCommandeMutation={updateCommandeMutation}
+                    router={router}
                   />
                 ))}
             </TabsContent>
@@ -1325,6 +1333,7 @@ export default function AdminCommandes() {
                     onAddPlat={handleAddPlat}
                     onAddComplement={handleAddComplement}
                     updateCommandeMutation={updateCommandeMutation}
+                    router={router}
                   />
                 ))}
             </TabsContent>
@@ -1359,6 +1368,7 @@ export default function AdminCommandes() {
                     onAddPlat={handleAddPlat}
                     onAddComplement={handleAddComplement}
                     updateCommandeMutation={updateCommandeMutation}
+                    router={router}
                   />
                 ))}
             </TabsContent>
@@ -1392,6 +1402,7 @@ export default function AdminCommandes() {
                     onAddPlat={handleAddPlat}
                     onAddComplement={handleAddComplement}
                     updateCommandeMutation={updateCommandeMutation}
+                    router={router}
                   />
                 ))}
             </TabsContent>
@@ -1427,6 +1438,7 @@ export default function AdminCommandes() {
                     onAddPlat={handleAddPlat}
                     onAddComplement={handleAddComplement}
                     updateCommandeMutation={updateCommandeMutation}
+                    router={router}
                   />
                 ))}
             </TabsContent>
@@ -1462,6 +1474,7 @@ export default function AdminCommandes() {
                     onAddPlat={handleAddPlat}
                     onAddComplement={handleAddComplement}
                     updateCommandeMutation={updateCommandeMutation}
+                    router={router}
                   />
                 ))}
             </TabsContent>
@@ -1497,6 +1510,7 @@ export default function AdminCommandes() {
                     onAddPlat={handleAddPlat}
                     onAddComplement={handleAddComplement}
                     updateCommandeMutation={updateCommandeMutation}
+                    router={router}
                   />
                 ))}
             </TabsContent>
@@ -1527,6 +1541,7 @@ export default function AdminCommandes() {
                     onAddPlat={handleAddPlat}
                     onAddComplement={handleAddComplement}
                     updateCommandeMutation={updateCommandeMutation}
+                    router={router}
                   />
                 ))}
             </TabsContent>
@@ -1537,9 +1552,11 @@ export default function AdminCommandes() {
       {/* Modal Détails Commande */}
       {isDetailsOpen && selectedCommande && (
         <CommandeDetailsModal
-          commande={selectedCommande}
+          commandeId={selectedCommande.idcommande}
           onClose={() => setIsDetailsOpen(false)}
           onStatusChange={handleStatusChange}
+          router={router}
+          toast={toast}
         />
       )}
 
@@ -1580,6 +1597,7 @@ const CommandeCard = ({
   onAddPlat,
   onAddComplement,
   updateCommandeMutation,
+  router,
 }: {
   commande: CommandeUI;
   onStatusChange: (id: number, status: string) => void;
@@ -1591,6 +1609,7 @@ const CommandeCard = ({
   onAddPlat: (commandeId: number) => void;
   onAddComplement: (commandeId: number) => void;
   updateCommandeMutation: any;
+  router: any;
 }) => {
   const [isEditingTime, setIsEditingTime] = useState(false);
   const [newTime, setNewTime] = useState('');
@@ -1722,7 +1741,7 @@ const CommandeCard = ({
     >
       <CardContent className="p-0">
         {/* En-tête de la commande */}
-        <div className="bg-white p-4 border-b border-gray-100 relative min-h-[120px]">
+        <div className="bg-white p-4 border-b border-gray-100 relative min-h-[180px]">
           <div className="flex justify-between items-start">
             {/* Informations client à gauche */}
             <div className="flex-1">
@@ -1731,10 +1750,10 @@ const CommandeCard = ({
                   <img
                     src={commande.client.photo_client}
                     alt={getClientName()}
-                    className="w-12 h-12 rounded-full object-cover border-2 border-thai-orange/50"
+                    className="w-12 h-12 rounded-full object-cover hover:scale-105 hover:ring-2 hover:ring-thai-orange/50 transition-all duration-200"
                   />
                 ) : (
-                  <div className="w-12 h-12 rounded-full flex items-center justify-center bg-thai-orange text-white font-bold">
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center bg-thai-orange text-white font-bold hover:scale-105 hover:bg-thai-orange/90 transition-all duration-200">
                     {getClientInitials()}
                   </div>
                 )}
@@ -1789,9 +1808,9 @@ const CommandeCard = ({
             <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-10">
               <div className="group relative">
                 <div className="flex flex-col items-center justify-center bg-gradient-to-br from-thai-green to-thai-orange text-white px-6 py-4 rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 hover:-rotate-1 min-w-[200px]">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Calendar className="w-5 h-5 group-hover:scale-110 transition-transform duration-200" />
-                    <div className="text-lg font-bold text-center">
+                  <div className="flex items-center gap-3 mb-2">
+                    <Calendar className="w-6 h-6 group-hover:scale-110 transition-transform duration-200" />
+                    <div className="text-2xl font-black text-center">
                       {format(
                         new Date(commande.date_et_heure_de_retrait_souhaitees),
                         'eeee dd MMMM',
@@ -1801,7 +1820,7 @@ const CommandeCard = ({
                   </div>
 
                   {/* Heure - affichage simple */}
-                  <div className="border-t border-white/30 pt-2 mt-1 w-full">
+                  <div className="border-t border-white/30 pt-2 mt-2 w-full">
                     <div className="text-2xl font-black text-center">
                       {format(
                         new Date(commande.date_et_heure_de_retrait_souhaitees),
@@ -1810,6 +1829,13 @@ const CommandeCard = ({
                       )}
                     </div>
                   </div>
+                  
+                  {/* Commande passée le - Ajouté ici */}
+                  {commande.date_de_prise_de_commande && (
+                    <div className="text-xs text-white/80 text-center mt-2">
+                      (Commandé le {format(new Date(commande.date_de_prise_de_commande), 'dd/MM/yy à HH:mm')})
+                    </div>
+                  )}
                 </div>
                 <div className="absolute -inset-0.5 bg-gradient-to-br from-thai-green/60 to-thai-orange/60 rounded-xl opacity-0 group-hover:opacity-40 transition-opacity duration-200" />
               </div>
@@ -1868,7 +1894,7 @@ const CommandeCard = ({
                   )}`}
                 ></div>
                 <span className="text-sm font-medium text-thai-green">
-                  Changer le statut
+                  Commande n° <span className="font-bold text-red-500">{commande.idcommande}</span>
                 </span>
                 {/* Croix verte Thai pour fermer */}
                 <Button
@@ -1900,17 +1926,16 @@ const CommandeCard = ({
               size="sm"
               variant="outline"
               className="border-thai-green text-thai-green hover:bg-thai-green hover:text-white"
-              onClick={() => {
-                const clientName = getClientName();
-                if (commande.client?.numero_de_telephone) {
-                  toast({
-                    title: '📱 Contact à venir',
-                    description: `WhatsApp avec ${clientName} sera disponible prochainement`,
-                  });
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const clientFirebaseUID = commande.client_r || commande.FirebaseUID || commande.client?.firebase_uid;
+                if (clientFirebaseUID) {
+                  router.push(`/admin/clients/${clientFirebaseUID}/contact`);
                 } else {
                   toast({
-                    title: '❌ Pas de numéro',
-                    description: "Ce client n'a pas de numéro de téléphone",
+                    title: '❌ Erreur',
+                    description: "Impossible de trouver l'ID du client",
                   });
                 }
               }}
@@ -2035,16 +2060,300 @@ const CommandeCard = ({
   );
 };
 
-// Modal Détails Commande
+// Composant ModalPlatCard - identique à la version client orders
+const ModalPlatCard = ({
+  item,
+  commandeId,
+  toast,
+  formatPrix,
+}: {
+  item: any;
+  commandeId: number;
+  toast: any;
+  formatPrix: (prix: number) => string;
+}) => {
+  const updateQuantiteMutation = useUpdatePlatQuantite();
+  const removePlatMutation = useRemovePlatFromCommande();
+  const [isModifying, setIsModifying] = useState(false);
+
+  const handleQuantiteChange = async (nouvelleQuantite: number) => {
+    if (nouvelleQuantite <= 0 || nouvelleQuantite === item.quantite_plat_commande) {
+      return;
+    }
+
+    setIsModifying(true);
+    try {
+      await updateQuantiteMutation.mutateAsync({
+        detailId: item.iddetails,
+        quantite: nouvelleQuantite,
+      });
+    } finally {
+      setIsModifying(false);
+    }
+  };
+
+  const handleRemovePlat = async () => {
+    const isConfirmed = window.confirm(
+      `Êtes-vous sûr de vouloir supprimer "${
+        (item.nom_plat && item.prix_unitaire && !item.plat) || item.type === 'complement_divers'
+          ? item.nom_plat || item.plat?.plat
+          : item.plat?.plat || item.nom_plat
+      }" de cette commande ?`
+    );
+
+    if (!isConfirmed) return;
+
+    setIsModifying(true);
+    try {
+      await removePlatMutation.mutateAsync(item.iddetails);
+    } finally {
+      setIsModifying(false);
+    }
+  };
+
+  return (
+    <div className="flex items-start gap-4 p-4 bg-white rounded-lg border border-gray-200 transition-all duration-300 hover:shadow-xl hover:bg-thai-cream/20 hover:border-thai-orange hover:ring-2 hover:ring-thai-orange/30 hover:scale-[1.02] transform">
+      {/* Image du plat ou extra */}
+      {(item.nom_plat && item.prix_unitaire && !item.plat) || item.type === 'complement_divers' ? (
+        <img
+          src="https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png"
+          alt="Extra"
+          className="w-24 h-16 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity duration-200"
+        />
+      ) : item.plat?.photo_du_plat ? (
+        <img
+          src={item.plat.photo_du_plat}
+          alt={item.plat?.plat || item.nom_plat || 'Plat'}
+          className="w-24 h-16 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity duration-200"
+        />
+      ) : (
+        <div className="w-24 h-16 bg-thai-cream/30 border border-thai-orange/20 rounded-lg flex items-center justify-center cursor-pointer hover:bg-thai-cream/50 transition-colors duration-200">
+          <span className="text-thai-orange text-lg">🍽️</span>
+        </div>
+      )}
+
+      {/* Informations du plat - exactement comme dans le panier */}
+      <div className="flex-1">
+        <h4 className="font-medium text-thai-green text-lg mb-1 cursor-pointer hover:text-thai-orange transition-colors duration-200 hover:underline decoration-thai-orange/50">
+          {(item.nom_plat && item.prix_unitaire && !item.plat) || item.type === 'complement_divers'
+            ? item.nom_plat
+            : item.plat?.plat || item.nom_plat}
+          {((item.nom_plat && item.prix_unitaire && !item.plat) || item.type === 'complement_divers') && (
+            <span className="ml-2 text-xs bg-thai-orange/20 text-thai-orange px-2 py-1 rounded-full">
+              Extra
+            </span>
+          )}
+        </h4>
+        <div className="flex items-center gap-4 text-sm text-gray-600">
+          <span className="flex items-center gap-1">
+            <span className="font-medium">Quantité:</span>
+            <span className="bg-thai-orange/10 text-thai-orange px-2 py-1 rounded-full font-medium">
+              {item.quantite_plat_commande || 0}
+            </span>
+          </span>
+          <span className="flex items-center gap-1">
+            <span className="font-medium">Prix unitaire:</span>
+            <span className="text-thai-green font-semibold">
+              {formatPrix(item.prix_unitaire || item.plat?.prix || 0)}
+            </span>
+          </span>
+        </div>
+      </div>
+
+      {/* Prix total et contrôles - exactement comme dans le panier */}
+      <div className="text-right">
+        <div className="text-2xl font-bold text-thai-orange mb-4">
+          {formatPrix(
+            (item.prix_unitaire ?? item.plat?.prix ?? 0) *
+              (item.quantite_plat_commande || 0)
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-8 w-8 p-0 transition-all duration-200 hover:scale-110 hover:shadow-lg hover:border-thai-orange hover:ring-2 hover:ring-thai-orange/30"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleQuantiteChange((item.quantite_plat_commande || 1) - 1);
+            }}
+            disabled={isModifying || (item.quantite_plat_commande || 0) <= 0}
+          >
+            -
+          </Button>
+          <span className="w-8 text-center font-medium">
+            {isModifying ? (
+              <RefreshCw className="w-4 h-4 animate-spin mx-auto" />
+            ) : (
+              item.quantite_plat_commande || 0
+            )}
+          </span>
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-8 w-8 p-0 transition-all duration-200 hover:scale-110 hover:shadow-lg hover:border-thai-orange hover:ring-2 hover:ring-thai-orange/30"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleQuantiteChange((item.quantite_plat_commande || 0) + 1);
+            }}
+            disabled={isModifying}
+          >
+            +
+          </Button>
+          <Button
+            size="icon"
+            variant="ghost"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleRemovePlat();
+            }}
+            disabled={isModifying}
+            className="h-8 w-8 text-gray-400 hover:text-red-500 hover:bg-red-50 ml-2 transition-all duration-200 hover:scale-110 hover:shadow-lg hover:ring-2 hover:ring-red-300"
+            aria-label="Supprimer l'article"
+          >
+            <Trash2 className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Modal Détails Commande - Version identique à app\admin\clients\[id]\orders\page.tsx
 const CommandeDetailsModal = ({
-  commande,
+  commandeId,
   onClose,
   onStatusChange,
+  router,
+  toast,
 }: {
-  commande: CommandeUI;
+  commandeId: number;
   onClose: () => void;
   onStatusChange: (id: number, status: string) => void;
+  router: any;
+  toast: any;
 }) => {
+  // Tous les hooks doivent être appelés avant tout return conditionnel
+  const { data: commande, isLoading, error } = useCommandeById(commandeId);
+  const [isStatusLoading, setIsStatusLoading] = useState(false);
+  const [isAddingPlat, setIsAddingPlat] = useState(false);
+  const [showAddPlatDialog, setShowAddPlatDialog] = useState(false);
+  const [selectedPlatToAdd, setSelectedPlatToAdd] = useState<any>(null);
+  const [quantiteToAdd, setQuantiteToAdd] = useState(1);
+  const [showAddComplementModal, setShowAddComplementModal] = useState(false);
+  const [nomComplement, setNomComplement] = useState('');
+  const [prixComplement, setPrixComplement] = useState('');
+  
+  // États pour la modification d'heure
+  const [isEditingTime, setIsEditingTime] = useState(false);
+  const [newTime, setNewTime] = useState('');
+  const [isLoadingTime, setIsLoadingTime] = useState(false);
+  
+  // Hooks pour la gestion des plats
+  const { data: plats } = usePlats();
+  const addPlatMutation = useAddPlatToCommande();
+  const updateCommandeMutation = useUpdateCommande();
+  
+  // Fonctions pour la modification d'heure
+  const handleTimeEdit = () => {
+    if (commande?.date_et_heure_de_retrait_souhaitees) {
+      const currentTime = format(
+        new Date(commande.date_et_heure_de_retrait_souhaitees),
+        'HH:mm'
+      );
+      setNewTime(currentTime);
+      setIsEditingTime(true);
+    }
+  };
+
+  const handleTimeSave = async () => {
+    if (!newTime || !commande?.date_et_heure_de_retrait_souhaitees) return;
+
+    setIsLoadingTime(true);
+    try {
+      const currentDate = new Date(
+        commande.date_et_heure_de_retrait_souhaitees
+      );
+      const [hours, minutes] = newTime.split(':');
+      currentDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+
+      await updateCommandeMutation.mutateAsync({
+        id: commande.idcommande,
+        updates: {
+          date_et_heure_de_retrait_souhaitees: currentDate.toISOString(),
+        },
+      });
+
+      toast({
+        title: '✅ Heure modifiée',
+        description: `Nouvelle heure de retrait: ${newTime}`,
+      });
+
+      setIsEditingTime(false);
+    } catch (error) {
+      toast({
+        title: 'Erreur',
+        description: "Impossible de modifier l'heure",
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoadingTime(false);
+    }
+  };
+  
+  // Afficher un loading si les données ne sont pas encore chargées
+  if (isLoading) {
+    return (
+      <div 
+        className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+        onClick={(e) => {
+          if (e.target === e.currentTarget) {
+            onClose();
+          }
+        }}
+      >
+        <div className="bg-white rounded-lg shadow-xl p-8">
+          <div className="flex items-center gap-3">
+            <RefreshCw className="w-6 h-6 animate-spin text-thai-orange" />
+            <span className="text-lg">Chargement des détails...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
+  // Afficher une erreur si le chargement a échoué
+  if (error || !commande) {
+    return (
+      <div 
+        className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+        onClick={(e) => {
+          if (e.target === e.currentTarget) {
+            onClose();
+          }
+        }}
+      >
+        <div className="bg-white rounded-lg shadow-xl p-8">
+          <div className="text-center">
+            <X className="w-12 h-12 mx-auto text-red-500 mb-3" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Erreur</h3>
+            <p className="text-gray-600 mb-4">Impossible de charger les détails de la commande</p>
+            <Button onClick={onClose}>Fermer</Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Fonction formatPrix identique à celle de la page principale
+  const formatPrix = (prix: number): string => {
+    if (prix % 1 === 0) {
+      return `${prix.toFixed(0)}€`;
+    } else {
+      return `${prix.toFixed(2).replace('.', ',')}€`;
+    }
+  };
+
   // Calculer le prix total
   const calculateTotal = () => {
     if (!commande.details || !Array.isArray(commande.details)) return 0;
@@ -2056,8 +2365,97 @@ const CommandeDetailsModal = ({
     }, 0);
   };
 
+  // Gérer le changement de statut avec loading
+  const handleStatusChange = async (newStatus: string) => {
+    if (newStatus === commande.statut_commande) return;
+    
+    setIsStatusLoading(true);
+    try {
+      await onStatusChange(commande.idcommande, newStatus);
+    } finally {
+      setIsStatusLoading(false);
+    }
+  };
+
+  const handleAddPlat = async () => {
+    if (!selectedPlatToAdd || quantiteToAdd <= 0) return;
+    
+    setIsAddingPlat(true);
+    try {
+      await addPlatMutation.mutateAsync({
+        commandeId: commande.idcommande,
+        platId: selectedPlatToAdd.idplats,
+        quantite: quantiteToAdd
+      });
+      
+      toast({
+        title: "✅ Plat ajouté",
+        description: `${selectedPlatToAdd.plat} (x${quantiteToAdd}) a été ajouté à la commande`,
+      });
+      
+      // Réinitialiser le formulaire
+      setSelectedPlatToAdd(null);
+      setQuantiteToAdd(1);
+      setShowAddPlatDialog(false);
+    } catch (error) {
+      toast({
+        title: "❌ Erreur",
+        description: "Impossible d'ajouter le plat",
+        variant: "destructive",
+      });
+    } finally {
+      setIsAddingPlat(false);
+    }
+  };
+
+  const handleAddComplement = async () => {
+    if (!nomComplement.trim() || !prixComplement || parseFloat(prixComplement) <= 0) {
+      toast({
+        title: "❌ Erreur",
+        description: "Veuillez saisir un nom et un prix valide pour l'extra",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      await addPlatMutation.mutateAsync({
+        commandeId: commande.idcommande,
+        platId: null,
+        quantite: 1,
+        nomPlat: nomComplement.trim(),
+        prixUnitaire: parseFloat(prixComplement),
+        type: 'complement_divers'
+      });
+
+      toast({
+        title: "✅ Extra ajouté",
+        description: `${nomComplement} a été ajouté à la commande`,
+      });
+
+      // Réinitialiser le formulaire
+      setNomComplement('');
+      setPrixComplement('');
+      setShowAddComplementModal(false);
+    } catch (error) {
+      toast({
+        title: "❌ Erreur",
+        description: "Impossible d'ajouter l'extra",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div 
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+      onClick={(e) => {
+        // Fermer le modal si on clique sur l'arrière-plan
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
+      }}
+    >
       <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6 border-b sticky top-0 bg-white">
           <div className="flex justify-between items-center">
@@ -2079,144 +2477,374 @@ const CommandeDetailsModal = ({
                 Informations Client
               </CardTitle>
             </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <p className="font-medium">Nom du client</p>
-                <p className="text-gray-600">
-                  {commande.client_r || 'Non défini'}
-                </p>
+            <CardContent className="space-y-4">
+              {/* Informations client - Disposition améliorée */}
+              <div className="flex gap-4 p-4 bg-gradient-to-r from-thai-orange/10 to-thai-gold/10 rounded-lg">
+                {/* Photo/Avatar */}
+                {commande.client?.photo_client ? (
+                  <img 
+                    src={commande.client.photo_client} 
+                    alt={`${commande.client?.prenom || ''} ${commande.client?.nom || ''}`.trim()}
+                    className="w-16 h-16 rounded-full object-cover border-2 border-thai-orange/20 flex-shrink-0"
+                  />
+                ) : (
+                  <div className="w-16 h-16 rounded-full flex items-center justify-center bg-thai-orange text-white font-bold text-xl border-2 border-thai-orange/20 flex-shrink-0">
+                    {commande.client?.prenom ? commande.client.prenom.charAt(0).toUpperCase() : 'C'}
+                  </div>
+                )}
+                
+                {/* Informations principales */}
+                <div className="flex-1 space-y-2">
+                  {/* 1. Nom Prénom */}
+                  <div>
+                    <h3 className="font-semibold text-lg text-gray-900 mb-1">
+                      {commande.client?.prenom && commande.client?.nom 
+                        ? `${commande.client.prenom} ${commande.client.nom}`
+                        : commande.client?.nom || commande.client?.prenom || 'Client non défini'
+                      }
+                    </h3>
+                  </div>
+                  
+                  {/* 2. Adresse postale */}
+                  {(commande.client?.adresse_numero_et_rue || commande.client?.code_postal || commande.client?.ville) && (
+                    <div className="flex items-start gap-2">
+                      <MapPin className="w-4 h-4 text-thai-orange mt-0.5 flex-shrink-0" />
+                      <div className="text-gray-700 text-sm">
+                        {commande.client?.adresse_numero_et_rue && (
+                          <div className="font-medium">{commande.client.adresse_numero_et_rue}</div>
+                        )}
+                        {(commande.client?.code_postal || commande.client?.ville) && (
+                          <div className="text-gray-600">
+                            {commande.client?.code_postal && commande.client.code_postal}
+                            {commande.client?.code_postal && commande.client?.ville && ' '}
+                            {commande.client?.ville && commande.client.ville}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* 3. Email */}
+                  {commande.client?.email && (
+                    <div className="flex items-center gap-2">
+                      <MessageSquare className="w-4 h-4 text-thai-green flex-shrink-0" />
+                      <a 
+                        href={`mailto:${commande.client.email}`}
+                        className="text-thai-green hover:text-thai-green-dark text-sm font-medium hover:underline transition-colors"
+                      >
+                        {commande.client.email}
+                      </a>
+                    </div>
+                  )}
+                  
+                  {/* 4. Numéro de téléphone avec lien d'appel */}
+                  {commande.client?.numero_de_telephone && (
+                    <div className="flex items-center gap-2">
+                      <Phone className="w-4 h-4 text-thai-orange flex-shrink-0" />
+                      <a 
+                        href={`tel:${commande.client.numero_de_telephone}`}
+                        className="text-thai-orange hover:text-thai-orange-dark text-sm font-medium hover:underline transition-colors flex items-center gap-1"
+                      >
+                        {commande.client.numero_de_telephone}
+                        <span className="text-xs text-gray-500">(cliquer pour appeler)</span>
+                      </a>
+                    </div>
+                  )}
+                </div>
+                {/* Bouton Contact */}
+                <Button
+                  size="sm"
+                  className="bg-thai-green hover:bg-thai-green-dark text-white"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const clientFirebaseUID = commande.client_r || commande.FirebaseUID || commande.client?.firebase_uid;
+                    if (clientFirebaseUID) {
+                      router.push(`/admin/clients/${clientFirebaseUID}/contact`);
+                      onClose(); // Fermer le modal
+                    } else {
+                      toast({
+                        title: '❌ Erreur',
+                        description: "Impossible de trouver l'ID du client",
+                        variant: 'destructive',
+                      });
+                    }
+                  }}
+                >
+                  <MessageCircle className="w-4 h-4 mr-1" />
+                  Contact
+                </Button>
               </div>
-              <div>
-                <p className="font-medium">Email</p>
-                <p className="text-gray-600">
-                  {commande.client?.email || 'Non renseigné'}
-                </p>
-              </div>
-              <div>
-                <p className="font-medium">Téléphone</p>
-                <p className="text-gray-600">
-                  {commande.client?.numero_de_telephone || 'Non renseigné'}
-                </p>
-              </div>
-              <div>
-                <p className="font-medium">Type de livraison</p>
-                <p className="text-gray-600">
-                  {commande.type_livraison || 'Non spécifié'}
-                </p>
-              </div>
+              
+              {/* Adresse si disponible */}
+              {commande.adresse_specifique && (
+                <div className="flex items-start gap-2 p-3 bg-gray-50 rounded-lg">
+                  <MapPin className="w-4 h-4 text-thai-orange mt-0.5" />
+                  <div>
+                    <p className="font-medium text-sm text-gray-700">Adresse de livraison</p>
+                    <p className="text-gray-600 text-sm">{commande.adresse_specifique}</p>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
+
+          {/* Date au centre avec format français complet */}
+          {commande?.date_et_heure_de_retrait_souhaitees && (
+            <div className="mb-6">
+              <div className="group relative">
+                <div className="flex flex-col items-center justify-center bg-gradient-to-br from-thai-green to-thai-orange text-white px-6 py-4 rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 hover:-rotate-1 min-w-[200px] mx-auto">
+                  <div className="flex items-center gap-3 mb-2">
+                    <Calendar className="w-6 h-6 group-hover:scale-110 transition-transform duration-200" />
+                    <div className="text-2xl font-black text-center">
+                      {format(
+                        new Date(commande.date_et_heure_de_retrait_souhaitees),
+                        'eeee dd MMMM',
+                        { locale: fr }
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Heure - affichage simple */}
+                  <div className="border-t border-white/30 pt-2 mt-2 w-full">
+                    <div className="text-2xl font-black text-center">
+                      {format(
+                        new Date(commande.date_et_heure_de_retrait_souhaitees),
+                        'HH:mm',
+                        { locale: fr }
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* Commande passée le */}
+                  {commande?.date_de_prise_de_commande && (
+                    <div className="text-xs text-white/80 text-center mt-2">
+                      (Commandé le {format(new Date(commande.date_de_prise_de_commande), 'dd/MM/yy à HH:mm')})
+                    </div>
+                  )}
+                </div>
+                <div className="absolute -inset-0.5 bg-gradient-to-br from-thai-green/60 to-thai-orange/60 rounded-xl opacity-0 group-hover:opacity-40 transition-opacity duration-200" />
+              </div>
+            </div>
+          )}
+
+          {/* Interface de modification d'heure dans le modal */}
+          {commande?.date_et_heure_de_retrait_souhaitees && isEditingTime && (
+            <div className="mb-6 flex justify-center">
+              <div className="bg-gradient-to-br from-thai-cream to-white rounded-xl shadow-xl p-4 flex flex-col items-center gap-3 border-2 border-thai-orange/20 min-w-[280px]">
+                <div className="text-sm font-medium text-thai-green mb-1">
+                  Nouvelle heure de retrait
+                </div>
+                <input
+                  type="time"
+                  value={newTime}
+                  onChange={e => setNewTime(e.target.value)}
+                  className="bg-white border-2 border-thai-orange/30 rounded-lg px-4 py-3 text-xl font-bold text-thai-green text-center focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-thai-orange shadow-sm"
+                />
+                <div className="flex gap-3">
+                  <Button
+                    size="sm"
+                    onClick={handleTimeSave}
+                    disabled={isLoadingTime}
+                    className="bg-thai-green hover:bg-thai-green/90 text-white px-4 py-2 font-medium shadow-md hover:shadow-lg transition-all duration-200"
+                  >
+                    {isLoadingTime ? (
+                      <RefreshCw className="w-4 h-4 animate-spin mr-1" />
+                    ) : (
+                      <Check className="w-4 h-4 mr-1" />
+                    )}
+                    Valider
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setIsEditingTime(false)}
+                    disabled={isLoadingTime}
+                    className="border-2 border-thai-red text-thai-red hover:bg-thai-red hover:text-white px-4 py-2 font-medium shadow-md hover:shadow-lg transition-all duration-200"
+                  >
+                    <X className="w-4 h-4 mr-1" />
+                    Annuler
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Détails commande */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-thai-green flex items-center gap-2">
-                <ShoppingBasket className="w-5 h-5" />
-                Détails de la Commande
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <p className="font-medium">Statut</p>
-                  <Select
-                    value={commande.statut_commande}
-                    onValueChange={value =>
-                      onStatusChange(commande.idcommande, value)
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-thai-green flex items-center gap-2">
+                  <ShoppingBasket className="w-5 h-5" />
+                  Détails de la Commande
+                </CardTitle>
+                
+                <div className="flex items-center gap-3">
+                  {/* Bouton modifier l'heure - Entre titre et statut */}
+                  {commande?.date_et_heure_de_retrait_souhaitees && !isEditingTime && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="border-thai-orange text-thai-orange hover:bg-thai-orange hover:text-white transition-colors duration-200"
+                      onClick={handleTimeEdit}
+                    >
+                      <Clock className="w-4 h-4 mr-2" />
+                      Modifier l'heure
+                    </Button>
+                  )}
+                  
+                  {/* Changement de Statut - Déplacé à droite */}
+                <Select
+                  value={commande?.statut_commande === 'Récupérée' ? 'Terminée' : commande?.statut_commande}
+                  onValueChange={(newStatus) => {
+                    const dbStatus = newStatus === 'Terminée' ? 'Récupérée' : newStatus;
+                    if (commande?.idcommande) {
+                      onStatusChange(commande.idcommande, dbStatus);
                     }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="En attente de confirmation">
-                        En Attente
-                      </SelectItem>
-                      <SelectItem value="Confirmée">Confirmée</SelectItem>
-                      <SelectItem value="En préparation">
-                        En Préparation
-                      </SelectItem>
-                      <SelectItem value="Prête à récupérer">Prête</SelectItem>
-                      <SelectItem value="Terminée">Terminée</SelectItem>
-                      <SelectItem value="Annulée">Annulée</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <p className="font-medium">Date de retrait</p>
-                  <p className="text-gray-600">
-                    {commande.date_et_heure_de_retrait_souhaitees &&
-                      format(
-                        new Date(commande.date_et_heure_de_retrait_souhaitees),
-                        'dd/MM/yyyy à HH:mm',
-                        { locale: fr }
-                      )}
-                  </p>
-                </div>
-                <div>
-                  <p className="font-medium">Total</p>
-                  <p className="text-2xl font-bold text-thai-orange">
-                    {calculateTotal().toFixed(2)}€
-                  </p>
+                  }}
+                  disabled={isStatusLoading}
+                >
+                  <SelectTrigger className="h-10 text-sm w-auto min-w-[160px] max-w-[200px] border-2 border-thai-orange/40 bg-gradient-to-r from-white to-thai-cream/20 hover:from-thai-orange/10 hover:to-thai-orange/20 hover:border-thai-orange focus:border-thai-orange shadow-lg hover:shadow-xl transition-all duration-300 font-bold rounded-xl backdrop-blur-sm hover:scale-105 group">
+                    <SelectValue />
+                    {isStatusLoading && (
+                      <RefreshCw className="w-4 h-4 ml-2 animate-spin text-thai-orange" />
+                    )}
+                  </SelectTrigger>
+                  <SelectContent className="bg-white/95 backdrop-blur-md border-2 border-thai-orange/20 shadow-xl rounded-xl overflow-hidden">
+                    <SelectItem
+                      value="En attente de confirmation"
+                      className="bg-thai-orange/10 hover:bg-thai-orange/20 border-l-4 border-thai-orange transition-all duration-200 cursor-pointer my-1"
+                    >
+                      <div className="flex items-center gap-3 py-1">
+                        <Clock className="w-4 h-4 text-thai-orange animate-pulse transition-all duration-300 group-hover:scale-110" />
+                        <span className="font-semibold text-thai-orange">
+                          En Attente
+                        </span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem
+                      value="Confirmée"
+                      className="bg-blue-50/90 hover:bg-blue-100/90 border-l-4 border-blue-500 transition-all duration-200 cursor-pointer my-1"
+                    >
+                      <div className="flex items-center gap-3 py-1">
+                        <ClipboardCheck className="w-4 h-4 text-blue-600 transition-all duration-300 group-hover:scale-110 group-hover:rotate-12" />
+                        <span className="font-semibold text-blue-700">
+                          Confirmée
+                        </span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem
+                      value="En préparation"
+                      className="bg-yellow-50/90 hover:bg-yellow-100/90 border-l-4 border-yellow-500 transition-all duration-200 cursor-pointer my-1"
+                    >
+                      <div className="flex items-center gap-3 py-1">
+                        <ChefHat className="w-4 h-4 text-yellow-600 transition-all duration-300 group-hover:scale-110 group-hover:rotate-6" />
+                        <span className="font-semibold text-yellow-700">
+                          En Préparation
+                        </span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem
+                      value="Prête à récupérer"
+                      className="bg-thai-gold/10 hover:bg-thai-gold/20 border-l-4 border-thai-gold transition-all duration-200 cursor-pointer my-1"
+                    >
+                      <div className="flex items-center gap-3 py-1">
+                        <Package2 className="w-4 h-4 text-thai-gold animate-bounce transition-all duration-300 group-hover:scale-110" />
+                        <span className="font-semibold text-thai-gold">
+                          Prête
+                        </span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem
+                      value="Terminée"
+                      className="bg-thai-green/10 hover:bg-thai-green/20 border-l-4 border-thai-green transition-all duration-200 cursor-pointer my-1"
+                    >
+                      <div className="flex items-center gap-3 py-1">
+                        <PackageCheck className="w-4 h-4 text-thai-green transition-all duration-300 group-hover:scale-125 group-hover:rotate-12" />
+                        <span className="font-semibold text-thai-green">
+                          Terminée
+                        </span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem
+                      value="Annulée"
+                      className="bg-red-50/80 hover:bg-red-100/90 border-l-4 border-red-500 transition-all duration-200 cursor-pointer my-1"
+                    >
+                      <div className="flex items-center gap-3 py-1">
+                        <X className="w-4 h-4 text-red-500 transition-all duration-300 group-hover:scale-110 group-hover:rotate-90" />
+                        <span className="font-semibold text-red-600">
+                          Annulée
+                        </span>
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
                 </div>
               </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
 
-              {/* Liste des plats */}
-              {commande.details && commande.details.length > 0 && (
-                <div>
-                  <h4 className="font-medium mb-3">Plats commandés :</h4>
-                  <div className="space-y-2">
-                    {commande.details.map((item, index: number) => (
-                      <div
-                        key={index}
-                        className="flex justify-between items-center p-3 bg-gray-50 rounded-lg"
-                      >
-                        <div className="flex items-center gap-3">
-                          {item.plat?.photo_du_plat && (
-                            <img
-                              src={item.plat.photo_du_plat}
-                              alt={
-                                item.type === 'complement_divers'
-                                  ? item.nom_plat || item.plat?.plat || 'Extra'
-                                  : item.plat?.plat || item.nom_plat || 'Plat'
-                              }
-                              className="w-12 h-12 object-cover rounded"
-                            />
-                          )}
-                          <div>
-                            <p className="font-medium">
-                              {item.type === 'complement_divers'
-                                ? item.nom_plat || item.plat?.plat
-                                : item.plat?.plat || item.nom_plat}
-                              {item.type === 'complement_divers' && (
-                                <span className="ml-2 text-xs bg-thai-orange/20 text-thai-orange px-2 py-1 rounded-full">
-                                  Complément
-                                </span>
-                              )}
-                            </p>
-                            <p className="text-sm text-gray-600">
-                              Quantité: {item.quantite_plat_commande || 0}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-medium">
-                            {(
-                              (item.prix_unitaire ?? item.plat?.prix ?? 0) *
-                              (item.quantite_plat_commande || 0)
-                            ).toFixed(2)}
-                            €
-                          </p>
-                          <p className="text-sm text-gray-600">
-                            {item.prix_unitaire ?? item.plat?.prix ?? 0}€ ×{' '}
-                            {item.quantite_plat_commande || 0}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
+              {/* Section Plats Commandés - Structure identique à CommandeCard */}
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <h4 className="text-lg font-medium text-thai-green flex items-center gap-2">
+                    <ShoppingBasket className="w-5 h-5" />
+                    Plats commandés
+                  </h4>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      className="border-thai-green text-thai-green hover:bg-thai-green hover:text-white border-dashed"
+                      onClick={() => setShowAddPlatDialog(true)}
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Ajouter un plat
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="border-thai-orange text-thai-orange hover:bg-thai-orange hover:text-white border-dashed"
+                      onClick={() => setShowAddComplementModal(true)}
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Extra
+                    </Button>
                   </div>
                 </div>
-              )}
+
+                <div className="space-y-4">
+                  {commande.details && commande.details.length > 0 ? (
+                    commande.details.map((item, index: number) => (
+                      <ModalPlatCard
+                        key={index}
+                        item={item}
+                        commandeId={commande.idcommande}
+                        toast={toast}
+                        formatPrix={formatPrix}
+                      />
+                    ))
+                  ) : (
+                    <div className="text-center py-8 text-gray-500 bg-white rounded-lg">
+                      <ShoppingBasket className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                      <p>Aucun plat dans cette commande</p>
+                      <p className="text-sm">Utilisez le bouton "Ajouter un plat" pour commencer</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Total final - Structure identique à CommandeCard */}
+                {commande.details && commande.details.length > 0 && (
+                  <div className="bg-thai-green/10 border border-thai-green/20 rounded-lg p-4 mt-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-lg font-semibold text-gray-800">
+                        Total de la commande
+                      </span>
+                      <span className="text-2xl font-bold text-thai-green">
+                        {formatPrix(calculateTotal())}
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
 
               {/* Instructions spéciales */}
               {commande.demande_special_pour_la_commande && (
@@ -2224,6 +2852,19 @@ const CommandeDetailsModal = ({
                   <p className="font-medium">Instructions spéciales</p>
                   <p className="text-gray-600 bg-yellow-50 p-3 rounded-lg">
                     {commande.demande_special_pour_la_commande}
+                  </p>
+                </div>
+              )}
+
+              {/* Préférence client */}
+              {commande.client?.preference_client && (
+                <div>
+                  <p className="font-medium flex items-center gap-2">
+                    <User className="w-4 h-4 text-thai-green" />
+                    Préférence client
+                  </p>
+                  <p className="text-gray-600 bg-thai-green/10 p-3 rounded-lg">
+                    {commande.client.preference_client}
                   </p>
                 </div>
               )}
@@ -2237,6 +2878,265 @@ const CommandeDetailsModal = ({
           </Button>
         </div>
       </div>
+
+      {/* Dialog d'ajout de plat */}
+      {showAddPlatDialog && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4"
+          onClick={(e) => {
+            // Fermer le modal si on clique sur l'arrière-plan
+            if (e.target === e.currentTarget) {
+              setShowAddPlatDialog(false);
+            }
+          }}
+        >
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+            <div className="p-6 border-b">
+              <div className="flex justify-between items-center">
+                <h3 className="text-xl font-bold text-thai-green">Ajouter un plat</h3>
+                <Button variant="ghost" onClick={() => setShowAddPlatDialog(false)}>
+                  <X className="w-5 h-5" />
+                </Button>
+              </div>
+            </div>
+
+            <div className="p-6 space-y-4">
+              {/* Sélection du plat */}
+              <div>
+                <Label htmlFor="plat-select">Choisir un plat</Label>
+                <Select
+                  value={selectedPlatToAdd?.idplats?.toString() || ''}
+                  onValueChange={(value) => {
+                    const plat = plats?.find(p => p.idplats.toString() === value);
+                    setSelectedPlatToAdd(plat || null);
+                  }}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Sélectionner un plat..." />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-60">
+                    {plats?.map((plat) => (
+                      <SelectItem key={plat.idplats} value={plat.idplats.toString()}>
+                        <div className="flex items-center gap-3">
+                          {plat.photo_du_plat ? (
+                            <img
+                              src={plat.photo_du_plat}
+                              alt={plat.plat}
+                              className="w-8 h-8 rounded object-cover"
+                            />
+                          ) : (
+                            <div className="w-8 h-8 bg-thai-cream rounded flex items-center justify-center">
+                              🍽️
+                            </div>
+                          )}
+                          <div>
+                            <div className="font-medium">{plat.plat}</div>
+                            <div className="text-sm text-gray-500">
+                              {formatPrix(plat.prix)}
+                            </div>
+                          </div>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Aperçu du plat sélectionné */}
+              {selectedPlatToAdd && (
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center gap-4">
+                    {selectedPlatToAdd.photo_du_plat ? (
+                      <img
+                        src={selectedPlatToAdd.photo_du_plat}
+                        alt={selectedPlatToAdd.plat}
+                        className="w-16 h-16 rounded-lg object-cover"
+                      />
+                    ) : (
+                      <div className="w-16 h-16 bg-thai-cream rounded-lg flex items-center justify-center">
+                        <span className="text-2xl">🍽️</span>
+                      </div>
+                    )}
+                    <div className="flex-1">
+                      <h4 className="font-medium text-lg">{selectedPlatToAdd.plat}</h4>
+                      <p className="text-thai-green font-semibold">
+                        {formatPrix(selectedPlatToAdd.prix)}
+                      </p>
+                      {selectedPlatToAdd.description && (
+                        <p className="text-sm text-gray-600 mt-1">
+                          {selectedPlatToAdd.description}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Quantité */}
+              <div>
+                <Label htmlFor="quantite">Quantité</Label>
+                <div className="flex items-center gap-2 mt-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setQuantiteToAdd(Math.max(1, quantiteToAdd - 1))}
+                    disabled={quantiteToAdd <= 1}
+                  >
+                    -
+                  </Button>
+                  <Input
+                    id="quantite"
+                    type="number"
+                    min="1"
+                    value={quantiteToAdd}
+                    onChange={(e) => setQuantiteToAdd(Math.max(1, parseInt(e.target.value) || 1))}
+                    className="w-20 text-center"
+                  />
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setQuantiteToAdd(quantiteToAdd + 1)}
+                  >
+                    +
+                  </Button>
+                </div>
+              </div>
+
+              {/* Total */}
+              {selectedPlatToAdd && (
+                <div className="p-3 bg-thai-green/10 rounded-lg">
+                  <div className="flex justify-between items-center">
+                    <span className="font-medium">Total à ajouter:</span>
+                    <span className="text-xl font-bold text-thai-green">
+                      {formatPrix(selectedPlatToAdd.prix * quantiteToAdd)}
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="p-6 border-t bg-gray-50 flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowAddPlatDialog(false)}>
+                Annuler
+              </Button>
+              <Button
+                onClick={handleAddPlat}
+                disabled={!selectedPlatToAdd || isAddingPlat}
+                className="bg-thai-orange hover:bg-thai-orange-dark text-white"
+              >
+                {isAddingPlat ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                    Ajout...
+                  </>
+                ) : (
+                  <>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Ajouter le plat
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Ajouter un Extra */}
+      {showAddComplementModal && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[70] p-4"
+          onClick={(e) => {
+            // Fermer le modal si on clique sur l'arrière-plan
+            if (e.target === e.currentTarget) {
+              setShowAddComplementModal(false);
+              setNomComplement('');
+              setPrixComplement('');
+            }
+          }}
+        >
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div className="p-6 border-b">
+              <div className="flex justify-between items-center">
+                <h3 className="text-xl font-bold text-thai-green">Ajouter un Extra</h3>
+                <Button 
+                  variant="ghost" 
+                  onClick={() => {
+                    setShowAddComplementModal(false);
+                    setNomComplement('');
+                    setPrixComplement('');
+                  }}
+                >
+                  <X className="w-5 h-5" />
+                </Button>
+              </div>
+            </div>
+
+            <div className="p-6 space-y-4">
+              {/* Nom de l'Extra */}
+              <div>
+                <Label htmlFor="nom-complement">Nom de l'Extra</Label>
+                <Input
+                  id="nom-complement"
+                  type="text"
+                  placeholder="Ex: Sauce supplémentaire, Riz jasmin..."
+                  value={nomComplement}
+                  onChange={(e) => setNomComplement(e.target.value)}
+                  className="mt-1"
+                />
+              </div>
+
+              {/* Prix de l'Extra */}
+              <div>
+                <Label htmlFor="prix-complement">Prix (€)</Label>
+                <Input
+                  id="prix-complement"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  placeholder="3.00"
+                  value={prixComplement}
+                  onChange={(e) => setPrixComplement(e.target.value)}
+                  className="mt-1"
+                />
+              </div>
+
+              {/* Aperçu du total */}
+              {nomComplement && prixComplement && parseFloat(prixComplement) > 0 && (
+                <div className="p-3 bg-thai-orange/10 rounded-lg">
+                  <div className="flex justify-between items-center">
+                    <span className="font-medium">Extra à ajouter:</span>
+                    <span className="text-xl font-bold text-thai-orange">
+                      {formatPrix(parseFloat(prixComplement))}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-600 mt-1">{nomComplement}</p>
+                </div>
+              )}
+            </div>
+
+            <div className="p-6 border-t bg-gray-50 flex justify-end gap-2">
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setShowAddComplementModal(false);
+                  setNomComplement('');
+                  setPrixComplement('');
+                }}
+              >
+                Annuler
+              </Button>
+              <Button
+                onClick={handleAddComplement}
+                disabled={!nomComplement.trim() || !prixComplement || parseFloat(prixComplement) <= 0}
+                className="bg-thai-orange hover:bg-thai-orange-dark text-white"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Ajouter l'Extra
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
