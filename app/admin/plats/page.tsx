@@ -1,13 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from "@/hooks/use-toast";
 import { 
   Plus, 
@@ -21,10 +23,15 @@ import {
   EyeOff,
   Clock,
   AlertTriangle,
-  Check
+  Check,
+  Calendar,
+  Utensils,
+  ChefHat
 } from 'lucide-react';
 import { usePlats, useCreatePlat, useUpdatePlat } from '@/hooks/useSupabaseData';
 import type { PlatUI as Plat } from '@/types/app';
+import { EditableField } from '@/components/ui/EditableField';
+import { DateRuptureManager } from '@/components/admin/DateRuptureManager';
 
 // Fonction pour formater le prix à la française
 const formatPrice = (price: number): string => {
@@ -67,82 +74,80 @@ export default function AdminGestionPlats() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [form, setForm] = useState<PlatForm>(initialForm);
   const [filtreDisponibilite, setFiltreDisponibilite] = useState<'tous' | 'disponibles' | 'indisponibles'>('tous');
+  const [activeTab, setActiveTab] = useState<'plats' | 'complements'>('plats');
+  const [showRuptureManager, setShowRuptureManager] = useState<{platId: number; platNom: string} | null>(null);
+  const [isEditingPlat, setIsEditingPlat] = useState<Plat | null>(null);
   
-  const { data: plats, refetch } = usePlats();
+  const { data: allPlats, refetch } = usePlats();
   const createPlatMutation = useCreatePlat();
   const updatePlatMutation = useUpdatePlat();
   const { toast } = useToast();
 
-  const jours = [
-    { key: 'lundi_dispo', label: 'Lun' },
-    { key: 'mardi_dispo', label: 'Mar' },
-    { key: 'mercredi_dispo', label: 'Mer' },
-    { key: 'jeudi_dispo', label: 'Jeu' },
-    { key: 'vendredi_dispo', label: 'Ven' },
-    { key: 'samedi_dispo', label: 'Sam' },
-    { key: 'dimanche_dispo', label: 'Dim' }
-  ];
+  useEffect(() => {
+    if (isEditingPlat) {
+      startEditing(isEditingPlat);
+    }
+  }, [isEditingPlat]);
 
-  // Fonction pour marquer un plat indisponible (tous les jours à "non")
+  // Séparer les plats principaux des compléments
+  const plats = allPlats?.filter(p => p.categorie !== 'complement_divers') || [];
+  const complements = allPlats?.filter(p => p.categorie === 'complement_divers') || [];
+  
+  const currentItems = activeTab === 'plats' ? plats : complements;
+
+  // Fonctions utilitaires
+  const marquerDisponible = async (platId: number) => {
+    const updates = {
+      lundi_dispo: 'oui' as const,
+      mardi_dispo: 'oui' as const,
+      mercredi_dispo: 'oui' as const,
+      jeudi_dispo: 'oui' as const,
+      vendredi_dispo: 'oui' as const,
+      samedi_dispo: 'oui' as const,
+      dimanche_dispo: 'oui' as const
+    };
+    await handleInlineUpdate(platId, updates);
+  };
+
   const marquerIndisponible = async (platId: number) => {
+    const updates = {
+      lundi_dispo: 'non' as const,
+      mardi_dispo: 'non' as const,
+      mercredi_dispo: 'non' as const,
+      jeudi_dispo: 'non' as const,
+      vendredi_dispo: 'non' as const,
+      samedi_dispo: 'non' as const,
+      dimanche_dispo: 'non' as const
+    };
+    await handleInlineUpdate(platId, updates);
+  };
+
+  const handleInlineUpdate = async (platId: number, updateData: any) => {
     try {
       await updatePlatMutation.mutateAsync({
         id: platId,
-        updateData: { 
-          lundi_dispo: 'non' as const,
-          mardi_dispo: 'non' as const,
-          mercredi_dispo: 'non' as const,
-          jeudi_dispo: 'non' as const,
-          vendredi_dispo: 'non' as const,
-          samedi_dispo: 'non' as const,
-          dimanche_dispo: 'non' as const
-        }
+        updateData: typeof updateData === 'object' && !Array.isArray(updateData) 
+          ? updateData 
+          : { [Object.keys(updateData)[0]]: Object.values(updateData)[0] }
       });
-      
       toast({
         title: "Succès",
-        description: "Plat marqué comme indisponible"
+        description: "Plat modifié avec succès"
       });
-      
       refetch();
     } catch (error) {
+      console.error('Erreur inline update:', error);
       toast({
         title: "Erreur",
-        description: "Impossible de modifier la disponibilité",
+        description: "Impossible de modifier le plat",
         variant: "destructive"
       });
+      throw error;
     }
   };
 
-  // Fonction pour marquer un plat disponible (tous les jours à "oui")
-  const marquerDisponible = async (platId: number) => {
-    try {
-      await updatePlatMutation.mutateAsync({
-        id: platId,
-        updateData: { 
-          lundi_dispo: 'oui' as const,
-          mardi_dispo: 'oui' as const,
-          mercredi_dispo: 'oui' as const,
-          jeudi_dispo: 'oui' as const,
-          vendredi_dispo: 'oui' as const,
-          samedi_dispo: 'oui' as const,
-          dimanche_dispo: 'oui' as const
-        }
-      });
-      
-      toast({
-        title: "Succès",
-        description: "Plat marqué comme disponible"
-      });
-      
-      refetch();
-    } catch (error) {
-      toast({
-        title: "Erreur",
-        description: "Impossible de modifier la disponibilité",
-        variant: "destructive"
-      });
-    }
+  const handleDayToggle = async (platId: number, jour: string, newValue: boolean) => {
+    return handleInlineUpdate(platId, { [jour]: newValue ? 'oui' : 'non' });
   };
 
   const handleSubmit = async () => {
@@ -158,7 +163,10 @@ export default function AdminGestionPlats() {
     try {
       if (isCreating) {
         await createPlatMutation.mutateAsync({
-          data: form
+          data: {
+            ...form,
+            categorie: activeTab === 'complements' ? 'complement_divers' : 'plat_principal'
+          }
         });
         toast({
           title: "Succès",
@@ -227,8 +235,8 @@ export default function AdminGestionPlats() {
     return joursDispos.filter(jour => jour === 'oui').length;
   };
 
-  // Filtrer les plats selon la disponibilité
-  const platsFiltered = plats?.filter(plat => {
+  // Filtrer les items selon la disponibilité
+  const itemsFiltered = currentItems?.filter(plat => {
     if (filtreDisponibilite === 'disponibles') {
       return countJoursDisponibles(plat) > 0;
     } else if (filtreDisponibilite === 'indisponibles') {
@@ -237,285 +245,514 @@ export default function AdminGestionPlats() {
     return true; // tous
   }) || [];
 
+  // Trier pour afficher les plats disponibles en premier
+  itemsFiltered.sort((a, b) => {
+    const aDispo = countJoursDisponibles(a) > 0;
+    const bDispo = countJoursDisponibles(b) > 0;
+    if (aDispo && !bDispo) {
+      return -1;
+    }
+    if (!aDispo && bDispo) {
+      return 1;
+    }
+    return 0;
+  });
+
   const stats = {
-    total: plats?.length || 0,
-    disponibles: plats?.filter(plat => countJoursDisponibles(plat) > 0).length || 0,
-    indisponibles: plats?.filter(plat => countJoursDisponibles(plat) === 0).length || 0
+    total: currentItems?.length || 0,
+    disponibles: currentItems?.filter(plat => countJoursDisponibles(plat) > 0).length || 0,
+    indisponibles: currentItems?.filter(plat => countJoursDisponibles(plat) === 0).length || 0
   };
 
+  // Afficher le gestionnaire de ruptures
+  if (showRuptureManager) {
+    return (
+      <div className="p-6 max-w-4xl mx-auto">
+        <Button
+          onClick={() => setShowRuptureManager(null)}
+          variant="outline"
+          className="mb-4 border-thai-orange text-thai-orange hover:bg-thai-orange hover:text-white"
+        >
+          ← Retour aux plats
+        </Button>
+        <DateRuptureManager
+          platId={showRuptureManager.platId}
+          platNom={showRuptureManager.platNom}
+        />
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-6">
-      {/* Statistiques */}
-      <div className="grid grid-cols-3 gap-4">
-        <Card className="bg-gradient-to-r from-blue-50 to-blue-100 border-blue-200">
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-blue-700">{stats.total}</div>
-            <div className="text-sm text-blue-600">Total Plats</div>
-          </CardContent>
-        </Card>
-        <Card className="bg-gradient-to-r from-green-50 to-green-100 border-green-200">
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-green-700">{stats.disponibles}</div>
-            <div className="text-sm text-green-600">Disponibles</div>
-          </CardContent>
-        </Card>
-        <Card className="bg-gradient-to-r from-red-50 to-red-100 border-red-200">
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-red-700">{stats.indisponibles}</div>
-            <div className="text-sm text-red-600">Indisponibles</div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Header avec actions */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-thai-green">Gestion des Plats</h1>
-          <p className="text-sm text-gray-600">Gérez votre menu et la disponibilité des plats</p>
-        </div>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            onClick={() => setFiltreDisponibilite('tous')}
-            className={filtreDisponibilite === 'tous' ? 'bg-thai-orange text-white' : ''}
-          >
-            Tous ({stats.total})
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => setFiltreDisponibilite('disponibles')}
-            className={filtreDisponibilite === 'disponibles' ? 'bg-green-500 text-white' : ''}
-          >
-            Disponibles ({stats.disponibles})
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => setFiltreDisponibilite('indisponibles')}
-            className={filtreDisponibilite === 'indisponibles' ? 'bg-red-500 text-white' : ''}
-          >
-            Indisponibles ({stats.indisponibles})
-          </Button>
-          <Button
-            onClick={() => {
-              setIsCreating(true);
-              setForm(initialForm);
-              setEditingId(null);
-            }}
-            className="bg-thai-green hover:bg-thai-green/90"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Nouveau Plat
-          </Button>
-        </div>
-      </div>
-
-      {/* Formulaire de création/édition */}
-      {(isCreating || editingId) && (
-        <Card className="border-2 border-thai-orange">
-          <CardHeader>
-            <CardTitle className="text-thai-green flex items-center gap-2">
-              {isCreating ? <Plus className="w-5 h-5" /> : <Edit2 className="w-5 h-5" />}
-              {isCreating ? 'Créer un Nouveau Plat' : 'Modifier le Plat'}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="plat">Nom du plat *</Label>
-                <Input
-                  id="plat"
-                  value={form.plat}
-                  onChange={(e) => setForm({ ...form, plat: e.target.value })}
-                  placeholder="Ex: Pad Thai"
-                />
-              </div>
-              <div>
-                <Label htmlFor="prix">Prix (€) *</Label>
-                <Input
-                  id="prix"
-                  type="number"
-                  step="0.01"
-                  value={form.prix}
-                  onChange={(e) => setForm({ ...form, prix: parseFloat(e.target.value) || 0 })}
-                  placeholder="12.90"
-                />
-              </div>
-            </div>
-
-            <div>
-              <Label htmlFor="description">Description *</Label>
-              <Textarea
-                id="description"
-                value={form.description}
-                onChange={(e) => setForm({ ...form, description: e.target.value })}
-                placeholder="Description du plat..."
-                rows={3}
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="photo">URL de la photo</Label>
-              <Input
-                id="photo"
-                value={form.photo_du_plat}
-                onChange={(e) => setForm({ ...form, photo_du_plat: e.target.value })}
-                placeholder="https://..."
-              />
-            </div>
-
-            <div>
-              <Label>Disponibilité par jour</Label>
-              <div className="grid grid-cols-7 gap-2 mt-2">
-                {jours.map(({ key, label }) => (
-                  <div key={key} className="text-center">
-                    <Label className="text-xs">{label}</Label>
-                    <Switch
-                      checked={form[key as keyof PlatForm] === 'oui'}
-                      onCheckedChange={(checked) => 
-                        setForm({ ...form, [key]: checked ? 'oui' : 'non' })
-                      }
-                      className="mt-1"
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="flex gap-2 justify-end">
-              <Button variant="outline" onClick={cancelEdit}>
-                <X className="w-4 h-4 mr-2" />
-                Annuler
-              </Button>
-              <Button onClick={handleSubmit} className="bg-thai-green hover:bg-thai-green/90">
-                <Save className="w-4 h-4 mr-2" />
-                {isCreating ? 'Créer' : 'Sauvegarder'}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Liste des plats */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {platsFiltered.map((plat) => {
-          const joursDispos = countJoursDisponibles(plat);
-          const isDisponible = joursDispos > 0;
+    <div className="p-6 max-w-7xl mx-auto">
+      <Card className="border-2 border-thai-orange/20 shadow-xl bg-gradient-to-br from-white to-thai-cream/30">
+        <CardHeader className="border-b border-thai-orange/20 bg-gradient-to-r from-thai-cream/20 to-white">
+          <CardTitle className="flex items-center gap-3 text-thai-green text-xl">
+            <ChefHat className="w-6 h-6 text-thai-orange" />
+            Gestion des Plats ({stats.total} plats)
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-6">
           
-          return (
-            <Card key={plat.idplats} className={`border-l-4 ${isDisponible ? 'border-green-500' : 'border-red-500'} hover:shadow-lg transition-shadow`}>
-              <CardContent className="p-4">
-                {/* Image du plat */}
-                {plat.photo_du_plat && (
-                  <div className="mb-4">
-                    <img 
-                      src={plat.photo_du_plat} 
-                      alt={plat.plat}
-                      className="w-full h-48 object-cover rounded-lg"
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none';
-                      }}
-                    />
-                  </div>
-                )}
 
-                {/* Informations du plat */}
-                <div className="space-y-3">
-                  <div className="flex justify-between items-start">
-                    <h3 className="text-lg font-semibold text-thai-green">{plat.plat}</h3>
-                    <Badge variant={isDisponible ? "default" : "destructive"}>
-                      {isDisponible ? (
-                        <>
-                          <Eye className="w-3 h-3 mr-1" />
-                          {joursDispos}/7 jours
-                        </>
-                      ) : (
-                        <>
-                          <EyeOff className="w-3 h-3 mr-1" />
-                          Indisponible
-                        </>
-                      )}
-                    </Badge>
-                  </div>
+          {/* Onglets avec design Thai */}
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+            <TabsList className="grid w-full grid-cols-2 h-12 bg-thai-cream/30 border-2 border-thai-orange/20">
+              <TabsTrigger 
+                value="plats" 
+                className="data-[state=active]:bg-thai-orange data-[state=active]:text-white transition-all duration-300 hover:bg-thai-orange/20 font-semibold"
+              >
+                <Utensils className="w-4 h-4 mr-2" />
+                Plats du Menu ({plats.length})
+              </TabsTrigger>
+              <TabsTrigger 
+                value="complements" 
+                className="data-[state=active]:bg-thai-gold data-[state=active]:text-white transition-all duration-300 hover:bg-thai-gold/20 font-semibold"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Extras Admin ({complements.length})
+              </TabsTrigger>
+            </TabsList>
 
-                  <p className="text-sm text-gray-600">{plat.description}</p>
+            
 
-                  <div className="flex items-center justify-between">
-                    <Badge variant="outline" className="text-thai-gold">
-                      <Euro className="w-3 h-3 mr-1" />
-                      {formatPrice(plat.prix || 0)}
-                    </Badge>
-                    <div className="text-xs text-gray-500">
-                      #{plat.idplats}
+            <TabsContent value="plats" className="space-y-4">
+              {/* Filtres de disponibilité */}
+              <div className="flex justify-between items-center mb-6">
+                <div className="flex gap-4">
+                    <Button
+                      variant={filtreDisponibilite === 'tous' ? 'default' : 'outline'}
+                      onClick={() => setFiltreDisponibilite('tous')}
+                      className={filtreDisponibilite === 'tous' ? 'bg-thai-orange hover:bg-thai-orange/90' : 'border-thai-orange/40 text-thai-orange hover:bg-thai-orange hover:text-white'}
+                    >
+                      <Package className="w-4 h-4 mr-1" />
+                      Tous ({stats.total})
+                    </Button>
+                    <Button
+                      variant={filtreDisponibilite === 'disponibles' ? 'default' : 'outline'}
+                      onClick={() => setFiltreDisponibilite('disponibles')}
+                      className={filtreDisponibilite === 'disponibles' ? 'bg-thai-green hover:bg-thai-green/90' : 'border-thai-green/40 text-thai-green hover:bg-thai-green hover:text-white'}
+                    >
+                      <Eye className="w-4 h-4 mr-1" />
+                      Disponibles ({stats.disponibles})
+                    </Button>
+                    <Button
+                      variant={filtreDisponibilite === 'indisponibles' ? 'default' : 'outline'}
+                      onClick={() => setFiltreDisponibilite('indisponibles')}
+                      className={filtreDisponibilite === 'indisponibles' ? 'bg-thai-red hover:bg-thai-red/90' : 'border-thai-red/40 text-thai-red hover:bg-thai-red hover:text-white'}
+                    >
+                      <EyeOff className="w-4 h-4 mr-1" />
+                      Indisponibles ({stats.indisponibles})
+                    </Button>
+                </div>
+                <Button
+                    onClick={() => {
+                      setIsCreating(true);
+                      setForm(initialForm);
+                      setEditingId(null);
+                    }}
+                    className="bg-thai-orange hover:bg-thai-orange/90 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 font-medium"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Nouveau {activeTab === 'plats' ? 'Plat' : 'Complément'}
+                  </Button>
+              </div>
+
+              {/* Formulaire de création */}
+              {isCreating && (
+                <Card className="border-2 border-thai-orange bg-gradient-to-r from-thai-cream/30 to-white">
+                  <CardHeader className="bg-thai-orange/10">
+                    <CardTitle className="text-thai-green flex items-center gap-2">
+                      <Plus className="w-5 h-5" />
+                      Créer un Nouveau Plat
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4 p-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="plat">Nom du plat *</Label>
+                        <Input
+                          id="plat"
+                          value={form.plat}
+                          onChange={(e) => setForm(prev => ({ ...prev, plat: e.target.value }))}
+                          placeholder="Ex: Pad Thai aux crevettes"
+                          className="border-thai-orange/20 focus:border-thai-orange"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="prix">Prix (€) *</Label>
+                        <Input
+                          id="prix"
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={form.prix}
+                          onChange={(e) => setForm(prev => ({ ...prev, prix: parseFloat(e.target.value) || 0 }))}
+                          className="border-thai-orange/20 focus:border-thai-orange"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <Label htmlFor="description">Description *</Label>
+                      <Textarea
+                        id="description"
+                        value={form.description}
+                        onChange={(e) => setForm(prev => ({ ...prev, description: e.target.value }))}
+                        placeholder="Description du plat..."
+                        rows={3}
+                        className="border-thai-orange/20 focus:border-thai-orange"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="photo">Photo (URL)</Label>
+                      <Input
+                        id="photo"
+                        value={form.photo_du_plat}
+                        onChange={(e) => setForm(prev => ({ ...prev, photo_du_plat: e.target.value }))}
+                        placeholder="https://..."
+                        className="border-thai-orange/20 focus:border-thai-orange"
+                      />
+                    </div>
+                    
+                    {/* Actions */}
+                    <div className="flex gap-2 pt-4">
+                      <Button
+                        onClick={handleSubmit}
+                        disabled={createPlatMutation.isPending || updatePlatMutation.isPending}
+                        className="bg-thai-green hover:bg-thai-green/90 text-white"
+                      >
+                        <Save className="w-4 h-4 mr-2" />
+                        Créer
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={cancelEdit}
+                        className="border-thai-orange text-thai-orange hover:bg-thai-orange hover:text-white"
+                      >
+                        <X className="w-4 h-4 mr-2" />
+                        Annuler
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Modal de modification */}
+              <Dialog open={!!isEditingPlat} onOpenChange={() => setIsEditingPlat(null)}>
+                <DialogContent className="sm:max-w-[425px] bg-white border border-thai-orange shadow-lg">
+                  <DialogHeader>
+                    <DialogTitle className="text-thai-orange">Modifier le plat</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4 mt-4">
+                    <div>
+                      <Label htmlFor="plat-edit">Nom du plat *</Label>
+                      <Input
+                        id="plat-edit"
+                        value={form.plat}
+                        onChange={(e) => setForm(prev => ({ ...prev, plat: e.target.value }))}
+                        placeholder="Ex: Pad Thai aux crevettes"
+                        className="mt-1"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="prix-edit">Prix (€) *</Label>
+                      <Input
+                        id="prix-edit"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={form.prix}
+                        onChange={(e) => setForm(prev => ({ ...prev, prix: parseFloat(e.target.value) || 0 }))}
+                        placeholder="Ex: 12.90"
+                        className="mt-1"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="description-edit">Description *</Label>
+                      <Textarea
+                        id="description-edit"
+                        value={form.description}
+                        onChange={(e) => setForm(prev => ({ ...prev, description: e.target.value }))}
+                        placeholder="Description du plat..."
+                        rows={3}
+                        className="mt-1"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="photo-edit">Photo (URL)</Label>
+                      <Input
+                        id="photo-edit"
+                        value={form.photo_du_plat}
+                        onChange={(e) => setForm(prev => ({ ...prev, photo_du_plat: e.target.value }))}
+                        placeholder="https://..."
+                        className="mt-1"
+                      />
+                    </div>
+                    <div className="flex justify-end space-x-2 pt-4">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setIsEditingPlat(null)}
+                        disabled={updatePlatMutation.isPending}
+                      >
+                        Annuler
+                      </Button>
+                      <Button
+                        type="submit"
+                        onClick={handleSubmit}
+                        disabled={updatePlatMutation.isPending}
+                        className="bg-thai-green hover:bg-thai-green/90 text-white"
+                      >
+                        {updatePlatMutation.isPending ? 'Sauvegarde...' : 'Sauvegarder'}
+                      </Button>
                     </div>
                   </div>
+                </DialogContent>
+              </Dialog>
 
-                  {/* Jours disponibles */}
-                  <div className="flex flex-wrap gap-1">
-                    {jours.map(({ key, label }) => (
-                      <Badge 
-                        key={key}
-                        variant={plat[key as keyof Plat] === 'oui' ? 'default' : 'outline'}
-                        className={`text-xs ${plat[key as keyof Plat] === 'oui' ? 'bg-green-100 text-green-800' : 'text-gray-400'}`}
-                      >
-                        {label}
-                      </Badge>
-                    ))}
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex gap-2 pt-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => startEditing(plat)}
-                      className="flex-1"
+              {/* Liste des plats */}
+              <div className="grid gap-4">
+                {itemsFiltered.map((plat) => {
+                  const joursDispos = countJoursDisponibles(plat);
+                  const isDisponible = joursDispos > 0;
+                  
+                  return (
+                    <Card 
+                      key={plat.idplats} 
+                      className={`border-l-4 ${isDisponible ? 'border-thai-green bg-green-50/30' : 'border-thai-red bg-red-50/30'} hover:shadow-xl hover:bg-thai-cream/20 hover:border-thai-orange hover:ring-2 hover:ring-thai-orange/30 hover:scale-[1.02] transform transition-all duration-300`}
                     >
-                      <Edit2 className="w-3 h-3 mr-1" />
-                      Modifier
-                    </Button>
-                    
-                    {isDisponible ? (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => marquerIndisponible(plat.idplats)}
-                        className="text-red-600 border-red-300 hover:bg-red-50"
-                      >
-                        <EyeOff className="w-3 h-3 mr-1" />
-                        Désactiver
-                      </Button>
-                    ) : (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => marquerDisponible(plat.idplats)}
-                        className="text-green-600 border-green-300 hover:bg-green-50"
-                      >
-                        <Eye className="w-3 h-3 mr-1" />
-                        Activer
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
+                      <CardContent className="p-0">
+                        <div className="p-6 border-b rounded-t-lg bg-white">
+                          <div className="flex gap-4 items-start">
+                          {/* Image du plat - Éditable inline */}
+                          <div className="flex-shrink-0">
+                          <EditableField
+                            value={plat.photo_du_plat || ''}
+                            onSave={(newValue) => handleInlineUpdate(plat.idplats, { photo_du_plat: newValue })}
+                            type="image"
+                            placeholder="Ajouter une image"
+                          />
+                        </div>
 
-        {platsFiltered.length === 0 && (
-          <div className="col-span-full text-center py-12">
-            <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-500 mb-2">
-              {filtreDisponibilite === 'disponibles' ? 'Aucun plat disponible' :
-               filtreDisponibilite === 'indisponibles' ? 'Aucun plat indisponible' :
-               'Aucun plat trouvé'}
-            </h3>
-            <p className="text-gray-400">
-              {filtreDisponibilite === 'tous' && 'Commencez par créer votre premier plat'}
-            </p>
-          </div>
-        )}
-      </div>
+                          {/* Informations du plat */}
+                          <div className="flex-1 space-y-2">
+                          {/* Nom du plat - Éditable inline */}
+                          <div className="flex justify-between items-start">
+                            <EditableField
+                              value={plat.plat}
+                              onSave={(newValue) => handleInlineUpdate(plat.idplats, { plat: newValue })}
+                              type="text"
+                              placeholder="Nom du plat"
+                              className="text-lg font-semibold text-thai-green flex-1 mr-2"
+                              validation={(value) => {
+                                if (!value || value.trim().length < 2) {
+                                  return "Le nom doit contenir au moins 2 caractères";
+                                }
+                                return true;
+                              }}
+                            />
+                            <Badge variant={isDisponible ? "default" : "destructive"} className={isDisponible ? "bg-thai-green" : ""}>
+                              {joursDispos} jour{joursDispos > 1 ? 's' : ''} dispo
+                            </Badge>
+                          </div>
+
+                          {/* Description - Éditable inline */}
+                          <EditableField
+                            value={plat.description || ''}
+                            onSave={(newValue) => handleInlineUpdate(plat.idplats, { description: newValue })}
+                            type="textarea"
+                            placeholder="Description du plat"
+                            className="text-sm text-gray-600"
+                          />
+
+                          {/* Prix - Éditable inline */}
+                          <div className="flex items-center gap-2">
+                            <EditableField
+                              value={plat.prix || 0}
+                              onSave={(newValue) => handleInlineUpdate(plat.idplats, { prix: parseFloat(newValue) || 0 })}
+                              type="number"
+                              placeholder="0,00€"
+                              validation={(value) => {
+                                const num = parseFloat(value);
+                                if (isNaN(num) || num < 0) {
+                                  return "Le prix doit être un nombre positif";
+                                }
+                                return true;
+                              }}
+                              formatDisplay={(value) => formatPrice(value)}
+                              className="text-thai-green font-medium"
+                            />
+                          </div>
+
+                          
+
+                          
+                        </div>
+                        </div>
+                        </div>
+                        <div className="p-6 bg-gray-50 rounded-b-lg">
+                          {/* Disponibilité par jour */}
+                          <div className="mt-4">
+                            <h4 className="text-sm font-medium text-thai-green flex items-center gap-1 mb-2">
+                              <Calendar className="w-4 h-4" />
+                              Disponibilité hebdomadaire:
+                            </h4>
+                            <div className="grid grid-cols-7 gap-2 text-xs">
+                              {['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche'].map((jour) => {
+                                const dayKey = `${jour}_dispo` as keyof typeof plat;
+                                const isAvailable = plat[dayKey] === 'oui';
+                                return (
+                                  <Button
+                                    key={jour}
+                                    size="sm"
+                                    variant={isAvailable ? 'default' : 'outline'}
+                                    onClick={() => handleDayToggle(plat.idplats, dayKey, !isAvailable)}
+                                    className={`w-full h-10 text-xs capitalize ${isAvailable ? 'bg-thai-green hover:bg-thai-green/90' : 'border-gray-300'}`}
+                                  >
+                                    {jour.slice(0,3)}
+                                  </Button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                          {/* Actions */}
+                          <div className="flex gap-2 pt-4">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setIsEditingPlat(plat)}
+                              className="flex-1 text-xs text-thai-green border-thai-green/40 hover:bg-thai-green hover:text-white transition-all duration-200 shadow-sm hover:shadow-md"
+                            >
+                              <Edit2 className="w-3 h-3 mr-1" />
+                              Modifier
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setShowRuptureManager({platId: plat.idplats, platNom: plat.plat})}
+                              className="flex-1 text-xs text-thai-orange border-thai-orange/40 hover:bg-thai-orange hover:text-white transition-all duration-200 shadow-sm hover:shadow-md"
+                            >
+                              <Calendar className="w-3 h-3 mr-1" />
+                              Ruptures
+                            </Button>
+                            
+                            {activeTab === 'plats' && (
+                              isDisponible ? (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => marquerIndisponible(plat.idplats)}
+                                  className="h-10 text-base w-auto min-w-[150px] border-2 border-thai-red/40 bg-gradient-to-r from-white to-red-50/20 hover:from-thai-red/10 hover:to-thai-red/20 hover:border-thai-red focus:border-thai-red shadow-lg hover:shadow-xl transition-all duration-300 font-bold rounded-xl backdrop-blur-sm hover:scale-105 group"
+                                >
+                                  <EyeOff className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform duration-200" />
+                                  Désactiver
+                                </Button>
+                              ) : (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => marquerDisponible(plat.idplats)}
+                                  className="h-10 text-base w-auto min-w-[150px] border-2 border-thai-green/40 bg-gradient-to-r from-white to-green-50/20 hover:from-thai-green/10 hover:to-thai-green/20 hover:border-thai-green focus:border-thai-green shadow-lg hover:shadow-xl transition-all duration-300 font-bold rounded-xl backdrop-blur-sm hover:scale-105 group"
+                                >
+                                  <Eye className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform duration-200" />
+                                  Activer
+                                </Button>
+                              )
+                            )}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+
+                {itemsFiltered.length === 0 && (
+                  <div className="col-span-full text-center py-12">
+                    <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-500 mb-2">
+                      {filtreDisponibilite === 'disponibles' ? `Aucun ${activeTab} disponible` :
+                       filtreDisponibilite === 'indisponibles' ? `Aucun ${activeTab} indisponible` :
+                       `Aucun ${activeTab} trouvé`}
+                    </h3>
+                    <p className="text-gray-400">
+                      {filtreDisponibilite === 'tous' && `Commencez par créer votre premier ${activeTab === 'plats' ? 'plat' : 'complément'}`}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="complements" className="space-y-4">
+              {/* Même structure pour les compléments */}
+              <div className="grid gap-4">
+                {complements.map((plat) => {
+                  const joursDispos = countJoursDisponibles(plat);
+                  const isDisponible = joursDispos > 0;
+                  
+                  return (
+                    <Card 
+                      key={plat.idplats} 
+                      className={`border-l-4 border-thai-gold hover:shadow-xl hover:bg-thai-cream/20 hover:border-thai-orange hover:ring-2 hover:ring-thai-orange/30 hover:scale-[1.02] transform transition-all duration-300 bg-gradient-to-r from-white to-thai-gold/10`}
+                    >
+                      <CardContent className="p-6">
+                        <div className="space-y-3">
+                          <div className="flex justify-between items-start">
+                            <EditableField
+                              value={plat.plat}
+                              onSave={(newValue) => handleInlineUpdate(plat.idplats, { plat: newValue })}
+                              type="text"
+                              placeholder="Nom du complément"
+                              className="text-lg font-semibold text-thai-gold flex-1 mr-2"
+                            />
+                            <Badge className="bg-thai-gold/20 text-thai-gold">
+                              Extra Admin
+                            </Badge>
+                          </div>
+
+                          <EditableField
+                            value={plat.description || ''}
+                            onSave={(newValue) => handleInlineUpdate(plat.idplats, { description: newValue })}
+                            type="textarea"
+                            placeholder="Description du complément"
+                            className="text-sm text-gray-600"
+                          />
+
+                          <div className="flex items-center gap-2">
+                            <Euro className="w-4 h-4 text-thai-gold" />
+                            <EditableField
+                              value={plat.prix?.toString() || '0'}
+                              onSave={(newValue) => handleInlineUpdate(plat.idplats, { prix: parseFloat(newValue) || 0 })}
+                              type="number"
+                              placeholder="0.00"
+                              className="text-thai-gold font-medium"
+                            />
+                            <span className="text-thai-gold">€</span>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+
+                {complements.length === 0 && (
+                  <div className="text-center py-12">
+                    <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-500 mb-2">
+                      Aucun complément trouvé
+                    </h3>
+                    <p className="text-gray-400">
+                      Commencez par créer votre premier complément
+                    </p>
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
     </div>
   );
 }

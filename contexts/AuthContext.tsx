@@ -56,14 +56,55 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setCurrentUser(user);
       
-      // IMPORTANT: Pour cette architecture hybride Firebase + Supabase,
-      // nous utilisons les données utilisateur Firebase mais stockons les données métier dans Supabase
-      // Les politiques RLS sont désactivées temporairement
+      // IMPORTANT: Synchronisation Firebase + Supabase pour RLS
       if (user) {
-        console.log('✅ Utilisateur Firebase connecté:', user.email);
-        console.log('🔑 UID Firebase:', user.uid);
+        try {
+          // Obtenir le token Firebase
+          const idToken = await user.getIdToken();
+          console.log('✅ Utilisateur Firebase connecté:', user.email);
+          console.log('🔑 UID Firebase:', user.uid);
+          
+          // Synchroniser avec l'authentification Supabase pour RLS
+          const { error } = await supabase.auth.setSession({
+            access_token: idToken,
+            refresh_token: user.refreshToken || ''
+          });
+          
+          if (error) {
+            console.warn('⚠️ Erreur sync Supabase Auth:', error.message);
+            // Fallback: utiliser signInWithCustomToken
+            try {
+              const { error: signInError } = await supabase.auth.signInWithIdToken({
+                provider: 'firebase',
+                token: idToken
+              });
+              if (signInError) {
+                console.warn('⚠️ Erreur signInWithIdToken:', signInError.message);
+              } else {
+                console.log('✅ Auth Supabase synchronisée via IdToken');
+              }
+            } catch (fallbackError) {
+              console.warn('⚠️ Fallback auth échoué:', fallbackError);
+            }
+          } else {
+            console.log('✅ Auth Supabase synchronisée via setSession');
+          }
+          
+          // Vérifier la session Supabase
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session) {
+            console.log('🔐 Session Supabase active:', session.user.id);
+          } else {
+            console.warn('⚠️ Aucune session Supabase active');
+          }
+          
+        } catch (error) {
+          console.error('❌ Erreur synchronisation Firebase + Supabase:', error);
+        }
       } else {
         console.log('❌ Utilisateur Firebase déconnecté');
+        // Déconnecter Supabase aussi
+        await supabase.auth.signOut();
       }
       
       setIsLoadingAuth(false);

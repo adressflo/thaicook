@@ -18,6 +18,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import { ValidationErrorDisplay, useValidationErrors } from '@/components/forms/ValidationErrorDisplay';
+import { safeValidate, clientUpdateSchema } from '@/lib/validations';
 import {
   LogIn,
   UserPlus,
@@ -110,6 +112,9 @@ const Profil = memo(() => {
 
   const createClientMutation = useCreateClient();
   const updateClientMutation = useUpdateClient();
+  
+  // ✅ GESTION ERREURS DE VALIDATION ZOD
+  const { validationError, setValidationError, clearValidationError, handleValidationError } = useValidationErrors();
 
   const [loginEmail, setLoginEmail] = useState('');
   const [password, setPassword] = useState('');

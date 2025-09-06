@@ -34,6 +34,34 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   }
 })
 
+// Client Supabase avec authentification administrateur pour contourner temporairement RLS
+export const createAuthenticatedClient = async (firebaseUid: string) => {
+  // Créer une session temporaire avec le firebase_uid
+  const customJWT = {
+    sub: firebaseUid,
+    firebase_uid: firebaseUid,
+    role: 'authenticated',
+    iat: Math.floor(Date.now() / 1000),
+    exp: Math.floor(Date.now() / 1000) + (60 * 60) // 1 heure
+  };
+  
+  // Pour le moment, utiliser le client normal avec headers personnalisés
+  return createClient<Database>(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: false,
+    },
+    global: {
+      headers: {
+        'x-application-name': 'chanthanathaicook',
+        'x-client-version': '2025.1',
+        'x-firebase-uid': firebaseUid
+      }
+    }
+  });
+}
+
 // Types d'erreur personnalisés
 export class SupabaseError extends Error {
   constructor(message: string, public code?: string, public details?: unknown) {

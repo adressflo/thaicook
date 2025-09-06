@@ -1,4 +1,4 @@
-# CLAUDE.md - APPCHANTHANA
+# CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
@@ -30,8 +30,8 @@ npm start
 # Lint code
 npm run lint
 
-# Type check
-npm run type-check
+# End-to-end tests with Playwright
+npm run test:e2e
 ```
 
 ## Architecture Overview
@@ -45,16 +45,19 @@ npm run type-check
 - **Services**: `services/` for external service integrations
 - **Types**: `types/` for TypeScript type definitions
 
-### Authentication & Data Flow
-- **Firebase Auth**: Handles user authentication (login/signup)
-- **Supabase**: Backend database and real-time subscriptions
-- **Dual Auth System**: Firebase UID is stored in Supabase client profiles for data linking
-- **Middleware**: Next.js middleware for route protection
+### Hybrid Authentication Architecture
+- **Firebase Authentication**: Primary identity provider with `onAuthStateChanged` listeners
+- **Supabase Database**: Client profiles synced via Firebase UID as foreign key
+- **Auto-Profile Creation**: `AuthContext.tsx` automatically creates Supabase profile on Firebase signup
+- **Role-Based Access**: Admin detection via email patterns or manual role assignment
+- **Session Management**: Firebase handles tokens, Supabase uses RLS policies (temporarily disabled)
 
-### Core Context Providers (Client Components)
-1. **AuthContext**: Manages Firebase user + Supabase profile sync
-2. **DataContext**: Global app data management
-3. **CartContext**: Shopping cart state
+### State Management Architecture
+- **AuthContext**: Hybrid Firebase + Supabase user state with auto-profile creation
+- **TanStack Query**: Server state caching with custom hooks (`useSupabaseData.ts`)
+- **Context Providers**: AuthContext, DataContext, CartContext, NotificationContext
+- **Query Key Structure**: Hierarchical keys for efficient cache invalidation
+- **Real-time Updates**: Supabase subscriptions with React Query integration
 
 ### Key Architecture Patterns
 
@@ -72,11 +75,12 @@ npm run type-check
 - **Server Components**: Default for better performance
 - **Client Components**: Explicitly marked with 'use client'
 
-#### Data Management
-- **React Query**: All server state management via custom hooks
-- **Supabase Hooks**: Custom hooks for CRUD operations
-- **Real-time**: Supabase subscriptions for live updates
-- **Server Actions**: Next.js server actions for form handling
+#### Critical Data Flow Patterns
+- **useSupabaseData.ts**: Centralized CRUD hooks with TypeScript validation
+- **Error Handling**: Custom `SupabaseError` class with context-specific messages
+- **Type Safety**: Auto-generated Supabase types with UI type mappings
+- **Cache Policies**: Defined in `CACHE_TIMES` constant (15min plats, 5min clients, etc.)
+- **Real-time Sync**: Supabase subscriptions trigger React Query cache updates
 
 #### Route Protection
 - **Middleware**: `middleware.ts` for route-level authentication
@@ -100,10 +104,12 @@ npm run type-check
 - `tsconfig.json`: Strict TypeScript config with path mapping (`@/` → root)
 - `postcss.config.mjs`: PostCSS configuration for Tailwind CSS v4
 
-### Core Services
-- `lib/supabase.ts`: Supabase client with error handling and cache configuration
-- `lib/firebaseConfig.ts`: Firebase authentication setup
-- `services/supabaseService.ts`: High-level database operations
+### Critical Service Architecture
+- `lib/supabase.ts`: Configured with PKCE flow, custom headers, realtime optimization
+- `lib/firebaseConfig.ts`: Firebase v12 SDK with `getAuth()` and state management
+- `contexts/AuthContext.tsx`: Primary authentication orchestrator with auto-sync
+- `hooks/useSupabaseData.ts`: Type-safe CRUD operations with validation functions
+- `services/supabaseService.ts`: High-level business logic layer
 
 ### Type Definitions
 - `types/supabase.ts`: Auto-generated Supabase database types
@@ -146,31 +152,55 @@ npm run type-check
 - Implement real-time subscriptions for live data
 - Cache policies defined in React Query configuration
 
-### Mobile Responsiveness
-- Mobile-first responsive design with Tailwind CSS
-- Dynamic behavior for mobile vs desktop
-- Touch-friendly UI components
-- Optimized for performance on mobile devices
+### Responsive Design System
+- **Breakpoints**: Mobile <768px, Tablet 768-1024px, Desktop >1024px
+- **Custom Hooks**: `use-mobile.tsx` provides `isMobile`, `isTablet`, `useBreakpoints()`
+- **Container Strategy**: Progressive containers (640px→768px→1024px→1200px→1280px)
+- **Thai Theme**: Custom HSL color palette with CSS variables for consistent theming
 
-## Testing & Linting
+## Testing & Quality
 
-- ESLint configured with Next.js and TypeScript rules
-- Strict TypeScript compilation settings
-- No unused variables/parameters enforcement
-- React Hooks rules enabled
-- Custom rules for code quality
+- **Playwright E2E**: End-to-end testing suite in `tests/` directory
+- **ESLint**: Next.js + TypeScript rules with strict enforcement
+- **TypeScript**: Strict mode with path mapping (`@/` → project root)
+- **Error Boundaries**: Global error boundary in root layout
+- **Performance**: Lighthouse monitoring for Core Web Vitals
 
-## Component Development Guidelines
+## Development Patterns
 
-- Always use "export function ComponentName" for components
-- Use "export default" only for pages, layouts, and Next.js special files
-- Implement proper TypeScript interfaces for all props
-- Follow Next.js 15 conventions and best practices
-- Use Server Components by default, Client Components when necessary
+### Component Architecture
+- **Server Components First**: Default for all static content and initial data fetching
+- **Client Components**: Marked with 'use client' for interactivity, hooks, or browser APIs
+- **Export Pattern**: `export function ComponentName` (not default) for better tree-shaking
+- **TypeScript**: Strict typing with interfaces for all props and data structures
 
-## Technology Stack Updates
+### Authentication Integration
+- **Route Protection**: Use `useAuth()` hook to access current user and role
+- **Profile Access**: `currentUserProfile` provides Supabase data, `currentUser` provides Firebase data
+- **Loading States**: Handle `isLoadingAuth` and `isLoadingUserRole` for proper UX
+- **Role Checks**: `currentUserRole` returns 'admin' | 'client' | null for access control
 
-### Latest Versions & Key Features (Updated: 2025-01-19)
+### Database Operations
+- **Type-Safe Queries**: Use hooks from `useSupabaseData.ts` (e.g., `useClients()`, `useCommandes()`)
+- **Error Handling**: All hooks include built-in error handling with toast notifications
+- **Cache Management**: React Query handles caching automatically with defined TTL
+- **Real-time Updates**: Supabase subscriptions automatically update cache
+
+## Critical Architecture Notes
+
+### Current Known Issues
+- **RLS Policies**: Temporarily disabled on some tables for development (re-enable for production)
+- **Error Serialization**: Empty Supabase error objects `{}` can mask real errors
+- **Date Validation**: Implement client-side validation to prevent invalid dates (e.g., Feb 31)
+- **Profile Sync**: Firebase UID must match Supabase `firebase_uid` field for data linking
+
+### Performance Optimizations
+- **Image Optimization**: Custom `OptimizedImage.tsx` component with Next.js Image
+- **Loading States**: Enhanced loading components with GPU-accelerated animations
+- **Bundle Optimization**: Server Components reduce client-side JavaScript
+- **Cache Strategy**: TanStack Query + Next.js caching layers for optimal performance
+
+### Technology Stack (Updated: 2025-01-19)
 
 #### Next.js 15.4.5
 - **App Router** with Server Components by défaut pour de meilleures performances
@@ -383,11 +413,29 @@ components/ui/enhanced-loading.tsx            # Nouveau composant loading
 
 Cette session a transformé l'application avec des optimisations majeures de performance, responsive design et UX moderne. L'application est maintenant prête pour une expérience utilisateur de qualité professionnelle sur tous devices.
 
-## Migration Notes
+## Essential Integration Points
 
-This project is a complete migration from React + Vite to Next.js 15:
-- Maintained all original functionality and UI design
-- Upgraded to latest dependencies and best practices
-- Improved performance with Server Components and App Router
-- Enhanced SEO with built-in Next.js optimizations
-- Maintained custom Thai theme and styling system
+### Data Flow Architecture
+```
+Firebase Auth → AuthContext → Supabase Profile Sync → TanStack Query Cache → UI Components
+```
+
+### Key Relationships
+- `firebase.auth().currentUser.uid` = `client_db.firebase_uid`
+- Admin role detection in `AuthContext.tsx` via email patterns
+- Real-time updates via Supabase subscriptions → React Query invalidation
+- Type-safe operations via generated Supabase types + custom UI types
+
+### Critical Files for New Development
+1. **Authentication**: `contexts/AuthContext.tsx` - Primary auth orchestration
+2. **Data Operations**: `hooks/useSupabaseData.ts` - All CRUD operations
+3. **Type Definitions**: `types/supabase.ts` (generated) + `types/app.ts` (custom)
+4. **Service Layer**: `lib/supabase.ts` - Client configuration and error handling
+5. **Layout System**: `app/layout.tsx` - Provider hierarchy and global setup
+
+### Migration Context
+Complete migration from React + Vite to Next.js 15 while maintaining:
+- Thai restaurant branding and color scheme
+- Hybrid Firebase + Supabase architecture
+- All business functionality and user workflows
+- Performance optimizations and responsive design

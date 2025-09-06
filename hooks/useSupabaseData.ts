@@ -2,6 +2,17 @@
 
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/supabase';
+import { 
+  validateClientProfile, 
+  validateEvenement, 
+  validateCommande,
+  validateDetailCommande,
+  safeValidate,
+  clientProfileSchema,
+  evenementSchema,
+  commandeSchema,
+  detailCommandeSchema
+} from '@/lib/validations';
 import type {
   ClientInputData,
   ClientUI,
@@ -77,7 +88,9 @@ export const useClient = (firebase_uid?: string) => {
 
       if (error) {
         if (error.code === 'PGRST116') return null; // Pas trouvé
-        throw error;
+        const contextError = new Error(`Échec récupération profil client (${firebase_uid}): ${error.message || 'Erreur base de données'}`);
+        contextError.cause = error;
+        throw contextError;
       }
       return data;
     },
@@ -92,12 +105,15 @@ export const useCreateClient = () => {
 
   return useMutation({
     mutationFn: async (clientData: ClientInputData): Promise<Client> => {
-      // Validation des données obligatoires
-      if (!clientData.firebase_uid) {
-        throw new Error('Firebase UID est requis pour créer un client');
+      // ✅ VALIDATION ZOD SÉCURISÉE
+      const validation = safeValidate(clientProfileSchema, clientData);
+      if (!validation.success) {
+        const errorMessages = validation.errors?.issues?.map((err: any) => `${err.path.join('.')}: ${err.message}`).join('; ') || 'Erreur de validation inconnue';
+        throw new Error(`Données client invalides: ${errorMessages}`);
       }
+      const validatedData = validation.data;
 
-      console.log('Données du client à insérer:', clientData);
+      console.log('Données du client validées:', validatedData);
       
       // Diagnostic de l'état de l'authentification Supabase
       const { data: { session } } = await supabase.auth.getSession();
@@ -113,7 +129,7 @@ export const useCreateClient = () => {
         const { data: existingClient } = await supabase
           .from('client_db')
           .select('*')
-          .eq('firebase_uid', clientData.firebase_uid)
+          .eq('firebase_uid', validatedData.firebase_uid)
           .single();
           
         if (existingClient) {
@@ -129,7 +145,7 @@ export const useCreateClient = () => {
       try {
         const { data, error } = await supabase
           .from('client_db')
-          .insert(clientData)
+          .insert(validatedData)
           .select()
           .single();
 
@@ -301,7 +317,11 @@ export const usePlats = () => {
         .select('*')
         .order('plat', { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        const contextError = new Error(`Échec chargement menu: ${error.message || 'Erreur base de données'}`);
+        contextError.cause = error;
+        throw contextError;
+      }
 
       // Mapper idplats vers id pour l'UI
       return (data || []).map(plat => ({
@@ -314,6 +334,264 @@ export const usePlats = () => {
     },
     refetchOnWindowFocus: true,
     staleTime: 0, // Force le refresh à chaque fois
+  });
+};
+
+// Hook pour créer un plat
+export const useCreatePlat = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async ({ data }: { data: any }): Promise<Plat> => {
+      const { data: result, error } = await supabase
+        .from('plats_db')
+        .insert({
+          plat: data.plat,
+          description: data.description,
+          prix: data.prix,
+          photo_du_plat: data.photo_du_plat,
+          lundi_dispo: data.lundi_dispo || 'oui',
+          mardi_dispo: data.mardi_dispo || 'oui',
+          mercredi_dispo: data.mercredi_dispo || 'oui',
+          jeudi_dispo: data.jeudi_dispo || 'oui',
+          vendredi_dispo: data.vendredi_dispo || 'oui',
+          samedi_dispo: data.samedi_dispo || 'oui',
+          dimanche_dispo: data.dimanche_dispo || 'oui',
+          est_epuise: false
+        })
+        .select();
+
+      if (error) {
+        console.error('Erreur Supabase lors de la création:', error);
+        const contextError = new Error(`Échec création plat: ${error.message || 'Erreur validation données'}`);
+        contextError.cause = error;
+        throw contextError;
+      }
+
+      // Vérifier qu'au moins une ligne a été créée
+      if (!result || result.length === 0) {
+        throw new Error('Aucune ligne créée');
+      }
+      
+      return result[0]; // Retourner la première ligne créée
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['plats'] });
+      toast({
+        title: "Succès",
+        description: "Plat créé avec succès"
+      });
+    },
+    onError: (error) => {
+      console.error('Erreur dans useCreatePlat:', error);
+      toast({
+        title: "Erreur",
+        description: error.message || "Impossible de créer le plat",
+        variant: "destructive"
+      });
+    }
+  });
+};
+
+// Hook pour mettre à jour un plat
+export const useUpdatePlat = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async ({ id, updateData }: { id: number; updateData: any }): Promise<Plat> => {
+      console.log(`🔄 Mise à jour du plat ${id} avec:`, updateData);
+
+      const { data, error } = await supabase
+        .from('plats_db')
+        .update(updateData)
+        .eq('idplats', id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error(`❌ Erreur mise à jour plat ${id}:`, error);
+        throw new Error(`Échec mise à jour plat (${id}): ${error.message}`);
+      }
+
+      console.log('✅ Plat mis à jour avec succès:', data);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['plats'] });
+    },
+    onError: (error) => {
+      console.error('Erreur dans useUpdatePlat:', error);
+      toast({
+        title: "Erreur",
+        description: error.message || "Impossible de modifier le plat",
+        variant: "destructive"
+      });
+    }
+  });
+};
+
+// Hook pour supprimer un plat
+export const useDeletePlat = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (id: number): Promise<void> => {
+      const { error } = await supabase
+        .from('plats_db')
+        .delete()
+        .eq('idplats', id);
+
+      if (error) {
+        const contextError = new Error(`Échec suppression plat (${id}): ${error.message || 'Erreur permissions'}`);
+        contextError.cause = error;
+        throw contextError;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['plats'] });
+      toast({
+        title: "Succès",
+        description: "Plat supprimé avec succès"
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Erreur", 
+        description: error.message || "Impossible de supprimer le plat",
+        variant: "destructive"
+      });
+    }
+  });
+};
+
+// Hook pour récupérer les ruptures d'un plat
+export const usePlatRuptures = (platId?: number) => {
+  return useQuery({
+    queryKey: ['plat-ruptures', platId],
+    queryFn: async () => {
+      if (!platId) return [];
+      
+      const { data, error } = await supabase
+        .from('plats_rupture_dates')
+        .select('*')
+        .eq('plat_id', platId)
+        .eq('is_active', true)
+        .gte('date_rupture', new Date().toISOString().split('T')[0])
+        .order('date_rupture', { ascending: true });
+
+      if (error) {
+        const contextError = new Error(`Échec chargement ruptures plat (${platId}): ${error.message || 'Erreur base de données'}`);
+        contextError.cause = error;
+        throw contextError;
+      }
+
+      return data || [];
+    },
+    enabled: !!platId,
+  });
+};
+
+// Hook pour créer une rupture de stock
+export const useCreatePlatRupture = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (ruptureData: {
+      plat_id: number;
+      date_rupture: string;
+      raison_rupture?: string;
+      type_rupture?: string;
+      notes_rupture?: string;
+    }) => {
+      const { data, error } = await supabase
+        .from('plats_rupture_dates')
+        .insert(ruptureData)
+        .select();
+
+      if (error) {
+        console.error('Erreur Supabase lors de la création rupture:', error);
+        const contextError = new Error(`Échec création rupture: ${error.message || 'Erreur validation données'}`);
+        contextError.cause = error;
+        throw contextError;
+      }
+
+      // Vérifier qu'au moins une ligne a été créée
+      if (!data || data.length === 0) {
+        throw new Error('Aucune rupture créée');
+      }
+      
+      return data[0]; // Retourner la première ligne créée
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['plat-ruptures', variables.plat_id] });
+      queryClient.invalidateQueries({ queryKey: ['plats'] });
+      toast({
+        title: "Succès",
+        description: "Rupture de stock programmée"
+      });
+    },
+    onError: (error) => {
+      console.error('Erreur dans useCreatePlatRupture:', error);
+      toast({
+        title: "Erreur",
+        description: error.message || "Impossible de programmer la rupture",
+        variant: "destructive"
+      });
+    }
+  });
+};
+
+// Hook pour supprimer une rupture de stock
+export const useDeletePlatRupture = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (ruptureId: number) => {
+      const { error } = await supabase
+        .from('plats_rupture_dates')
+        .update({ is_active: false })
+        .eq('id', ruptureId);
+
+      if (error) {
+        const contextError = new Error(`Échec suppression rupture (${ruptureId}): ${error.message || 'Erreur permissions'}`);
+        contextError.cause = error;
+        throw contextError;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['plat-ruptures'] });
+      queryClient.invalidateQueries({ queryKey: ['plats'] });
+      toast({
+        title: "Succès", 
+        description: "Rupture annulée"
+      });
+    }
+  });
+};
+
+// Hook pour vérifier si un plat est disponible à une date
+export const useCheckPlatAvailability = () => {
+  return useMutation({
+    mutationFn: async ({ platId, date }: { platId: number; date: string }): Promise<boolean> => {
+      const { data, error } = await supabase
+        .rpc('is_plat_available_on_date', {
+          p_plat_id: platId,
+          p_date: date
+        });
+
+      if (error) {
+        const contextError = new Error(`Échec vérification disponibilité plat: ${error.message || 'Erreur base de données'}`);
+        contextError.cause = error;
+        throw contextError;
+      }
+
+      return data || false;
+    }
   });
 };
 
@@ -352,7 +630,9 @@ export const useCommandeById = (idcommande?: number) => {
 
       if (error) {
         if (error.code === 'PGRST116') return null;
-        throw error;
+        const contextError = new Error(`Échec récupération commande (${idcommande}): ${error.message || 'Erreur base de données'}`);
+        contextError.cause = error;
+        throw contextError;
       }
 
       // Validation des données Supabase avec gestion des erreurs de relation
@@ -454,7 +734,11 @@ export const useCommandesByClient = (firebase_uid?: string) => {
         .eq('client_r', firebase_uid)
         .order('date_de_prise_de_commande', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        const contextError = new Error(`Échec chargement liste commandes (${firebase_uid}): ${error.message || 'Erreur base de données'}`);
+        contextError.cause = error;
+        throw contextError;
+      }
 
       // Validation et mappage des données avec type safety
       return (data || []).map((commande: unknown) => {
@@ -555,7 +839,11 @@ export const useCommandes = () => {
         )
         .order('idcommande', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        const contextError = new Error(`Échec chargement toutes commandes: ${error.message || 'Erreur base de données'}`);
+        contextError.cause = error;
+        throw contextError;
+      }
 
       // Mapper les données pour l'UI avec validation
       return (data || []).map((commande: unknown) => {
@@ -641,7 +929,11 @@ export const useCommandesStats = () => {
           )
         `);
 
-      if (error) throw error;
+      if (error) {
+        const contextError = new Error(`Échec création commande: ${error.message || 'Erreur validation données'}`);
+        contextError.cause = error;
+        throw contextError;
+      }
 
       const today = new Date();
       const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
@@ -754,7 +1046,11 @@ export const useCommandesRealtimeV1 = () => {
         .order('date_de_prise_de_commande', { ascending: false })
         .limit(50);
 
-      if (error) throw error;
+      if (error) {
+        const contextError = new Error(`Échec chargement commandes récentes: ${error.message || 'Erreur base de données'}`);
+        contextError.cause = error;
+        throw contextError;
+      }
 
       return (data || []).map((commande: unknown) => {
         const commandeTyped = commande as {
@@ -822,7 +1118,11 @@ export const useUpdateCommandeV1 = () => {
         .eq('idcommande', id)
         .select();
 
-      if (error) throw error;
+      if (error) {
+        const contextError = new Error(`Échec mise à jour commande (${id}): ${error.message || 'Erreur validation'}`);
+        contextError.cause = error;
+        throw contextError;
+      }
       return data;
     },
     onSuccess: () => {
@@ -853,7 +1153,11 @@ export const useDeleteDetailsCommande = () => {
         .delete()
         .eq('iddetails', detailId);
 
-      if (error) throw error;
+      if (error) {
+        const contextError = new Error(`Échec suppression détail commande (${detailId}): ${error.message || 'Erreur permissions'}`);
+        contextError.cause = error;
+        throw contextError;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['commandes'] });
@@ -870,9 +1174,20 @@ export const useCreateDetailsCommande = () => {
       plat_r: number;
       quantite_plat_commande: number;
     }) => {
-      const { data, error } = await supabase.from('details_commande_db').insert(details).select();
+      // ✅ VALIDATION ZOD SÉCURISÉE POUR DÉTAILS COMMANDE
+      const validation = safeValidate(detailCommandeSchema, details);
+      if (!validation.success) {
+        const errorMessages = validation.errors?.issues?.map((err: any) => `${err.path.join('.')}: ${err.message}`).join('; ') || 'Erreur de validation inconnue';
+        throw new Error(`Données détail commande invalides: ${errorMessages}`);
+      }
+      
+      const { data, error } = await supabase.from('details_commande_db').insert(validation.data).select();
 
-      if (error) throw error;
+      if (error) {
+        const contextError = new Error(`Échec ajout détail commande: ${error.message || 'Erreur validation données'}`);
+        contextError.cause = error;
+        throw contextError;
+      }
       return data;
     },
     onSuccess: () => {
@@ -888,6 +1203,23 @@ export const useCreateCommande = () => {
 
   return useMutation({
     mutationFn: async (commandeData: CreateCommandeData): Promise<Commande> => {
+      // ✅ VALIDATION ZOD SÉCURISÉE POUR COMMANDES
+      const validation = safeValidate(commandeSchema, {
+        client_firebase_uid: commandeData.client_r,
+        type_livraison: commandeData.type_livraison,
+        date_et_heure_de_retrait_souhaitees: commandeData.date_et_heure_de_retrait_souhaitees,
+        demande_special_pour_la_commande: commandeData.demande_special_pour_la_commande,
+        adresse_specifique: commandeData.adresse_specifique,
+        statut_commande: 'En attente de confirmation', // valeur par défaut
+        statut_paiement: 'En attente sur place', // valeur par défaut
+      });
+      
+      if (!validation.success) {
+        console.error('Validation failed:', validation.errors);
+        const errorMessages = validation.errors?.issues?.map((err: any) => `${err.path.join('.')}: ${err.message}`).join('; ') || 'Erreur de validation inconnue';
+        throw new Error(`Données commande invalides: ${errorMessages}`);
+      }
+      
       // Récupérer l'idclient si on a le firebase_uid
       let client_r_id = commandeData.client_r_id;
 
@@ -1020,6 +1352,23 @@ export const useCreateEvenement = () => {
     mutationFn: async (evenementData: CreateEvenementData): Promise<Evenement> => {
       console.log('🚀 DÉBUT: Création événement avec données:', evenementData);
 
+      // ✅ VALIDATION ZOD SÉCURISÉE POUR ÉVÉNEMENTS
+      const validation = safeValidate(evenementSchema, {
+        nom_evenement: evenementData.nom_evenement,
+        date_evenement: evenementData.date_evenement,
+        nombre_personnes: evenementData.nombre_de_personnes || 1,
+        budget_approximatif: evenementData.budget_approximatif_euro || 0,
+        description_evenement: evenementData.commentaire_demande_client,
+        lieu_evenement: evenementData.lieu_evenement || 'Lieu à définir',
+        contact_client_r: evenementData.contact_client_r,
+        is_public: false, // valeur par défaut
+      });
+      
+      if (!validation.success) {
+        const errorMessages = validation.errors?.issues?.map((err: any) => `${err.path.join('.')}: ${err.message}`).join('; ') || 'Erreur de validation inconnue';
+        throw new Error(`Données événement invalides: ${errorMessages}`);
+      }
+
       // DIAGNOSTIC: Architecture hybride Firebase + Supabase (RLS désactivé)
       console.log('🔐 MODE: RLS désactivé - test direct sans authentification Supabase');
 
@@ -1102,7 +1451,9 @@ export const useEvenementById = (idevenements?: number) => {
 
       if (error) {
         if (error.code === 'PGRST116') return null;
-        throw error;
+        const contextError = new Error(`Échec récupération événement (${idevenements}): ${error.message || 'Erreur base de données'}`);
+        contextError.cause = error;
+        throw contextError;
       }
 
       // Mapper idevenements vers id pour l'UI
@@ -1125,7 +1476,11 @@ export const useClients = () => {
         .select('*')
         .order('nom', { ascending: true, nullsFirst: false });
 
-      if (error) throw error;
+      if (error) {
+        const contextError = new Error(`Échec chargement liste clients: ${error.message || 'Erreur base de données'}`);
+        contextError.cause = error;
+        throw contextError;
+      }
 
       return (data || []).map(client => ({
         ...client,
@@ -1164,7 +1519,11 @@ export const useEvenementsByClient = (firebase_uid?: string) => {
         .eq('contact_client_r', firebase_uid)
         .order('date_evenement', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        const contextError = new Error(`Échec chargement événements client (${firebase_uid}): ${error.message || 'Erreur base de données'}`);
+        contextError.cause = error;
+        throw contextError;
+      }
 
       // Mapper idevenements vers id pour l'UI
       return (data || []).map(evenement => ({
@@ -1176,112 +1535,7 @@ export const useEvenementsByClient = (firebase_uid?: string) => {
   });
 };
 
-// Hook pour créer un nouveau plat
-export const useCreatePlat = () => {
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
 
-  return useMutation({
-    mutationFn: async ({ data }: { data: Partial<Plat> }): Promise<Plat> => {
-      // Nettoyer les données avant insertion
-      const cleanedData = Object.fromEntries(
-        Object.entries(data).filter(([_, value]) => value !== undefined)
-      ) as Partial<Plat>;
-
-      const { data: result, error } = await supabase
-        .from('plats_db')
-        .insert(cleanedData as Database['public']['Tables']['plats_db']['Insert'])
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Erreur Supabase dans useCreatePlat:', error);
-        throw error;
-      }
-
-      return result;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['plats'] });
-      toast({
-        title: 'Plat créé',
-        description: 'Le nouveau plat a été ajouté avec succès',
-      });
-    },
-    onError: error => {
-      console.error('Erreur création plat:', error);
-      toast({
-        title: 'Erreur',
-        description: 'Impossible de créer le plat',
-        variant: 'destructive',
-      });
-    },
-  });
-};
-
-// Hook pour mettre à jour un plat
-export const useUpdatePlat = () => {
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
-
-  return useMutation({
-    mutationFn: async ({ id, updateData }: { id: number; updateData: Partial<Plat> }) => {
-      // On garde votre logique de conversion initiale
-      const convertedData: Partial<Plat> = { ...updateData };
-      const dayFields = [
-        'lundi_dispo',
-        'mardi_dispo',
-        'mercredi_dispo',
-        'jeudi_dispo',
-        'vendredi_dispo',
-        'samedi_dispo',
-        'dimanche_dispo',
-      ] as const;
-
-      dayFields.forEach(field => {
-        const value = convertedData[field];
-        if (value && typeof value === 'string') {
-          convertedData[field] = value === 'oui' || value === 'non' ? value : 'non';
-        }
-      });
-
-      // On nettoie l'objet final pour retirer les champs non définis
-      const cleanedData = Object.fromEntries(
-        Object.entries(convertedData).filter(([_, value]) => value !== undefined)
-      );
-
-      // On envoie à Supabase les données propres ET converties
-      const { data, error } = await supabase
-        .from('plats_db')
-        .update(cleanedData)
-        .eq('idplats', id)
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Erreur Supabase dans useUpdatePlat:', error);
-        throw error;
-      }
-
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['plats'] });
-      toast({
-        title: 'Plat mis à jour',
-        description: 'Les modifications ont été sauvegardées',
-      });
-    },
-    onError: error => {
-      console.error('Erreur mise à jour plat:', error);
-      toast({
-        title: 'Erreur',
-        description: 'Impossible de mettre à jour le plat',
-        variant: 'destructive',
-      });
-    },
-  });
-};
 
 // Hook pour mettre à jour une commande (ADMIN) - Version moderne
 export const useUpdateCommandeV2 = () => {
@@ -1300,7 +1554,11 @@ export const useUpdateCommandeV2 = () => {
         .eq('idcommande', id)
         .select();
 
-      if (error) throw error;
+      if (error) {
+        const contextError = new Error(`Échec opération base de données: ${error.message || 'Erreur inconnue'}`);
+        contextError.cause = error;
+        throw contextError;
+      }
       return data;
     },
     onSuccess: () => {
@@ -1388,7 +1646,11 @@ export const useUpdateCommande = () => {
         )
         .single();
 
-      if (error) throw error;
+      if (error) {
+        const contextError = new Error(`Échec opération base de données: ${error.message || 'Erreur inconnue'}`);
+        contextError.cause = error;
+        throw contextError;
+      }
 
       // Validation des données avec gestion des erreurs de relation
       if (!data) throw new Error('Aucune donnée retournée');
@@ -1522,7 +1784,11 @@ export const useUpdateEvenement = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        const contextError = new Error(`Échec opération base de données: ${error.message || 'Erreur inconnue'}`);
+        contextError.cause = error;
+        throw contextError;
+      }
       return updatedData;
     },
     onSuccess: () => {
@@ -1653,7 +1919,9 @@ export const useAddPlatToCommande = () => {
 
       if (error) {
         console.error('Erreur ajout plat:', error);
-        throw error;
+        const contextError = new Error(`Échec création événement: ${error.message || 'Erreur validation données'}`);
+        contextError.cause = error;
+        throw contextError;
       }
     },
     onSuccess: () => {
