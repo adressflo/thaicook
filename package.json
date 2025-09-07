@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "docker:status": "docker ps",
+    "docker:clean:supalocal": "docker-compose --file \"C:\\Users\\USER\\mcp\\supabase-migration\\docker-compose.yml\" down"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.1",
@@ -44,12 +46,14 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "date-fns": "^4.1.0",
+    "dotenv": "^17.2.2",
     "embla-carousel-react": "^8.6.0",
     "firebase": "^12.0.0",
     "input-otp": "^1.4.2",
     "lucide-react": "^0.539.0",
     "next": "^15.5.2",
     "next-themes": "^0.4.6",
+    "pg": "^8.16.3",
     "react": "^19.1.1",
     "react-day-picker": "^9.8.1",
     "react-dom": "^19.1.1",

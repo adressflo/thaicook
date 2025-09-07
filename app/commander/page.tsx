@@ -127,7 +127,8 @@ const Commander = memo(() => {
     if (!recherche) return [];
     if (!plats) return [];
     return plats.filter(plat =>
-      plat.plat?.toLowerCase().includes(recherche.toLowerCase())
+      plat.plat?.toLowerCase().includes(recherche.toLowerCase()) &&
+      plat.idplats !== 0  // Exclure le plat "Extra (Complément divers)"
     );
   }, [recherche, plats]);
 
@@ -135,7 +136,10 @@ const Commander = memo(() => {
     if (!jourSelectionne || !plats) return [];
     const champDispoKey =
       `${jourSelectionne.toLowerCase()}_dispo` as keyof Plat;
-    return plats.filter(plat => plat[champDispoKey] === 'oui');
+    return plats.filter(plat => 
+      plat[champDispoKey] === 'oui' && 
+      plat.idplats !== 0  // Exclure le plat "Extra (Complément divers)"
+    );
   }, [jourSelectionne, plats]);
 
   const joursOuverture = useMemo(() => {

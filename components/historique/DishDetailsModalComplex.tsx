@@ -12,9 +12,13 @@ interface DishDetailsModalComplexProps {
 
 export const DishDetailsModalComplex = React.memo<DishDetailsModalComplexProps>(({ detail, children, formatPrix }) => {
   const [open, setOpen] = React.useState(false);
-  const platName = detail.plat?.plat || 'Plat supprimé';
+  const platName = detail.type === 'complement_divers' 
+    ? (detail.nom_plat || 'Extra supprimé')
+    : (detail.plat?.plat || 'Plat supprimé');
   const quantite = detail.quantite_plat_commande || 0;
-  const prixUnitaire = detail.plat?.prix || 0;
+  const prixUnitaire = detail.type === 'complement_divers' 
+    ? (detail.prix_unitaire || 0)
+    : (detail.plat?.prix || 0);
   const sousTotal = prixUnitaire * quantite;
   const isDeleted = !detail.plat?.plat;
 
@@ -28,7 +32,7 @@ export const DishDetailsModalComplex = React.memo<DishDetailsModalComplexProps>(
         {children}
       </DialogTrigger>
       <DialogContent 
-        className="max-w-lg mx-auto bg-white rounded-xl shadow-2xl border-0 p-0 overflow-hidden animate-scaleIn transform transition-all duration-300 cursor-pointer [&>button]:hidden"
+        className="max-w-lg mx-auto bg-white rounded-xl shadow-2xl border-0 p-0 overflow-hidden animate-scaleIn transform transition-all duration-500 cursor-pointer [&>button]:hidden hover:shadow-3xl group"
         onClick={handleModalClick}
       >
         <div className="relative">
@@ -38,7 +42,7 @@ export const DishDetailsModalComplex = React.memo<DishDetailsModalComplexProps>(
               <img
                 src={detail.plat.photo_du_plat}
                 alt={platName}
-                className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                className="w-full h-full object-cover transition-all duration-500 group-hover:scale-110 group-hover:rotate-1 filter group-hover:brightness-110"
                 title="Cliquer pour fermer"
               />
             ) : (
@@ -52,6 +56,11 @@ export const DishDetailsModalComplex = React.memo<DishDetailsModalComplexProps>(
             {/* Overlay gradient plus subtil */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
             
+            {/* Effet brillance Thai pour les extras */}
+            {detail.type === 'complement_divers' && (
+              <div className="absolute inset-0 bg-gradient-to-tr from-thai-gold/30 via-transparent to-thai-orange/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            )}
+            
             {/* Badge statut */}
             <div className="absolute top-3 left-3">
               <Badge 
@@ -60,9 +69,9 @@ export const DishDetailsModalComplex = React.memo<DishDetailsModalComplexProps>(
                   isDeleted 
                     ? 'bg-red-500 text-white' 
                     : 'bg-thai-green text-white shadow-md'
-                } font-semibold px-3 py-1`}
+                } font-semibold px-3 py-1 transition-all duration-300`}
               >
-                {isDeleted ? 'Supprimé' : 'Disponible'}
+                {isDeleted ? 'Supprimé' : detail.type === 'complement_divers' ? '🍯 Extra' : '🍽️ Plat'}
               </Badge>
             </div>
 
@@ -71,9 +80,7 @@ export const DishDetailsModalComplex = React.memo<DishDetailsModalComplexProps>(
           {/* Contenu */}
           <div className="p-6 space-y-4">
             <DialogHeader>
-              <DialogTitle className={`text-xl font-bold ${
-                isDeleted ? 'text-gray-600' : 'text-thai-green'
-              }`}>
+              <DialogTitle className="text-xl font-bold text-thai-green">
                 {platName}
               </DialogTitle>
             </DialogHeader>
@@ -101,8 +108,8 @@ export const DishDetailsModalComplex = React.memo<DishDetailsModalComplexProps>(
               <div className="grid grid-cols-2 gap-4">
                 {/* Quantité */}
                 <div className="text-center group">
-                  <div className="bg-white rounded-lg p-3 shadow-sm border border-thai-orange/20 hover:shadow-md hover:border-thai-orange/50 transition-all duration-200 hover:scale-105">
-                    <div className="text-2xl font-bold text-thai-orange mb-1 group-hover:scale-110 transition-transform duration-200">{quantite}</div>
+                  <div className="bg-white rounded-lg p-3 shadow-sm border border-thai-orange/20 hover:shadow-lg hover:border-thai-orange/60 transition-all duration-300 hover:scale-105 relative overflow-hidden group/card">
+                    <div className="text-2xl font-bold text-thai-orange mb-1 group-hover:scale-110 transition-transform duration-300">{quantite}</div>
                     <div className="text-xs text-gray-600 font-medium flex items-center justify-center gap-1">
                       <Hash className="h-3 w-3" />
                       Quantité
@@ -112,8 +119,8 @@ export const DishDetailsModalComplex = React.memo<DishDetailsModalComplexProps>(
 
                 {/* Prix unitaire */}
                 <div className="text-center group">
-                  <div className="bg-white rounded-lg p-3 shadow-sm border border-thai-orange/20 hover:shadow-md hover:border-thai-orange/50 transition-all duration-200 hover:scale-105">
-                    <div className="text-lg font-bold text-thai-green mb-1 group-hover:scale-110 transition-transform duration-200">
+                  <div className="bg-white rounded-lg p-3 shadow-sm border border-thai-orange/20 hover:shadow-lg hover:border-thai-orange/60 transition-all duration-300 hover:scale-105 relative overflow-hidden group/card">
+                    <div className="text-lg font-bold text-thai-green mb-1 group-hover:scale-110 transition-transform duration-300">
                       {formatPrix(prixUnitaire)}
                     </div>
                     <div className="text-xs text-gray-600 font-medium flex items-center justify-center gap-1">
@@ -125,7 +132,7 @@ export const DishDetailsModalComplex = React.memo<DishDetailsModalComplexProps>(
               </div>
 
               {/* Sous-total */}
-              <div className="bg-white rounded-lg p-4 border-2 border-thai-orange shadow-md hover:shadow-lg hover:border-thai-orange/80 transition-all duration-200 hover:scale-105 group">
+              <div className="bg-white rounded-lg p-4 border-2 border-thai-orange shadow-md hover:shadow-xl hover:border-thai-orange transition-all duration-300 hover:scale-105 group relative overflow-hidden">
                 <div className="text-center">
                   <div className="text-xs text-gray-600 font-medium mb-1 flex items-center justify-center gap-1">
                     <Calculator className="h-3 w-3" />

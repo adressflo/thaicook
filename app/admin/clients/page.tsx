@@ -649,7 +649,7 @@ export default function AdminClients() {
   const { data: commandes } = useCommandes();
 
   // Fonction pour obtenir les initiales comme dans FloatingUserIcon
-  const getInitials = (nom?: string, prenom?: string) => {
+  const getInitials = (nom: string | null | undefined, prenom: string | null | undefined) => {
     if (prenom) {
       return prenom.charAt(0).toUpperCase()
     }

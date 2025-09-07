@@ -108,6 +108,39 @@ export type Database = {
         }
         Relationships: []
       }
+      extras_db: {
+        Row: {
+          idextra: number
+          nom_extra: string
+          description: string | null
+          prix: number
+          photo_url: string | null
+          actif: boolean | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          idextra?: number
+          nom_extra: string
+          description?: string | null
+          prix?: number
+          photo_url?: string | null
+          actif?: boolean | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          idextra?: number
+          nom_extra?: string
+          description?: string | null
+          prix?: number
+          photo_url?: string | null
+          actif?: boolean | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       plats_db: {
         Row: {
           description: string | null

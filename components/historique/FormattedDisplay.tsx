@@ -1,7 +1,7 @@
 import React from 'react';
 import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { Users, Calendar, Utensils } from 'lucide-react';
+import { Users, Calendar, Utensils, Sparkles } from 'lucide-react';
 import type { Evenement, DetailCommande, Plat } from '@/types/app';
 import { DishDetailsModalComplex } from './DishDetailsModalComplex';
 import { CalendarIcon } from './CalendarIcon';
@@ -9,7 +9,13 @@ import { CalendarIcon } from './CalendarIcon';
 interface FormattedPriceProps {
   prix: number;
   formatPrix: (prix: number) => string;
-  details?: Array<{ plat: { plat: string; prix: number } | null; quantite_plat_commande: number }>;
+  details?: Array<{ 
+    plat: { plat: string; prix: number } | null; 
+    quantite_plat_commande: number;
+    type?: string;
+    nom_plat?: string;
+    prix_unitaire?: number;
+  }>;
 }
 
 export const FormattedPrice = React.memo<FormattedPriceProps>(({ prix, formatPrix, details }) => {
@@ -31,8 +37,12 @@ export const FormattedPrice = React.memo<FormattedPriceProps>(({ prix, formatPri
           <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-thai-green text-white text-xs rounded-lg shadow-lg opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
             <div className="space-y-1">
               {details.map((detail, index) => {
-                const platName = detail.plat?.plat || 'Plat supprimé';
-                const prixPlat = detail.plat?.prix || 0;
+                const platName = detail.type === 'complement_divers'
+                  ? (detail.nom_plat || 'Extra')  
+                  : (detail.plat?.plat || 'Plat supprimé');
+                const prixPlat = detail.type === 'complement_divers'
+                  ? (detail.prix_unitaire || 0)
+                  : (detail.plat?.prix || 0);
                 const quantite = detail.quantite_plat_commande || 0;
                 const sousTotal = prixPlat * quantite;
                 
@@ -170,10 +180,13 @@ export const DishList = React.memo<DishListProps>(({ details, formatPrix }) => {
   return (
     <div className="flex flex-wrap gap-3 justify-center max-w-sm sm:max-w-md lg:max-w-lg mx-auto p-2">
       {details.map((detail, index) => {
-        const platName = detail.plat?.plat || 'Plat supprimé';
+        const isExtra = detail.type === 'complement_divers';
+        const platName = isExtra
+          ? (detail.nom_plat || 'Extra')  
+          : (detail.plat?.plat || 'Plat supprimé');
         const quantite = detail.quantite_plat_commande || 0;
         const displayName = quantite > 1 ? `${platName} (x${quantite})` : platName;
-        const isDeleted = !detail.plat?.plat;
+        const isDeleted = !isExtra && !detail.plat?.plat;
 
         return (
           <DishDetailsModalComplex
@@ -197,7 +210,11 @@ export const DishList = React.memo<DishListProps>(({ details, formatPrix }) => {
                   }
                 `}
               >
-                <Utensils className={`h-4 w-4 flex-shrink-0 ${isDeleted ? 'text-gray-400' : 'text-thai-green'}`} />
+                {isExtra ? (
+                  <Sparkles className={`h-4 w-4 flex-shrink-0 ${isDeleted ? 'text-gray-400' : 'text-thai-green animate-pulse'}`} />
+                ) : (
+                  <Utensils className={`h-4 w-4 flex-shrink-0 ${isDeleted ? 'text-gray-400' : 'text-thai-green'}`} />
+                )}
                 <span className="font-semibold truncate flex-1">{platName}</span>
                 {quantite > 1 && (
                   <span className={`px-1.5 sm:px-2 py-0.5 text-xs rounded-full font-bold whitespace-nowrap ${

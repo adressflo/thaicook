@@ -59,6 +59,7 @@ import {
   useAddPlatToCommande,
   usePlats,
   useCommandeById,
+  useExistingExtras,
 } from '@/hooks/useSupabaseData';
 import { format, isToday, isPast, isFuture } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -484,6 +485,23 @@ const PlatCommandeCard = ({
   };
 
   const handleRemovePlat = async () => {
+    console.log('🗑️ Tentative de suppression - Item V1:', {
+      iddetails: item.iddetails,
+      nom_plat: item.nom_plat,
+      type: item.type,
+      prix_unitaire: item.prix_unitaire,
+      plat: item.plat
+    });
+
+    if (!item.iddetails) {
+      toast({
+        title: "❌ Erreur",
+        description: "Impossible de supprimer cet élément : ID manquant",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const isConfirmed = window.confirm(
       `Êtes-vous sûr de vouloir supprimer "${
         item.type === 'complement_divers'
@@ -496,7 +514,12 @@ const PlatCommandeCard = ({
 
     setIsModifying(true);
     try {
-      await removePlatMutation.mutateAsync(item.iddetails);
+      console.log('🗑️ Suppression V1 avec ID:', item.iddetails);
+      console.log('🗑️ RemovePlatMutation status:', removePlatMutation);
+      const result = await removePlatMutation.mutateAsync(item.iddetails);
+      console.log('🗑️ Suppression result:', result);
+    } catch (error) {
+      console.error('🗑️ Erreur suppression:', error);
     } finally {
       setIsModifying(false);
     }
@@ -2093,6 +2116,23 @@ const ModalPlatCard = ({
   };
 
   const handleRemovePlat = async () => {
+    console.log('🗑️ Tentative de suppression - Item:', {
+      iddetails: item.iddetails,
+      nom_plat: item.nom_plat,
+      type: item.type,
+      prix_unitaire: item.prix_unitaire,
+      plat: item.plat
+    });
+
+    if (!item.iddetails) {
+      toast({
+        title: "❌ Erreur",
+        description: "Impossible de supprimer cet élément : ID manquant",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const isConfirmed = window.confirm(
       `Êtes-vous sûr de vouloir supprimer "${
         (item.nom_plat && item.prix_unitaire && !item.plat) || item.type === 'complement_divers'
@@ -2105,7 +2145,12 @@ const ModalPlatCard = ({
 
     setIsModifying(true);
     try {
-      await removePlatMutation.mutateAsync(item.iddetails);
+      console.log('🗑️ Suppression V2 avec ID:', item.iddetails);
+      console.log('🗑️ V2 RemovePlatMutation status:', removePlatMutation);
+      const result = await removePlatMutation.mutateAsync(item.iddetails);
+      console.log('🗑️ V2 Suppression result:', result);
+    } catch (error) {
+      console.error('🗑️ V2 Erreur suppression:', error);
     } finally {
       setIsModifying(false);
     }
@@ -2243,6 +2288,8 @@ const CommandeDetailsModal = ({
   const [showAddComplementModal, setShowAddComplementModal] = useState(false);
   const [nomComplement, setNomComplement] = useState('');
   const [prixComplement, setPrixComplement] = useState('');
+  const [useExistingExtra, setUseExistingExtra] = useState(false);
+  const [selectedExtraName, setSelectedExtraName] = useState('');
   
   // États pour la modification d'heure
   const [isEditingTime, setIsEditingTime] = useState(false);
@@ -2251,7 +2298,11 @@ const CommandeDetailsModal = ({
   
   // Hooks pour la gestion des plats
   const { data: plats } = usePlats();
+  const { data: existingExtras, isLoading: extrasLoading } = useExistingExtras();
   const addPlatMutation = useAddPlatToCommande();
+  
+  // Debug des extras existants
+  console.log('🔍 DEBUG - Existing extras:', { existingExtras, extrasLoading });
   const updateCommandeMutation = useUpdateCommande();
   
   // Fonctions pour la modification d'heure
@@ -2408,6 +2459,26 @@ const CommandeDetailsModal = ({
     }
   };
 
+  // Fonction pour réinitialiser le formulaire d'extra
+  const resetExtraForm = () => {
+    setNomComplement('');
+    setPrixComplement('');
+    setUseExistingExtra(false);
+    setSelectedExtraName('');
+  };
+
+  // Fonction pour sélectionner un extra existant
+  const handleSelectExistingExtra = (extraName: string) => {
+    console.log('🎯 Sélection extra:', { extraName, existingExtras });
+    const selectedExtra = existingExtras?.find(extra => extra.nom_plat === extraName);
+    console.log('🎯 Extra trouvé:', selectedExtra);
+    if (selectedExtra) {
+      setNomComplement(selectedExtra.nom_plat);
+      setPrixComplement(selectedExtra.prix_unitaire.toString());
+      setSelectedExtraName(extraName);
+    }
+  };
+
   const handleAddComplement = async () => {
     if (!nomComplement.trim() || !prixComplement || parseFloat(prixComplement) <= 0) {
       toast({
@@ -2434,8 +2505,7 @@ const CommandeDetailsModal = ({
       });
 
       // Réinitialiser le formulaire
-      setNomComplement('');
-      setPrixComplement('');
+      resetExtraForm();
       setShowAddComplementModal(false);
     } catch (error) {
       toast({
@@ -3049,8 +3119,7 @@ const CommandeDetailsModal = ({
             // Fermer le modal si on clique sur l'arrière-plan
             if (e.target === e.currentTarget) {
               setShowAddComplementModal(false);
-              setNomComplement('');
-              setPrixComplement('');
+              resetExtraForm();
             }
           }}
         >
@@ -3062,8 +3131,7 @@ const CommandeDetailsModal = ({
                   variant="ghost" 
                   onClick={() => {
                     setShowAddComplementModal(false);
-                    setNomComplement('');
-                    setPrixComplement('');
+                    resetExtraForm();
                   }}
                 >
                   <X className="w-5 h-5" />
@@ -3072,22 +3140,95 @@ const CommandeDetailsModal = ({
             </div>
 
             <div className="p-6 space-y-4">
-              {/* Nom de l'Extra */}
-              <div>
-                <Label htmlFor="nom-complement">Nom de l'Extra</Label>
-                <Input
-                  id="nom-complement"
-                  type="text"
-                  placeholder="Ex: Sauce supplémentaire, Riz jasmin..."
-                  value={nomComplement}
-                  onChange={(e) => setNomComplement(e.target.value)}
-                  className="mt-1"
-                />
+              {/* Choix entre extra existant ou nouveau */}
+              <div className="space-y-3">
+                <Label>Type d'Extra</Label>
+                <div className="flex gap-4">
+                  <Button
+                    type="button"
+                    variant={!useExistingExtra ? "default" : "outline"}
+                    onClick={() => {
+                      setUseExistingExtra(false);
+                      setNomComplement('');
+                      setPrixComplement('');
+                    }}
+                    className="flex-1"
+                  >
+                    Nouveau
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={useExistingExtra ? "default" : "outline"}
+                    onClick={() => {
+                      setUseExistingExtra(true);
+                      setNomComplement('');
+                      setPrixComplement('');
+                    }}
+                    className="flex-1"
+                    disabled={!existingExtras || existingExtras.length === 0}
+                  >
+                    Existant ({existingExtras?.length || 0})
+                  </Button>
+                </div>
               </div>
+
+              {/* Dropdown pour sélectionner un extra existant */}
+              {useExistingExtra && existingExtras && existingExtras.length > 0 && (
+                <div>
+                  <Label htmlFor="existing-extra">Choisir un Extra existant</Label>
+                  <Select
+                    value={selectedExtraName}
+                    onValueChange={(value) => {
+                      handleSelectExistingExtra(value);
+                    }}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Sélectionner un extra..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {existingExtras.map((extra) => (
+                        <SelectItem key={extra.nom_plat} value={extra.nom_plat}>
+                          <div className="flex justify-between items-center w-full">
+                            <span>{extra.nom_plat}</span>
+                            <span className="ml-4 text-thai-orange font-medium">
+                              {formatPrix(extra.prix_unitaire)}
+                            </span>
+                            <span className="ml-2 text-xs text-gray-500">
+                              ({extra.count}x)
+                            </span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              {/* Nom de l'Extra - conditionnel selon le mode */}
+              {!useExistingExtra && (
+                <div>
+                  <Label htmlFor="nom-complement">Nom de l'Extra</Label>
+                  <Input
+                    id="nom-complement"
+                    type="text"
+                    placeholder="Ex: Sauce supplémentaire, Riz jasmin..."
+                    value={nomComplement}
+                    onChange={(e) => setNomComplement(e.target.value)}
+                    className="mt-1"
+                  />
+                </div>
+              )}
 
               {/* Prix de l'Extra */}
               <div>
-                <Label htmlFor="prix-complement">Prix (€)</Label>
+                <Label htmlFor="prix-complement">
+                  Prix (€) 
+                  {useExistingExtra && (
+                    <span className="text-xs text-gray-500 ml-2">
+                      (modifiable)
+                    </span>
+                  )}
+                </Label>
                 <Input
                   id="prix-complement"
                   type="number"
@@ -3119,8 +3260,7 @@ const CommandeDetailsModal = ({
                 variant="outline" 
                 onClick={() => {
                   setShowAddComplementModal(false);
-                  setNomComplement('');
-                  setPrixComplement('');
+                  resetExtraForm();
                 }}
               >
                 Annuler

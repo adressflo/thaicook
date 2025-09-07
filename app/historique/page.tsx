@@ -72,9 +72,19 @@ const HistoriquePage = memo(() => {
   const calculateTotal = useCallback((commande: CommandeAvecDetails): number => {
     if (commande.prix_total != null) return commande.prix_total;
     
-    return commande.details?.reduce((acc, detail) => 
-      acc + (detail.plat?.prix || 0) * (detail.quantite_plat_commande || 0), 0
-    ) || 0;
+    return commande.details?.reduce((acc, detail) => {
+      const quantite = detail.quantite_plat_commande || 0;
+      let prixUnitaire = 0;
+      
+      // Gérer les extras (complement_divers) vs plats normaux
+      if (detail.type === 'complement_divers') {
+        prixUnitaire = detail.prix_unitaire || 0;
+      } else {
+        prixUnitaire = detail.plat?.prix || 0;
+      }
+      
+      return acc + prixUnitaire * quantite;
+    }, 0) || 0;
   }, []);
 
   // Fonctions de filtrage
@@ -274,76 +284,76 @@ const HistoriquePage = memo(() => {
                   <AlertDescription>{error.message}</AlertDescription>
                 </Alert>
               ) : commandesEnCours.length > 0 ? (
-                <div className="overflow-x-auto">
-                  <Table className="hover:shadow-sm transition-shadow duration-200">
-                    <TableHeader>
-                      <TableRow className="hover:bg-gradient-to-r hover:from-thai-orange/5 hover:to-thai-orange/10 transition-all duration-200">
-                        <TableHead className="text-center font-semibold text-thai-green w-1/4">
-                          <div className="flex items-center justify-center gap-2">
-                            <Calendar className="h-4 w-4 text-thai-orange" />
-                            <span>Date de retrait</span>
+                <div className="space-y-4">
+                  {/* En-têtes avec icônes */}
+                  <div className="grid grid-cols-1 md:grid-cols-5 gap-4 px-3 py-2 bg-thai-cream/30 rounded-lg border border-thai-orange/20">
+                    <div className="text-center font-semibold text-thai-green">
+                      <div className="flex items-center justify-center gap-2">
+                        <Calendar className="h-4 w-4 text-thai-orange" />
+                        <span>Date de retrait</span>
+                      </div>
+                    </div>
+                    <div className="text-center md:col-span-2 font-semibold text-thai-green">
+                      <div className="flex items-center justify-center gap-2">
+                        <Utensils className="h-4 w-4 text-thai-orange" />
+                        <span>Plats commandés</span>
+                      </div>
+                    </div>
+                    <div className="text-center font-semibold text-thai-green">
+                      <div className="flex items-center justify-center gap-2">
+                        <Euro className="h-4 w-4 text-thai-orange" />
+                        <span>Total</span>
+                      </div>
+                    </div>
+                    <div className="text-center font-semibold text-thai-green">
+                      <div className="flex items-center justify-center gap-2">
+                        <BarChart3 className="h-4 w-4 text-thai-orange" />
+                        <span>Statut</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="border border-thai-orange/20 rounded-lg p-3 bg-thai-cream/20 space-y-4">
+                  {commandesEnCours.map(c => {
+                    const canEdit =
+                      c.statut_commande !== 'Prête à récupérer' &&
+                      c.statut_commande !== 'Récupérée';
+                    return (
+                      <div key={c.idcommande} className="flex items-start gap-3 p-3 bg-white rounded-lg border border-gray-200 transition-all duration-300 hover:shadow-xl hover:bg-thai-cream/20 hover:border-thai-orange hover:ring-2 hover:ring-thai-orange/30 hover:scale-[1.02] transform cursor-pointer">
+                        <div className="flex-1 grid grid-cols-1 md:grid-cols-5 gap-4 items-center">
+                          <div className="text-center">
+                            <div className="text-sm text-gray-600 mb-1">Date de retrait</div>
+                            <FormattedDate date={c.date_et_heure_de_retrait_souhaitees} />
                           </div>
-                        </TableHead>
-                        <TableHead className="text-center font-semibold text-thai-green">
-                          <div className="flex items-center justify-center gap-2">
-                            <Utensils className="h-4 w-4 text-thai-orange" />
-                            <span>Plats commandés</span>
+                          <div className="text-center md:col-span-2">
+                            <div className="text-sm text-gray-600 mb-1">Plats commandés</div>
+                            <DishList details={(c.details || []) as Array<DetailCommande & { plat: Plat | null }>} formatPrix={formatPrix} />
                           </div>
-                        </TableHead>
-                        <TableHead className="text-center font-semibold text-thai-green">
-                          <div className="flex items-center justify-center gap-2">
-                            <Euro className="h-4 w-4 text-thai-orange" />
-                            <span>Total</span>
+                          <div className="text-center">
+                            <div className="text-sm text-gray-600 mb-1">Total</div>
+                            <FormattedPrice 
+                              prix={calculateTotal(c)} 
+                              formatPrix={formatPrix} 
+                              details={c.details?.map(d => ({
+                                plat: d.plat ? { plat: d.plat.plat, prix: d.plat.prix } : null,
+                                quantite_plat_commande: d.quantite_plat_commande,
+                                type: d.type,
+                                nom_plat: d.nom_plat,
+                                prix_unitaire: d.prix_unitaire
+                              }))}
+                            />
                           </div>
-                        </TableHead>
-                        <TableHead className="text-center font-semibold text-thai-green">
-                          <div className="flex items-center justify-center gap-2">
-                            <BarChart3 className="h-4 w-4 text-thai-orange" />
-                            <span>Statut</span>
-                          </div>
-                        </TableHead>
-                        <TableHead className="text-center font-semibold text-thai-green">
-                          <div className="flex items-center justify-center gap-2">
-                            <Zap className="h-4 w-4 text-thai-orange" />
-                            <span>Actions</span>
-                          </div>
-                        </TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {commandesEnCours.map(c => {
-                        const canEdit =
-                          c.statut_commande !== 'Prête à récupérer' &&
-                          c.statut_commande !== 'Récupérée';
-                        return (
-                          <TableRow key={c.idcommande} className="hover:bg-gradient-to-r hover:from-thai-orange/5 hover:to-transparent transition-all duration-200 hover:scale-[1.01] hover:shadow-sm">
-                            <TableCell className="text-center">
-                              <FormattedDate date={c.date_et_heure_de_retrait_souhaitees} />
-                            </TableCell>
-                            <TableCell className="text-center">
-                              <DishList details={(c.details || []) as Array<DetailCommande & { plat: Plat | null }>} formatPrix={formatPrix} />
-                            </TableCell>
-                            <TableCell className="text-center">
-                              <FormattedPrice 
-                                prix={calculateTotal(c)} 
-                                formatPrix={formatPrix} 
-                                details={c.details?.map(d => ({
-                                  plat: d.plat ? { plat: d.plat.plat, prix: d.plat.prix } : null,
-                                  quantite_plat_commande: d.quantite_plat_commande
-                                }))}
-                              />
-                            </TableCell>
-                            <TableCell className="text-center">
-                              <StatusBadge statut={c.statut_commande} type="commande" />
-                            </TableCell>
-                            <TableCell className="text-center">
+                          <div className="text-center">
+                            <div className="text-sm text-gray-600 mb-1">Statut</div>
+                            <StatusBadge statut={c.statut_commande} type="commande" />
+                            <div className="mt-2">
                               <CommandeActionButtons commandeId={c.idcommande} canEdit={canEdit} />
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  </div>
                 </div>
               ) : (
                 <EmptyState type="commandes-en-cours" />
@@ -364,71 +374,71 @@ const HistoriquePage = memo(() => {
             </CardHeader>
             <CardContent>
               {commandesHistorique.length > 0 ? (
-                <div className="overflow-x-auto">
-                  <Table className="hover:shadow-sm transition-shadow duration-200">
-                    <TableHeader>
-                      <TableRow className="hover:bg-gradient-to-r hover:from-thai-orange/5 hover:to-thai-orange/10 transition-all duration-200">
-                        <TableHead className="text-center font-semibold text-thai-green w-1/4">
-                          <div className="flex items-center justify-center gap-2">
-                            <Calendar className="h-4 w-4 text-thai-orange" />
-                            <span>Date de retrait</span>
-                          </div>
-                        </TableHead>
-                        <TableHead className="text-center font-semibold text-thai-green">
-                          <div className="flex items-center justify-center gap-2">
-                            <Utensils className="h-4 w-4 text-thai-orange" />
-                            <span>Plats commandés</span>
-                          </div>
-                        </TableHead>
-                        <TableHead className="text-center font-semibold text-thai-green">
-                          <div className="flex items-center justify-center gap-2">
-                            <Euro className="h-4 w-4 text-thai-orange" />
-                            <span>Total</span>
-                          </div>
-                        </TableHead>
-                        <TableHead className="text-center font-semibold text-thai-green">
-                          <div className="flex items-center justify-center gap-2">
-                            <BarChart3 className="h-4 w-4 text-thai-orange" />
-                            <span>Statut</span>
-                          </div>
-                        </TableHead>
-                        <TableHead className="text-center font-semibold text-thai-green">
-                          <div className="flex items-center justify-center gap-2">
-                            <Zap className="h-4 w-4 text-thai-orange" />
-                            <span>Actions</span>
-                          </div>
-                        </TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {commandesHistorique.map(c => (
-                        <TableRow key={c.idcommande} className="hover:bg-gradient-to-r hover:from-thai-orange/5 hover:to-transparent transition-all duration-200 hover:scale-[1.01] hover:shadow-sm">
-                          <TableCell className="text-center">
-                            <FormattedDate date={c.date_et_heure_de_retrait_souhaitees} />
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <DishList details={(c.details || []) as Array<DetailCommande & { plat: Plat | null }>} formatPrix={formatPrix} />
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <FormattedPrice 
-                              prix={calculateTotal(c)} 
-                              formatPrix={formatPrix} 
-                              details={c.details?.map(d => ({
-                                plat: d.plat ? { plat: d.plat.plat, prix: d.plat.prix } : null,
-                                quantite_plat_commande: d.quantite_plat_commande
-                              }))}
-                            />
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <StatusBadge statut={c.statut_commande} type="commande" />
-                          </TableCell>
-                          <TableCell className="text-center">
+                <div className="space-y-4">
+                  {/* En-têtes avec icônes */}
+                  <div className="grid grid-cols-1 md:grid-cols-5 gap-4 px-3 py-2 bg-thai-cream/30 rounded-lg border border-thai-orange/20">
+                    <div className="text-center font-semibold text-thai-green">
+                      <div className="flex items-center justify-center gap-2">
+                        <Calendar className="h-4 w-4 text-thai-orange" />
+                        <span>Date de retrait</span>
+                      </div>
+                    </div>
+                    <div className="text-center md:col-span-2 font-semibold text-thai-green">
+                      <div className="flex items-center justify-center gap-2">
+                        <Utensils className="h-4 w-4 text-thai-orange" />
+                        <span>Plats commandés</span>
+                      </div>
+                    </div>
+                    <div className="text-center font-semibold text-thai-green">
+                      <div className="flex items-center justify-center gap-2">
+                        <Euro className="h-4 w-4 text-thai-orange" />
+                        <span>Total</span>
+                      </div>
+                    </div>
+                    <div className="text-center font-semibold text-thai-green">
+                      <div className="flex items-center justify-center gap-2">
+                        <BarChart3 className="h-4 w-4 text-thai-orange" />
+                        <span>Statut</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="border border-thai-orange/20 rounded-lg p-3 bg-thai-cream/20 space-y-4">
+                  {commandesHistorique.map(c => (
+                    <div key={c.idcommande} className="flex items-start gap-3 p-3 bg-white rounded-lg border border-gray-200 transition-all duration-300 hover:shadow-xl hover:bg-thai-cream/20 hover:border-thai-orange hover:ring-2 hover:ring-thai-orange/30 hover:scale-[1.02] transform cursor-pointer">
+                      <div className="flex-1 grid grid-cols-1 md:grid-cols-5 gap-4 items-center">
+                        <div className="text-center">
+                          <div className="text-sm text-gray-600 mb-1">Date de retrait</div>
+                          <FormattedDate date={c.date_et_heure_de_retrait_souhaitees} />
+                        </div>
+                        <div className="text-center md:col-span-2">
+                          <div className="text-sm text-gray-600 mb-1">Plats commandés</div>
+                          <DishList details={(c.details || []) as Array<DetailCommande & { plat: Plat | null }>} formatPrix={formatPrix} />
+                        </div>
+                        <div className="text-center">
+                          <div className="text-sm text-gray-600 mb-1">Total</div>
+                          <FormattedPrice 
+                            prix={calculateTotal(c)} 
+                            formatPrix={formatPrix} 
+                            details={c.details?.map(d => ({
+                              plat: d.plat ? { plat: d.plat.plat, prix: d.plat.prix } : null,
+                              quantite_plat_commande: d.quantite_plat_commande,
+                              type: d.type,
+                              nom_plat: d.nom_plat,
+                              prix_unitaire: d.prix_unitaire
+                            }))}
+                          />
+                        </div>
+                        <div className="text-center">
+                          <div className="text-sm text-gray-600 mb-1">Statut</div>
+                          <StatusBadge statut={c.statut_commande} type="commande" />
+                          <div className="mt-2">
                             <CommandeActionButtons commandeId={c.idcommande} canEdit={false} />
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  </div>
                 </div>
               ) : (
                 <EmptyState type="commandes-historique" />
@@ -457,69 +467,66 @@ const HistoriquePage = memo(() => {
                   <AlertDescription>{errorEvenements.message}</AlertDescription>
                 </Alert>
               ) : evenementsEnCours.length > 0 ? (
-                <div className="overflow-x-auto">
-                  <Table className="hover:shadow-sm transition-shadow duration-200">
-                    <TableHeader>
-                      <TableRow className="hover:bg-gradient-to-r hover:from-thai-green/5 hover:to-thai-green/10 transition-all duration-200">
-                        <TableHead className="text-center font-semibold text-thai-green">
-                          <div className="flex items-center justify-center gap-2">
-                            <PartyPopper className="h-4 w-4 text-thai-orange" />
-                            <span>Événement</span>
+                <div className="space-y-4">
+                  {/* En-têtes avec icônes */}
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 px-3 py-2 bg-thai-cream/30 rounded-lg border border-thai-green/20">
+                    <div className="text-center font-semibold text-thai-green">
+                      <div className="flex items-center justify-center gap-2">
+                        <PartyPopper className="h-4 w-4 text-thai-orange" />
+                        <span>Événement</span>
+                      </div>
+                    </div>
+                    <div className="text-center font-semibold text-thai-green">
+                      <div className="flex items-center justify-center gap-2">
+                        <Calendar className="h-4 w-4 text-thai-orange" />
+                        <span>Date prévue</span>
+                      </div>
+                    </div>
+                    <div className="text-center font-semibold text-thai-green">
+                      <div className="flex items-center justify-center gap-2">
+                        <Users className="h-4 w-4 text-thai-orange" />
+                        <span>Personnes</span>
+                      </div>
+                    </div>
+                    <div className="text-center font-semibold text-thai-green">
+                      <div className="flex items-center justify-center gap-2">
+                        <BarChart3 className="h-4 w-4 text-thai-orange" />
+                        <span>Statut</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="border border-thai-green/20 rounded-lg p-3 bg-thai-cream/20 space-y-4">
+                  {evenementsEnCours.map(evt => {
+                    const canEdit =
+                      evt.statut_evenement !== 'Réalisé' &&
+                      evt.statut_evenement !== 'Payé intégralement';
+                    return (
+                      <div key={evt.idevenements} className="flex items-start gap-3 p-3 bg-white rounded-lg border border-gray-200 transition-all duration-300 hover:shadow-xl hover:bg-thai-cream/20 hover:border-thai-green hover:ring-2 hover:ring-thai-green/30 hover:scale-[1.02] transform cursor-pointer">
+                        <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
+                          <div className="text-center">
+                            <div className="text-sm text-gray-600 mb-1">Événement</div>
+                            <FormattedEvent event={evt} />
                           </div>
-                        </TableHead>
-                        <TableHead className="text-center font-semibold text-thai-green">
-                          <div className="flex items-center justify-center gap-2">
-                            <Calendar className="h-4 w-4 text-thai-orange" />
-                            <span>Date prévue</span>
+                          <div className="text-center">
+                            <div className="text-sm text-gray-600 mb-1">Date prévue</div>
+                            <FormattedDate date={evt.date_evenement} />
                           </div>
-                        </TableHead>
-                        <TableHead className="text-center font-semibold text-thai-green">
-                          <div className="flex items-center justify-center gap-2">
-                            <Users className="h-4 w-4 text-thai-orange" />
-                            <span>Personnes</span>
+                          <div className="text-center">
+                            <div className="text-sm text-gray-600 mb-1">Personnes</div>
+                            <PersonCount count={evt.nombre_de_personnes} />
                           </div>
-                        </TableHead>
-                        <TableHead className="text-center font-semibold text-thai-green">
-                          <div className="flex items-center justify-center gap-2">
-                            <BarChart3 className="h-4 w-4 text-thai-orange" />
-                            <span>Statut</span>
-                          </div>
-                        </TableHead>
-                        <TableHead className="text-center font-semibold text-thai-green">
-                          <div className="flex items-center justify-center gap-2">
-                            <Zap className="h-4 w-4 text-thai-orange" />
-                            <span>Actions</span>
-                          </div>
-                        </TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {evenementsEnCours.map(evt => {
-                        const canEdit =
-                          evt.statut_evenement !== 'Réalisé' &&
-                          evt.statut_evenement !== 'Payé intégralement';
-                        return (
-                          <TableRow key={evt.idevenements} className="hover:bg-gradient-to-r hover:from-thai-green/5 hover:to-transparent transition-all duration-200 hover:scale-[1.01] hover:shadow-sm">
-                            <TableCell className="text-center">
-                              <FormattedEvent event={evt} />
-                            </TableCell>
-                            <TableCell className="text-center">
-                              <FormattedDate date={evt.date_evenement} />
-                            </TableCell>
-                            <TableCell className="text-center">
-                              <PersonCount count={evt.nombre_de_personnes} />
-                            </TableCell>
-                            <TableCell className="text-center">
-                              <StatusBadge statut={evt.statut_evenement} type="evenement" />
-                            </TableCell>
-                            <TableCell className="text-center">
+                          <div className="text-center">
+                            <div className="text-sm text-gray-600 mb-1">Statut</div>
+                            <StatusBadge statut={evt.statut_evenement} type="evenement" />
+                            <div className="mt-2">
                               <EvenementActionButtons evenementId={evt.idevenements} canEdit={canEdit} />
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  </div>
                 </div>
               ) : (
                 <EmptyState type="evenements-en-cours" />
@@ -540,64 +547,61 @@ const HistoriquePage = memo(() => {
             </CardHeader>
             <CardContent>
               {evenementsHistorique.length > 0 ? (
-                <div className="overflow-x-auto">
-                  <Table className="hover:shadow-sm transition-shadow duration-200">
-                    <TableHeader>
-                      <TableRow className="hover:bg-gradient-to-r hover:from-thai-green/5 hover:to-thai-green/10 transition-all duration-200">
-                        <TableHead className="text-center font-semibold text-thai-green">
-                          <div className="flex items-center justify-center gap-2">
-                            <PartyPopper className="h-4 w-4 text-thai-orange" />
-                            <span>Événement</span>
-                          </div>
-                        </TableHead>
-                        <TableHead className="text-center font-semibold text-thai-green">
-                          <div className="flex items-center justify-center gap-2">
-                            <Calendar className="h-4 w-4 text-thai-orange" />
-                            <span>Date prévue</span>
-                          </div>
-                        </TableHead>
-                        <TableHead className="text-center font-semibold text-thai-green">
-                          <div className="flex items-center justify-center gap-2">
-                            <Users className="h-4 w-4 text-thai-orange" />
-                            <span>Personnes</span>
-                          </div>
-                        </TableHead>
-                        <TableHead className="text-center font-semibold text-thai-green">
-                          <div className="flex items-center justify-center gap-2">
-                            <BarChart3 className="h-4 w-4 text-thai-orange" />
-                            <span>Statut</span>
-                          </div>
-                        </TableHead>
-                        <TableHead className="text-center font-semibold text-thai-green">
-                          <div className="flex items-center justify-center gap-2">
-                            <Zap className="h-4 w-4 text-thai-orange" />
-                            <span>Actions</span>
-                          </div>
-                        </TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {evenementsHistorique.map(evt => (
-                        <TableRow key={evt.idevenements} className="hover:bg-gradient-to-r hover:from-thai-green/5 hover:to-transparent transition-all duration-200 hover:scale-[1.01] hover:shadow-sm">
-                          <TableCell className="text-center">
-                            <FormattedEvent event={evt} />
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <FormattedDate date={evt.date_evenement} />
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <PersonCount count={evt.nombre_de_personnes} />
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <StatusBadge statut={evt.statut_evenement} type="evenement" />
-                          </TableCell>
-                          <TableCell className="text-center">
+                <div className="space-y-4">
+                  {/* En-têtes avec icônes */}
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 px-3 py-2 bg-thai-cream/30 rounded-lg border border-thai-green/20">
+                    <div className="text-center font-semibold text-thai-green">
+                      <div className="flex items-center justify-center gap-2">
+                        <PartyPopper className="h-4 w-4 text-thai-orange" />
+                        <span>Événement</span>
+                      </div>
+                    </div>
+                    <div className="text-center font-semibold text-thai-green">
+                      <div className="flex items-center justify-center gap-2">
+                        <Calendar className="h-4 w-4 text-thai-orange" />
+                        <span>Date prévue</span>
+                      </div>
+                    </div>
+                    <div className="text-center font-semibold text-thai-green">
+                      <div className="flex items-center justify-center gap-2">
+                        <Users className="h-4 w-4 text-thai-orange" />
+                        <span>Personnes</span>
+                      </div>
+                    </div>
+                    <div className="text-center font-semibold text-thai-green">
+                      <div className="flex items-center justify-center gap-2">
+                        <BarChart3 className="h-4 w-4 text-thai-orange" />
+                        <span>Statut</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="border border-thai-green/20 rounded-lg p-3 bg-thai-cream/20 space-y-4">
+                  {evenementsHistorique.map(evt => (
+                    <div key={evt.idevenements} className="flex items-start gap-3 p-3 bg-white rounded-lg border border-gray-200 transition-all duration-300 hover:shadow-xl hover:bg-thai-cream/20 hover:border-thai-green hover:ring-2 hover:ring-thai-green/30 hover:scale-[1.02] transform cursor-pointer">
+                      <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
+                        <div className="text-center">
+                          <div className="text-sm text-gray-600 mb-1">Événement</div>
+                          <FormattedEvent event={evt} />
+                        </div>
+                        <div className="text-center">
+                          <div className="text-sm text-gray-600 mb-1">Date prévue</div>
+                          <FormattedDate date={evt.date_evenement} />
+                        </div>
+                        <div className="text-center">
+                          <div className="text-sm text-gray-600 mb-1">Personnes</div>
+                          <PersonCount count={evt.nombre_de_personnes} />
+                        </div>
+                        <div className="text-center">
+                          <div className="text-sm text-gray-600 mb-1">Statut</div>
+                          <StatusBadge statut={evt.statut_evenement} type="evenement" />
+                          <div className="mt-2">
                             <EvenementActionButtons evenementId={evt.idevenements} canEdit={false} />
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  </div>
                 </div>
               ) : (
                 <EmptyState type="evenements-historique" />

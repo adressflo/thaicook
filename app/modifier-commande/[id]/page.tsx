@@ -197,7 +197,9 @@ const ModifierCommande = memo(() => {
   const platsDisponibles = useMemo(() => {
     if (!jourSelectionne || !plats) return [];
     const champDispoKey = `${jourSelectionne.toLowerCase()}_dispo` as keyof Plat;
-    return plats.filter(plat => plat[champDispoKey] === 'oui');
+    return plats.filter(plat => 
+      plat[champDispoKey] === 'oui' && plat.idplats !== 0 // Exclure Extra (Complément divers)
+    );
   }, [jourSelectionne, plats]);
 
   const joursOuverture = useMemo(() => {

@@ -2,7 +2,6 @@
 const nextConfig = {
   typedRoutes: true,
   experimental: {
-    serverActions: true,
     typedEnv: true,
   },
   images: {

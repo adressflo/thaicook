@@ -12,6 +12,7 @@ export type DetailCommande = Database['public']['Tables']['details_commande_db']
   type?: 'plat' | 'complement' | 'complement_divers' | null // Type pour distinguer plats vs compléments
 }
 export type Evenement = Database['public']['Tables']['evenements_db']['Row']
+export type Extra = Database['public']['Tables']['extras_db']['Row']
 
 // Types d'approvisionnement
 export type ListeCourse = Database['public']['Tables']['listes_courses']['Row']
@@ -21,6 +22,7 @@ export type ArticleListeCourse = Database['public']['Tables']['articles_liste_co
 export type ClientInputData = Database['public']['Tables']['client_db']['Insert']
 export type CommandeInputData = Database['public']['Tables']['commande_db']['Insert']
 export type EvenementInputData = Database['public']['Tables']['evenements_db']['Insert']
+export type ExtraInputData = Database['public']['Tables']['extras_db']['Insert']
 
 // Type pour l'interface utilisateur des plats
 export interface PlatUI extends Plat {
@@ -28,6 +30,7 @@ export interface PlatUI extends Plat {
   nom_plat?: string // Alias pour `plat`
   url_photo?: string // Alias pour `photo_du_plat`
   disponible?: boolean // Calculé depuis les jours et est_epuise
+  categorie?: string // Catégorie du plat (plat principal, complement_divers, etc.)
 }
 
 // Type pour un plat dans le panier
@@ -78,6 +81,11 @@ export interface CommandeAvecDetails extends Commande {
 // Type pour l'interface utilisateur des événements
 export interface EvenementUI extends Evenement {
   id: number // Mappage de idevenements vers id pour l'UI
+}
+
+// Type pour l'interface utilisateur des extras
+export interface ExtraUI extends Extra {
+  id: number // Mappage de idextra vers id pour l'UI
 }
 
 // Type pour l'interface utilisateur des clients

@@ -28,10 +28,17 @@ import {
   Utensils,
   ChefHat
 } from 'lucide-react';
-import { usePlats, useCreatePlat, useUpdatePlat } from '@/hooks/useSupabaseData';
+import { usePlats, useCreatePlat, useUpdatePlat, useExistingExtras, useExtras, useCreateExtra, useUpdateExtra, useDeleteExtra } from '@/hooks/useSupabaseData';
 import type { PlatUI as Plat } from '@/types/app';
 import { EditableField } from '@/components/ui/EditableField';
 import { DateRuptureManager } from '@/components/admin/DateRuptureManager';
+import { 
+  uploadImageToStorage, 
+  validateImageFile, 
+  createImagePreview, 
+  revokeImagePreview,
+  type UploadState 
+} from '@/lib/supabaseStorage';
 
 // Fonction pour formater le prix à la française
 const formatPrice = (price: number): string => {
@@ -39,6 +46,721 @@ const formatPrice = (price: number): string => {
     minimumFractionDigits: 2, 
     maximumFractionDigits: 2 
   }) + '€';
+};
+
+// Composant pour créer un nouvel extra
+const NewExtraButton = () => {
+  const { toast } = useToast();
+  const createExtraMutation = useCreateExtra();
+  const { refetch: refetchExtras } = useExtras();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newExtraForm, setNewExtraForm] = useState({
+    nom_extra: '',
+    prix: '',
+    description: '',
+    photo_url: 'https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png'
+  });
+  const [uploadState, setUploadState] = useState<UploadState>({
+    isUploading: false,
+    progress: 0,
+    error: null,
+    url: null
+  });
+
+  const handleImageUpload = async (file: File) => {
+    // Valider le fichier
+    const validation = validateImageFile(file);
+    if (!validation.isValid) {
+      toast({
+        title: "Erreur",
+        description: validation.error,
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // État de chargement
+    setUploadState(prev => ({ ...prev, isUploading: true, error: null }));
+
+    try {
+      // Créer un aperçu temporaire
+      const previewUrl = createImagePreview(file);
+      setNewExtraForm(prev => ({ ...prev, photo_url: previewUrl }));
+
+      // Uploader vers Supabase Storage
+      const result = await uploadImageToStorage(file, 'extras');
+
+      if (result.success && result.data) {
+        // Mettre à jour avec l'URL finale
+        setNewExtraForm(prev => ({ ...prev, photo_url: result.data!.url }));
+        setUploadState(prev => ({ 
+          ...prev, 
+          isUploading: false, 
+          url: result.data!.url 
+        }));
+
+        // Nettoyer l'aperçu temporaire
+        revokeImagePreview(previewUrl);
+
+        toast({
+          title: "Succès",
+          description: "Image uploadée avec succès",
+          variant: "default"
+        });
+      } else {
+        setUploadState(prev => ({ 
+          ...prev, 
+          isUploading: false, 
+          error: result.error || "Erreur d'upload inconnue" 
+        }));
+
+        toast({
+          title: "Erreur",
+          description: result.error || "Erreur lors de l'upload",
+          variant: "destructive"
+        });
+
+        // Restaurer l'image par défaut
+        setNewExtraForm(prev => ({ 
+          ...prev, 
+          photo_url: 'https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png' 
+        }));
+        revokeImagePreview(previewUrl);
+      }
+    } catch (error) {
+      console.error('Erreur upload:', error);
+      setUploadState(prev => ({ 
+        ...prev, 
+        isUploading: false, 
+        error: 'Erreur inattendue lors de l\'upload' 
+      }));
+
+      toast({
+        title: "Erreur",
+        description: "Erreur inattendue lors de l'upload",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleCreateExtra = async () => {
+    if (!newExtraForm.nom_extra || !newExtraForm.prix) {
+      toast({
+        title: "Erreur",
+        description: "Le nom et le prix sont obligatoires",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      await createExtraMutation.mutateAsync({
+        nom_extra: newExtraForm.nom_extra,
+        description: newExtraForm.description,
+        prix: parseFloat(newExtraForm.prix),
+        photo_url: newExtraForm.photo_url
+      });
+
+      toast({
+        title: "Succès",
+        description: `Extra "${newExtraForm.nom_extra}" créé avec succès`,
+        variant: "default"
+      });
+
+      // Rafraîchir les données
+      refetchExtras();
+
+      // Réinitialiser le formulaire
+      setIsModalOpen(false);
+      setNewExtraForm({
+        nom_extra: '',
+        prix: '',
+        description: '',
+        photo_url: 'https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png'
+      });
+      setUploadState({
+        isUploading: false,
+        progress: 0,
+        error: null,
+        url: null
+      });
+    } catch (error) {
+      console.error('Erreur création extra:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de créer l'extra",
+        variant: "destructive"
+      });
+    }
+  };
+
+  return (
+    <>
+      <Button 
+        onClick={() => setIsModalOpen(true)}
+        className="bg-thai-green hover:bg-thai-green/90 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+      >
+        <Plus className="w-4 h-4 mr-2" />
+        Nouvel Extra
+      </Button>
+
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="sm:max-w-[500px] bg-white border border-thai-orange shadow-xl">
+          <DialogHeader>
+            <DialogTitle className="text-thai-green text-xl font-bold flex items-center gap-2">
+              <Plus className="w-5 h-5 text-thai-orange" />
+              Créer un Nouvel Extra Thai
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-6 mt-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label className="text-thai-green font-semibold flex items-center gap-2">
+                  <Package className="w-4 h-4 text-thai-orange" />
+                  Nom de l'extra
+                </Label>
+                <Input
+                  value={newExtraForm.nom_extra}
+                  onChange={(e) => setNewExtraForm(prev => ({ ...prev, nom_extra: e.target.value }))}
+                  className="border-thai-orange/30 focus:border-thai-orange focus:ring-thai-orange/20 bg-thai-cream/20 text-thai-green font-medium"
+                  placeholder="Ex: Coca Cola, Thé Thaï..."
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label className="text-thai-green font-semibold flex items-center gap-2">
+                  <Euro className="w-4 h-4 text-thai-orange" />
+                  Prix (€)
+                </Label>
+                <Input
+                  value={newExtraForm.prix}
+                  onChange={(e) => setNewExtraForm(prev => ({ ...prev, prix: e.target.value }))}
+                  type="number"
+                  step="0.01"
+                  className="border-thai-orange/30 focus:border-thai-orange focus:ring-thai-orange/20 bg-thai-cream/20 text-thai-green font-medium"
+                  placeholder="25.00"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-thai-green font-semibold">Photo</Label>
+              
+              {/* Aperçu de l'image */}
+              <div className="mb-3">
+                <img
+                  src={newExtraForm.photo_url}
+                  alt="Aperçu"
+                  className="w-20 h-20 rounded-lg object-cover border-2 border-thai-orange/30"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = 'https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png';
+                  }}
+                />
+              </div>
+
+              <div className="flex gap-2">
+                <Input
+                  value={newExtraForm.photo_url}
+                  onChange={(e) => setNewExtraForm(prev => ({ ...prev, photo_url: e.target.value }))}
+                  className="border-thai-orange/30 focus:border-thai-orange focus:ring-thai-orange/20 bg-thai-cream/20 flex-1"
+                  placeholder="https://..."
+                  disabled={uploadState.isUploading}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="border-thai-orange text-thai-orange hover:bg-thai-orange hover:text-white disabled:opacity-50"
+                  disabled={uploadState.isUploading}
+                  onClick={() => {
+                    const input = document.createElement('input');
+                    input.type = 'file';
+                    input.accept = 'image/jpeg,image/jpg,image/png,image/webp,image/gif';
+                    input.onchange = (e) => {
+                      const file = (e.target as HTMLInputElement).files?.[0];
+                      if (file) {
+                        handleImageUpload(file);
+                      }
+                    };
+                    input.click();
+                  }}
+                >
+                  {uploadState.isUploading ? (
+                    <div className="animate-spin w-4 h-4 border-2 border-current border-t-transparent rounded-full" />
+                  ) : (
+                    <Image className="w-4 h-4" />
+                  )}
+                </Button>
+              </div>
+
+              {/* État de l'upload */}
+              {uploadState.isUploading && (
+                <p className="text-sm text-thai-orange animate-pulse">
+                  Upload en cours...
+                </p>
+              )}
+              {uploadState.error && (
+                <p className="text-sm text-red-500">
+                  {uploadState.error}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-thai-green font-semibold">Description</Label>
+              <Textarea
+                value={newExtraForm.description}
+                onChange={(e) => setNewExtraForm(prev => ({ ...prev, description: e.target.value }))}
+                className="border-thai-orange/30 focus:border-thai-orange focus:ring-thai-orange/20 bg-thai-cream/20"
+                rows={3}
+                placeholder="Description de l'extra..."
+              />
+            </div>
+
+            <div className="flex gap-3 pt-4">
+              <Button
+                onClick={handleCreateExtra}
+                disabled={createExtraMutation.isPending}
+                className="bg-thai-green hover:bg-thai-green/90 text-white shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50"
+              >
+                {createExtraMutation.isPending ? (
+                  <div className="animate-spin w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full"></div>
+                ) : (
+                  <Save className="w-4 h-4 mr-2" />
+                )}
+                {createExtraMutation.isPending ? 'Création...' : 'Créer l\'Extra'}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setIsModalOpen(false)}
+                className="border-thai-orange text-thai-orange hover:bg-thai-orange hover:text-white transition-all duration-300"
+              >
+                <X className="w-4 h-4 mr-2" />
+                Annuler
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+};
+
+// Composant pour afficher et éditer les extras existants avec design Thai
+const ExistingExtrasDisplay = () => {
+  const { data: extras, isLoading, error } = useExtras();
+  const updateExtraMutation = useUpdateExtra();
+  const deleteExtraMutation = useDeleteExtra();
+  const [editingExtra, setEditingExtra] = useState<number | null>(null);
+  const [editForm, setEditForm] = useState({
+    nom_extra: '',
+    prix: '',
+    description: '',
+    photo_url: ''
+  });
+  const [editUploadState, setEditUploadState] = useState<UploadState>({
+    isUploading: false,
+    progress: 0,
+    error: null,
+    url: null
+  });
+
+  const handleStartEdit = (extra: any) => {
+    setEditForm({
+      nom_extra: extra.nom_extra || '',
+      prix: extra.prix?.toString() || '',
+      description: extra.description || '',
+      photo_url: extra.photo_url || 'https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png'
+    });
+    setEditingExtra(extra.idextra);
+    // Réinitialiser l'état d'upload
+    setEditUploadState({
+      isUploading: false,
+      progress: 0,
+      error: null,
+      url: null
+    });
+  };
+
+  const { toast } = useToast();
+
+  const handleEditImageUpload = async (file: File) => {
+    // Valider le fichier
+    const validation = validateImageFile(file);
+    if (!validation.isValid) {
+      toast({
+        title: "Erreur",
+        description: validation.error,
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // État de chargement
+    setEditUploadState(prev => ({ ...prev, isUploading: true, error: null }));
+
+    try {
+      // Créer un aperçu temporaire
+      const previewUrl = createImagePreview(file);
+      setEditForm(prev => ({ ...prev, photo_url: previewUrl }));
+
+      // Uploader vers Supabase Storage
+      const result = await uploadImageToStorage(file, 'extras');
+
+      if (result.success && result.data) {
+        // Mettre à jour avec l'URL finale
+        setEditForm(prev => ({ ...prev, photo_url: result.data!.url }));
+        setEditUploadState(prev => ({ 
+          ...prev, 
+          isUploading: false, 
+          url: result.data!.url 
+        }));
+
+        // Nettoyer l'aperçu temporaire
+        revokeImagePreview(previewUrl);
+
+        toast({
+          title: "Succès",
+          description: "Image uploadée avec succès",
+          variant: "default"
+        });
+      } else {
+        setEditUploadState(prev => ({ 
+          ...prev, 
+          isUploading: false, 
+          error: result.error || "Erreur d'upload inconnue" 
+        }));
+
+        toast({
+          title: "Erreur",
+          description: result.error || "Erreur lors de l'upload",
+          variant: "destructive"
+        });
+
+        // Restaurer l'image précédente
+        revokeImagePreview(previewUrl);
+      }
+    } catch (error) {
+      console.error('Erreur upload:', error);
+      setEditUploadState(prev => ({ 
+        ...prev, 
+        isUploading: false, 
+        error: 'Erreur inattendue lors de l\'upload' 
+      }));
+
+      toast({
+        title: "Erreur",
+        description: "Erreur inattendue lors de l'upload",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingExtra) return;
+    
+    try {
+      await updateExtraMutation.mutateAsync({
+        id: editingExtra,
+        updates: {
+          nom_extra: editForm.nom_extra,
+          prix: parseFloat(editForm.prix),
+          description: editForm.description,
+          photo_url: editForm.photo_url
+        }
+      });
+      
+      setEditingExtra(null);
+    } catch (error) {
+      console.error('Erreur sauvegarde extra:', error);
+    }
+  };
+
+  const handleDeleteExtra = async (extraId: number) => {
+    try {
+      await deleteExtraMutation.mutateAsync(extraId);
+    } catch (error) {
+      console.error('Erreur suppression extra:', error);
+    }
+  };
+
+  const handleTransformToPlat = (extra: any) => {
+    // TODO: Transformer l'extra en plat du menu
+    toast({
+      title: "Fonctionnalité prochainement disponible",
+      description: "La transformation en plat de menu sera bientôt disponible",
+    });
+  };
+
+  if (isLoading) {
+    return (
+      <div className="text-center py-8">
+        <div className="relative">
+          <div className="animate-spin w-12 h-12 border-4 border-thai-orange/20 border-t-thai-orange rounded-full mx-auto"></div>
+          <div className="absolute inset-0 animate-pulse">
+            <div className="w-6 h-6 bg-thai-cream rounded-full mx-auto mt-3"></div>
+          </div>
+        </div>
+        <p className="text-thai-green mt-4 font-medium">Chargement de vos extras Thai...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className="border-2 border-thai-red/30 bg-gradient-to-br from-thai-red/5 to-white">
+        <CardContent className="p-6 text-center">
+          <div className="text-thai-red text-4xl mb-3">⚠️</div>
+          <p className="text-thai-red font-medium">Erreur lors du chargement des extras</p>
+          <p className="text-thai-red/70 text-sm mt-2">Veuillez rafraîchir la page</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!extras || extras.length === 0) {
+    return (
+      <Card className="border-dashed border-2 border-thai-orange/40 hover:border-thai-orange/60 transition-all duration-500 bg-gradient-to-br from-thai-cream/20 via-white to-thai-orange/5 hover:shadow-xl group">
+        <CardContent className="p-8 text-center">
+          <div className="text-6xl mb-4 group-hover:animate-bounce">🍜</div>
+          <h3 className="text-thai-green font-bold text-lg mb-2">Aucun extra créé</h3>
+          <p className="text-thai-green/70 mb-1">Créez vos premiers compléments Thai</p>
+          <p className="text-sm text-thai-orange/70">Utilisez le bouton "Nouvel Extra" ci-dessus</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="grid gap-6">
+      {extras.map((extra, index) => {
+        const isEditing = editingExtra === extra.idextra;
+        
+        return (
+          <Card 
+            key={extra.idextra} 
+            className="group border-l-4 border-thai-orange hover:border-thai-green transition-all duration-500 hover:shadow-2xl hover:shadow-thai-orange/10 bg-gradient-to-r from-white via-thai-cream/10 to-thai-orange/5 hover:from-thai-cream/20 hover:to-thai-orange/10 transform hover:scale-[1.02] hover:-translate-y-1"
+          >
+            <CardContent className="p-6">
+              {isEditing ? (
+                // Mode édition avec design Thai
+                <div className="space-y-6 animate-fadeIn">
+                  <div className="flex items-center gap-4 pb-4 border-b border-thai-orange/20">
+                    <div className="relative group">
+                      <img
+                        src={editForm.photo_url}
+                        alt="Extra"
+                        className="w-16 h-16 rounded-xl object-cover border-2 border-thai-orange/30 group-hover:border-thai-orange transition-all duration-300"
+                      />
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all duration-300 rounded-xl flex items-center justify-center">
+                        <Edit2 className="w-5 h-5 text-white" />
+                      </div>
+                    </div>
+                    <Badge className="bg-thai-orange/20 text-thai-orange border-thai-orange/30 animate-pulse">
+                      Edition Thai
+                    </Badge>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label className="text-thai-green font-semibold flex items-center gap-2">
+                        <Package className="w-4 h-4 text-thai-orange" />
+                        Nom du complément
+                      </Label>
+                      <Input
+                        value={editForm.nom_extra}
+                        onChange={(e) => setEditForm(prev => ({ ...prev, nom_extra: e.target.value }))}
+                        className="border-thai-orange/30 focus:border-thai-orange focus:ring-thai-orange/20 bg-thai-cream/20 text-thai-green font-medium"
+                        placeholder="Ex: Coca Cola, Thé Thaï..."
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label className="text-thai-green font-semibold flex items-center gap-2">
+                        <Euro className="w-4 h-4 text-thai-orange" />
+                        Prix (€)
+                      </Label>
+                      <Input
+                        value={editForm.prix}
+                        onChange={(e) => setEditForm(prev => ({ ...prev, prix: e.target.value }))}
+                        type="number"
+                        step="0.01"
+                        className="border-thai-orange/30 focus:border-thai-orange focus:ring-thai-orange/20 bg-thai-cream/20 text-thai-green font-medium"
+                        placeholder="25.00"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-thai-green font-semibold">Description</Label>
+                    <Textarea
+                      value={editForm.description}
+                      onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))}
+                      className="border-thai-orange/30 focus:border-thai-orange focus:ring-thai-orange/20 bg-thai-cream/20 text-thai-green"
+                      placeholder="Description du complément..."
+                      rows={3}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-thai-green font-semibold">Photo</Label>
+                    
+                    {/* Aperçu de l'image */}
+                    <div className="mb-3">
+                      <img
+                        src={editForm.photo_url}
+                        alt="Aperçu"
+                        className="w-20 h-20 rounded-lg object-cover border-2 border-thai-orange/30"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = 'https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png';
+                        }}
+                      />
+                    </div>
+                    
+                    <div className="flex gap-2">
+                      <Input
+                        value={editForm.photo_url}
+                        onChange={(e) => setEditForm(prev => ({ ...prev, photo_url: e.target.value }))}
+                        className="border-thai-orange/30 focus:border-thai-orange focus:ring-thai-orange/20 bg-thai-cream/20 flex-1"
+                        placeholder="https://..."
+                        disabled={editUploadState.isUploading}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="border-thai-orange text-thai-orange hover:bg-thai-orange hover:text-white disabled:opacity-50"
+                        disabled={editUploadState.isUploading}
+                        onClick={() => {
+                          const input = document.createElement('input');
+                          input.type = 'file';
+                          input.accept = 'image/jpeg,image/jpg,image/png,image/webp,image/gif';
+                          input.onchange = (e) => {
+                            const file = (e.target as HTMLInputElement).files?.[0];
+                            if (file) {
+                              handleEditImageUpload(file);
+                            }
+                          };
+                          input.click();
+                        }}
+                      >
+                        {editUploadState.isUploading ? (
+                          <div className="animate-spin w-4 h-4 border-2 border-current border-t-transparent rounded-full" />
+                        ) : (
+                          <Image className="w-4 h-4" />
+                        )}
+                      </Button>
+                    </div>
+
+                    {/* État de l'upload */}
+                    {editUploadState.isUploading && (
+                      <p className="text-sm text-thai-orange animate-pulse">
+                        Upload en cours...
+                      </p>
+                    )}
+                    {editUploadState.error && (
+                      <p className="text-sm text-red-500">
+                        {editUploadState.error}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-thai-green font-semibold">Description</Label>
+                    <Textarea
+                      value={editForm.description}
+                      onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))}
+                      className="border-thai-orange/30 focus:border-thai-orange focus:ring-thai-orange/20 bg-thai-cream/20"
+                      rows={2}
+                      placeholder="Description du complément..."
+                    />
+                  </div>
+
+                  <div className="flex gap-3 pt-4">
+                    <Button
+                      onClick={handleSaveEdit}
+                      className="bg-thai-green hover:bg-thai-green/90 text-white shadow-lg hover:shadow-xl transition-all duration-300"
+                    >
+                      <Save className="w-4 h-4 mr-2" />
+                      Sauvegarder Thai
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => setEditingExtra(null)}
+                      className="border-thai-orange text-thai-orange hover:bg-thai-orange hover:text-white transition-all duration-300"
+                    >
+                      <X className="w-4 h-4 mr-2" />
+                      Annuler
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                // Mode affichage avec design Thai amélioré
+                <div className="flex items-center gap-6 animate-slideInUp">
+                  <div className="relative group cursor-pointer" onClick={() => handleStartEdit(extra)}>
+                    <img
+                      src={extra.photo_url || "https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png"}
+                      alt={extra.nom_extra}
+                      className="w-20 h-20 rounded-xl object-cover border-3 border-thai-orange/40 group-hover:border-thai-orange shadow-lg group-hover:shadow-thai-orange/20 transition-all duration-500 transform group-hover:scale-110 group-hover:rotate-3"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-thai-orange/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 rounded-xl"></div>
+                    <div className="absolute top-1 right-1 w-6 h-6 bg-thai-orange/90 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
+                      <Edit2 className="w-3 h-3 text-white" />
+                    </div>
+                  </div>
+                  
+                  <div className="flex-1 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-xl font-bold text-thai-green capitalize group-hover:text-thai-orange transition-colors duration-300">
+                        {extra.nom_extra}
+                      </h4>
+                      <div className="flex items-center gap-3">
+                        <Badge className="bg-gradient-to-r from-thai-orange to-thai-red text-white shadow-lg animate-pulse">
+                          {formatPrice(extra.prix)}
+                        </Badge>
+                      </div>
+                    </div>
+                    
+                    <p className="text-thai-green/70 italic">
+                      {extra.description || "Complément Thai authentique"} • Cliquez pour éditer
+                    </p>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={() => handleStartEdit(extra)}
+                      variant="outline"
+                      size="sm"
+                      className="border-thai-orange/50 text-thai-orange hover:bg-thai-orange hover:text-white opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-4 group-hover:translate-x-0"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      onClick={() => handleDeleteExtra(extra.idextra)}
+                      variant="outline"
+                      size="sm"
+                      className="border-thai-red/50 text-thai-red hover:bg-thai-red hover:text-white opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-4 group-hover:translate-x-0"
+                      title="Supprimer l'extra"
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      onClick={() => handleTransformToPlat(extra)}
+                      variant="outline"
+                      size="sm"
+                      className="border-thai-green/50 text-thai-green hover:bg-thai-green hover:text-white opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-4 group-hover:translate-x-0"
+                      title="Transformer en plat menu"
+                    >
+                      <Utensils className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        );
+      })}
+    </div>
+  );
 };
 
 interface PlatForm {
@@ -90,8 +812,9 @@ export default function AdminGestionPlats() {
   }, [isEditingPlat]);
 
   // Séparer les plats principaux des compléments
-  const plats = allPlats?.filter(p => p.categorie !== 'complement_divers') || [];
-  const complements = allPlats?.filter(p => p.categorie === 'complement_divers') || [];
+  // Le plat Extra a idplats = 0, les autres plats normaux ont idplats > 0
+  const plats = allPlats?.filter(p => p.idplats !== 0) || [];
+  const complements = allPlats?.filter(p => p.idplats === 0) || [];
   
   const currentItems = activeTab === 'plats' ? plats : complements;
 
@@ -296,7 +1019,7 @@ export default function AdminGestionPlats() {
           
 
           {/* Onglets avec design Thai */}
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'plats' | 'complements')} className="space-y-6">
             <TabsList className="grid w-full grid-cols-2 h-12 bg-thai-cream/30 border-2 border-thai-orange/20">
               <TabsTrigger 
                 value="plats" 
@@ -307,10 +1030,10 @@ export default function AdminGestionPlats() {
               </TabsTrigger>
               <TabsTrigger 
                 value="complements" 
-                className="data-[state=active]:bg-thai-gold data-[state=active]:text-white transition-all duration-300 hover:bg-thai-gold/20 font-semibold"
+                className="data-[state=active]:bg-thai-orange data-[state=active]:text-white transition-all duration-300 hover:bg-thai-orange/20 font-semibold"
               >
                 <Plus className="w-4 h-4 mr-2" />
-                Extras Admin ({complements.length})
+                Extras Thai ({complements.length})
               </TabsTrigger>
             </TabsList>
 
@@ -686,68 +1409,20 @@ export default function AdminGestionPlats() {
             </TabsContent>
             
             <TabsContent value="complements" className="space-y-4">
-              {/* Même structure pour les compléments */}
-              <div className="grid gap-4">
-                {complements.map((plat) => {
-                  const joursDispos = countJoursDisponibles(plat);
-                  const isDisponible = joursDispos > 0;
-                  
-                  return (
-                    <Card 
-                      key={plat.idplats} 
-                      className={`border-l-4 border-thai-gold hover:shadow-xl hover:bg-thai-cream/20 hover:border-thai-orange hover:ring-2 hover:ring-thai-orange/30 hover:scale-[1.02] transform transition-all duration-300 bg-gradient-to-r from-white to-thai-gold/10`}
-                    >
-                      <CardContent className="p-6">
-                        <div className="space-y-3">
-                          <div className="flex justify-between items-start">
-                            <EditableField
-                              value={plat.plat}
-                              onSave={(newValue) => handleInlineUpdate(plat.idplats, { plat: newValue })}
-                              type="text"
-                              placeholder="Nom du complément"
-                              className="text-lg font-semibold text-thai-gold flex-1 mr-2"
-                            />
-                            <Badge className="bg-thai-gold/20 text-thai-gold">
-                              Extra Admin
-                            </Badge>
-                          </div>
-
-                          <EditableField
-                            value={plat.description || ''}
-                            onSave={(newValue) => handleInlineUpdate(plat.idplats, { description: newValue })}
-                            type="textarea"
-                            placeholder="Description du complément"
-                            className="text-sm text-gray-600"
-                          />
-
-                          <div className="flex items-center gap-2">
-                            <Euro className="w-4 h-4 text-thai-gold" />
-                            <EditableField
-                              value={plat.prix?.toString() || '0'}
-                              onSave={(newValue) => handleInlineUpdate(plat.idplats, { prix: parseFloat(newValue) || 0 })}
-                              type="number"
-                              placeholder="0.00"
-                              className="text-thai-gold font-medium"
-                            />
-                            <span className="text-thai-gold">€</span>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-
-                {complements.length === 0 && (
-                  <div className="text-center py-12">
-                    <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-500 mb-2">
-                      Aucun complément trouvé
+              {/* Afficher les extras existants depuis details_commande_db */}
+              <div className="mb-8 animate-fadeIn">
+                <div className="bg-gradient-to-r from-thai-cream/30 to-thai-orange/10 p-6 rounded-2xl border border-thai-orange/20">
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-xl font-bold text-thai-green flex items-center gap-3">
+                      <div className="p-2 bg-thai-orange/20 rounded-xl">
+                        <Package className="w-6 h-6 text-thai-orange" />
+                      </div>
+                      Extras
                     </h3>
-                    <p className="text-gray-400">
-                      Commencez par créer votre premier complément
-                    </p>
+                    <NewExtraButton />
                   </div>
-                )}
+                  <ExistingExtrasDisplay />
+                </div>
               </div>
             </TabsContent>
           </Tabs>

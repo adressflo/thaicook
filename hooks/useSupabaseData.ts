@@ -1,7 +1,7 @@
 'use client'
 
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/lib/supabase';
+import { supabase, CACHE_TIMES } from '@/lib/supabase';
 import { 
   validateClientProfile, 
   validateEvenement, 
@@ -20,6 +20,8 @@ import type {
   CreateCommandeData,
   CreateEvenementData,
   EvenementUI,
+  ExtraUI,
+  ExtraInputData,
   PlatUI,
 } from '@/types/app';
 import type { Database } from '@/types/supabase';
@@ -47,6 +49,7 @@ type Commande = Database['public']['Tables']['commande_db']['Row'];
 type DetailsCommande = Database['public']['Tables']['details_commande_db']['Row'];
 type Evenement = Database['public']['Tables']['evenements_db']['Row'];
 type Plat = Database['public']['Tables']['plats_db']['Row'];
+type Extra = Database['public']['Tables']['extras_db']['Row'];
 
 // Types pour les inputs
 type EvenementInputData = Database['public']['Tables']['evenements_db']['Insert'];
@@ -2004,7 +2007,8 @@ export const useRemovePlatFromCommande = () => {
 
   return useMutation({
     mutationFn: async (detailId: number): Promise<void> => {
-      console.log('Suppression plat détail ID:', detailId);
+      console.log('🗑️ HOOK - Suppression plat détail ID:', detailId);
+      console.log('🗑️ HOOK - Type de détail ID:', typeof detailId, detailId);
       
       const { error } = await supabase
         .from('details_commande_db')
@@ -2035,6 +2039,206 @@ export const useRemovePlatFromCommande = () => {
       toast({
         title: 'Erreur',
         description: `Impossible de supprimer le plat: ${error.message || 'Erreur inconnue'}`,
+        variant: 'destructive',
+      });
+    },
+  });
+};
+
+// Hook pour récupérer les extras existants (DEPRECATED - utilisez useExtras à la place)
+export const useExistingExtras = () => {
+  return useQuery({
+    queryKey: ['existing-extras'],
+    queryFn: async (): Promise<Array<{ nom_plat: string; prix_unitaire: number; count: number }>> => {
+      console.log('⚠️ useExistingExtras est déprécié, utilisez useExtras à la place');
+      // Retourner un tableau vide car cette fonctionnalité est maintenant dans extras_db
+      return [];
+    },
+    staleTime: CACHE_TIMES.PLATS,
+    gcTime: CACHE_TIMES.PLATS,
+    retry: 2,
+    refetchOnWindowFocus: false,
+  });
+};
+
+// =====================================
+// HOOKS POUR LA TABLE extras_db
+// =====================================
+
+// Hook pour récupérer tous les extras
+export const useExtras = () => {
+  return useQuery({
+    queryKey: ['extras'],
+    queryFn: async (): Promise<ExtraUI[]> => {
+      console.log('🔍 Récupération des extras depuis extras_db...');
+      
+      const { data, error } = await supabase
+        .from('extras_db')
+        .select('*')
+        .eq('actif', true)
+        .order('nom_extra');
+
+      if (error) {
+        console.error('Erreur récupération extras:', error);
+        const contextError = new Error(`Échec récupération extras: ${error.message || 'Erreur base de données'}`);
+        contextError.cause = error;
+        throw contextError;
+      }
+
+      // Mapper vers ExtraUI
+      const extras: ExtraUI[] = data?.map(extra => ({
+        ...extra,
+        id: extra.idextra
+      })) || [];
+
+      console.log(`✅ ${extras.length} extras trouvés`);
+      return extras;
+    },
+    staleTime: CACHE_TIMES.PLATS,
+    gcTime: CACHE_TIMES.PLATS,
+    retry: 2,
+    refetchOnWindowFocus: false,
+  });
+};
+
+// Hook pour créer un nouvel extra
+export const useCreateExtra = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (extraData: Omit<ExtraInputData, 'idextra' | 'created_at' | 'updated_at'>): Promise<Extra> => {
+      console.log('🔄 Création nouvel extra:', extraData);
+
+      const { data, error } = await supabase
+        .from('extras_db')
+        .insert([extraData])
+        .select()
+        .single();
+
+      if (error) {
+        console.error('❌ Erreur création extra:', error);
+        const contextError = new Error(`Échec création extra: ${error.message || 'Erreur base de données'}`);
+        contextError.cause = error;
+        throw contextError;
+      }
+
+      console.log('✅ Extra créé avec succès:', data);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['extras'] });
+      toast({
+        title: '✅ Extra créé',
+        description: 'Le nouvel extra a été ajouté avec succès',
+      });
+    },
+    onError: (error) => {
+      console.error('Erreur création extra:', error);
+      toast({
+        title: 'Erreur',
+        description: `Impossible de créer l'extra: ${error.message || 'Erreur inconnue'}`,
+        variant: 'destructive',
+      });
+    },
+  });
+};
+
+// Hook pour mettre à jour un extra
+export const useUpdateExtra = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async ({ 
+      id, 
+      updates 
+    }: { 
+      id: number; 
+      updates: Partial<Omit<ExtraInputData, 'idextra' | 'created_at'>>; 
+    }): Promise<Extra> => {
+      console.log('🔄 Mise à jour extra:', id, updates);
+
+      // Ajouter updated_at automatiquement
+      const updateData = {
+        ...updates,
+        updated_at: new Date().toISOString()
+      };
+
+      const { data, error } = await supabase
+        .from('extras_db')
+        .update(updateData)
+        .eq('idextra', id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('❌ Erreur mise à jour extra:', error);
+        const contextError = new Error(`Échec mise à jour extra: ${error.message || 'Erreur base de données'}`);
+        contextError.cause = error;
+        throw contextError;
+      }
+
+      console.log('✅ Extra mis à jour avec succès:', data);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['extras'] });
+      toast({
+        title: '✅ Extra mis à jour',
+        description: 'Les modifications ont été sauvegardées',
+      });
+    },
+    onError: (error) => {
+      console.error('Erreur mise à jour extra:', error);
+      toast({
+        title: 'Erreur',
+        description: `Impossible de mettre à jour l'extra: ${error.message || 'Erreur inconnue'}`,
+        variant: 'destructive',
+      });
+    },
+  });
+};
+
+// Hook pour supprimer un extra (soft delete)
+export const useDeleteExtra = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (id: number): Promise<void> => {
+      console.log('🗑️ Suppression extra:', id);
+
+      // Soft delete: marquer comme inactif au lieu de supprimer
+      const { error } = await supabase
+        .from('extras_db')
+        .update({ 
+          actif: false, 
+          updated_at: new Date().toISOString() 
+        })
+        .eq('idextra', id);
+
+      if (error) {
+        console.error('❌ Erreur suppression extra:', error);
+        const contextError = new Error(`Échec suppression extra: ${error.message || 'Erreur base de données'}`);
+        contextError.cause = error;
+        throw contextError;
+      }
+
+      console.log('✅ Extra supprimé avec succès');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['extras'] });
+      toast({
+        title: '✅ Extra supprimé',
+        description: 'L\'extra a été supprimé avec succès',
+      });
+    },
+    onError: (error) => {
+      console.error('Erreur suppression extra:', error);
+      toast({
+        title: 'Erreur',
+        description: `Impossible de supprimer l'extra: ${error.message || 'Erreur inconnue'}`,
         variant: 'destructive',
       });
     },
