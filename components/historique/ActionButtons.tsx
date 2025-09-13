@@ -9,12 +9,12 @@ interface CommandeActionButtonsProps {
 }
 
 export const CommandeActionButtons = React.memo<CommandeActionButtonsProps>(({ commandeId, canEdit }) => (
-  <div className="flex gap-2 justify-center">
-    <Button 
-      asChild 
-      variant="outline" 
+  <div className="flex gap-2 justify-center items-center w-full min-w-[140px]">
+    <Button
+      asChild
+      variant="outline"
       size="sm"
-      className="group hover:scale-105 transition-all duration-200 hover:shadow-md border-2 hover:border-thai-orange/50"
+      className="group hover:scale-[1.02] transition-all duration-200 hover:shadow-md border-2 hover:border-thai-orange/50 transform-gpu min-w-[60px]"
     >
       <Link href={`/suivi-commande/${commandeId}`}>
         <Eye className="h-4 w-4 mr-1 group-hover:scale-110 transition-transform duration-200" />
@@ -26,7 +26,7 @@ export const CommandeActionButtons = React.memo<CommandeActionButtonsProps>(({ c
         asChild
         variant="default"
         size="sm"
-        className="group bg-gradient-to-r from-thai-orange to-thai-orange/90 hover:from-thai-orange/90 hover:to-thai-orange shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200"
+        className="group bg-gradient-to-r from-thai-orange to-thai-orange/90 hover:from-thai-orange/90 hover:to-thai-orange shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-200 transform-gpu min-w-[60px]"
       >
         <Link href={`/modifier-commande/${commandeId}`}>
           <Edit className="h-4 w-4 mr-1 group-hover:rotate-12 transition-transform duration-200" />
@@ -45,12 +45,12 @@ interface EvenementActionButtonsProps {
 }
 
 export const EvenementActionButtons = React.memo<EvenementActionButtonsProps>(({ evenementId, canEdit }) => (
-  <div className="flex gap-2 justify-center">
-    <Button 
-      asChild 
-      variant="outline" 
+  <div className="flex gap-2 justify-center items-center w-full min-w-[140px]">
+    <Button
+      asChild
+      variant="outline"
       size="sm"
-      className="group hover:scale-105 transition-all duration-200 hover:shadow-md border-2 hover:border-thai-green/50"
+      className="group hover:scale-[1.02] transition-all duration-200 hover:shadow-md border-2 hover:border-thai-green/50 transform-gpu min-w-[60px]"
     >
       <Link href={`/suivi-evenement/${evenementId}`}>
         <Eye className="h-4 w-4 mr-1 group-hover:scale-110 transition-transform duration-200" />
@@ -62,7 +62,7 @@ export const EvenementActionButtons = React.memo<EvenementActionButtonsProps>(({
         asChild
         variant="default"
         size="sm"
-        className="group bg-gradient-to-r from-thai-green to-thai-green/90 hover:from-thai-green/90 hover:to-thai-green shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200"
+        className="group bg-gradient-to-r from-thai-green to-thai-green/90 hover:from-thai-green/90 hover:to-thai-green shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-200 transform-gpu min-w-[60px]"
       >
         <Link href={`/modifier-evenement/${evenementId}`}>
           <Edit className="h-4 w-4 mr-1 group-hover:rotate-12 transition-transform duration-200" />

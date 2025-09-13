@@ -788,8 +788,16 @@ export const useCommandesByClient = (firebase_uid?: string) => {
 
         const prix_total = validatedCommande.details_commande_db.reduce((total: number, detail: DetailsCommande & { plats_db?: Plat }) => {
           const quantite = detail.quantite_plat_commande || 0;
-          const prix = detail.plats_db?.prix || 0;
-          return total + quantite * prix;
+          let prixUnitaire = 0;
+          
+          // Gérer les extras (complement_divers) vs plats normaux
+          if (detail.type === 'complement_divers') {
+            prixUnitaire = detail.prix_unitaire || 0;
+          } else {
+            prixUnitaire = detail.plats_db?.prix || 0;
+          }
+          
+          return total + quantite * prixUnitaire;
         }, 0) || 0;
 
         return {
@@ -890,8 +898,16 @@ export const useCommandes = () => {
         // Calculer le prix total depuis les détails validés
         const prix_total = validatedCommande.details_commande_db.reduce((total: number, detail: DetailsCommande & { plats_db?: Plat }) => {
           const quantite = detail.quantite_plat_commande || 0;
-          const prix = detail.plats_db?.prix || 0;
-          return total + Number(quantite) * Number(prix);
+          let prixUnitaire = 0;
+          
+          // Gérer les extras (complement_divers) vs plats normaux
+          if (detail.type === 'complement_divers') {
+            prixUnitaire = detail.prix_unitaire || 0;
+          } else {
+            prixUnitaire = detail.plats_db?.prix || 0;
+          }
+          
+          return total + Number(quantite) * Number(prixUnitaire);
         }, 0) || 0;
 
         return {

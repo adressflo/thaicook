@@ -140,8 +140,8 @@ const SuiviCommande = memo(() => {
                   <Clock className="h-6 w-6 text-thai-orange" />
                   Suivi de votre commande
                 </h3>
-                <ProgressTimeline 
-                  currentStatus={commande.statut_commande}
+                <ProgressTimeline
+                  currentStatus={commande.statut_commande || null}
                   dateCommande={commande.date_de_prise_de_commande}
                   dateRetrait={commande.date_et_heure_de_retrait_souhaitees}
                 />
@@ -162,7 +162,7 @@ const SuiviCommande = memo(() => {
                       // Adapter les données pour DishDetailsModal
                       const detailForModal = {
                         ...detail,
-                        plat: platDetails
+                        plat: platDetails || null
                       };
                       
                       return (

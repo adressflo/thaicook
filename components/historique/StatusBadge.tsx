@@ -77,7 +77,7 @@ export const StatusBadge = React.memo<StatusBadgeProps>(({ statut, type }) => {
         <Badge
           variant={variant}
           className={cn(
-            'inline-flex items-center justify-center rounded-lg text-xs font-bold transition-all duration-500 transform h-8 px-4 min-w-[100px] cursor-pointer',
+            'inline-flex items-center justify-center rounded-lg text-sm font-bold transition-all duration-500 transform h-10 px-3 min-w-[80px] cursor-pointer',
             colorClasses,
             'animate-fadeIn hover:scale-110 hover:-translate-y-1 hover:rotate-1',
             isHovered ? `shadow-xl ${glowColor}` : 'shadow-md'

@@ -43,10 +43,10 @@ import { fr } from 'date-fns/locale';
 
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
-import { useCommandeById, useCreateCommande, useDeleteCommande } from '@/hooks/useSupabaseData';
+import { useCommandeById, useCreateCommande, useDeleteCommande, useExtras } from '@/hooks/useSupabaseData';
 import { extractRouteParam } from '@/lib/params-utils';
 import { supabase } from '@/services/supabaseService';
-import type { PlatUI as Plat, PlatPanier } from '@/types/app';
+import type { PlatUI as Plat, PlatPanier, DetailCommande } from '@/types/app';
 
 const dayNameToNumber: { [key: string]: Day } = {
   dimanche: 0,
@@ -72,6 +72,7 @@ const ModifierCommande = memo(() => {
   } = useCommandeById(id ? Number(id) : undefined);
   const createCommande = useCreateCommande();
   const deleteCommande = useDeleteCommande();
+  const { data: extras } = useExtras();
   const isMobile = useIsMobile();
   const platsSectionRef = useRef<HTMLDivElement>(null);
 
@@ -103,25 +104,57 @@ const ModifierCommande = memo(() => {
     }
   };
 
+  // Fonction pour obtenir la bonne photo URL pour un item
+  const getItemPhotoUrl = (item: PlatPanier): string | undefined => {
+    // Si c'est un extra (complement_divers), utiliser la photo de la table extras_db
+    if (item.type === 'complement_divers' && extras) {
+      const extraData = extras.find(extra => extra.nom_extra === item.nom);
+      return extraData?.photo_url ?? 'https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png';
+    }
+    // Sinon, utiliser la photo du plat normal
+    const platData = plats?.find(p => p.nom_plat === item.nom);
+    return platData?.photo_du_plat ?? undefined;
+  };
+
   // Initialiser les données de la commande
   useEffect(() => {
     if (commande && plats && commande.details && commande.details.length > 0) {
       const platsPanier: PlatPanier[] = [];
 
       commande.details.forEach((detail, index) => {
-        const platData = plats.find(p => p.idplats === detail.plat_r);
-        if (platData && detail.quantite_plat_commande) {
-          platsPanier.push({
-            id: platData.idplats.toString(),
-            nom: platData.plat,
-            prix: platData.prix || 0,
-            quantite: detail.quantite_plat_commande,
-            dateRetrait: commande.date_et_heure_de_retrait_souhaitees
-              ? new Date(commande.date_et_heure_de_retrait_souhaitees)
-              : new Date(),
-            jourCommande: '',
-            uniqueId: `${platData.idplats}-${index}-${Date.now()}`,
-          });
+        if (detail.quantite_plat_commande) {
+          // Gérer les extras (complement_divers)
+          if (detail.type === 'complement_divers') {
+            platsPanier.push({
+              id: `extra-${detail.iddetails || index}`, // ID unique pour les extras
+              nom: detail.nom_plat || 'Extra',
+              prix: detail.prix_unitaire || 0,
+              quantite: detail.quantite_plat_commande,
+              dateRetrait: commande.date_et_heure_de_retrait_souhaitees
+                ? new Date(commande.date_et_heure_de_retrait_souhaitees)
+                : new Date(),
+              jourCommande: '',
+              uniqueId: `extra-${detail.iddetails || index}-${Date.now()}`,
+              type: 'complement_divers',
+            });
+          } else {
+            // Gérer les plats normaux
+            const platData = plats.find(p => p.idplats === detail.plat_r);
+            if (platData) {
+              platsPanier.push({
+                id: platData.idplats.toString(),
+                nom: platData.plat,
+                prix: platData.prix || 0,
+                quantite: detail.quantite_plat_commande,
+                dateRetrait: commande.date_et_heure_de_retrait_souhaitees
+                  ? new Date(commande.date_et_heure_de_retrait_souhaitees)
+                  : new Date(),
+                jourCommande: '',
+                uniqueId: `${platData.idplats}-${index}-${Date.now()}`,
+                type: 'plat',
+              });
+            }
+          }
         }
       });
 
@@ -166,9 +199,17 @@ const ModifierCommande = memo(() => {
 
     const originalTotal =
       commande.details?.reduce((total, detail) => {
-        const prix = detail.plat?.prix || 0;
         const quantite = detail.quantite_plat_commande || 0;
-        return total + prix * quantite;
+        let prixUnitaire = 0;
+        
+        // Gérer les extras (complement_divers) vs plats normaux
+        if (detail.type === 'complement_divers') {
+          prixUnitaire = detail.prix_unitaire || 0;
+        } else {
+          prixUnitaire = detail.plat?.prix || 0;
+        }
+        
+        return total + prixUnitaire * quantite;
       }, 0) || 0;
 
     const newTotal = panierModification.reduce(
@@ -490,10 +531,23 @@ const ModifierCommande = memo(() => {
           client_r: currentUser.uid,
           date_et_heure_de_retrait_souhaitees: dateKey,
           demande_special_pour_la_commande: demandesSpeciales,
-          details: items.map(item => ({
-            plat_r: item.id,
-            quantite_plat_commande: item.quantite,
-          })),
+          details: items.map(item => {
+            // Distinguer les extras des plats normaux
+            if (item.id.startsWith('extra-')) {
+              return {
+                plat_r: 0, // ID de "Extra (Complément divers)"
+                quantite_plat_commande: item.quantite,
+                nom_plat: item.nom,
+                prix_unitaire: item.prix,
+                type: 'complement_divers'
+              };
+            } else {
+              return {
+                plat_r: parseInt(item.id),
+                quantite_plat_commande: item.quantite,
+              };
+            }
+          }),
         });
 
         commandesCreees++;
@@ -737,19 +791,41 @@ const ModifierCommande = memo(() => {
 
                           <div className='space-y-3'>
                             {items.map(item => {
-                              const platData = plats?.find(p => p.id.toString() === item.id);
-                              const imageUrl = platData?.photo_du_plat;
+                              // Pour les extras, pas de platData correspondant
+                              const platData = item.type === 'complement_divers'
+                                ? null
+                                : plats?.find(p => p.id.toString() === item.id);
 
                               // Prepare detail object for modal (matching the expected type)
-                              const detailForModal = {
-                                plat_r: parseInt(item.id),
+                              const itemId = item.type === 'complement_divers'
+                                ? parseInt(item.id.replace('extra-', '')) || 0
+                                : parseInt(item.id);
+
+                              const detailForModal: DetailCommande & { plat: any } = {
+                                commande_r: commande?.idcommande || 0,
+                                iddetails: itemId,
+                                plat_r: item.type === 'complement_divers' ? 0 : itemId,
                                 quantite_plat_commande: item.quantite,
-                                plat: {
-                                  idplats: parseInt(item.id),
+                                prix_unitaire: item.prix,
+                                nom_plat: item.nom,
+                                type: (item.type === 'complement_divers' ? 'complement_divers' : 'plat') as 'plat' | 'complement' | 'complement_divers' | null,
+                                plat: item.type === 'complement_divers' ? null : {
+                                  idplats: itemId,
                                   plat: item.nom,
                                   prix: item.prix,
-                                  description: platData?.description || '',
-                                  photo_du_plat: imageUrl || ''
+                                  description: platData?.description || null,
+                                  photo_du_plat: platData?.photo_du_plat || null,
+                                  dimanche_dispo: null,
+                                  lundi_dispo: null,
+                                  mardi_dispo: null,
+                                  mercredi_dispo: null,
+                                  jeudi_dispo: '',
+                                  vendredi_dispo: null,
+                                  samedi_dispo: null,
+                                  est_epuise: null,
+                                  epuise_depuis: null,
+                                  epuise_jusqu_a: null,
+                                  nom_plat: item.nom
                                 }
                               };
 
@@ -760,17 +836,19 @@ const ModifierCommande = memo(() => {
                                   formatPrix={formatPrix}
                                 >
                                   <div className='flex items-start gap-3 p-3 bg-white rounded-lg border border-gray-200 transition-all duration-300 hover:shadow-xl hover:bg-thai-cream/20 hover:border-thai-orange hover:ring-2 hover:ring-thai-orange/30 hover:scale-[1.02] transform cursor-pointer'>
-                                    {imageUrl ? (
-                                      <img
-                                        src={imageUrl}
-                                        alt={item.nom}
-                                        className='w-16 h-12 object-cover rounded-lg'
-                                      />
-                                    ) : (
-                                      <div className='w-16 h-12 bg-thai-cream/30 border border-thai-orange/20 rounded-lg flex items-center justify-center'>
-                                        <span className='text-thai-orange text-lg'>🍽️</span>
-                                      </div>
-                                    )}
+                                    <div className="w-16 h-12 rounded-lg overflow-hidden flex-shrink-0">
+                                      {getItemPhotoUrl(item) ? (
+                                        <img
+                                          src={getItemPhotoUrl(item)}
+                                          alt={item.nom}
+                                          className="w-full h-full object-cover"
+                                        />
+                                      ) : (
+                                        <div className="w-full h-full bg-thai-cream/30 border border-thai-orange/20 rounded-lg flex items-center justify-center">
+                                          <span className="text-thai-orange text-lg">🍽️</span>
+                                        </div>
+                                      )}
+                                    </div>
 
                                     <div className='flex-1'>
                                       <h4 className='font-medium text-thai-green text-base mb-1'>

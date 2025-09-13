@@ -42,6 +42,7 @@ export interface PlatPanier {
   jourCommande?: string // Jour pour lequel le plat est commandé
   dateRetrait?: Date // Date de retrait associée
   uniqueId?: string // ID unique pour chaque article dans le panier
+  type?: 'plat' | 'complement' | 'complement_divers' // Type de l'item (compatible avec DetailCommande)
 }
 
 // Type pour l'interface utilisateur des commandes

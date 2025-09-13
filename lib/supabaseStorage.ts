@@ -8,8 +8,18 @@ export const STORAGE_CONFIG = {
   ALLOWED_TYPES: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'],
   QUALITY: 0.8,
   MAX_WIDTH: 800,
-  MAX_HEIGHT: 600
+  MAX_HEIGHT: 600,
+  DEFAULT_EXTRA_IMAGE: 'extra.png'
 } as const;
+
+// Fonction pour récupérer l'URL de l'image par défaut des extras
+export const getExtraImageUrl = (): string => {
+  const { data } = supabase.storage
+    .from('plats-images')
+    .getPublicUrl(STORAGE_CONFIG.DEFAULT_EXTRA_IMAGE);
+  
+  return data.publicUrl;
+};
 
 // Types pour la gestion des erreurs
 export interface UploadResult {

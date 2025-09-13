@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import {
   useCommandesByClient,
   useEvenementsByClient,
+  useExtras,
 } from '@/hooks/useSupabaseData';
 import {
   Card,
@@ -52,6 +53,33 @@ const HistoriquePage = memo(() => {
     isLoading: isLoadingEvenements,
     error: errorEvenements,
   } = useEvenementsByClient(currentUser?.uid);
+  const {
+    data: extras,
+  } = useExtras();
+
+  // Fonction pour résoudre les noms des extras
+  const resolveExtraName = useCallback((detail: DetailCommande) => {
+    if (detail.type !== 'complement_divers') return null;
+
+    // Chercher dans extras_db par correspondance de nom (insensible à la casse)
+    if (detail.nom_plat && detail.nom_plat.trim() !== '' && extras && extras.length > 0) {
+      const nomPlat = detail.nom_plat; // TypeScript safety
+      const extra = extras.find((e: any) =>
+        e.nom_extra.toLowerCase() === nomPlat.toLowerCase()
+      );
+      if (extra) {
+        return extra.nom_extra; // Retourner le nom correct avec majuscules
+      }
+    }
+
+    // Fallback: capitaliser nom_plat si pas trouvé dans extras_db
+    if (detail.nom_plat && detail.nom_plat.trim() !== '') {
+      return detail.nom_plat.charAt(0).toUpperCase() + detail.nom_plat.slice(1);
+    }
+
+    // Fallback final
+    return 'Extra';
+  }, [extras]);
 
   // États pour les filtres
   const [searchTerm, setSearchTerm] = useState('');
@@ -285,8 +313,8 @@ const HistoriquePage = memo(() => {
                 </Alert>
               ) : commandesEnCours.length > 0 ? (
                 <div className="space-y-4">
-                  {/* En-têtes avec icônes */}
-                  <div className="grid grid-cols-1 md:grid-cols-5 gap-4 px-3 py-2 bg-thai-cream/30 rounded-lg border border-thai-orange/20">
+                  {/* En-têtes avec icônes - Harmonisés */}
+                  <div className="grid grid-cols-1 md:grid-cols-5 gap-4 px-4 py-3 bg-thai-cream/30 rounded-lg border border-thai-orange/20">
                     <div className="text-center font-semibold text-thai-green">
                       <div className="flex items-center justify-center gap-2">
                         <Calendar className="h-4 w-4 text-thai-orange" />
@@ -299,13 +327,13 @@ const HistoriquePage = memo(() => {
                         <span>Plats commandés</span>
                       </div>
                     </div>
-                    <div className="text-center font-semibold text-thai-green">
+                    <div className="text-center font-semibold text-thai-green md:-ml-16">
                       <div className="flex items-center justify-center gap-2">
                         <Euro className="h-4 w-4 text-thai-orange" />
                         <span>Total</span>
                       </div>
                     </div>
-                    <div className="text-center font-semibold text-thai-green">
+                    <div className="text-center font-semibold text-thai-green md:-ml-12">
                       <div className="flex items-center justify-center gap-2">
                         <BarChart3 className="h-4 w-4 text-thai-orange" />
                         <span>Statut</span>
@@ -318,36 +346,32 @@ const HistoriquePage = memo(() => {
                       c.statut_commande !== 'Prête à récupérer' &&
                       c.statut_commande !== 'Récupérée';
                     return (
-                      <div key={c.idcommande} className="flex items-start gap-3 p-3 bg-white rounded-lg border border-gray-200 transition-all duration-300 hover:shadow-xl hover:bg-thai-cream/20 hover:border-thai-orange hover:ring-2 hover:ring-thai-orange/30 hover:scale-[1.02] transform cursor-pointer">
-                        <div className="flex-1 grid grid-cols-1 md:grid-cols-5 gap-4 items-center">
-                          <div className="text-center">
-                            <div className="text-sm text-gray-600 mb-1">Date de retrait</div>
+                      <div key={c.idcommande} className="flex items-center gap-4 px-4 py-4 bg-white rounded-lg border border-gray-200 transition-all duration-300 hover:shadow-xl hover:bg-thai-cream/20 hover:border-thai-orange hover:ring-2 hover:ring-thai-orange/30 hover:scale-[1.02] transform cursor-pointer min-h-[4rem]">
+                        <div className="flex-1 grid grid-cols-1 md:grid-cols-5 gap-3 items-center">
+                          <div className="text-center flex flex-col items-center justify-center min-h-[2.5rem]">
                             <FormattedDate date={c.date_et_heure_de_retrait_souhaitees} />
                           </div>
-                          <div className="text-center md:col-span-2">
-                            <div className="text-sm text-gray-600 mb-1">Plats commandés</div>
+                          <div className="text-center md:col-span-2 flex flex-col items-center justify-center min-h-[2.5rem]">
                             <DishList details={(c.details || []) as Array<DetailCommande & { plat: Plat | null }>} formatPrix={formatPrix} />
                           </div>
-                          <div className="text-center">
-                            <div className="text-sm text-gray-600 mb-1">Total</div>
-                            <FormattedPrice 
-                              prix={calculateTotal(c)} 
-                              formatPrix={formatPrix} 
+                          <div className="text-center flex flex-col items-center justify-center min-h-[2.5rem] md:-ml-12">
+                            <FormattedPrice
+                              prix={calculateTotal(c)}
+                              formatPrix={formatPrix}
                               details={c.details?.map(d => ({
-                                plat: d.plat ? { plat: d.plat.plat, prix: d.plat.prix } : null,
-                                quantite_plat_commande: d.quantite_plat_commande,
-                                type: d.type,
-                                nom_plat: d.nom_plat,
-                                prix_unitaire: d.prix_unitaire
+                                plat: d.plat ? { plat: d.plat.plat, prix: d.plat.prix || 0, photo_du_plat: d.plat.photo_du_plat } : null,
+                                quantite_plat_commande: d.quantite_plat_commande || 0,
+                                type: d.type || '',
+                                nom_plat: d.nom_plat || '',
+                                prix_unitaire: d.prix_unitaire || 0,
+                                plat_r: d.plat_r
                               }))}
+                              resolveExtraName={resolveExtraName}
                             />
                           </div>
-                          <div className="text-center">
-                            <div className="text-sm text-gray-600 mb-1">Statut</div>
+                          <div className="text-center flex flex-col items-center justify-center gap-3 min-h-[2.5rem] md:-ml-8">
                             <StatusBadge statut={c.statut_commande} type="commande" />
-                            <div className="mt-2">
-                              <CommandeActionButtons commandeId={c.idcommande} canEdit={canEdit} />
-                            </div>
+                            <CommandeActionButtons commandeId={c.idcommande} canEdit={canEdit} />
                           </div>
                         </div>
                       </div>
@@ -389,13 +413,13 @@ const HistoriquePage = memo(() => {
                         <span>Plats commandés</span>
                       </div>
                     </div>
-                    <div className="text-center font-semibold text-thai-green">
+                    <div className="text-center font-semibold text-thai-green md:-ml-16">
                       <div className="flex items-center justify-center gap-2">
                         <Euro className="h-4 w-4 text-thai-orange" />
                         <span>Total</span>
                       </div>
                     </div>
-                    <div className="text-center font-semibold text-thai-green">
+                    <div className="text-center font-semibold text-thai-green md:-ml-12">
                       <div className="flex items-center justify-center gap-2">
                         <BarChart3 className="h-4 w-4 text-thai-orange" />
                         <span>Statut</span>
@@ -405,35 +429,31 @@ const HistoriquePage = memo(() => {
                   <div className="border border-thai-orange/20 rounded-lg p-3 bg-thai-cream/20 space-y-4">
                   {commandesHistorique.map(c => (
                     <div key={c.idcommande} className="flex items-start gap-3 p-3 bg-white rounded-lg border border-gray-200 transition-all duration-300 hover:shadow-xl hover:bg-thai-cream/20 hover:border-thai-orange hover:ring-2 hover:ring-thai-orange/30 hover:scale-[1.02] transform cursor-pointer">
-                      <div className="flex-1 grid grid-cols-1 md:grid-cols-5 gap-4 items-center">
+                      <div className="flex-1 grid grid-cols-1 md:grid-cols-5 gap-3 items-center">
                         <div className="text-center">
-                          <div className="text-sm text-gray-600 mb-1">Date de retrait</div>
                           <FormattedDate date={c.date_et_heure_de_retrait_souhaitees} />
                         </div>
                         <div className="text-center md:col-span-2">
-                          <div className="text-sm text-gray-600 mb-1">Plats commandés</div>
                           <DishList details={(c.details || []) as Array<DetailCommande & { plat: Plat | null }>} formatPrix={formatPrix} />
                         </div>
-                        <div className="text-center">
-                          <div className="text-sm text-gray-600 mb-1">Total</div>
-                          <FormattedPrice 
-                            prix={calculateTotal(c)} 
-                            formatPrix={formatPrix} 
+                        <div className="text-center md:-ml-12">
+                          <FormattedPrice
+                            prix={calculateTotal(c)}
+                            formatPrix={formatPrix}
                             details={c.details?.map(d => ({
-                              plat: d.plat ? { plat: d.plat.plat, prix: d.plat.prix } : null,
-                              quantite_plat_commande: d.quantite_plat_commande,
-                              type: d.type,
-                              nom_plat: d.nom_plat,
-                              prix_unitaire: d.prix_unitaire
+                              plat: d.plat ? { plat: d.plat.plat, prix: d.plat.prix || 0, photo_du_plat: d.plat.photo_du_plat } : null,
+                              quantite_plat_commande: d.quantite_plat_commande || 0,
+                              type: d.type || '',
+                              nom_plat: d.nom_plat || '',
+                              prix_unitaire: d.prix_unitaire || 0,
+                              plat_r: d.plat_r
                             }))}
+                            resolveExtraName={resolveExtraName}
                           />
                         </div>
-                        <div className="text-center">
-                          <div className="text-sm text-gray-600 mb-1">Statut</div>
+                        <div className="text-center flex flex-col items-center justify-center gap-3 md:-ml-8">
                           <StatusBadge statut={c.statut_commande} type="commande" />
-                          <div className="mt-2">
-                            <CommandeActionButtons commandeId={c.idcommande} canEdit={false} />
-                          </div>
+                          <CommandeActionButtons commandeId={c.idcommande} canEdit={false} />
                         </div>
                       </div>
                     </div>
@@ -488,7 +508,7 @@ const HistoriquePage = memo(() => {
                         <span>Personnes</span>
                       </div>
                     </div>
-                    <div className="text-center font-semibold text-thai-green">
+                    <div className="text-center font-semibold text-thai-green md:-ml-12">
                       <div className="flex items-center justify-center gap-2">
                         <BarChart3 className="h-4 w-4 text-thai-orange" />
                         <span>Statut</span>
@@ -501,22 +521,18 @@ const HistoriquePage = memo(() => {
                       evt.statut_evenement !== 'Réalisé' &&
                       evt.statut_evenement !== 'Payé intégralement';
                     return (
-                      <div key={evt.idevenements} className="flex items-start gap-3 p-3 bg-white rounded-lg border border-gray-200 transition-all duration-300 hover:shadow-xl hover:bg-thai-cream/20 hover:border-thai-green hover:ring-2 hover:ring-thai-green/30 hover:scale-[1.02] transform cursor-pointer">
-                        <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
-                          <div className="text-center">
-                            <div className="text-sm text-gray-600 mb-1">Événement</div>
+                      <div key={evt.idevenements} className="flex items-center gap-4 px-4 py-4 bg-white rounded-lg border border-gray-200 transition-all duration-300 hover:shadow-xl hover:bg-thai-cream/20 hover:border-thai-green hover:ring-2 hover:ring-thai-green/30 hover:scale-[1.02] transform cursor-pointer min-h-[4rem]">
+                        <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-6 items-center">
+                          <div className="text-center flex flex-col items-center justify-center min-h-[2.5rem]">
                             <FormattedEvent event={evt} />
                           </div>
-                          <div className="text-center">
-                            <div className="text-sm text-gray-600 mb-1">Date prévue</div>
+                          <div className="text-center flex flex-col items-center justify-center min-h-[2.5rem]">
                             <FormattedDate date={evt.date_evenement} />
                           </div>
-                          <div className="text-center">
-                            <div className="text-sm text-gray-600 mb-1">Personnes</div>
+                          <div className="text-center flex flex-col items-center justify-center min-h-[2.5rem]">
                             <PersonCount count={evt.nombre_de_personnes} />
                           </div>
-                          <div className="text-center">
-                            <div className="text-sm text-gray-600 mb-1">Statut</div>
+                          <div className="text-center flex flex-col items-center justify-center min-h-[2.5rem]">
                             <StatusBadge statut={evt.statut_evenement} type="evenement" />
                             <div className="mt-2">
                               <EvenementActionButtons evenementId={evt.idevenements} canEdit={canEdit} />
@@ -568,7 +584,7 @@ const HistoriquePage = memo(() => {
                         <span>Personnes</span>
                       </div>
                     </div>
-                    <div className="text-center font-semibold text-thai-green">
+                    <div className="text-center font-semibold text-thai-green md:-ml-12">
                       <div className="flex items-center justify-center gap-2">
                         <BarChart3 className="h-4 w-4 text-thai-orange" />
                         <span>Statut</span>
@@ -577,24 +593,20 @@ const HistoriquePage = memo(() => {
                   </div>
                   <div className="border border-thai-green/20 rounded-lg p-3 bg-thai-cream/20 space-y-4">
                   {evenementsHistorique.map(evt => (
-                    <div key={evt.idevenements} className="flex items-start gap-3 p-3 bg-white rounded-lg border border-gray-200 transition-all duration-300 hover:shadow-xl hover:bg-thai-cream/20 hover:border-thai-green hover:ring-2 hover:ring-thai-green/30 hover:scale-[1.02] transform cursor-pointer">
-                      <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
+                    <div key={evt.idevenements} className="flex items-center gap-4 px-4 py-4 bg-white rounded-lg border border-gray-200 transition-all duration-300 hover:shadow-xl hover:bg-thai-cream/20 hover:border-thai-green hover:ring-2 hover:ring-thai-green/30 hover:scale-[1.02] transform cursor-pointer min-h-[4rem]">
+                      <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-6 items-center">
                         <div className="text-center">
-                          <div className="text-sm text-gray-600 mb-1">Événement</div>
                           <FormattedEvent event={evt} />
                         </div>
                         <div className="text-center">
-                          <div className="text-sm text-gray-600 mb-1">Date prévue</div>
                           <FormattedDate date={evt.date_evenement} />
                         </div>
                         <div className="text-center">
-                          <div className="text-sm text-gray-600 mb-1">Personnes</div>
                           <PersonCount count={evt.nombre_de_personnes} />
                         </div>
                         <div className="text-center">
-                          <div className="text-sm text-gray-600 mb-1">Statut</div>
                           <StatusBadge statut={evt.statut_evenement} type="evenement" />
-                          <div className="mt-2">
+                          <div className="mt-2 flex justify-center items-center">
                             <EvenementActionButtons evenementId={evt.idevenements} canEdit={false} />
                           </div>
                         </div>

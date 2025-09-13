@@ -62,7 +62,7 @@ export const EmptyState = React.memo<EmptyStateProps>(({ type }) => {
         {config.action && (
           <div className="mt-6">
             <Button asChild className={config.action.className}>
-              <Link href={config.action.href}>{config.action.label}</Link>
+              <Link href={config.action.href as any}>{config.action.label}</Link>
             </Button>
           </div>
         )}

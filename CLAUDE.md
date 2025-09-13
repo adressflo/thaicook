@@ -6,11 +6,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 APPCHANTHANA is a Next.js 15 web application for a Thai restaurant management system, migrated from the original React + Vite version. It features:
 
-- **Frontend**: Next.js 15.4.5 + React 19.1.1 + TypeScript 5
-- **UI Components**: shadcn/ui with Radix UI primitives + Tailwind CSS v4.1.12
+- **Frontend**: Next.js 15.5.2 + React 19.1.1 + TypeScript 5
+- **UI Components**: shadcn/ui with Radix UI primitives + Tailwind CSS v4.1.12 (CSS-first configuration)
 - **Backend**: Supabase 2.55.0 (PostgreSQL) + Firebase 12.0.0 Authentication  
 - **State Management**: TanStack Query 5.84.1 + Context API
 - **Routing**: Next.js App Router with middleware authentication
+- **Testing**: Playwright E2E testing suite
+- **Development**: Debug mode enabled with Node.js inspector
 
 ## Development Commands
 
@@ -18,7 +20,7 @@ APPCHANTHANA is a Next.js 15 web application for a Thai restaurant management sy
 # Install dependencies
 npm install
 
-# Start development server with Turbopack (runs on http://localhost:3000)
+# Start development server with debug mode (runs on http://localhost:3000)
 npm run dev
 
 # Build for production
@@ -30,8 +32,12 @@ npm start
 # Lint code
 npm run lint
 
-# End-to-end tests with Playwright
+# End-to-end tests with Playwright (baseURL: http://localhost:3001)
 npm run test:e2e
+
+# Docker utilities
+npm run docker:status
+npm run docker:clean:supalocal
 ```
 
 ## Architecture Overview
@@ -89,26 +95,29 @@ npm run test:e2e
 - **Admin Routes**: Complete admin system under `/admin/*` (admin role required)
 
 ### Custom Styling System
-- **Tailwind CSS v4**: Latest version with new PostCSS plugin
-- **Thai Theme Colors**: Custom color palette maintained from original
-  - `thai-orange`, `thai-green`, `thai-gold`, `thai-red`, `thai-cream`
-- **CSS Variables**: Uses HSL custom properties for theming
-- **Animations**: Custom fade-in and slide-in animations
-- **Dark Mode**: Support for dark/light theme switching
+- **Tailwind CSS v4.1.12**: CSS-first configuration with PostCSS plugin
+- **Thai Theme Colors**: Custom color palette with CSS variables
+  - `--color-thai-orange`, `--color-thai-green`, `--color-thai-gold`, `--color-thai-red`, `--color-thai-cream`
+- **Container System**: Progressive responsive containers (640px→768px→1024px→1200px→1280px)
+- **Animations**: GPU-accelerated custom animations (fade-in, slide-in, shimmer, pulse-soft)
+- **Dark Mode**: Support via custom variant `@custom-variant dark`
+- **Performance**: `prefers-reduced-motion` support for accessibility
 
 ## Important Files & Patterns
 
 ### Configuration Files
-- `next.config.ts`: Next.js configuration with Turbopack and optimizations
-- `tailwind.config.ts`: Extended Tailwind with custom Thai colors and animations
-- `tsconfig.json`: Strict TypeScript config with path mapping (`@/` → root)
+- `next.config.ts`: Next.js configuration with typed routes and experimental typedEnv
+- `app/globals.css`: Tailwind v4 CSS-first configuration with custom Thai theme
+- `tsconfig.json`: Strict TypeScript config with comprehensive path mapping
 - `postcss.config.mjs`: PostCSS configuration for Tailwind CSS v4
+- `playwright.config.ts`: E2E testing configuration (port 3001, multi-browser)
 
 ### Critical Service Architecture
 - `lib/supabase.ts`: Configured with PKCE flow, custom headers, realtime optimization
 - `lib/firebaseConfig.ts`: Firebase v12 SDK with `getAuth()` and state management
 - `contexts/AuthContext.tsx`: Primary authentication orchestrator with auto-sync
 - `hooks/useSupabaseData.ts`: Type-safe CRUD operations with validation functions
+- `components/providers.tsx`: Provider hierarchy (QueryClient, Auth, Data, Cart, Notification)
 - `services/supabaseService.ts`: High-level business logic layer
 
 ### Type Definitions
@@ -186,13 +195,21 @@ npm run test:e2e
 - **Cache Management**: React Query handles caching automatically with defined TTL
 - **Real-time Updates**: Supabase subscriptions automatically update cache
 
-## Critical Architecture Notes
+## Current Project Status & Issues
+
+### Active Development Areas (as of Sept 2025)
+- **Order Tracking Enhancement**: Recent improvements to dish details with extras support
+- **Database Schema Evolution**: Enhanced support for dish extras and order modifications
+- **Image Upload System**: Modal editing with optimized Thai design
+
+### Critical Architecture Notes
 
 ### Current Known Issues
 - **RLS Policies**: Temporarily disabled on some tables for development (re-enable for production)
 - **Error Serialization**: Empty Supabase error objects `{}` can mask real errors
 - **Date Validation**: Implement client-side validation to prevent invalid dates (e.g., Feb 31)
 - **Profile Sync**: Firebase UID must match Supabase `firebase_uid` field for data linking
+- **Middleware**: No middleware.ts file found - route protection may need implementation
 
 ### Performance Optimizations
 - **Image Optimization**: Custom `OptimizedImage.tsx` component with Next.js Image
@@ -321,6 +338,36 @@ L'application utilise une stack technique de pointe avec les dernières versions
 
 Cette stack représente l'état de l'art pour une application web moderne en 2025, combinant performance, maintenabilité et expérience développeur optimale.
 
+## Database & Environment Setup
+
+### Supabase Configuration
+- **URL**: `https://lkaiwnkyoztebplqoifc.supabase.co`
+- **Storage**: Images stored in `plats` bucket with public access patterns
+- **Tables**: `client_db`, `commande_db`, `details_commande_db`, `evenements_db`, `plats_db`, `extras_db`
+- **Authentication**: Custom Firebase UID synchronization with RLS policies
+
+### Environment Variables Required
+```bash
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=https://lkaiwnkyoztebplqoifc.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6...
+SUPABASE_SERVICE_ROLE_KEY=sbp_...
+SUPABASE_DB_PASSWORD=...
+
+# Firebase
+NEXT_PUBLIC_FIREBASE_API_KEY=...
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=...
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=...
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=...
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=...
+NEXT_PUBLIC_FIREBASE_APP_ID=...
+```
+
+### Development Tools
+- **Database Script**: `scripts/get_db_data.js` for data inspection
+- **Docker Support**: Local Supabase instance management
+- **Debug Mode**: Node.js inspector enabled by default in dev mode
+
 ## 🔄 Historique des Sessions & Optimisations (2025)
 
 ### Session du 25 Août 2025 - Optimisations Majeures Appliquées ✅
@@ -439,3 +486,59 @@ Complete migration from React + Vite to Next.js 15 while maintaining:
 - Hybrid Firebase + Supabase architecture
 - All business functionality and user workflows
 - Performance optimizations and responsive design
+
+## Development Best Practices
+
+### Code Organization
+- **Component Structure**: UI components in `components/ui/`, business components in `components/`
+- **Type Safety**: Extensive TypeScript usage with auto-generated Supabase types
+- **Error Handling**: Comprehensive error boundaries and toast notifications
+- **Performance**: Server Components first, Client Components only when needed
+
+### Database Best Practices
+- **Type Validation**: Use validation functions from `lib/validations.ts`
+- **CRUD Operations**: Use hooks from `useSupabaseData.ts` for consistency
+- **Cache Management**: TanStack Query handles caching with proper invalidation
+- **Real-time**: Supabase subscriptions for live data updates
+
+### Authentication Flow
+1. **Firebase Authentication**: Primary identity provider
+2. **Profile Sync**: Automatic Supabase profile creation
+3. **Role Management**: Admin detection via email patterns
+4. **Session Management**: Hybrid Firebase + Supabase sessions
+
+### Testing Strategy
+- **E2E Tests**: Playwright configuration for multi-browser testing
+- **Visual Testing**: Screenshot capture tools available
+- **Performance Testing**: Core Web Vitals monitoring
+- **Manual Testing**: Device testing across breakpoints
+
+### Deployment Considerations
+- **Environment Variables**: Separate dev/prod configurations
+- **Image Optimization**: Next.js Image component with Supabase storage
+- **Build Process**: Production builds with optimizations
+- **Security**: Re-enable RLS policies before production deployment
+
+## Common Development Patterns
+
+### Adding New Features
+1. Define types in `types/app.ts`
+2. Create validation schemas in `lib/validations.ts`
+3. Add CRUD hooks to `useSupabaseData.ts`
+4. Build UI components with proper error handling
+5. Test with Playwright E2E tests
+
+### Styling Guidelines
+- Use Tailwind utility classes with Thai color palette
+- Implement responsive design using breakpoint system
+- Add proper animations with GPU acceleration
+- Support accessibility with reduced motion preferences
+
+### Performance Optimization
+- Use Server Components for static content
+- Implement proper loading states
+- Optimize images with Next.js Image
+- Monitor Core Web Vitals
+- Use React Query for efficient data fetching
+
+This architecture provides a solid foundation for a modern, scalable Thai restaurant management system with excellent developer experience and performance characteristics.

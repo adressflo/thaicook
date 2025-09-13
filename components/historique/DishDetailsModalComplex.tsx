@@ -12,8 +12,8 @@ interface DishDetailsModalComplexProps {
 
 export const DishDetailsModalComplex = React.memo<DishDetailsModalComplexProps>(({ detail, children, formatPrix }) => {
   const [open, setOpen] = React.useState(false);
-  const platName = detail.type === 'complement_divers' 
-    ? (detail.nom_plat || 'Extra supprimé')
+  const platName = detail.type === 'complement_divers'
+    ? (detail.nom_plat && !detail.nom_plat.includes('complement') ? detail.nom_plat : 'Extra')
     : (detail.plat?.plat || 'Plat supprimé');
   const quantite = detail.quantite_plat_commande || 0;
   const prixUnitaire = detail.type === 'complement_divers' 

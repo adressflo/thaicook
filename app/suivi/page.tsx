@@ -187,8 +187,8 @@ const SuiviPage = memo(() => {
                                 prix={calculateTotal(c)} 
                                 formatPrix={formatPrix} 
                                 details={c.details?.map(d => ({
-                                  plat: d.plat ? { plat: d.plat.plat, prix: d.plat.prix } : null,
-                                  quantite_plat_commande: d.quantite_plat_commande
+                                  plat: d.plat ? { plat: d.plat.plat, prix: d.plat.prix || 0 } : null,
+                                  quantite_plat_commande: d.quantite_plat_commande || 0
                                 }))}
                               />
                             </TableCell>
