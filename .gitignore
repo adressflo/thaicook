@@ -79,6 +79,7 @@ nul
 
 # Claude configuration
 .claude/settings.local.json
+.claude/config.json
 
 # Gemini project-specific files
 .gemini/

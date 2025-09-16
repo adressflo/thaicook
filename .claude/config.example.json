@@ -1,0 +1,53 @@
+{
+  "comment": "Configuration MCP pour Claude Code - Projet APPChanthana (EXEMPLE)",
+  "mcpServers": {
+    "filesystem": {
+      "command": "C:\\Program Files\\nodejs\\npx.cmd",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem@latest", "C:\\Users\\USER\\Desktop\\APPChanthana"]
+    },
+    "memory": {
+      "command": "C:\\Program Files\\nodejs\\npx.cmd",
+      "args": ["-y", "@modelcontextprotocol/server-memory@latest"],
+      "env": {
+        "MEMORY_CONFIG_PATH": "C:\\Users\\USER\\.ai-memory\\shared-context.json",
+        "MEMORY_AUTO_SAVE": "true",
+        "MEMORY_PERSISTENCE": "true"
+      }
+    },
+    "sequential-thinking": {
+      "command": "C:\\Program Files\\nodejs\\npx.cmd",
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking@latest"]
+    },
+    "context7": {
+      "command": "C:\\Program Files\\nodejs\\npx.cmd",
+      "args": ["-y", "@upstash/context7-mcp@latest"],
+      "env": {},
+      "timeout": 15000,
+      "retries": 3,
+      "trust": true
+    },
+    "supabase-official": {
+      "command": "C:\\Program Files\\nodejs\\npx.cmd",
+      "args": ["-y", "@supabase/mcp-server-supabase@latest"],
+      "env": {
+        "SUPABASE_URL": "YOUR_SUPABASE_URL",
+        "SUPABASE_ACCESS_TOKEN": "YOUR_SUPABASE_ACCESS_TOKEN"
+      }
+    },
+    "playwright": {
+      "command": "C:\\Program Files\\nodejs\\npx.cmd",
+      "args": ["-y", "@playwright/mcp@latest"]
+    },
+    "github": {
+      "command": "C:\\Program Files\\nodejs\\npx.cmd",
+      "args": ["-y", "@modelcontextprotocol/server-github@latest"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "YOUR_GITHUB_TOKEN"
+      }
+    },
+    "sqlite": {
+      "command": "C:\\Program Files\\nodejs\\npx.cmd",
+      "args": ["-y", "@executeautomation/database-server@latest", "C:\\Users\\USER\\Desktop\\APPChanthana\\mydatabase.db"]
+    }
+  }
+}
