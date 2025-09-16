@@ -77,9 +77,9 @@ nul
 .cache/
 .parcel-cache/
 
-# Claude configuration
-.claude/settings.local.json
-.claude/config.json
+# Claude configuration (complet)
+.claude/
+!.claude/README.md
 
 # Gemini project-specific files
 .gemini/
