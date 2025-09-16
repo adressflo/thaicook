@@ -23,11 +23,12 @@ import {
 } from 'lucide-react'
 import { format, isSameDay, isPast, isFuture } from 'date-fns'
 import { fr } from 'date-fns/locale'
-import { 
-  usePlatRuptures, 
-  useCreatePlatRupture, 
+import {
+  usePlatRuptures,
+  useCreatePlatRupture,
   useDeletePlatRupture,
-  useCheckPlatAvailability
+  useCheckPlatAvailability,
+  type PlatRupture
 } from '@/hooks/useSupabaseData'
 
 interface DateRuptureManagerProps {
@@ -35,17 +36,6 @@ interface DateRuptureManagerProps {
   platNom: string
 }
 
-interface PlatRupture {
-  id: number
-  plat_id: number
-  date_rupture: string
-  raison_rupture: string
-  type_rupture: 'stock' | 'conges' | 'maintenance' | 'autre'
-  notes_rupture?: string
-  is_active: boolean
-  created_at: string
-  created_by?: string
-}
 
 const typeRuptureOptions = [
   { value: 'stock', label: 'Rupture de stock', icon: '📦', color: 'bg-red-100 text-red-800' },
@@ -69,10 +59,7 @@ export function DateRuptureManager({ platId, platNom }: DateRuptureManagerProps)
   const deleteRuptureMutation = useDeletePlatRupture()
 
   // Hook pour vérifier la disponibilité d'un plat à une date donnée
-  const { data: platAvailability } = useCheckPlatAvailability(
-    platId, 
-    selectedDate ? format(selectedDate, 'yyyy-MM-dd') : ''
-  )
+  const checkAvailabilityMutation = useCheckPlatAvailability()
 
   const handleAddRupture = async () => {
     if (!selectedDate) {
@@ -99,8 +86,7 @@ export function DateRuptureManager({ platId, platNom }: DateRuptureManagerProps)
         date_rupture: format(selectedDate, 'yyyy-MM-dd'),
         raison_rupture: raisonRupture.trim(),
         type_rupture: typeRupture,
-        notes_rupture: notesRupture.trim() || null,
-        is_active: true
+        notes_rupture: notesRupture.trim() || undefined
       })
 
       // Reset du formulaire
@@ -112,7 +98,7 @@ export function DateRuptureManager({ platId, platNom }: DateRuptureManagerProps)
 
       toast({
         title: 'Rupture ajoutée',
-        description: `${platNom} sera indisponible le ${format(selectedDate, 'PPP', { locale: fr })}`
+        description: selectedDate ? `${platNom} sera indisponible le ${format(selectedDate, 'PPP', { locale: fr })}` : `Rupture ajoutée pour ${platNom}`
       })
     } catch (error) {
       console.error('Erreur lors de l\'ajout de la rupture:', error)
@@ -275,7 +261,7 @@ export function DateRuptureManager({ platId, platNom }: DateRuptureManagerProps)
 
               <div className="space-y-2">
                 <Label>Type de rupture *</Label>
-                <Select value={typeRupture} onValueChange={(value: any) => setTypeRupture(value)}>
+                <Select value={typeRupture} onValueChange={(value: 'stock' | 'conges' | 'maintenance' | 'autre') => setTypeRupture(value)}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>

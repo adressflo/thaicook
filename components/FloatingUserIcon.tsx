@@ -181,7 +181,7 @@ const FloatingUserIcon = memo(() => {
                       notification.actionUrl ? (
                         <Link
                           key={notification.id}
-                          href={notification.actionUrl}
+                          href={notification.actionUrl as any}
                           onClick={() => {
                             if (!notification.read) {
                               markAsRead(notification.id);

@@ -156,7 +156,7 @@ const TableauDeBord = memo(() => {
                 key={index}
                 className="group cursor-pointer transition-all duration-500 ease-out border-2 border-thai-orange/20 overflow-hidden flex flex-col hover:shadow-2xl hover:scale-105 hover:border-thai-orange hover:-translate-y-2 h-full"
               >
-                <Link href={section.link} className="h-full flex flex-col">
+                <Link href={section.link as any} className="h-full flex flex-col">
                   <div className="aspect-video overflow-hidden relative flex-shrink-0">
                     <img
                       src={section.image}

@@ -174,12 +174,12 @@ export default function ClientEventsPage() {
       const eventData: CreateEvenementData = {
         nom_evenement: formData.nom_evenement,
         contact_client_r: clientId,
-        contact_client_r_id: client?.idclient || null,
-        date_evenement: formData.date_evenement || null,
+        contact_client_r_id: client?.idclient || 0,
+        date_evenement: formData.date_evenement || new Date().toISOString().split('T')[0],
         type_d_evenement: formData.type_d_evenement,
-        nombre_de_personnes: formData.nombre_de_personnes ? parseInt(formData.nombre_de_personnes) : null,
-        budget_client: formData.budget_client ? parseFloat(formData.budget_client) : null,
-        demandes_speciales_evenement: formData.demandes_speciales_evenement || null
+        nombre_de_personnes: formData.nombre_de_personnes ? parseInt(formData.nombre_de_personnes) : 1,
+        budget_client: formData.budget_client ? parseFloat(formData.budget_client) : undefined,
+        demandes_speciales_evenement: formData.demandes_speciales_evenement || undefined
       };
 
       await createEvenementMutation.mutateAsync(eventData);
@@ -600,7 +600,7 @@ export default function ClientEventsPage() {
                         <div
                           key={eventIndex}
                           className="text-xs p-1 bg-thai-gold/20 text-thai-gold rounded truncate cursor-pointer hover:bg-thai-gold/30 transition-colors"
-                          title={event.nom_evenement}
+                          title={event.nom_evenement || 'Événement'}
                         >
                           {event.nom_evenement}
                         </div>

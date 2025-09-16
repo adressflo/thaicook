@@ -245,14 +245,27 @@ const SuiviEvenement = memo(() => {
                       {platsSelectionnes.map((plat: Plat, index: number) => {
                         // Préparer les données pour le modal
                         const detailForModal = {
+                          commande_r: 0, // ID fictif pour les événements
+                          iddetails: index, // Utiliser l'index comme ID fictif
                           plat_r: plat.idplats,
                           quantite_plat_commande: 1, // Quantité par défaut pour les événements
                           plat: {
                             idplats: plat.idplats,
                             plat: plat.plat,
                             prix: plat.prix || 0,
-                            description: plat.description || '',
-                            photo_du_plat: plat.photo_du_plat || ''
+                            description: plat.description || null,
+                            photo_du_plat: plat.photo_du_plat || null,
+                            dimanche_dispo: plat.dimanche_dispo || null,
+                            epuise_depuis: plat.epuise_depuis || null,
+                            epuise_jusqu_a: plat.epuise_jusqu_a || null,
+                            est_epuise: plat.est_epuise || false,
+                            jeudi_dispo: plat.jeudi_dispo || '18:00-20:30',
+                            lundi_dispo: plat.lundi_dispo || '18:00-20:30',
+                            mardi_dispo: plat.mardi_dispo || '18:00-20:30',
+                            mercredi_dispo: plat.mercredi_dispo || '18:00-20:30',
+                            raison_epuisement: plat.raison_epuisement || null,
+                            samedi_dispo: plat.samedi_dispo || null,
+                            vendredi_dispo: plat.vendredi_dispo || null
                           }
                         };
 

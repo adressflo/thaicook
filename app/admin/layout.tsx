@@ -127,7 +127,7 @@ export default function AdminLayout({
                   size="sm"
                   className="text-thai-green hover:bg-thai-orange/10 hover:text-thai-orange transition-all duration-200"
                 >
-                  <Link href={item.href} className="flex items-center gap-2">
+                  <Link href={item.href as any} className="flex items-center gap-2">
                     <item.icon className="h-4 w-4" />
                     {item.title}
                   </Link>

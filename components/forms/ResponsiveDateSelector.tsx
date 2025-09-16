@@ -88,11 +88,11 @@ export const ResponsiveDateSelector = forwardRef<HTMLDivElement, ResponsiveDateS
     const handleDateChange = (field: 'day' | 'month' | 'year', newValue: string) => {
       const currentDay = value ? value.getDate() : 1;
       const currentMonth = value ? value.getMonth() + 1 : 1;
-      const currentYear = value ? value.getFullYear() : currentYear;
+      const selectedYear = value ? value.getFullYear() : currentYear;
 
       let newDay = currentDay;
       let newMonth = currentMonth;
-      let newYear = currentYear;
+      let newYear = selectedYear;
 
       switch (field) {
         case 'day':

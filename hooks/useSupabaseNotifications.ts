@@ -36,35 +36,43 @@ export const useSupabaseNotifications = () => {
     if (!currentUser) return;
 
     try {
-      const { data, error } = await supabase
-        .from('notifications')
-        .select('*')
-        .eq('user_id', currentUser.uid)
-        .order('created_at', { ascending: false });
+      // TODO: Activer quand la table 'notifications' sera créée dans Supabase
+      // const { data, error } = await supabase
+      //   .from('notifications')
+      //   .select('*')
+      //   .eq('user_id', currentUser.uid)
+      //   .order('created_at', { ascending: false });
 
-      if (error) {
-        // Table doesn't exist yet - this is expected during development
-        if (process.env.NODE_ENV === 'development') {
-          console.warn('Notifications table not found - using local context only');
-        }
-        return;
+      // if (error) {
+      //   // Table doesn't exist yet - this is expected during development
+      //   if (process.env.NODE_ENV === 'development') {
+      //     console.warn('Notifications table not found - using local context only');
+      //   }
+      //   return;
+      // }
+
+      // Table doesn't exist yet - using local context only
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('Notifications table not found - using local context only');
       }
+      return;
 
+      // TODO: Réactiver quand la table 'notifications' sera créée
       // Convertir et ajouter les notifications
-      data?.forEach((supabaseNotification: any) => {
-        const notification: Notification = {
-          id: supabaseNotification.id,
-          type: supabaseNotification.type,
-          title: supabaseNotification.title,
-          message: supabaseNotification.message,
-          category: supabaseNotification.category,
-          actionUrl: supabaseNotification.action_url,
-          read: supabaseNotification.read,
-          timestamp: new Date(supabaseNotification.created_at),
-          userId: supabaseNotification.user_id
-        };
-        addNotification(notification);
-      });
+      // data?.forEach((supabaseNotification: any) => {
+      //   const notification: Notification = {
+      //     id: supabaseNotification.id,
+      //     type: supabaseNotification.type,
+      //     title: supabaseNotification.title,
+      //     message: supabaseNotification.message,
+      //     category: supabaseNotification.category,
+      //     actionUrl: supabaseNotification.action_url,
+      //     read: supabaseNotification.read,
+      //     timestamp: new Date(supabaseNotification.created_at),
+      //     userId: supabaseNotification.user_id
+      //   };
+      //   addNotification(notification);
+      // });
     } catch (error) {
       // Silent fail - notifications are not critical for app functionality
       if (process.env.NODE_ENV === 'development') {

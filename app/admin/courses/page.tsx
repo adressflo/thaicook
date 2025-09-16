@@ -65,7 +65,7 @@ export default function AdminApprovisionnement() {
   const articles: ArticleCourse[] = useMemo(() => {
     if (!catalogueArticles) return [];
     
-    return catalogueArticles.map(article => ({
+    return catalogueArticles.map((article: any) => ({
       id: article.idarticles?.toString() || '',
       nom: article.nom_article || 'Article sans nom',
       categorie: article.categorie_article || 'Non catégorisé',
@@ -85,7 +85,7 @@ export default function AdminApprovisionnement() {
   const listes: ListeCourse[] = useMemo(() => {
     if (!listesCourses) return [];
     
-    return listesCourses.map(liste => ({
+    return listesCourses.map((liste: any) => ({
       id: liste.idliste?.toString() || '',
       nom: liste.nom_liste || 'Liste sans nom',
       date_creation: liste.date_creation || new Date().toISOString(),

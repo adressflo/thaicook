@@ -334,7 +334,7 @@ const NotificationsPage = memo(() => {
                               asChild
                               className="text-thai-orange hover:bg-thai-orange/10"
                             >
-                              <Link href={notification.actionUrl}>
+                              <Link href={notification.actionUrl as any}>
                                 <Home className="h-4 w-4" />
                               </Link>
                             </Button>

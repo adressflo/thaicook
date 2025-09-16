@@ -37,14 +37,14 @@ export function ValidationErrorDisplay({
             Veuillez corriger les erreurs suivantes :
           </div>
           <ul className="space-y-1 text-xs">
-            {error.errors.map((err, index) => (
+            {error.issues.map((issue, index) => (
               <li key={index} className="flex items-start gap-2">
                 <span className="text-red-500 font-medium">•</span>
                 <div>
                   <span className="font-medium">
-                    {err.path.length > 0 ? `${err.path.join('.')} : ` : ''}
+                    {issue.path.length > 0 ? `${issue.path.join('.')} : ` : ''}
                   </span>
-                  <span>{err.message}</span>
+                  <span>{issue.message}</span>
                 </div>
               </li>
             ))}
@@ -75,13 +75,14 @@ export function useValidationErrors() {
     if (error instanceof Error && error.message.includes('invalides:')) {
       // Tenter de parser l'erreur Zod depuis le message d'erreur contextuel
       const errorMessage = error.message;
-      setValidationError({
-        errors: [{ 
-          path: [], 
+      const mockError = {
+        issues: [{
+          path: [],
           message: errorMessage.replace(/.*invalides:\s*/, ''),
-          code: 'custom' 
+          code: 'custom' as const
         }]
-      } as ZodError);
+      };
+      setValidationError(mockError as unknown as ZodError);
     } else {
       setValidationError(null);
     }

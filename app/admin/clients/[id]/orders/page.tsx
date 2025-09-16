@@ -78,7 +78,7 @@ const QuickActionButtons = ({
   const currentStatus = commande.statut_commande;
   // Gérer la transition Récupérée → Terminée
   const displayStatus =
-    currentStatus === 'Récupérée' ? 'Terminée' : currentStatus;
+    currentStatus === 'Récupérée' ? 'Terminée' : (currentStatus || 'En attente de confirmation');
 
   const handleStatusChange = async (newStatus: string) => {
     // Ne rien faire si c'est le même statut
@@ -797,7 +797,7 @@ const AddPlatModal = ({
       toast({
         title: 'Erreur',
         description: `Impossible d'ajouter le plat: ${
-          error.message || 'Erreur inconnue'
+          (error as Error).message || 'Erreur inconnue'
         }`,
         variant: 'destructive',
       });
@@ -1063,7 +1063,7 @@ export default function ClientOrdersPage() {
       commandes?.filter(c => c.statut_commande === 'Annulée').length || 0,
   };
 
-  const getStatusColor = (statut: StatutCommandeAffichage) => {
+  const getStatusColor = (statut: string) => {
     switch (statut) {
       case 'Terminée':
       case 'Récupérée':
@@ -1083,7 +1083,7 @@ export default function ClientOrdersPage() {
     }
   };
 
-  const getStatusBgColor = (statut: StatutCommandeAffichage) => {
+  const getStatusBgColor = (statut: string) => {
     switch (statut) {
       case 'Terminée':
       case 'Récupérée':
@@ -1103,7 +1103,7 @@ export default function ClientOrdersPage() {
     }
   };
 
-  const getStatusIcon = (statut: StatutCommandeAffichage) => {
+  const getStatusIcon = (statut: string) => {
     switch (statut) {
       case 'Terminée':
       case 'Récupérée':
@@ -2764,7 +2764,7 @@ const CommandeDetailsModal = ({
                   
                   {/* Changement de Statut - Déplacé à droite */}
                 <Select
-                  value={commande?.statut_commande === 'Récupérée' ? 'Terminée' : commande?.statut_commande}
+                  value={commande?.statut_commande === 'Récupérée' ? 'Terminée' : (commande?.statut_commande || 'En attente de confirmation')}
                   onValueChange={(newStatus) => {
                     const dbStatus = newStatus === 'Terminée' ? 'Récupérée' : newStatus;
                     if (commande?.idcommande) {
@@ -3001,7 +3001,7 @@ const CommandeDetailsModal = ({
                           <div>
                             <div className="font-medium">{plat.plat}</div>
                             <div className="text-sm text-gray-500">
-                              {formatPrix(plat.prix)}
+                              {formatPrix(plat.prix || 0)}
                             </div>
                           </div>
                         </div>

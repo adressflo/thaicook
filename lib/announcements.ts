@@ -237,7 +237,7 @@ export const getSystemSettings = async (): Promise<SystemSettings | null> => {
     }
 
     const settings: Record<string, boolean | number | string> = {};
-    data?.forEach(item => {
+    data?.forEach((item: { setting_key: string; setting_value: string }) => {
       const value = item.setting_value;
       // Conversion selon le type
       if (value === 'true' || value === 'false') {

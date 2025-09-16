@@ -173,7 +173,7 @@ export default function AdminStatistiques() {
     // Métriques de performance
     const averageOrderTime = 25; // Simulation - à calculer avec les vraies données
     const customerSatisfaction = 4.7; // Simulation - à intégrer avec un système d'avis
-    const repeatCustomerRate = clients?.length > 0 ? 
+    const repeatCustomerRate = clients && clients.length > 0 ?
       (clients.filter(c => (c.idclient || 0) < clients.length * 0.7).length / clients.length) * 100 : 0;
 
     return {

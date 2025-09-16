@@ -40,7 +40,7 @@ const Header = () => {
             {navigation.map((item) => (
               <Link
                 key={item.name}
-                href={item.href}
+                href={item.href as any}
                 className={cn(
                   "px-4 py-2 rounded-lg transition-all duration-200 font-medium",
                   isActive(item.href)
@@ -83,7 +83,7 @@ const Header = () => {
               {navigation.map((item) => (
                 <Link
                   key={item.name}
-                  href={item.href}
+                  href={item.href as any}
                   className={cn(
                     "px-4 py-3 rounded-lg transition-all duration-200 font-medium",
                     isActive(item.href)
