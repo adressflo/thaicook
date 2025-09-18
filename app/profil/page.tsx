@@ -38,7 +38,7 @@ import {
 import { format, parse, isValid as isValidDate, startOfDay } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
-import { auth } from '@/firebaseConfig';
+import { auth } from '@/lib/firebaseConfig';
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
