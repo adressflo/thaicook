@@ -1,232 +1,233 @@
-# Plan d'Amélioration Global de l'Application
-
+Plan d'Amélioration Global de l'Application
 Ce document centralise toutes les tâches d'amélioration pour l'application ChanthanaThaiCook.
 
-## I. Améliorations Générales et Transversales
+I. Améliorations Générales et Transversales
+Transformer l'application en Progressive Web App (PWA) et Notifications
+[ ] Mettre en place les bases de la PWA (Service Worker, Manifest) pour rendre l'application installable.
 
-### Transformer l'application en Progressive Web App (PWA) et Notifications
+*Exemple : *
 
-* [ ] Mettre en place les bases de la PWA (Service Worker, Manifest) pour rendre l'application installable.
-  *Exemple : [Image d'un smartphone montrant la pop-up "Ajouter à l'écran d'accueil"]*
-* [ ] Intégrer un système de notifications push (via Firebase Cloud Messaging) comme canal de communication prioritaire et gratuit.
-* [ ] Développer une stratégie de communication hybride :
-  * [ ] **Priorité 1 :** Envoyer systématiquement les alertes via Notification Push PWA si l'utilisateur a donné son consentement.
-  * [ ] **Priorité 2 :** Envoyer en parallèle une notification sur le canal de communication préféré du client (WhatsApp, SMS, Telegram) via n8n.
-* [ ] Mettre en place un fonctionnement hors-ligne de base (consultation du menu).
+[ ] Intégrer un système de notifications push (via Firebase Cloud Messaging) comme canal de communication prioritaire et gratuit.
 
-### Mettre en place une stratégie de tests automatisés
+[ ] Développer une stratégie de communication hybride :
 
-* [ ] Définir et écrire des tests pour les parcours utilisateurs critiques (commande, authentification, etc.) afin de garantir la stabilité de l'application et d'éviter les régressions
+[ ] Priorité 1 : Envoyer systématiquement les alertes via Notification Push PWA si l'utilisateur a donné son consentement.
 
-### Intégration n8n
+[ ] Priorité 2 : Envoyer en parallèle une notification sur le canal de communication préféré du client (WhatsApp, SMS, Telegram) via n8n.
 
-* [ ] Planifier et intégrer les webhooks n8n pour les notifications de commande (SMS, WhatsApp, Telegram, etc.)
-* [ ] Rechercher et configurer un service d'email transactionnel (Brevo ou SendGrid en priorité pour leurs offres gratuites).
-* [ ] Mettre en place un bot Telegram pour les notifications gratuites.
+[ ] Mettre en place un fonctionnement hors-ligne de base (consultation du menu).
 
-### Optimisation des performances globales
+Mettre en place une stratégie de tests automatisés
+[ ] Définir et écrire des tests pour les parcours utilisateurs critiques (commande, authentification, etc.) afin de garantir la stabilité de l'application et d'éviter les régressions
 
-* [ ] Analyser l'ensemble de l'application pour identifier les points à améliorer en termes de vitesse de chargement et de réactivité
+Intégration n8n
+[ ] Planifier et intégrer les webhooks n8n pour les notifications de commande (SMS, WhatsApp, Telegram, etc.)
 
-### Améliorer l'accessibilité
+[ ] Rechercher et configurer un service d'email transactionnel (Brevo ou SendGrid en priorité pour leurs offres gratuites).
 
-* [ ] S'assurer que l'ensemble de l'application respecte les bonnes pratiques d'accessibilité
+[ ] Mettre en place un bot Telegram pour les notifications gratuites.
 
-### Simplification de la navigation
+Optimisation des performances globales
+[ ] Analyser l'ensemble de l'application pour identifier les points à améliorer en termes de vitesse de chargement et de réactivité
 
-* [ ] Supprimer la page /suivi qui est redondante avec la page /historique
-* [ ] Mettre à jour le lien "Suivi &amp; historique" sur la page d'accueil pour qu'il pointe directement vers /historique
+Améliorer l'accessibilité
+[ ] S'assurer que l'ensemble de l'application respecte les bonnes pratiques d'accessibilité
 
-## II. Améliorations par Page
+Simplification de la navigation
+[ ] Supprimer la page /suivi qui est redondante avec la page /historique
 
-### A. Page d'Accueil (/)
+[ ] Mettre à jour le lien "Suivi & historique" sur la page d'accueil pour qu'il pointe directement vers /historique
 
-#### Améliorer le pied de page
+II. Améliorations par Page
+A. Page d'Accueil (/)
+Améliorer le pied de page
+[ ] Ajouter les jours et horaires d'ouverture
 
-* [ ] Ajouter les jours et horaires d'ouverture
-* [ ] Intégrer des icônes cliquables vers les réseaux sociaux (Facebook, Instagram, etc.)
+[ ] Intégrer des icônes cliquables vers les réseaux sociaux (Facebook, Instagram, etc.)
 
-#### Ajouter un sélecteur de langue
+Ajouter un sélecteur de langue
+[ ] Permettre aux utilisateurs de changer la langue du site
 
-* [ ] Permettre aux utilisateurs de changer la langue du site
+B. Page Commander (/commander)
+Améliorer l'affichage de la quantité dans le panier
+[ ] Remplacer le texte "X dans le panier" par une icône de panier (ShoppingCart) avec un badge indiquant la quantité
 
-### B. Page Commander (/commander)
+Ajouter des badges spéciaux aux plats
+[ ] Mettre en avant les plats végétariens, épicés ou populaires avec des icônes ou des badges visuels
 
-#### Améliorer l'affichage de la quantité dans le panier
+Optimiser l'expérience mobile
+[ ] Simplifier la navigation entre les étapes (choix du jour, sélection des plats, panier) avec une interface adaptée aux mobiles (par exemple, un menu de navigation en bas de l'écran)
 
-* [ ] Remplacer le texte "X dans le panier" par une icône de panier (ShoppingCart) avec un badge indiquant la quantité
+C. Page Panier (/panier)
+Gestion des Articles
+[ ] Sauvegarde du Panier : Si un utilisateur non connecté remplit son panier, lui proposer de le sauvegarder en créant un compte pour ne pas perdre sa sélection
 
-#### Ajouter des badges spéciaux aux plats
+Expérience Utilisateur
+[ ] Confirmation Visuelle : Après validation de la commande, afficher une page de confirmation plus visuelle et engageante, avec un récapitulatif de la commande et un message de remerciement
 
-* [ ] Mettre en avant les plats végétariens, épicés ou populaires avec des icônes ou des badges visuels
+Améliorer l'affichage du message de confirmation
+[ ] Modifier le fond du message (toast) de confirmation de commande pour qu'il soit blanc, afin d'améliorer la lisibilité
 
-#### Optimiser l'expérience mobile
+Gestion de l'heure de retrait
+[ ] Ajouter une note précisant que l'heure de retrait est indicative et peut être ajustée
 
-* [ ] Simplifier la navigation entre les étapes (choix du jour, sélection des plats, panier) avec une interface adaptée aux mobiles (par exemple, un menu de navigation en bas de l'écran)
+[ ] Côté admin, permettre de proposer une nouvelle heure de retrait
 
-### C. Page Panier (/panier)
+[ ] Mettre en place une notification (via n8n) pour informer le client de la nouvelle proposition d'heure
 
-#### Gestion des Articles
+D. Page Historique (/historique)
+Refonte de la Page
+Commandes Récentes
+[ ] Limiter l'affichage aux 3 à 5 dernières commandes terminées
 
-* [ ] **Sauvegarde du Panier** : Si un utilisateur non connecté remplit son panier, lui proposer de le sauvegarder en créant un compte pour ne pas perdre sa sélection
+[ ] Ajouter un bouton icône "Facture" pour les commandes avec le statut "Récupérée"
 
-#### Expérience Utilisateur
+Événements Récents
+[ ] Limiter l'affichage aux 3 derniers événements terminés
 
-* [ ] **Confirmation Visuelle** : Après validation de la commande, afficher une page de confirmation plus visuelle et engageante, avec un récapitulatif de la commande et un message de remerciement
+[ ] Ajouter un bouton icône "Devis" pour les événements
 
-#### Améliorer l'affichage du message de confirmation
+[ ] Ajouter un bouton icône "Facture" pour les événements facturés
 
-* [ ] Modifier le fond du message (toast) de confirmation de commande pour qu'il soit blanc, afin d'améliorer la lisibilité
+Créer une page dédiée
+[ ] Mettre en place un bouton "Voir tout l'historique" qui redirige vers une nouvelle page /historique/complet
 
-#### Gestion de l'heure de retrait
+Nouvelle Page "Historique Complet" (/historique/complet)
+Filtres Avancés
+[ ] Intégrer un filtre de recherche par nom de plat, date, ou statut pour les commandes et événements
 
-* [ ] Ajouter une note précisant que l'heure de retrait est indicative et peut être ajustée
-* [ ] Côté admin, permettre de proposer une nouvelle heure de retrait
-* [ ] Mettre en place une notification (via n8n) pour informer le client de la nouvelle proposition d'heure
+Vue Calendrier
+[ ] Proposer une vue calendrier pour naviguer facilement dans les commandes et événements passés
 
-### D. Page Historique (/historique)
+Actions sur les Commandes
+[ ] Export de Facture : Permettre de télécharger la facture en PDF pour chaque commande "Récupérée"
 
-#### Refonte de la Page
+[ ] "Commander à Nouveau" : Ajouter un bouton pour recommander facilement une commande passée
 
-##### Commandes Récentes
+Actions sur les Événements
+[ ] Export de Devis/Facture : Permettre de télécharger le devis et/ou la facture en PDF pour chaque événement
 
-* [ ] Limiter l'affichage aux 3 à 5 dernières commandes terminées
-* [ ] Ajouter un bouton icône "Facture" pour les commandes avec le statut "Récupérée"
+E. Page Suivi de Commande (/suivi-commande/[id])
+Informations Pratiques
+[ ] Carte de localisation : Intégrer une petite carte (Google Maps ou autre) sous le bouton "Voir sur la carte" pour une visualisation rapide
 
-##### Événements Récents
+[ ] Contact Rapide : Ajouter des boutons d'action pour appeler directement ou envoyer un SMS en un clic
 
-* [ ] Limiter l'affichage aux 3 derniers événements terminés
-* [ ] Ajouter un bouton icône "Devis" pour les événements
-* [ ] Ajouter un bouton icône "Facture" pour les événements facturés
+Expérience Post-Commande
+[ ] Laisser un Avis : Une fois la commande marquée comme "Récupérée", afficher un petit formulaire simple pour que le client puisse laisser un avis
 
-##### Créer une page dédiée
+[ ] Bouton Facture : Ajouter un bouton icône "Facture" pour les commandes avec le statut "Récupérée"
 
-* [ ] Mettre en place un bouton "Voir tout l'historique" qui redirige vers une nouvelle page /historique/complet
+Notifications et Alertes
+[ ] Notifications Push (via PWA et n8n) : Envoyer des notifications push pour chaque changement de statut de la commande
 
-#### Nouvelle Page "Historique Complet" (/historique/complet)
+F. Page Modifier Commande (/modifier-commande/[id])
+Interaction Utilisateur
+[ ] Mettre en place une boîte de dialogue de confirmation avant de sauvegarder les modifications, qui récapitule les changements et la différence de prix
 
-##### Filtres Avancés
+[ ] (Côté Admin) Garder une trace des modifications apportées à une commande (qui a modifié, quand, et quels changements ont été faits)
 
-* [ ] Intégrer un filtre de recherche par nom de plat, date, ou statut pour les commandes et événements
+Notifications et Communication
+[ ] (Intégration n8n) Envoyer une notification à l'administrateur lorsqu'un client modifie sa commande
 
-##### Vue Calendrier
+[ ] (Intégration n8n) Envoyer une confirmation détaillée au client après la sauvegarde des modifications
 
-* [ ] Proposer une vue calendrier pour naviguer facilement dans les commandes et événements passés
+Gestion de l'heure de retrait (rappel)
+[ ] Ajouter une note précisant que l'heure de retrait est indicative et peut être ajustée
 
-##### Actions sur les Commandes
+[ ] Côté admin, permettre de proposer une nouvelle heure de retrait
 
-* [ ] **Export de Facture** : Permettre de télécharger la facture en PDF pour chaque commande "Récupérée"
-* [ ] **"Commander à Nouveau"** : Ajouter un bouton pour recommander facilement une commande passée
+[ ] Mettre en place une notification (via n8n) pour informer le client de la nouvelle proposition d'heure
 
-##### Actions sur les Événements
+G. Page Suivi d'Événement (/suivi-evenement/[id])
+Chronologie de l'Événement
+[ ] Suivi Visuel : Ajouter une chronologie visuelle des étapes clés de l'organisation ("Demande reçue", "Devis envoyé", "Confirmé", etc.)
 
-* [ ] **Export de Devis/Facture** : Permettre de télécharger le devis et/ou la facture en PDF pour chaque événement
+Gestion des Documents
+[ ] Accès Centralisé : Créer une section où le client peut télécharger le devis et la facture finale en PDF
 
-### E. Page Suivi de Commande (/suivi-commande/[id])
+Communication et Actions
+[ ] Contact Rapide Amélioré : Ajouter un bouton "Poser une question" qui ouvre une fenêtre de messagerie pré-remplie
 
-#### Informations Pratiques
+[ ] Validation du Devis : Mettre en place un bouton "Accepter le devis" qui notifie l'administrateur via n8n
 
-* [ ] **Carte de localisation** : Intégrer une petite carte (Google Maps ou autre) sous le bouton "Voir sur la carte" pour une visualisation rapide
-* [ ] **Contact Rapide** : Ajouter des boutons d'action pour appeler directement ou envoyer un SMS en un clic
+Intégration n8n pour les Rappels
+[ ] Configurer n8n pour envoyer des rappels automatiques au client avant l'événement et un message de remerciement après
 
-#### Expérience Post-Commande
+H. Page Profil (/profil)
+Intégration n8n pour la Communication
+[ ] Messages d'Anniversaire : Envoyer automatiquement un message de vœux le jour de l'anniversaire du client
 
-* [ ] **Laisser un Avis** : Une fois la commande marquée comme "Récupérée", afficher un petit formulaire simple pour que le client puisse laisser un avis
-* [ ] **Bouton Facture** : Ajouter un bouton icône "Facture" pour les commandes avec le statut "Récupérée"
+[ ] Actualités et Offres : Mettre en place un système d'envoi d'e-mails pour les actualités et les offres spéciales
 
-#### Notifications et Alertes
+Gestion du Compte
+Sécurité
+[ ] Modification d'E-mail Sécurisée : Exiger le mot de passe actuel avant de permettre la modification de l'adresse e-mail
 
-* [ ] **Notifications Push (via PWA et n8n)** : Envoyer des notifications push pour chaque changement de statut de la commande
+[ ] Suppression de Compte : Ajouter une fonctionnalité de suppression de compte
 
-### F. Page Modifier Commande (/modifier-commande/[id])
+Améliorations de l'Interface de Connexion
+[ ] Mot de Passe Oublié : Ajouter une fonctionnalité de réinitialisation du mot de passe
 
-#### Interaction Utilisateur
+[ ] Design des Boutons : Inverser les boutons "Se connecter" et "Créer un compte" et revoir le design des icônes
 
-* [ ] Mettre en place une boîte de dialogue de confirmation avant de sauvegarder les modifications, qui récapitule les changements et la différence de prix
-* [ ] (Côté Admin) Garder une trace des modifications apportées à une commande (qui a modifié, quand, et quels changements ont été faits)
+I. Page Admin / Commandes (/admin/commandes)
+[ ] Intégration n8n pour les factures : Ajouter un bouton sur les commandes "Terminées" pour déclencher un workflow n8n qui génère et envoie la facture au client.
 
-#### Notifications et Communication
+[ ] Pagination par date : Remplacer la pagination par défaut par une navigation par jour (ex: "Aujourd'hui", "Hier", ou un sélecteur de date).
 
-* [ ] (Intégration n8n) Envoyer une notification à l'administrateur lorsqu'un client modifie sa commande
-* [ ] (Intégration n8n) Envoyer une confirmation détaillée au client après la sauvegarde des modifications
+[ ] Notification de retard via n8n : Ajouter un bouton permettant à l'administrateur d'envoyer une notification de retard prédéfinie au client (ex: "Votre commande aura 5 minutes de retard").
 
-#### Gestion de l'heure de retrait (rappel)
+[ ] Automatisation des notifications de statut (n8n) : Déclencher automatiquement des notifications SMS/WhatsApp lorsque le statut d'une commande passe à "Prête à récupérer".
 
-* [ ] Ajouter une note précisant que l'heure de retrait est indicative et peut être ajustée
-* [ ] Côté admin, permettre de proposer une nouvelle heure de retrait
-* [ ] Mettre en place une notification (via n8n) pour informer le client de la nouvelle proposition d'heure
+[ ] Impression automatique des tickets de caisse (n8n) : Mettre en place un workflow n8n pour imprimer les nouveaux tickets de caisse dès qu'une commande est "Confirmée".
 
-### G. Page Suivi d'Événement (/suivi-evenement/[id])
+[ ] Demande d'avis automatisée (n8n) : Envoyer automatiquement une demande d'avis par e-mail ou SMS une heure après qu'une commande soit "Récupérée".
 
-#### Chronologie de l'Événement
+[ ] "Mettre en avant" une commande : Ajouter un bouton pour épingler une commande en haut de la liste journalière.
 
-* [ ] **Suivi Visuel** : Ajouter une chronologie visuelle des étapes clés de l'organisation ("Demande reçue", "Devis envoyé", "Confirmé", etc.)
+[ ] Offrir un plat : Ajouter une fonctionnalité pour marquer un plat comme "offert" (prix à 0€) dans une commande existante.
 
-#### Gestion des Documents
+J. Page Admin / Plats (/admin/plats)
+[ ] Mise en place d'un système de gestion de stock par exception
 
-* [ ] **Accès Centralisé** : Créer une section où le client peut télécharger le devis et la facture finale en PDF
+[ ] Modification Base de Données : Créer une nouvelle table ruptures_exceptionnelles (plat_id, date_rupture, quantite_initiale, quantite_restante).
 
-#### Communication et Actions
+[ ] Interface Admin : Sur /admin/plats, intégrer le composant DateRuptureManager pour permettre de définir une rupture pour un plat à une date précise, avec ou sans quantité limitée.
 
-* [ ] **Contact Rapide Amélioré** : Ajouter un bouton "Poser une question" qui ouvre une fenêtre de messagerie pré-remplie
-* [ ] **Validation du Devis** : Mettre en place un bouton "Accepter le devis" qui notifie l'administrateur via n8n
+[ ] Décompte Automatique : Créer une fonction Postgres qui décrémente quantite_restante dans ruptures_exceptionnelles à chaque commande "Confirmée".
 
-#### Intégration n8n pour les Rappels
+[ ] Affichage Côté Client : Sur les pages /commander et /modifier-commande, si une rupture avec quantité existe pour un plat à la date choisie, afficher un badge "Plus que X disponibles !".
 
-* [ ] Configurer n8n pour envoyer des rappels automatiques au client avant l'événement et un message de remerciement après
+[ ] Gestion de la Rupture Totale : Si une rupture sans quantité (ou quantité 0) existe pour un plat, le désactiver et afficher "Épuisé pour aujourd'hui".
 
-### H. Page Profil (/profil)
+K. Page Admin / Clients (/admin/clients)
+Cette section est vide pour le moment.
 
-#### Intégration n8n pour la Communication
+L. Page Admin / Création de Commande (/admin/commandes/creer)
+Ajouter la création de commandes manuelles
+[ ] Bouton d'action : Ajouter un bouton "Nouvelle Commande" sur la page de gestion des commandes.
 
-* [ ] **Messages d'Anniversaire** : Envoyer automatiquement un message de vœux le jour de l'anniversaire du client
-* [ ] **Actualités et Offres** : Mettre en place un système d'envoi d'e-mails pour les actualités et les offres spéciales
+[ ] Nouvelle Route : Créer la page dédiée app/admin/commandes/creer pour le formulaire de création.
 
-#### Gestion du Compte
+Développer le formulaire de création
+[ ] Étape 1: Sélection du Client : Mettre en place un champ de recherche pour trouver un client existant ou un bouton pour en créer un nouveau à la volée.
 
-##### Sécurité
+[ ] Étape 2: Composition de la Commande : Interface pour ajouter des plats, sélectionner des extras et ajuster les quantités.
 
-* [ ] **Modification d'E-mail Sécurisée** : Exiger le mot de passe actuel avant de permettre la modification de l'adresse e-mail
-* [ ] **Suppression de Compte** : Ajouter une fonctionnalité de suppression de compte
+[ ] Étape 3: Détails de la Commande : Définir l'heure de retrait, le type de livraison et ajouter des commentaires.
 
-##### Améliorations de l'Interface de Connexion
+[ ] Étape 4: Validation : Afficher un récapitulatif complet de la commande avant la validation finale et l'enregistrement en base de données.
 
-* [ ] **Mot de Passe Oublié** : Ajouter une fonctionnalité de réinitialisation du mot de passe
-* [ ] **Design des Boutons** : Inverser les boutons "Se connecter" et "Créer un compte" et revoir le design des icônes
+M. Page Admin / Création de Client (/admin/clients/creer)
+Ajouter la création de clients manuels
+[ ] Bouton d'action : Ajouter un bouton "Nouveau Client" sur la page app/admin/clients.
 
-### I. Page Admin / Commandes (/admin/commandes)
-- [ ] **Intégration n8n pour les factures** : Ajouter un bouton sur les commandes "Terminées" pour déclencher un workflow n8n qui génère et envoie la facture au client.
-- [ ] **Pagination par date** : Remplacer la pagination par défaut par une navigation par jour (ex: "Aujourd'hui", "Hier", ou un sélecteur de date).
-- [ ] **Notification de retard via n8n** : Ajouter un bouton permettant à l'administrateur d'envoyer une notification de retard prédéfinie au client (ex: "Votre commande aura 5 minutes de retard").
-- [ ] **Automatisation des notifications de statut (n8n)** : Déclencher automatiquement des notifications SMS/WhatsApp lorsque le statut d'une commande passe à "Prête à récupérer".
-- [ ] **Impression automatique des tickets de caisse (n8n)** : Mettre en place un workflow n8n pour imprimer les nouveaux tickets de caisse dès qu'une commande est "Confirmée".
-- [ ] **Demande d'avis automatisée (n8n)** : Envoyer automatiquement une demande d'avis par e-mail ou SMS une heure après qu'une commande soit "Récupérée".
-- [ ] **"Mettre en avant" une commande** : Ajouter un bouton pour épingler une commande en haut de la liste journalière.
-- [ ] **Offrir un plat** : Ajouter une fonctionnalité pour marquer un plat comme "offert" (prix à 0€) dans une commande existante.
+[ ] Nouvelle Route : Créer la page dédiée app/admin/clients/creer pour le formulaire de création.
 
-### J. Page Admin / Clients (/admin/clients)
-- Cette section est vide pour le moment.
+[ ] Formulaire de création : Développer un formulaire pour saisir les informations du client (prénom, nom, email, téléphone, etc.).
 
-### K. Page Admin / Création de Commande (/admin/commandes/creer)
+[ ] Validation et Enregistrement : Valider les données et créer le nouveau client dans la base de données.
 
-#### Ajouter la création de commandes manuelles
-- [ ] **Bouton d'action** : Ajouter un bouton "Nouvelle Commande" sur la page de gestion des commandes.
-- [ ] **Nouvelle Route** : Créer la page dédiée `app/admin/commandes/creer` pour le formulaire de création.
-
-#### Développer le formulaire de création
-- [ ] **Étape 1: Sélection du Client** : Mettre en place un champ de recherche pour trouver un client existant ou un bouton pour en créer un nouveau à la volée.
-- [ ] **Étape 2: Composition de la Commande** : Interface pour ajouter des plats, sélectionner des extras et ajuster les quantités.
-- [ ] **Étape 3: Détails de la Commande** : Définir l'heure de retrait, le type de livraison et ajouter des commentaires.
-- [ ] **Étape 4: Validation** : Afficher un récapitulatif complet de la commande avant la validation finale et l'enregistrement en base de données.
-
-### L. Page Admin / Création de Client (/admin/clients/creer)
-
-#### Ajouter la création de clients manuels
-- [ ] **Bouton d'action** : Ajouter un bouton "Nouveau Client" sur la page `app/admin/clients`.
-- [ ] **Nouvelle Route** : Créer la page dédiée `app/admin/clients/creer` pour le formulaire de création.
-- [ ] **Formulaire de création** : Développer un formulaire pour saisir les informations du client (prénom, nom, email, téléphone, etc.).
-- [ ] **Validation et Enregistrement** : Valider les données et créer le nouveau client dans la base de données.
-
-## III. Autres Pages
-
+III. Autres Pages
 Cette section sera complétée au fur et à mesure de notre analyse.
