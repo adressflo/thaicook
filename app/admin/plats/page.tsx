@@ -2,13 +2,22 @@
 
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from "@/hooks/use-toast";
 import { 
@@ -21,24 +30,15 @@ import {
   Image,
   Eye,
   EyeOff,
-  Clock,
-  AlertTriangle,
-  Check,
   Calendar,
   Utensils,
   ChefHat
 } from 'lucide-react';
-import { usePlats, useCreatePlat, useUpdatePlat, useExistingExtras, useExtras, useCreateExtra, useUpdateExtra, useDeleteExtra } from '@/hooks/useSupabaseData';
-import type { PlatUI as Plat } from '@/types/app';
+import { usePlats, useCreatePlat, useUpdatePlat, useExtras, useCreateExtra, useUpdateExtra, useDeleteExtra } from '@/hooks/useSupabaseData';
+import { useImageUpload } from '@/hooks/useImageUpload';
+import type { PlatUI as Plat, ExtraUI } from '@/types/app';
 import { EditableField } from '@/components/ui/EditableField';
 import { DateRuptureManager } from '@/components/admin/DateRuptureManager';
-import { 
-  uploadImageToStorage, 
-  validateImageFile, 
-  createImagePreview, 
-  revokeImagePreview,
-  type UploadState 
-} from '@/lib/supabaseStorage';
 
 // Fonction pour formater le prix à la française
 const formatPrice = (price: number): string => {
@@ -60,87 +60,18 @@ const NewExtraButton = () => {
     description: '',
     photo_url: 'https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png'
   });
-  const [uploadState, setUploadState] = useState<UploadState>({
-    isUploading: false,
-    progress: 0,
-    error: null,
-    url: null
-  });
 
+  // Hook réutilisable pour l&apos;upload d&apos;images
+  const { uploadState, uploadFile, resetUpload } = useImageUpload(
+    'extras',
+    'https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png'
+  );
+
+  // Fonction simplifiée utilisant le hook réutilisable
   const handleImageUpload = async (file: File) => {
-    // Valider le fichier
-    const validation = validateImageFile(file);
-    if (!validation.isValid) {
-      toast({
-        title: "Erreur",
-        description: validation.error,
-        variant: "destructive"
-      });
-      return;
-    }
-
-    // État de chargement
-    setUploadState(prev => ({ ...prev, isUploading: true, error: null }));
-
-    try {
-      // Créer un aperçu temporaire
-      const previewUrl = createImagePreview(file);
-      setNewExtraForm(prev => ({ ...prev, photo_url: previewUrl }));
-
-      // Uploader vers Supabase Storage
-      const result = await uploadImageToStorage(file, 'extras');
-
-      if (result.success && result.data) {
-        // Mettre à jour avec l'URL finale
-        setNewExtraForm(prev => ({ ...prev, photo_url: result.data!.url }));
-        setUploadState(prev => ({ 
-          ...prev, 
-          isUploading: false, 
-          url: result.data!.url 
-        }));
-
-        // Nettoyer l'aperçu temporaire
-        revokeImagePreview(previewUrl);
-
-        toast({
-          title: "Succès",
-          description: "Image uploadée avec succès",
-          variant: "default"
-        });
-      } else {
-        setUploadState(prev => ({ 
-          ...prev, 
-          isUploading: false, 
-          error: result.error || "Erreur d'upload inconnue" 
-        }));
-
-        toast({
-          title: "Erreur",
-          description: result.error || "Erreur lors de l'upload",
-          variant: "destructive"
-        });
-
-        // Restaurer l'image par défaut
-        setNewExtraForm(prev => ({ 
-          ...prev, 
-          photo_url: 'https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png' 
-        }));
-        revokeImagePreview(previewUrl);
-      }
-    } catch (error) {
-      console.error('Erreur upload:', error);
-      setUploadState(prev => ({ 
-        ...prev, 
-        isUploading: false, 
-        error: 'Erreur inattendue lors de l\'upload' 
-      }));
-
-      toast({
-        title: "Erreur",
-        description: "Erreur inattendue lors de l'upload",
-        variant: "destructive"
-      });
-    }
+    await uploadFile(file, (url) => {
+      setNewExtraForm(prev => ({ ...prev, photo_url: url }));
+    });
   };
 
   const handleCreateExtra = async () => {
@@ -178,17 +109,12 @@ const NewExtraButton = () => {
         description: '',
         photo_url: 'https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png'
       });
-      setUploadState({
-        isUploading: false,
-        progress: 0,
-        error: null,
-        url: null
-      });
+      resetUpload();
     } catch (error) {
       console.error('Erreur création extra:', error);
       toast({
         title: "Erreur",
-        description: "Impossible de créer l'extra",
+        description: "Impossible de créer l&apos;extra",
         variant: "destructive"
       });
     }
@@ -218,7 +144,7 @@ const NewExtraButton = () => {
               <div className="space-y-2">
                 <Label className="text-thai-green font-semibold flex items-center gap-2">
                   <Package className="w-4 h-4 text-thai-orange" />
-                  Nom de l'extra
+                  Nom de l&apos;extra
                 </Label>
                 <Input
                   value={newExtraForm.nom_extra}
@@ -247,7 +173,7 @@ const NewExtraButton = () => {
             <div className="space-y-2">
               <Label className="text-thai-green font-semibold">Photo</Label>
               
-              {/* Aperçu de l'image */}
+              {/* Aperçu de l&apos;image */}
               <div className="mb-3">
                 <img
                   src={newExtraForm.photo_url}
@@ -293,7 +219,7 @@ const NewExtraButton = () => {
                 </Button>
               </div>
 
-              {/* État de l'upload */}
+              {/* État de l&apos;upload */}
               {uploadState.isUploading && (
                 <p className="text-sm text-thai-orange animate-pulse">
                   Upload en cours...
@@ -313,7 +239,7 @@ const NewExtraButton = () => {
                 onChange={(e) => setNewExtraForm(prev => ({ ...prev, description: e.target.value }))}
                 className="border-thai-orange/30 focus:border-thai-orange focus:ring-thai-orange/20 bg-thai-cream/20"
                 rows={3}
-                placeholder="Description de l'extra..."
+                placeholder="Description de l&apos;extra..."
               />
             </div>
 
@@ -358,14 +284,12 @@ const ExistingExtrasDisplay = () => {
     description: '',
     photo_url: ''
   });
-  const [editUploadState, setEditUploadState] = useState<UploadState>({
-    isUploading: false,
-    progress: 0,
-    error: null,
-    url: null
-  });
+  const [extraToDelete, setExtraToDelete] = useState<{id: number, name: string} | null>(null);
 
-  const handleStartEdit = (extra: any) => {
+  // Hook réutilisable pour l&apos;upload d&apos;images en mode édition
+  const { uploadState: editUploadState, uploadFile: uploadEditFile, resetUpload: resetEditUpload } = useImageUpload('extras');
+
+  const handleStartEdit = (extra: ExtraUI) => {
     setEditForm({
       nom_extra: extra.nom_extra || '',
       prix: extra.prix?.toString() || '',
@@ -373,87 +297,17 @@ const ExistingExtrasDisplay = () => {
       photo_url: extra.photo_url || 'https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png'
     });
     setEditingExtra(extra.idextra);
-    // Réinitialiser l'état d'upload
-    setEditUploadState({
-      isUploading: false,
-      progress: 0,
-      error: null,
-      url: null
-    });
+    // Réinitialiser l&apos;état d&apos;upload
+    resetEditUpload();
   };
 
   const { toast } = useToast();
 
+  // Fonction simplifiée utilisant le hook réutilisable pour l&apos;édition
   const handleEditImageUpload = async (file: File) => {
-    // Valider le fichier
-    const validation = validateImageFile(file);
-    if (!validation.isValid) {
-      toast({
-        title: "Erreur",
-        description: validation.error,
-        variant: "destructive"
-      });
-      return;
-    }
-
-    // État de chargement
-    setEditUploadState(prev => ({ ...prev, isUploading: true, error: null }));
-
-    try {
-      // Créer un aperçu temporaire
-      const previewUrl = createImagePreview(file);
-      setEditForm(prev => ({ ...prev, photo_url: previewUrl }));
-
-      // Uploader vers Supabase Storage
-      const result = await uploadImageToStorage(file, 'extras');
-
-      if (result.success && result.data) {
-        // Mettre à jour avec l'URL finale
-        setEditForm(prev => ({ ...prev, photo_url: result.data!.url }));
-        setEditUploadState(prev => ({ 
-          ...prev, 
-          isUploading: false, 
-          url: result.data!.url 
-        }));
-
-        // Nettoyer l'aperçu temporaire
-        revokeImagePreview(previewUrl);
-
-        toast({
-          title: "Succès",
-          description: "Image uploadée avec succès",
-          variant: "default"
-        });
-      } else {
-        setEditUploadState(prev => ({ 
-          ...prev, 
-          isUploading: false, 
-          error: result.error || "Erreur d'upload inconnue" 
-        }));
-
-        toast({
-          title: "Erreur",
-          description: result.error || "Erreur lors de l'upload",
-          variant: "destructive"
-        });
-
-        // Restaurer l'image précédente
-        revokeImagePreview(previewUrl);
-      }
-    } catch (error) {
-      console.error('Erreur upload:', error);
-      setEditUploadState(prev => ({ 
-        ...prev, 
-        isUploading: false, 
-        error: 'Erreur inattendue lors de l\'upload' 
-      }));
-
-      toast({
-        title: "Erreur",
-        description: "Erreur inattendue lors de l'upload",
-        variant: "destructive"
-      });
-    }
+    await uploadEditFile(file, (url) => {
+      setEditForm(prev => ({ ...prev, photo_url: url }));
+    });
   };
 
   const handleSaveEdit = async () => {
@@ -469,23 +323,31 @@ const ExistingExtrasDisplay = () => {
           photo_url: editForm.photo_url
         }
       });
-      
+
       setEditingExtra(null);
+      resetEditUpload();
     } catch (error) {
       console.error('Erreur sauvegarde extra:', error);
     }
   };
 
-  const handleDeleteExtra = async (extraId: number) => {
+  const handleDeleteExtra = (extraId: number, extraName: string) => {
+    setExtraToDelete({ id: extraId, name: extraName });
+  };
+
+  const confirmDeleteExtra = async () => {
+    if (!extraToDelete) return;
+
     try {
-      await deleteExtraMutation.mutateAsync(extraId);
+      await deleteExtraMutation.mutateAsync(extraToDelete.id);
+      setExtraToDelete(null);
     } catch (error) {
       console.error('Erreur suppression extra:', error);
     }
   };
 
-  const handleTransformToPlat = (extra: any) => {
-    // TODO: Transformer l'extra en plat du menu
+  const handleTransformToPlat = () => {
+    // TODO: Transformer l&apos;extra en plat du menu
     toast({
       title: "Fonctionnalité prochainement disponible",
       description: "La transformation en plat de menu sera bientôt disponible",
@@ -525,15 +387,16 @@ const ExistingExtrasDisplay = () => {
           <div className="text-6xl mb-4 group-hover:animate-bounce">🍜</div>
           <h3 className="text-thai-green font-bold text-lg mb-2">Aucun extra créé</h3>
           <p className="text-thai-green/70 mb-1">Créez vos premiers compléments Thai</p>
-          <p className="text-sm text-thai-orange/70">Utilisez le bouton "Nouvel Extra" ci-dessus</p>
+          <p className="text-sm text-thai-orange/70">Utilisez le bouton &quot;Nouvel Extra&quot; ci-dessus</p>
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <div className="grid gap-6">
-      {extras.map((extra, index) => {
+    <>
+      <div className="grid gap-6">
+        {extras.map((extra) => {
         const isEditing = editingExtra === extra.idextra;
         
         return (
@@ -605,7 +468,7 @@ const ExistingExtrasDisplay = () => {
                   <div className="space-y-2">
                     <Label className="text-thai-green font-semibold">Photo</Label>
                     
-                    {/* Aperçu de l'image */}
+                    {/* Aperçu de l&apos;image */}
                     <div className="mb-3">
                       <img
                         src={editForm.photo_url}
@@ -651,7 +514,7 @@ const ExistingExtrasDisplay = () => {
                       </Button>
                     </div>
 
-                    {/* État de l'upload */}
+                    {/* État de l&apos;upload */}
                     {editUploadState.isUploading && (
                       <p className="text-sm text-thai-orange animate-pulse">
                         Upload en cours...
@@ -685,7 +548,10 @@ const ExistingExtrasDisplay = () => {
                     </Button>
                     <Button
                       variant="outline"
-                      onClick={() => setEditingExtra(null)}
+                      onClick={() => {
+                        setEditingExtra(null);
+                        resetEditUpload();
+                      }}
                       className="border-thai-orange text-thai-orange hover:bg-thai-orange hover:text-white transition-all duration-300"
                     >
                       <X className="w-4 h-4 mr-2" />
@@ -735,16 +601,16 @@ const ExistingExtrasDisplay = () => {
                       <Edit2 className="w-4 h-4" />
                     </Button>
                     <Button
-                      onClick={() => handleDeleteExtra(extra.idextra)}
+                      onClick={() => handleDeleteExtra(extra.idextra, extra.nom_extra)}
                       variant="outline"
                       size="sm"
                       className="border-thai-red/50 text-thai-red hover:bg-thai-red hover:text-white opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-4 group-hover:translate-x-0"
-                      title="Supprimer l'extra"
+                      title="Supprimer l&apos;extra"
                     >
                       <X className="w-4 h-4" />
                     </Button>
                     <Button
-                      onClick={() => handleTransformToPlat(extra)}
+                      onClick={() => handleTransformToPlat()}
                       variant="outline"
                       size="sm"
                       className="border-thai-green/50 text-thai-green hover:bg-thai-green hover:text-white opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-4 group-hover:translate-x-0"
@@ -757,9 +623,38 @@ const ExistingExtrasDisplay = () => {
               )}
             </CardContent>
           </Card>
-        );
-      })}
-    </div>
+          );
+        })}
+      </div>
+
+      <AlertDialog open={!!extraToDelete} onOpenChange={(open) => !open && setExtraToDelete(null)}>
+        <AlertDialogContent className="bg-white border-thai-orange/20">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-thai-red">
+              Confirmer la suppression
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-600">
+              Êtes-vous sûr de vouloir supprimer l&apos;extra &quot;<span className="font-semibold text-thai-orange">{extraToDelete?.name}</span>&quot; ?
+              <br />
+              <span className="text-sm text-thai-red mt-2 block">
+                Cette action est irréversible.
+              </span>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2">
+            <AlertDialogCancel className="border-gray-300 hover:bg-gray-50">
+              Annuler
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeleteExtra}
+              className="bg-thai-red hover:bg-thai-red/90 text-white"
+            >
+              Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 };
 
@@ -845,7 +740,7 @@ export default function AdminGestionPlats() {
     await handleInlineUpdate(platId, updates);
   };
 
-  const handleInlineUpdate = async (platId: number, updateData: any) => {
+  const handleInlineUpdate = async (platId: number, updateData: Record<string, unknown>) => {
     try {
       await updatePlatMutation.mutateAsync({
         id: platId,

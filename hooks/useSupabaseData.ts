@@ -1958,6 +1958,16 @@ export const useAddPlatToCommande = () => {
         }
 
         console.log('✅ Extra ajouté avec succès avec nom et prix personnalisés:', data);
+
+        // 🆕 NOUVELLE FONCTIONNALITÉ : Sauvegarder l'extra dans le catalogue extras_db
+        try {
+          await saveExtraToDatabase(nomPlat, prixUnitaire);
+          console.log('🏪 Extra sauvegardé dans le catalogue');
+        } catch (catalogError) {
+          console.warn('⚠️ Impossible de sauvegarder dans le catalogue, mais commande créée:', catalogError);
+          // Ne pas faire échouer la création de commande pour autant
+        }
+
         return;
       }
       
@@ -2294,6 +2304,55 @@ export const useDeleteExtra = () => {
         variant: 'destructive',
       });
     },
+  });
+};
+
+// 🆕 FONCTION UTILITAIRE : Sauvegarder un extra dans le catalogue extras_db
+const saveExtraToDatabase = async (nomExtra: string, prix: number): Promise<void> => {
+  // Vérifier si l'extra existe déjà dans le catalogue
+  const { data: existing, error: searchError } = await supabase
+    .from('extras_db')
+    .select('idextra, nom_extra')
+    .eq('nom_extra', nomExtra.trim())
+    .eq('actif', true)
+    .maybeSingle();
+
+  if (searchError) {
+    console.warn('Erreur lors de la recherche d\'extra existant:', searchError);
+    // Continuer quand même pour essayer de créer
+  }
+
+  if (existing) {
+    console.log('🔄 Extra déjà présent dans le catalogue:', existing.nom_extra);
+    return; // L'extra existe déjà, pas besoin de le recréer
+  }
+
+  // Créer le nouvel extra dans le catalogue
+  const extraData = {
+    nom_extra: nomExtra.trim(),
+    prix: prix || 0,
+    description: 'Extra créé automatiquement depuis une commande',
+    photo_url: 'https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png',
+    actif: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  };
+
+  const { data, error: createError } = await supabase
+    .from('extras_db')
+    .insert([extraData])
+    .select('*')
+    .single();
+
+  if (createError) {
+    console.error('❌ Erreur création extra dans le catalogue:', createError);
+    throw new Error(`Impossible de sauvegarder l'extra dans le catalogue: ${createError.message}`);
+  }
+
+  console.log('🆕 Nouvel extra créé dans le catalogue:', {
+    id: data.idextra,
+    nom: data.nom_extra,
+    prix: data.prix
   });
 };
 
