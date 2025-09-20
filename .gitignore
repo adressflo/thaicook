@@ -83,3 +83,7 @@ nul
 
 # Gemini project-specific files
 .gemini/
+
+# AI Configuration files (ne pas versionner)
+CLAUDE.md
+GEMINI.md
