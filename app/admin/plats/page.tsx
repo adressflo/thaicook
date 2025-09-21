@@ -386,7 +386,7 @@ const ExistingExtrasDisplay = () => {
         <CardContent className="p-8 text-center">
           <div className="text-6xl mb-4 group-hover:animate-bounce">🍜</div>
           <h3 className="text-thai-green font-bold text-lg mb-2">Aucun extra créé</h3>
-          <p className="text-thai-green/70 mb-1">Créez vos premiers compléments Thai</p>
+          <p className="text-thai-green/70 mb-1">Créez vos premiers extras Thai</p>
           <p className="text-sm text-thai-orange/70">Utilisez le bouton &quot;Nouvel Extra&quot; ci-dessus</p>
         </CardContent>
       </Card>
@@ -428,7 +428,7 @@ const ExistingExtrasDisplay = () => {
                     <div className="space-y-2">
                       <Label className="text-thai-green font-semibold flex items-center gap-2">
                         <Package className="w-4 h-4 text-thai-orange" />
-                        Nom du complément
+                        Nom de l'extra
                       </Label>
                       <Input
                         value={editForm.nom_extra}
@@ -460,7 +460,7 @@ const ExistingExtrasDisplay = () => {
                       value={editForm.description}
                       onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))}
                       className="border-thai-orange/30 focus:border-thai-orange focus:ring-thai-orange/20 bg-thai-cream/20 text-thai-green"
-                      placeholder="Description du complément..."
+                      placeholder="Description de l'extra..."
                       rows={3}
                     />
                   </div>
@@ -534,7 +534,7 @@ const ExistingExtrasDisplay = () => {
                       onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))}
                       className="border-thai-orange/30 focus:border-thai-orange focus:ring-thai-orange/20 bg-thai-cream/20"
                       rows={2}
-                      placeholder="Description du complément..."
+                      placeholder="Description de l'extra..."
                     />
                   </div>
 
@@ -587,7 +587,7 @@ const ExistingExtrasDisplay = () => {
                     </div>
                     
                     <p className="text-thai-green/70 italic">
-                      {extra.description || "Complément Thai authentique"} • Cliquez pour éditer
+                      {extra.description || "Extra Thai authentique"} • Cliquez pour éditer
                     </p>
                   </div>
 
@@ -691,11 +691,12 @@ export default function AdminGestionPlats() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [form, setForm] = useState<PlatForm>(initialForm);
   const [filtreDisponibilite, setFiltreDisponibilite] = useState<'tous' | 'disponibles' | 'indisponibles'>('tous');
-  const [activeTab, setActiveTab] = useState<'plats' | 'complements'>('plats');
+  const [activeTab, setActiveTab] = useState<'plats' | 'extras'>('plats');
   const [showRuptureManager, setShowRuptureManager] = useState<{platId: number; platNom: string} | null>(null);
   const [isEditingPlat, setIsEditingPlat] = useState<Plat | null>(null);
   
   const { data: allPlats, refetch } = usePlats();
+  const { data: extras } = useExtras(); // Récupérer les extras de la table extras_db
   const createPlatMutation = useCreatePlat();
   const updatePlatMutation = useUpdatePlat();
   const { toast } = useToast();
@@ -706,12 +707,13 @@ export default function AdminGestionPlats() {
     }
   }, [isEditingPlat]);
 
-  // Séparer les plats principaux des compléments
-  // Le plat Extra a idplats = 0, les autres plats normaux ont idplats > 0
+  // Séparer les plats principaux des extras
   const plats = allPlats?.filter(p => p.idplats !== 0) || [];
-  const complements = allPlats?.filter(p => p.idplats === 0) || [];
-  
-  const currentItems = activeTab === 'plats' ? plats : complements;
+
+  // Utiliser uniquement la nouvelle méthode extras_db
+  const totalExtras = extras?.length || 0;
+
+  const currentItems = activeTab === 'plats' ? plats : [];
 
   // Fonctions utilitaires
   const marquerDisponible = async (platId: number) => {
@@ -783,7 +785,7 @@ export default function AdminGestionPlats() {
         await createPlatMutation.mutateAsync({
           data: {
             ...form,
-            categorie: activeTab === 'complements' ? 'complement_divers' : 'plat_principal'
+            categorie: activeTab === 'complements' ? 'extra' : 'plat_principal'
           }
         });
         toast({
@@ -914,7 +916,7 @@ export default function AdminGestionPlats() {
           
 
           {/* Onglets avec design Thai */}
-          <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'plats' | 'complements')} className="space-y-6">
+          <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'plats' | 'extras')} className="space-y-6">
             <TabsList className="grid w-full grid-cols-2 h-12 bg-thai-cream/30 border-2 border-thai-orange/20">
               <TabsTrigger 
                 value="plats" 
@@ -923,12 +925,12 @@ export default function AdminGestionPlats() {
                 <Utensils className="w-4 h-4 mr-2" />
                 Plats du Menu ({plats.length})
               </TabsTrigger>
-              <TabsTrigger 
-                value="complements" 
+              <TabsTrigger
+                value="extras"
                 className="data-[state=active]:bg-thai-orange data-[state=active]:text-white transition-all duration-300 hover:bg-thai-orange/20 font-semibold"
               >
                 <Plus className="w-4 h-4 mr-2" />
-                Extras Thai ({complements.length})
+                Extras Thai ({totalExtras})
               </TabsTrigger>
             </TabsList>
 
@@ -972,7 +974,7 @@ export default function AdminGestionPlats() {
                     className="bg-thai-orange hover:bg-thai-orange/90 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 font-medium"
                   >
                     <Plus className="w-4 h-4 mr-2" />
-                    Nouveau {activeTab === 'plats' ? 'Plat' : 'Complément'}
+                    Nouveau {activeTab === 'plats' ? 'Plat' : 'Extra Thai'}
                   </Button>
               </div>
 
@@ -1296,15 +1298,15 @@ export default function AdminGestionPlats() {
                        `Aucun ${activeTab} trouvé`}
                     </h3>
                     <p className="text-gray-400">
-                      {filtreDisponibilite === 'tous' && `Commencez par créer votre premier ${activeTab === 'plats' ? 'plat' : 'complément'}`}
+                      {filtreDisponibilite === 'tous' && `Commencez par créer votre premier ${activeTab === 'plats' ? 'plat' : 'extra Thai'}`}
                     </p>
                   </div>
                 )}
               </div>
             </TabsContent>
             
-            <TabsContent value="complements" className="space-y-4">
-              {/* Afficher les extras existants depuis details_commande_db */}
+            <TabsContent value="extras" className="space-y-4">
+              {/* Section Extras Thai (extras_db uniquement) */}
               <div className="mb-8 animate-fadeIn">
                 <div className="bg-gradient-to-r from-thai-cream/30 to-thai-orange/10 p-6 rounded-2xl border border-thai-orange/20">
                   <div className="flex items-center justify-between mb-6">
@@ -1312,7 +1314,7 @@ export default function AdminGestionPlats() {
                       <div className="p-2 bg-thai-orange/20 rounded-xl">
                         <Package className="w-6 h-6 text-thai-orange" />
                       </div>
-                      Extras
+                      Extras Thai ({totalExtras})
                     </h3>
                     <NewExtraButton />
                   </div>

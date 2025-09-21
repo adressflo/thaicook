@@ -50,9 +50,9 @@ export const FormattedPrice = React.memo<FormattedPriceProps>(({ prix, formatPri
                 {/* Liste des plats */}
                 <div className="space-y-1.5">
                   {details.map((detail, index) => {
-                    const isExtra = detail.type === 'extra' || detail.type === 'complement_divers';
+                    const isExtra = detail.type === 'extra';
                     const platName = isExtra
-                      ? (resolveExtraName ? resolveExtraName(detail) || 'Extra' : (detail.nom_plat && !detail.nom_plat.includes('complement') ? detail.nom_plat : 'Extra'))
+                      ? (resolveExtraName ? resolveExtraName(detail) || 'Extra (nom non trouvé)' : (detail.nom_plat || 'Extra'))
                       : (detail.plat?.plat || 'Plat supprimé');
                     const prixPlat = isExtra
                       ? (detail.prix_unitaire || 0)
@@ -204,9 +204,10 @@ PersonCount.displayName = 'PersonCount';
 interface DishListProps {
   details: Array<DetailCommande & { plat: Plat | null }>;
   formatPrix: (prix: number) => string;
+  resolveExtraName?: (detail: any) => string | null;
 }
 
-export const DishList = React.memo<DishListProps>(({ details, formatPrix }) => {
+export const DishList = React.memo<DishListProps>(({ details, formatPrix, resolveExtraName }) => {
   if (!details?.length) {
     return (
       <div className="flex justify-center">
@@ -220,9 +221,9 @@ export const DishList = React.memo<DishListProps>(({ details, formatPrix }) => {
   return (
     <div className="flex flex-wrap gap-3 justify-center max-w-sm sm:max-w-md lg:max-w-lg mx-auto p-2">
       {details.map((detail, index) => {
-        const isExtra = detail.type === 'extra' || detail.type === 'complement_divers';
+        const isExtra = detail.type === 'extra';
         const platName = isExtra
-          ? (detail.nom_plat && !detail.nom_plat.includes('complement') ? detail.nom_plat : 'Extra')
+          ? (resolveExtraName ? resolveExtraName(detail) || 'Extra (nom non trouvé)' : (detail.nom_plat || 'Extra'))
           : (detail.plat?.plat || 'Plat supprimé');
         const quantite = detail.quantite_plat_commande || 0;
         const displayName = quantite > 1 ? `${platName} (x${quantite})` : platName;

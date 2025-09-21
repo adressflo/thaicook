@@ -77,7 +77,7 @@ const SuiviCommande = memo(() => {
   const calculateTotal = (): number => {
     if (!commande.details) return 0;
     return commande.details.reduce((total, detail) => {
-      const prix = detail.type === 'complement_divers'
+      const prix = detail.type === 'extra'
         ? (detail.prix_unitaire || 0)
         : (detail.plat?.prix || 0);
       const quantite = detail.quantite_plat_commande || 0;
@@ -193,7 +193,7 @@ const SuiviCommande = memo(() => {
                               {/* Détails du plat */}
                               <div className="flex-1 min-w-0">
                                 <h4 className="font-medium text-thai-green text-lg mb-1 truncate">
-                                  {detail.type === 'complement_divers' 
+                                  {detail.type === 'extra'
                                     ? (detail.nom_plat || 'Extra non trouvé')
                                     : (detail.plat?.plat || 'Plat non trouvé')}
                                 </h4>
@@ -207,7 +207,7 @@ const SuiviCommande = memo(() => {
                                   <span className="flex items-center gap-1">
                                     <span className="font-medium">Prix unitaire:</span> 
                                     <span className="text-thai-green font-semibold">
-                                      {formatPrix(detail.type === 'complement_divers' ? (detail.prix_unitaire || 0) : (detail.plat?.prix || 0))}
+                                      {formatPrix(detail.type === 'extra' ? (detail.prix_unitaire || 0) : (detail.plat?.prix || 0))}
                                     </span>
                                   </span>
                                 </div>
@@ -216,7 +216,7 @@ const SuiviCommande = memo(() => {
                               {/* Prix total */}
                               <div className="text-right">
                                 <div className="text-xl md:text-2xl font-bold text-thai-orange">
-                                  {formatPrix((detail.type === 'complement_divers' ? (detail.prix_unitaire || 0) : (detail.plat?.prix || 0)) * (detail.quantite_plat_commande || 0))}
+                                  {formatPrix((detail.type === 'extra' ? (detail.prix_unitaire || 0) : (detail.plat?.prix || 0)) * (detail.quantite_plat_commande || 0))}
                                 </div>
                               </div>
                             </div>

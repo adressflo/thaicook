@@ -106,8 +106,8 @@ const ModifierCommande = memo(() => {
 
   // Fonction pour obtenir la bonne photo URL pour un item
   const getItemPhotoUrl = (item: PlatPanier): string | undefined => {
-    // Si c'est un extra (complement_divers), utiliser la photo de la table extras_db
-    if (item.type === 'complement_divers' && extras) {
+    // Si c'est un extra (extra), utiliser la photo de la table extras_db
+    if (item.type === 'extra' && extras) {
       const extraData = extras.find(extra => extra.nom_extra === item.nom);
       return extraData?.photo_url ?? 'https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png';
     }
@@ -123,8 +123,8 @@ const ModifierCommande = memo(() => {
 
       commande.details.forEach((detail, index) => {
         if (detail.quantite_plat_commande) {
-          // Gérer les extras (complement_divers)
-          if (detail.type === 'complement_divers') {
+          // Gérer les extras (extra)
+          if (detail.type === 'extra') {
             platsPanier.push({
               id: `extra-${detail.iddetails || index}`, // ID unique pour les extras
               nom: detail.nom_plat || 'Extra',
@@ -135,7 +135,7 @@ const ModifierCommande = memo(() => {
                 : new Date(),
               jourCommande: '',
               uniqueId: `extra-${detail.iddetails || index}-${Date.now()}`,
-              type: 'complement_divers',
+              type: 'extra',
             });
           } else {
             // Gérer les plats normaux
@@ -202,8 +202,8 @@ const ModifierCommande = memo(() => {
         const quantite = detail.quantite_plat_commande || 0;
         let prixUnitaire = 0;
         
-        // Gérer les extras (complement_divers) vs plats normaux
-        if (detail.type === 'complement_divers') {
+        // Gérer les extras (extra) vs plats normaux
+        if (detail.type === 'extra') {
           prixUnitaire = detail.prix_unitaire || 0;
         } else {
           prixUnitaire = detail.plat?.prix || 0;
@@ -239,7 +239,7 @@ const ModifierCommande = memo(() => {
     if (!jourSelectionne || !plats) return [];
     const champDispoKey = `${jourSelectionne.toLowerCase()}_dispo` as keyof Plat;
     return plats.filter(plat => 
-      plat[champDispoKey] === 'oui' && plat.idplats !== 0 // Exclure Extra (Complément divers)
+      plat[champDispoKey] === 'oui' && plat.idplats !== 0 // Exclure les anciens extras
     );
   }, [jourSelectionne, plats]);
 
@@ -535,11 +535,11 @@ const ModifierCommande = memo(() => {
             // Distinguer les extras des plats normaux
             if (item.id.startsWith('extra-')) {
               return {
-                plat_r: 0, // ID de "Extra (Complément divers)"
+                plat_r: 0, // ID pour les extras
                 quantite_plat_commande: item.quantite,
                 nom_plat: item.nom,
                 prix_unitaire: item.prix,
-                type: 'complement_divers'
+                type: 'extra'
               };
             } else {
               return {
@@ -792,24 +792,24 @@ const ModifierCommande = memo(() => {
                           <div className='space-y-3'>
                             {items.map(item => {
                               // Pour les extras, pas de platData correspondant
-                              const platData = item.type === 'complement_divers'
+                              const platData = item.type === 'extra'
                                 ? null
                                 : plats?.find(p => p.id.toString() === item.id);
 
                               // Prepare detail object for modal (matching the expected type)
-                              const itemId = item.type === 'complement_divers'
+                              const itemId = item.type === 'extra'
                                 ? parseInt(item.id.replace('extra-', '')) || 0
                                 : parseInt(item.id);
 
                               const detailForModal: DetailCommande & { plat: any } = {
                                 commande_r: commande?.idcommande || 0,
                                 iddetails: itemId,
-                                plat_r: item.type === 'complement_divers' ? 0 : itemId,
+                                plat_r: item.type === 'extra' ? 0 : itemId,
                                 quantite_plat_commande: item.quantite,
                                 prix_unitaire: item.prix,
                                 nom_plat: item.nom,
-                                type: (item.type === 'complement_divers' ? 'complement_divers' : 'plat') as 'plat' | 'complement' | 'complement_divers' | null,
-                                plat: item.type === 'complement_divers' ? null : {
+                                type: (item.type === 'extra' ? 'extra' : 'plat') as 'plat' | 'complement' | 'extra' | null,
+                                plat: item.type === 'extra' ? null : {
                                   idplats: itemId,
                                   plat: item.nom,
                                   prix: item.prix,

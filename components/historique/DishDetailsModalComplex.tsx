@@ -12,11 +12,11 @@ interface DishDetailsModalComplexProps {
 
 export const DishDetailsModalComplex = React.memo<DishDetailsModalComplexProps>(({ detail, children, formatPrix }) => {
   const [open, setOpen] = React.useState(false);
-  const platName = detail.type === 'complement_divers'
-    ? (detail.nom_plat && !detail.nom_plat.includes('complement') ? detail.nom_plat : 'Extra')
+  const platName = detail.type === 'extra'
+    ? (detail.nom_plat || 'Extra')
     : (detail.plat?.plat || 'Plat supprimé');
   const quantite = detail.quantite_plat_commande || 0;
-  const prixUnitaire = detail.type === 'complement_divers' 
+  const prixUnitaire = detail.type === 'extra'
     ? (detail.prix_unitaire || 0)
     : (detail.plat?.prix || 0);
   const sousTotal = prixUnitaire * quantite;
@@ -57,7 +57,7 @@ export const DishDetailsModalComplex = React.memo<DishDetailsModalComplexProps>(
             <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
             
             {/* Effet brillance Thai pour les extras */}
-            {detail.type === 'complement_divers' && (
+            {detail.type === 'extra' && (
               <div className="absolute inset-0 bg-gradient-to-tr from-thai-gold/30 via-transparent to-thai-orange/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
             )}
             
@@ -71,7 +71,7 @@ export const DishDetailsModalComplex = React.memo<DishDetailsModalComplexProps>(
                     : 'bg-thai-green text-white shadow-md'
                 } font-semibold px-3 py-1 transition-all duration-300`}
               >
-                {isDeleted ? 'Supprimé' : detail.type === 'complement_divers' ? '🍯 Extra' : '🍽️ Plat'}
+                {isDeleted ? 'Supprimé' : detail.type === 'extra' ? '🍯 Extra' : '🍽️ Plat'}
               </Badge>
             </div>
 

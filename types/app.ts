@@ -6,10 +6,10 @@ export type Client = Database['public']['Tables']['client_db']['Row']
 export type Plat = Database['public']['Tables']['plats_db']['Row']
 export type Commande = Database['public']['Tables']['commande_db']['Row']
 export type DetailCommande = Database['public']['Tables']['details_commande_db']['Row'] & {
-  // Extensions pour les compléments divers
-  prix_unitaire?: number | null // Prix custom pour les compléments
-  nom_plat?: string | null // Nom custom pour les compléments
-  type?: 'plat' | 'complement' | 'complement_divers' | null // Type pour distinguer plats vs compléments
+  // Extensions pour les extras
+  prix_unitaire?: number | null // Prix custom pour les extras
+  nom_plat?: string | null // Nom custom pour les extras
+  type?: 'plat' | 'extra' | 'complement_divers' | null // Type pour distinguer plats vs extras (complement_divers pour compatibilité)
 }
 export type Evenement = Database['public']['Tables']['evenements_db']['Row']
 export type Extra = Database['public']['Tables']['extras_db']['Row']
@@ -30,7 +30,7 @@ export interface PlatUI extends Plat {
   nom_plat?: string // Alias pour `plat`
   url_photo?: string // Alias pour `photo_du_plat`
   disponible?: boolean // Calculé depuis les jours et est_epuise
-  categorie?: string // Catégorie du plat (plat principal, complement_divers, etc.)
+  categorie?: string // Catégorie du plat (plat principal, extra, etc.)
 }
 
 // Type pour un plat dans le panier
@@ -42,7 +42,7 @@ export interface PlatPanier {
   jourCommande?: string // Jour pour lequel le plat est commandé
   dateRetrait?: Date // Date de retrait associée
   uniqueId?: string // ID unique pour chaque article dans le panier
-  type?: 'plat' | 'complement' | 'complement_divers' // Type de l'item (compatible avec DetailCommande)
+  type?: 'plat' | 'extra' | 'complement_divers' // Type de l'item (compatible avec DetailCommande)
 }
 
 // Type pour l'interface utilisateur des commandes

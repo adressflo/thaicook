@@ -487,9 +487,9 @@ const PlatCommandeCard = ({
   const handleRemovePlat = async () => {
     const isConfirmed = window.confirm(
       `Êtes-vous sûr de vouloir supprimer "${
-        item.type === 'complement_divers'
-          ? item.nom_plat || item.plat?.plat
-          : item.plat?.plat || item.nom_plat
+        item.type === 'extra'
+          ? item.nom_plat
+          : item.plat?.plat
       }" de cette commande ?`
     );
 
@@ -506,7 +506,7 @@ const PlatCommandeCard = ({
   return (
     <div className="flex items-start gap-4 p-4 bg-white rounded-lg border border-gray-200 transition-all duration-300 hover:shadow-xl hover:bg-thai-cream/20 hover:border-thai-orange hover:ring-2 hover:ring-thai-orange/30 hover:scale-[1.02] transform">
       {/* Image du plat ou extra */}
-      {item.type === 'complement_divers' ? (
+      {item.type === 'extra' ? (
         <img
           src="https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png"
           alt="Extra"
@@ -516,9 +516,9 @@ const PlatCommandeCard = ({
         <img
           src={item.plat.photo_du_plat}
           alt={
-            item.type === 'complement_divers'
-              ? item.nom_plat || item.plat?.plat || 'Extra'
-              : item.plat?.plat || item.nom_plat || 'Plat'
+            item.type === 'extra'
+              ? item.nom_plat || 'Extra'
+              : item.plat?.plat || 'Plat'
           }
           className="w-24 h-16 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity duration-200"
         />
@@ -531,10 +531,10 @@ const PlatCommandeCard = ({
       {/* Informations du plat - exactement comme dans le panier */}
       <div className="flex-1">
         <h4 className="font-medium text-thai-green text-lg mb-1 cursor-pointer hover:text-thai-orange transition-colors duration-200 hover:underline decoration-thai-orange/50">
-          {item.type === 'complement_divers'
-            ? item.nom_plat || item.plat?.plat
-            : item.plat?.plat || item.nom_plat}
-          {item.type === 'complement_divers' && (
+          {item.type === 'extra'
+            ? item.nom_plat
+            : item.plat?.plat}
+          {item.type === 'extra' && (
             <span className="ml-2 text-xs bg-thai-orange/20 text-thai-orange px-2 py-1 rounded-full">
               Extra
             </span>
@@ -657,7 +657,7 @@ const AddComplementModal = ({
         nomPlat: nomComplement.trim(),
         prixUnitaire: parseFloat(prixComplement),
         quantite: 1,
-        type: 'complement_divers',
+        type: 'extra',
       });
 
       toast({
@@ -2163,9 +2163,9 @@ const ModalPlatCard = ({
   const handleRemovePlat = async () => {
     const isConfirmed = window.confirm(
       `Êtes-vous sûr de vouloir supprimer "${
-        (item.nom_plat && item.prix_unitaire && !item.plat) || item.type === 'complement_divers'
-          ? item.nom_plat || item.plat?.plat
-          : item.plat?.plat || item.nom_plat
+        (item.nom_plat && item.prix_unitaire && !item.plat) || item.type === 'extra'
+          ? item.nom_plat
+          : item.plat?.plat
       }" de cette commande ?`
     );
 
@@ -2182,7 +2182,7 @@ const ModalPlatCard = ({
   return (
     <div className="flex items-start gap-4 p-4 bg-white rounded-lg border border-gray-200 transition-all duration-300 hover:shadow-xl hover:bg-thai-cream/20 hover:border-thai-orange hover:ring-2 hover:ring-thai-orange/30 hover:scale-[1.02] transform">
       {/* Image du plat ou extra */}
-      {(item.nom_plat && item.prix_unitaire && !item.plat) || item.type === 'complement_divers' ? (
+      {(item.nom_plat && item.prix_unitaire && !item.plat) || item.type === 'extra' ? (
         <img
           src="https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png"
           alt="Extra"
@@ -2203,10 +2203,10 @@ const ModalPlatCard = ({
       {/* Informations du plat - exactement comme dans le panier */}
       <div className="flex-1">
         <h4 className="font-medium text-thai-green text-lg mb-1 cursor-pointer hover:text-thai-orange transition-colors duration-200 hover:underline decoration-thai-orange/50">
-          {(item.nom_plat && item.prix_unitaire && !item.plat) || item.type === 'complement_divers'
+          {(item.nom_plat && item.prix_unitaire && !item.plat) || item.type === 'extra'
             ? item.nom_plat
             : item.plat?.plat || item.nom_plat}
-          {((item.nom_plat && item.prix_unitaire && !item.plat) || item.type === 'complement_divers') && (
+          {((item.nom_plat && item.prix_unitaire && !item.plat) || item.type === 'extra') && (
             <span className="ml-2 text-xs bg-thai-orange/20 text-thai-orange px-2 py-1 rounded-full">
               Extra
             </span>
@@ -2494,7 +2494,7 @@ const CommandeDetailsModal = ({
         quantite: 1,
         nomPlat: nomComplement.trim(),
         prixUnitaire: parseFloat(prixComplement),
-        type: 'complement_divers'
+        type: 'extra'
       });
 
       toast({

@@ -510,7 +510,7 @@ CREATE INDEX idx_plats_search
 - **Validation enum stricte :** Fonctions `validateStatutCommande()`, `validateStatutPaiement()`, `validateTypeLivraison()`
 
 **Impact des corrections :**
-- ✅ Interface admin affiche vrais noms extras (coca, vin, etc.) au lieu de "Extra (Complément divers)"
+- ✅ Interface admin affiche vrais noms extras (coca, vin, etc.) au lieu de "Extra"
 - ✅ Calculs prix totaux incluent maintenant les prix des extras correctement
 - ✅ Cohérence totale entre `/modifier-commande/[id]`, `/admin/commandes`, `/historique`
 

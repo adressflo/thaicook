@@ -59,10 +59,28 @@ const HistoriquePage = memo(() => {
 
   // Fonction pour résoudre les noms des extras
   const resolveExtraName = useCallback((detail: DetailCommande) => {
-    if (detail.type !== 'extra' && detail.type !== 'complement_divers') return null;
+    if (detail.type !== 'extra') return null;
 
-    // Chercher dans extras_db par correspondance de nom (insensible à la casse)
-    if (detail.nom_plat && detail.nom_plat.trim() !== '' && extras && extras.length > 0) {
+    // Méthode 1: Utiliser les données extras_db directement attachées au détail
+    if ((detail as any).extra && (detail as any).extra.nom_extra) {
+      return (detail as any).extra.nom_extra;
+    }
+
+    // Méthode 2: Chercher par extra_r dans la liste des extras
+    if ((detail as any).extra_r && extras && extras.length > 0) {
+      const extraId = (detail as any).extra_r;
+      const extra = extras.find((e: any) => e.idextra === extraId || e.id === extraId);
+      if (extra) {
+        return extra.nom_extra;
+      }
+    }
+
+    // Méthode 3: Chercher dans extras_db par correspondance de nom (insensible à la casse)
+    // Seulement si le nom n'est pas le générique "Extra (Complément divers)"
+    if (detail.nom_plat &&
+        detail.nom_plat.trim() !== '' &&
+        detail.nom_plat !== 'Extra (Complément divers)' &&
+        extras && extras.length > 0) {
       const nomPlat = detail.nom_plat; // TypeScript safety
       const extra = extras.find((e: any) =>
         e.nom_extra.toLowerCase() === nomPlat.toLowerCase()
@@ -72,13 +90,16 @@ const HistoriquePage = memo(() => {
       }
     }
 
-    // Fallback: capitaliser nom_plat si pas trouvé dans extras_db
-    if (detail.nom_plat && detail.nom_plat.trim() !== '') {
+    // Méthode 4: Fallback - capitaliser nom_plat si ce n'est pas le générique
+    if (detail.nom_plat &&
+        detail.nom_plat.trim() !== '' &&
+        detail.nom_plat !== 'Extra (Complément divers)') {
       return detail.nom_plat.charAt(0).toUpperCase() + detail.nom_plat.slice(1);
     }
 
-    // Fallback final
-    return 'Extra';
+    // Fallback final pour les cas où on a "Extra (Complément divers)"
+    console.warn('Impossible de résoudre le nom de l\'extra:', detail);
+    return 'Extra (nom non trouvé)';
   }, [extras]);
 
   // États pour les filtres
@@ -105,7 +126,7 @@ const HistoriquePage = memo(() => {
       let prixUnitaire = 0;
 
       // Gérer les extras vs plats normaux
-      if (detail.type === 'extra' || detail.type === 'complement_divers') {
+      if (detail.type === 'extra') {
         // Pour les extras : utiliser le prix de extras_db si disponible, sinon prix_unitaire
         if ((detail as any).extras_db) {
           prixUnitaire = (detail as any).extras_db.prix || detail.prix_unitaire || 0;
@@ -125,9 +146,14 @@ const HistoriquePage = memo(() => {
   const filterBySearch = useCallback((commande: CommandeAvecDetails) => {
     if (!searchTerm) return true;
     const searchLower = searchTerm.toLowerCase();
-    return commande.details?.some(detail => 
-      detail.plat?.plat?.toLowerCase().includes(searchLower)
-    ) || false;
+    return commande.details?.some(detail => {
+      // Pour les extras, chercher dans nom_plat
+      if (detail.type === 'extra') {
+        return detail.nom_plat?.toLowerCase().includes(searchLower);
+      }
+      // Pour les plats normaux, chercher dans plat.plat
+      return detail.plat?.plat?.toLowerCase().includes(searchLower);
+    }) || false;
   }, [searchTerm]);
 
   const filterByStatus = useCallback((item: any) => {
@@ -358,7 +384,7 @@ const HistoriquePage = memo(() => {
                             <FormattedDate date={c.date_et_heure_de_retrait_souhaitees} />
                           </div>
                           <div className="text-center md:col-span-2 flex flex-col items-center justify-center min-h-[2.5rem]">
-                            <DishList details={(c.details || []) as Array<DetailCommande & { plat: Plat | null }>} formatPrix={formatPrix} />
+                            <DishList details={(c.details || []) as Array<DetailCommande & { plat: Plat | null }>} formatPrix={formatPrix} resolveExtraName={resolveExtraName} />
                           </div>
                           <div className="text-center flex flex-col items-center justify-center min-h-[2.5rem] md:-ml-12">
                             <FormattedPrice
@@ -440,7 +466,7 @@ const HistoriquePage = memo(() => {
                           <FormattedDate date={c.date_et_heure_de_retrait_souhaitees} />
                         </div>
                         <div className="text-center md:col-span-2">
-                          <DishList details={(c.details || []) as Array<DetailCommande & { plat: Plat | null }>} formatPrix={formatPrix} />
+                          <DishList details={(c.details || []) as Array<DetailCommande & { plat: Plat | null }>} formatPrix={formatPrix} resolveExtraName={resolveExtraName} />
                         </div>
                         <div className="text-center md:-ml-12">
                           <FormattedPrice
