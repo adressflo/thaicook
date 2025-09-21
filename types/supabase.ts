@@ -247,22 +247,33 @@ export type Database = {
         Row: {
           commande_r: number
           iddetails: number
-          plat_r: number
+          plat_r: number | null
+          extra_r: number | null
           quantite_plat_commande: number | null
         }
         Insert: {
           commande_r: number
           iddetails?: number
-          plat_r: number
+          plat_r?: number | null
+          extra_r?: number | null
           quantite_plat_commande?: number | null
         }
         Update: {
           commande_r?: number
           iddetails?: number
-          plat_r?: number
+          plat_r?: number | null
+          extra_r?: number | null
           quantite_plat_commande?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "details_commande_db_extra_r_fkey"
+            columns: ["extra_r"]
+            isOneToOne: false
+            referencedRelation: "extras_db"
+            referencedColumns: ["idextra"]
+          }
+        ]
       }
       evenements_db: {
         Row: {

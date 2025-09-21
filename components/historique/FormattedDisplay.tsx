@@ -50,15 +50,15 @@ export const FormattedPrice = React.memo<FormattedPriceProps>(({ prix, formatPri
                 {/* Liste des plats */}
                 <div className="space-y-1.5">
                   {details.map((detail, index) => {
-                    const platName = detail.type === 'complement_divers'
+                    const isExtra = detail.type === 'extra' || detail.type === 'complement_divers';
+                    const platName = isExtra
                       ? (resolveExtraName ? resolveExtraName(detail) || 'Extra' : (detail.nom_plat && !detail.nom_plat.includes('complement') ? detail.nom_plat : 'Extra'))
                       : (detail.plat?.plat || 'Plat supprimé');
-                    const prixPlat = detail.type === 'complement_divers'
+                    const prixPlat = isExtra
                       ? (detail.prix_unitaire || 0)
                       : (detail.plat?.prix || 0);
                     const quantite = detail.quantite_plat_commande || 0;
                     const sousTotal = prixPlat * quantite;
-                    const isExtra = detail.type === 'complement_divers';
 
                     return (
                       <div key={index} className="bg-gradient-to-r from-thai-cream/10 to-thai-orange/5 rounded-lg p-2 border border-thai-orange/15 hover:border-thai-orange/30 transition-colors duration-150">
@@ -220,7 +220,7 @@ export const DishList = React.memo<DishListProps>(({ details, formatPrix }) => {
   return (
     <div className="flex flex-wrap gap-3 justify-center max-w-sm sm:max-w-md lg:max-w-lg mx-auto p-2">
       {details.map((detail, index) => {
-        const isExtra = detail.type === 'complement_divers';
+        const isExtra = detail.type === 'extra' || detail.type === 'complement_divers';
         const platName = isExtra
           ? (detail.nom_plat && !detail.nom_plat.includes('complement') ? detail.nom_plat : 'Extra')
           : (detail.plat?.plat || 'Plat supprimé');

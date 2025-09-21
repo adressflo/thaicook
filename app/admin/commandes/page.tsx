@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { UnifiedExtraModal } from '@/components/admin/UnifiedExtraModal';
 import {
   ShoppingBasket,
   Clock,
@@ -59,8 +60,10 @@ import {
   useAddPlatToCommande,
   usePlats,
   useCommandeById,
-  useExistingExtras,
+  useExtras,
+  useCreateExtra,
 } from '@/hooks/useSupabaseData';
+import { useImageUpload } from '@/hooks/useImageUpload';
 import { format, isToday, isPast, isFuture } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import type { CommandeUI, CommandeUpdate } from '@/types/app';
@@ -467,6 +470,16 @@ const PlatCommandeCard = ({
     }
   };
 
+  // Debug: afficher les données de l'item
+  console.log('🔍 PlatCommandeCard - Item data:', {
+    nom_plat: item.nom_plat,
+    type: item.type,
+    extra: item.extra,
+    plat: item.plat,
+    prix_unitaire: item.prix_unitaire,
+    fullItem: item
+  });
+
   const handleQuantiteChange = async (newQuantite: number) => {
     if (newQuantite <= 0) {
       handleRemovePlat();
@@ -528,20 +541,16 @@ const PlatCommandeCard = ({
   return (
     <div className="flex items-start gap-4 p-4 bg-white rounded-lg border border-gray-200 transition-all duration-300 hover:shadow-xl hover:bg-thai-cream/20 hover:border-thai-orange hover:ring-2 hover:ring-thai-orange/30 hover:scale-[1.02] transform">
       {/* Image du plat ou extra */}
-      {item.type === 'complement_divers' ? (
+      {item.extra?.photo_url ? (
         <img
-          src="https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png"
-          alt="Extra"
+          src={item.extra.photo_url}
+          alt={item.extra.nom_extra}
           className="w-24 h-16 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity duration-200"
         />
       ) : item.plat?.photo_du_plat ? (
         <img
           src={item.plat.photo_du_plat}
-          alt={
-            item.type === 'complement_divers'
-              ? item.nom_plat || item.plat?.plat || 'Extra'
-              : item.plat?.plat || item.nom_plat || 'Plat'
-          }
+          alt={item.plat.plat}
           className="w-24 h-16 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity duration-200"
         />
       ) : (
@@ -553,10 +562,90 @@ const PlatCommandeCard = ({
       {/* Informations du plat - exactement comme dans le panier */}
       <div className="flex-1">
         <h4 className="font-medium text-thai-green text-lg mb-1 cursor-pointer hover:text-thai-orange transition-colors duration-200 hover:underline decoration-thai-orange/50">
-          {item.type === 'complement_divers'
-            ? item.nom_plat || item.plat?.plat
-            : item.plat?.plat || item.nom_plat}
-          {item.type === 'complement_divers' && (
+          {(() => {
+            // Debug et logique d'affichage améliorée pour les extras
+            if (item.extra?.nom_extra) {
+              console.log('✅ Affichage depuis extras_db:', item.extra.nom_extra);
+              return item.extra.nom_extra;
+            }
+
+            if (item.plat?.plat) {
+              console.log('✅ Affichage depuis plats_db:', item.plat.plat);
+
+              // Si c'est un extra stocké dans plats_db, essayer d'extraire le vrai nom
+              if (item.plat.plat === 'Extra (Complément divers)' && item.nom_plat) {
+                console.log('🔧 Extra détecté dans plats_db, extraction du nom depuis nom_plat:', item.nom_plat);
+
+                // Patterns de nettoyage pour extraire le vrai nom
+                let nomNettoye = item.nom_plat;
+
+                // Pattern 1: "Extra (Complément divers)=nom_reel"
+                let match = nomNettoye.match(/Extra \(Complément divers\)=(.+)/);
+                if (match && match[1]) {
+                  nomNettoye = match[1].trim();
+                  console.log('🧹 Pattern 1 - Nom extrait:', nomNettoye);
+                  return nomNettoye;
+                }
+
+                // Pattern 2: "Extra (Complément divers) nom_reel"
+                match = nomNettoye.match(/Extra \(Complément divers\)\s+(.+)/);
+                if (match && match[1]) {
+                  nomNettoye = match[1].trim();
+                  console.log('🧹 Pattern 2 - Nom extrait:', nomNettoye);
+                  return nomNettoye;
+                }
+
+                // Si le nom_plat est différent de "Extra (Complément divers)", l'utiliser
+                if (nomNettoye !== 'Extra (Complément divers)' && nomNettoye.trim() !== '') {
+                  console.log('🧹 Utilisation directe de nom_plat:', nomNettoye);
+                  return nomNettoye;
+                }
+
+                console.log('⚠️ Impossible d\'extraire le nom, fallback vers "Extra"');
+                return 'Extra';
+              }
+
+              return item.plat.plat;
+            }
+
+            // Pour les extras sans relation mais avec nom_plat
+            if ((item.type === 'extra' || item.type === 'complement_divers') && item.nom_plat) {
+              // Nettoyer "Extra (Complément divers)" et extraire le vrai nom
+              let nomNettoye = item.nom_plat;
+              console.log('🔍 Nom original à nettoyer:', nomNettoye);
+
+              // Pattern 1: "Extra (Complément divers)=nom_reel"
+              let match = nomNettoye.match(/Extra \(Complément divers\)=(.+)/);
+              if (match && match[1]) {
+                nomNettoye = match[1].trim();
+                console.log('🧹 Pattern 1 - Nom nettoyé:', nomNettoye);
+                return nomNettoye;
+              }
+
+              // Pattern 2: "Extra (Complément divers) nom_reel"
+              match = nomNettoye.match(/Extra \(Complément divers\)\s+(.+)/);
+              if (match && match[1]) {
+                nomNettoye = match[1].trim();
+                console.log('🧹 Pattern 2 - Nom nettoyé:', nomNettoye);
+                return nomNettoye;
+              }
+
+              // Pattern 3: Juste "Extra (Complément divers)" - remplacer par "Extra"
+              if (nomNettoye === 'Extra (Complément divers)') {
+                nomNettoye = 'Extra';
+                console.log('🧹 Pattern 3 - Remplacé par:', nomNettoye);
+                return nomNettoye;
+              }
+
+              // Si aucun pattern ne correspond, retourner tel quel
+              console.log('⚠️ Aucun pattern trouvé, retour original:', nomNettoye);
+              return nomNettoye;
+            }
+
+            console.log('⚠️ Fallback vers nom_plat:', item.nom_plat);
+            return item.nom_plat || 'Article inconnu';
+          })()}
+          {(item.type === 'extra' || item.type === 'complement_divers') && (
             <span className="ml-2 text-xs bg-thai-orange/20 text-thai-orange px-2 py-1 rounded-full">
               Extra
             </span>
@@ -572,7 +661,7 @@ const PlatCommandeCard = ({
           <span className="flex items-center gap-1">
             <span className="font-medium">Prix unitaire:</span>
             <span className="text-thai-green font-semibold">
-              {formatPrix(item.prix_unitaire || item.plat?.prix || 0)}
+              {formatPrix(item.extra?.prix || item.plat?.prix || item.prix_unitaire || 0)}
             </span>
           </span>
         </div>
@@ -582,7 +671,7 @@ const PlatCommandeCard = ({
       <div className="text-right">
         <div className="text-2xl font-bold text-thai-orange mb-4">
           {formatPrix(
-            (item.prix_unitaire ?? item.plat?.prix ?? 0) *
+            (item.extra?.prix || item.plat?.prix || item.prix_unitaire || 0) *
               (item.quantite_plat_commande || 0)
           )}
         </div>
@@ -649,60 +738,101 @@ const AddComplementModal = ({
   onClose: () => void;
   toast: any;
 }) => {
-  const [nomComplement, setNomComplement] = useState('');
-  const [prixComplement, setPrixComplement] = useState('');
-  const addPlatMutation = useAddPlatToCommande();
-  const isLoading = addPlatMutation.isPending;
+  const [activeTab, setActiveTab] = useState('select'); // 'select' or 'create'
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (
-      !commandeId ||
-      !nomComplement.trim() ||
-      !prixComplement ||
-      parseFloat(prixComplement) <= 0
-    ) {
-      toast({
-        title: 'Erreur',
-        description:
-          'Veuillez saisir un nom et un prix valide pour le complément',
-        variant: 'destructive',
+  // For selecting existing extra
+  const { data: extras, isLoading: extrasLoading } = useExtras();
+  const [selectedExtraId, setSelectedExtraId] = useState<number | null>(null);
+
+  // For creating a new extra
+  const [newExtraForm, setNewExtraForm] = useState({
+    nom_extra: '',
+    prix: '',
+    description: '',
+    photo_url: 'https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png'
+  });
+  const createExtraMutation = useCreateExtra();
+  const { uploadState, uploadFile, resetUpload } = useImageUpload(
+    'extras',
+    'https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png'
+  );
+
+  const addPlatMutation = useAddPlatToCommande();
+
+  const handleImageUpload = async (file: File) => {
+    await uploadFile(file, (url: string) => {
+      setNewExtraForm(prev => ({ ...prev, photo_url: url }));
+    });
+  };
+
+  const handleCreateAndAddExtra = async () => {
+    if (!newExtraForm.nom_extra || !newExtraForm.prix) {
+      toast({ title: "Erreur", description: "Le nom et le prix sont obligatoires", variant: "destructive" });
+      return;
+    }
+    if (!commandeId) return;
+
+    try {
+      const newExtra = await createExtraMutation.mutateAsync({
+        nom_extra: newExtraForm.nom_extra,
+        description: newExtraForm.description,
+        prix: parseFloat(newExtraForm.prix),
+        photo_url: newExtraForm.photo_url
       });
+
+      await addPlatMutation.mutateAsync({
+        commandeId: commandeId,
+        extraId: newExtra.idextra,
+        quantite: 1,
+        type: 'extra',
+      });
+
+      toast({ title: 'Succès', description: `Nouvel extra "${newExtra.nom_extra}" créé et ajouté à la commande.` });
+      resetForm();
+      onClose();
+    } catch (error) {
+      console.error("Erreur lors de la création et l'ajout de l'extra:", error);
+      toast({ title: 'Erreur', description: "Impossible de créer et d'ajouter l'extra.", variant: "destructive" });
+    }
+  };
+
+  const handleSelectAndAddExtra = async () => {
+    if (!commandeId || !selectedExtraId) {
+      toast({ title: 'Erreur', description: 'Veuillez sélectionner un extra', variant: 'destructive' });
       return;
     }
 
     try {
-      // Utiliser le hook existant pour ajouter le complément comme un "plat" spécial
+      const extra = extras?.find((e: any) => e.idextra === selectedExtraId);
+
       await addPlatMutation.mutateAsync({
         commandeId: commandeId,
-        platId: null, // Pas d'ID plat pour un Extra
-        nomPlat: nomComplement.trim(),
-        prixUnitaire: parseFloat(prixComplement),
+        extraId: selectedExtraId,
         quantite: 1,
-        type: 'complement_divers',
+        type: 'extra',
       });
-
-      toast({
-        title: 'Succès',
-        description: `Complément "${nomComplement}" ajouté à la commande`,
-      });
-
+      toast({ title: 'Succès', description: `Extra "${extra?.nom_extra}" ajouté à la commande.` });
+      resetForm();
       onClose();
-      setNomComplement('');
-      setPrixComplement('');
     } catch (error) {
-      console.error("Erreur lors de l'ajout du complément:", error);
-      toast({
-        title: 'Erreur',
-        description: "Erreur lors de l'ajout du complément",
-        variant: 'destructive',
-      });
+      console.error("Erreur lors de l'ajout de l'extra:", error);
+      toast({ title: 'Erreur', description: "Impossible d'ajouter l'extra.", variant: 'destructive' });
     }
   };
 
+  const resetForm = () => {
+    setSelectedExtraId(null);
+    setNewExtraForm({
+      nom_extra: '',
+      prix: '',
+      description: '',
+      photo_url: 'https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png'
+    });
+    resetUpload();
+  };
+
   const handleClose = () => {
-    setNomComplement('');
-    setPrixComplement('');
+    resetForm();
     onClose();
   };
 
@@ -710,60 +840,82 @@ const AddComplementModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[425px] bg-white border border-thai-orange shadow-lg">
+      <DialogContent className="sm:max-w-lg bg-white border border-thai-orange shadow-lg">
         <DialogHeader>
-          <DialogTitle className="text-thai-orange">
-            Ajouter un Extra
-          </DialogTitle>
+          <DialogTitle className="text-thai-orange">Ajouter un Extra</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-          <div>
-            <Label htmlFor="nom-complement" className="text-sm font-medium">
-              Nom du complément *
-            </Label>
-            <Input
-              id="nom-complement"
-              value={nomComplement}
-              onChange={e => setNomComplement(e.target.value)}
-              placeholder="Ex: Sauce supplémentaire, Riz jasmin..."
-              className="mt-1"
-              required
-            />
-          </div>
-          <div>
-            <Label htmlFor="prix-complement" className="text-sm font-medium">
-              Prix (€) *
-            </Label>
-            <Input
-              id="prix-complement"
-              type="number"
-              step="0.01"
-              min="0.01"
-              value={prixComplement}
-              onChange={e => setPrixComplement(e.target.value)}
-              placeholder="Ex: 3.00"
-              className="mt-1"
-              required
-            />
-          </div>
-          <div className="flex justify-end space-x-2 pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleClose}
-              disabled={isLoading}
-            >
-              Annuler
-            </Button>
-            <Button
-              type="submit"
-              disabled={isLoading}
-              className="bg-thai-orange hover:bg-thai-orange/90 text-white"
-            >
-              {isLoading ? 'Ajout...' : 'Ajouter'}
-            </Button>
-          </div>
-        </form>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="select">Sélectionner</TabsTrigger>
+            <TabsTrigger value="create">Créer</TabsTrigger>
+          </TabsList>
+          <TabsContent value="select" className="mt-4 max-h-[60vh] overflow-y-auto">
+            {extrasLoading ? (
+              <p>Chargement des extras...</p>
+            ) : (
+              <div className="space-y-2">
+                {extras?.map((extra: any) => (
+                  <div
+                    key={extra.idextra}
+                    onClick={() => setSelectedExtraId(extra.idextra)}
+                    className={`flex items-center gap-4 p-3 rounded-lg cursor-pointer transition-all ${
+                      selectedExtraId === extra.idextra
+                        ? 'bg-thai-orange/20 ring-2 ring-thai-orange'
+                        : 'hover:bg-gray-100'
+                    }`}
+                  >
+                    <img
+                      src={extra.photo_url || 'https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png'}
+                      alt={extra.nom_extra}
+                      className="w-12 h-12 rounded-md object-cover"
+                    />
+                    <div className="flex-1">
+                      <p className="font-medium">{extra.nom_extra}</p>
+                      <p className="text-sm text-gray-500">{extra.description}</p>
+                    </div>
+                    <p className="font-semibold">{extra.prix?.toFixed(2)}€</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+          <TabsContent value="create" className="mt-4">
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="nom-extra">Nom de l'extra *</Label>
+                <Input id="nom-extra" value={newExtraForm.nom_extra} onChange={(e) => setNewExtraForm(prev => ({ ...prev, nom_extra: e.target.value }))} />
+              </div>
+              <div>
+                <Label htmlFor="prix-extra">Prix (€) *</Label>
+                <Input id="prix-extra" type="number" value={newExtraForm.prix} onChange={(e) => setNewExtraForm(prev => ({ ...prev, prix: e.target.value }))} />
+              </div>
+              <div>
+                <Label htmlFor="description-extra">Description</Label>
+                <Textarea id="description-extra" value={newExtraForm.description} onChange={(e) => setNewExtraForm(prev => ({ ...prev, description: e.target.value }))} />
+              </div>
+              <div>
+                <Label htmlFor="photo-extra">Photo</Label>
+                <div className="flex items-center gap-4 mt-1">
+                  <img src={newExtraForm.photo_url} alt="Aperçu" className="w-16 h-16 rounded-md object-cover border" />
+                  <Input id="photo-extra" type="file" accept="image/*" onChange={(e) => { const file = e.target.files?.[0]; if (file) { handleImageUpload(file); } }} className="flex-1" />
+                </div>
+                {uploadState.isUploading && <p className="text-sm text-gray-500 mt-2">Upload en cours... {uploadState.progress}%</p>}
+                {uploadState.error && <p className="text-sm text-red-500 mt-2">{uploadState.error}</p>}
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
+        <div className="flex justify-end space-x-2 pt-4">
+          <Button type="button" variant="outline" onClick={handleClose}>Annuler</Button>
+          <Button
+            type="button"
+            onClick={activeTab === 'select' ? handleSelectAndAddExtra : handleCreateAndAddExtra}
+            disabled={addPlatMutation.isPending || createExtraMutation.isPending || (activeTab === 'select' && !selectedExtraId)}
+            className="bg-thai-orange hover:bg-thai-orange/90 text-white"
+          >
+            {addPlatMutation.isPending || createExtraMutation.isPending ? 'Ajout...' : 'Ajouter à la commande'}
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );
@@ -1852,7 +2004,7 @@ const CommandeCard = ({
                       )}
                     </div>
                   </div>
-                  
+
                   {/* Commande passée le - Ajouté ici */}
                   {commande.date_de_prise_de_commande && (
                     <div className="text-xs text-white/80 text-center mt-2">
@@ -2159,7 +2311,13 @@ const ModalPlatCard = ({
   return (
     <div className="flex items-start gap-4 p-4 bg-white rounded-lg border border-gray-200 transition-all duration-300 hover:shadow-xl hover:bg-thai-cream/20 hover:border-thai-orange hover:ring-2 hover:ring-thai-orange/30 hover:scale-[1.02] transform">
       {/* Image du plat ou extra */}
-      {(item.nom_plat && item.prix_unitaire && !item.plat) || item.type === 'complement_divers' ? (
+      {item.extra ? (
+        <img
+          src={item.extra.photo_url || "https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png"}
+          alt={item.extra.nom_extra || "Extra"}
+          className="w-24 h-16 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity duration-200"
+        />
+      ) : (item.nom_plat && item.prix_unitaire && !item.plat) || item.type === 'complement_divers' ? (
         <img
           src="https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png"
           alt="Extra"
@@ -2180,10 +2338,90 @@ const ModalPlatCard = ({
       {/* Informations du plat - exactement comme dans le panier */}
       <div className="flex-1">
         <h4 className="font-medium text-thai-green text-lg mb-1 cursor-pointer hover:text-thai-orange transition-colors duration-200 hover:underline decoration-thai-orange/50">
-          {(item.nom_plat && item.prix_unitaire && !item.plat) || item.type === 'complement_divers'
-            ? item.nom_plat
-            : item.plat?.plat || item.nom_plat}
-          {((item.nom_plat && item.prix_unitaire && !item.plat) || item.type === 'complement_divers') && (
+          {(() => {
+            // Debug et logique d'affichage améliorée pour les extras
+            if (item.extra?.nom_extra) {
+              console.log('✅ Affichage depuis extras_db (v2):', item.extra.nom_extra);
+              return item.extra.nom_extra;
+            }
+
+            if (item.plat?.plat) {
+              console.log('✅ Affichage depuis plats_db (v2):', item.plat.plat);
+
+              // Si c'est un extra stocké dans plats_db, essayer d'extraire le vrai nom
+              if (item.plat.plat === 'Extra (Complément divers)' && item.nom_plat) {
+                console.log('🔧 Extra détecté dans plats_db (v2), extraction du nom depuis nom_plat:', item.nom_plat);
+
+                // Patterns de nettoyage pour extraire le vrai nom
+                let nomNettoye = item.nom_plat;
+
+                // Pattern 1: "Extra (Complément divers)=nom_reel"
+                let match = nomNettoye.match(/Extra \(Complément divers\)=(.+)/);
+                if (match && match[1]) {
+                  nomNettoye = match[1].trim();
+                  console.log('🧹 Pattern 1 (v2) - Nom extrait:', nomNettoye);
+                  return nomNettoye;
+                }
+
+                // Pattern 2: "Extra (Complément divers) nom_reel"
+                match = nomNettoye.match(/Extra \(Complément divers\)\s+(.+)/);
+                if (match && match[1]) {
+                  nomNettoye = match[1].trim();
+                  console.log('🧹 Pattern 2 (v2) - Nom extrait:', nomNettoye);
+                  return nomNettoye;
+                }
+
+                // Si le nom_plat est différent de "Extra (Complément divers)", l'utiliser
+                if (nomNettoye !== 'Extra (Complément divers)' && nomNettoye.trim() !== '') {
+                  console.log('🧹 Utilisation directe de nom_plat (v2):', nomNettoye);
+                  return nomNettoye;
+                }
+
+                console.log('⚠️ Impossible d\'extraire le nom (v2), fallback vers "Extra"');
+                return 'Extra';
+              }
+
+              return item.plat.plat;
+            }
+
+            // Pour les extras sans relation mais avec nom_plat
+            if ((item.type === 'extra' || item.type === 'complement_divers' || (item.nom_plat && item.prix_unitaire && !item.plat)) && item.nom_plat) {
+              // Nettoyer "Extra (Complément divers)" et extraire le vrai nom
+              let nomNettoye = item.nom_plat;
+              console.log('🔍 Nom original à nettoyer (v2):', nomNettoye);
+
+              // Pattern 1: "Extra (Complément divers)=nom_reel"
+              let match = nomNettoye.match(/Extra \(Complément divers\)=(.+)/);
+              if (match && match[1]) {
+                nomNettoye = match[1].trim();
+                console.log('🧹 Pattern 1 (v2) - Nom nettoyé:', nomNettoye);
+                return nomNettoye;
+              }
+
+              // Pattern 2: "Extra (Complément divers) nom_reel"
+              match = nomNettoye.match(/Extra \(Complément divers\)\s+(.+)/);
+              if (match && match[1]) {
+                nomNettoye = match[1].trim();
+                console.log('🧹 Pattern 2 (v2) - Nom nettoyé:', nomNettoye);
+                return nomNettoye;
+              }
+
+              // Pattern 3: Juste "Extra (Complément divers)" - remplacer par "Extra"
+              if (nomNettoye === 'Extra (Complément divers)') {
+                nomNettoye = 'Extra';
+                console.log('🧹 Pattern 3 (v2) - Remplacé par:', nomNettoye);
+                return nomNettoye;
+              }
+
+              // Si aucun pattern ne correspond, retourner tel quel
+              console.log('⚠️ Aucun pattern trouvé (v2), retour original:', nomNettoye);
+              return nomNettoye;
+            }
+
+            console.log('⚠️ Fallback vers nom_plat (v2):', item.nom_plat);
+            return item.nom_plat || 'Article inconnu';
+          })()}
+          {(item.type === 'extra' || item.type === 'complement_divers' || (item.nom_plat && item.prix_unitaire && !item.plat)) && (
             <span className="ml-2 text-xs bg-thai-orange/20 text-thai-orange px-2 py-1 rounded-full">
               Extra
             </span>
@@ -2285,26 +2523,26 @@ const CommandeDetailsModal = ({
   const [showAddPlatDialog, setShowAddPlatDialog] = useState(false);
   const [selectedPlatToAdd, setSelectedPlatToAdd] = useState<any>(null);
   const [quantiteToAdd, setQuantiteToAdd] = useState(1);
-  const [showAddComplementModal, setShowAddComplementModal] = useState(false);
+  const [showUnifiedExtraModal, setShowUnifiedExtraModal] = useState(false);
   const [nomComplement, setNomComplement] = useState('');
   const [prixComplement, setPrixComplement] = useState('');
   const [useExistingExtra, setUseExistingExtra] = useState(false);
   const [selectedExtraName, setSelectedExtraName] = useState('');
-  
+
   // États pour la modification d'heure
   const [isEditingTime, setIsEditingTime] = useState(false);
   const [newTime, setNewTime] = useState('');
   const [isLoadingTime, setIsLoadingTime] = useState(false);
-  
+
   // Hooks pour la gestion des plats
   const { data: plats } = usePlats();
-  const { data: existingExtras, isLoading: extrasLoading } = useExistingExtras();
+  const { data: extras, isLoading: extrasLoading } = useExtras();
   const addPlatMutation = useAddPlatToCommande();
-  
+
   // Debug des extras existants
-  console.log('🔍 DEBUG - Existing extras:', { existingExtras, extrasLoading });
+  console.log('🔍 DEBUG - Extras:', { extras, extrasLoading });
   const updateCommandeMutation = useUpdateCommande();
-  
+
   // Fonctions pour la modification d'heure
   const handleTimeEdit = () => {
     if (commande?.date_et_heure_de_retrait_souhaitees) {
@@ -2351,11 +2589,11 @@ const CommandeDetailsModal = ({
       setIsLoadingTime(false);
     }
   };
-  
+
   // Afficher un loading si les données ne sont pas encore chargées
   if (isLoading) {
     return (
-      <div 
+      <div
         className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
         onClick={(e) => {
           if (e.target === e.currentTarget) {
@@ -2372,11 +2610,11 @@ const CommandeDetailsModal = ({
       </div>
     );
   }
-  
+
   // Afficher une erreur si le chargement a échoué
   if (error || !commande) {
     return (
-      <div 
+      <div
         className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
         onClick={(e) => {
           if (e.target === e.currentTarget) {
@@ -2419,7 +2657,7 @@ const CommandeDetailsModal = ({
   // Gérer le changement de statut avec loading
   const handleStatusChange = async (newStatus: string) => {
     if (newStatus === commande.statut_commande) return;
-    
+
     setIsStatusLoading(true);
     try {
       await onStatusChange(commande.idcommande, newStatus);
@@ -2430,7 +2668,7 @@ const CommandeDetailsModal = ({
 
   const handleAddPlat = async () => {
     if (!selectedPlatToAdd || quantiteToAdd <= 0) return;
-    
+
     setIsAddingPlat(true);
     try {
       await addPlatMutation.mutateAsync({
@@ -2438,12 +2676,12 @@ const CommandeDetailsModal = ({
         platId: selectedPlatToAdd.idplats,
         quantite: quantiteToAdd
       });
-      
+
       toast({
         title: "✅ Plat ajouté",
         description: `${selectedPlatToAdd.plat} (x${quantiteToAdd}) a été ajouté à la commande`,
       });
-      
+
       // Réinitialiser le formulaire
       setSelectedPlatToAdd(null);
       setQuantiteToAdd(1);
@@ -2469,12 +2707,12 @@ const CommandeDetailsModal = ({
 
   // Fonction pour sélectionner un extra existant
   const handleSelectExistingExtra = (extraName: string) => {
-    console.log('🎯 Sélection extra:', { extraName, existingExtras });
-    const selectedExtra = existingExtras?.find(extra => extra.nom_plat === extraName);
+    console.log('🎯 Sélection extra:', { extraName, extras });
+    const selectedExtra = extras?.find((extra: any) => extra.nom_extra === extraName);
     console.log('🎯 Extra trouvé:', selectedExtra);
     if (selectedExtra) {
-      setNomComplement(selectedExtra.nom_plat);
-      setPrixComplement(selectedExtra.prix_unitaire.toString());
+      setNomComplement(selectedExtra.nom_extra);
+      setPrixComplement(selectedExtra.prix.toString());
       setSelectedExtraName(extraName);
     }
   };
@@ -2490,14 +2728,8 @@ const CommandeDetailsModal = ({
     }
 
     try {
-      await addPlatMutation.mutateAsync({
-        commandeId: commande.idcommande,
-        platId: null,
-        quantite: 1,
-        nomPlat: nomComplement.trim(),
-        prixUnitaire: parseFloat(prixComplement),
-        type: 'complement_divers'
-      });
+      // ⚠️ FONCTION OBSOLÈTE - Utiliser UnifiedExtraModal à la place
+      throw new Error("Cette fonction est obsolète. Utilisez la nouvelle modale UnifiedExtraModal.");
 
       toast({
         title: "✅ Extra ajouté",
@@ -2506,7 +2738,7 @@ const CommandeDetailsModal = ({
 
       // Réinitialiser le formulaire
       resetExtraForm();
-      setShowAddComplementModal(false);
+      setShowUnifiedExtraModal(false);
     } catch (error) {
       toast({
         title: "❌ Erreur",
@@ -2517,7 +2749,7 @@ const CommandeDetailsModal = ({
   };
 
   return (
-    <div 
+    <div
       className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
       onClick={(e) => {
         // Fermer le modal si on clique sur l'arrière-plan
@@ -2552,8 +2784,8 @@ const CommandeDetailsModal = ({
               <div className="flex gap-4 p-4 bg-gradient-to-r from-thai-orange/10 to-thai-gold/10 rounded-lg">
                 {/* Photo/Avatar */}
                 {commande.client?.photo_client ? (
-                  <img 
-                    src={commande.client.photo_client} 
+                  <img
+                    src={commande.client.photo_client}
                     alt={`${commande.client?.prenom || ''} ${commande.client?.nom || ''}`.trim()}
                     className="w-16 h-16 rounded-full object-cover border-2 border-thai-orange/20 flex-shrink-0"
                   />
@@ -2562,19 +2794,19 @@ const CommandeDetailsModal = ({
                     {commande.client?.prenom ? commande.client.prenom.charAt(0).toUpperCase() : 'C'}
                   </div>
                 )}
-                
+
                 {/* Informations principales */}
                 <div className="flex-1 space-y-2">
                   {/* 1. Nom Prénom */}
                   <div>
                     <h3 className="font-semibold text-lg text-gray-900 mb-1">
-                      {commande.client?.prenom && commande.client?.nom 
+                      {commande.client?.prenom && commande.client?.nom
                         ? `${commande.client.prenom} ${commande.client.nom}`
                         : commande.client?.nom || commande.client?.prenom || 'Client non défini'
                       }
                     </h3>
                   </div>
-                  
+
                   {/* 2. Adresse postale */}
                   {(commande.client?.adresse_numero_et_rue || commande.client?.code_postal || commande.client?.ville) && (
                     <div className="flex items-start gap-2">
@@ -2593,12 +2825,12 @@ const CommandeDetailsModal = ({
                       </div>
                     </div>
                   )}
-                  
+
                   {/* 3. Email */}
                   {commande.client?.email && (
                     <div className="flex items-center gap-2">
                       <MessageSquare className="w-4 h-4 text-thai-green flex-shrink-0" />
-                      <a 
+                      <a
                         href={`mailto:${commande.client.email}`}
                         className="text-thai-green hover:text-thai-green-dark text-sm font-medium hover:underline transition-colors"
                       >
@@ -2606,12 +2838,12 @@ const CommandeDetailsModal = ({
                       </a>
                     </div>
                   )}
-                  
+
                   {/* 4. Numéro de téléphone avec lien d'appel */}
                   {commande.client?.numero_de_telephone && (
                     <div className="flex items-center gap-2">
                       <Phone className="w-4 h-4 text-thai-orange flex-shrink-0" />
-                      <a 
+                      <a
                         href={`tel:${commande.client.numero_de_telephone}`}
                         className="text-thai-orange hover:text-thai-orange-dark text-sm font-medium hover:underline transition-colors flex items-center gap-1"
                       >
@@ -2645,7 +2877,7 @@ const CommandeDetailsModal = ({
                   Contact
                 </Button>
               </div>
-              
+
               {/* Adresse si disponible */}
               {commande.adresse_specifique && (
                 <div className="flex items-start gap-2 p-3 bg-gray-50 rounded-lg">
@@ -2685,7 +2917,7 @@ const CommandeDetailsModal = ({
                       )}
                     </div>
                   </div>
-                  
+
                   {/* Commande passée le */}
                   {commande?.date_de_prise_de_commande && (
                     <div className="text-xs text-white/80 text-center mt-2">
@@ -2748,7 +2980,7 @@ const CommandeDetailsModal = ({
                   <ShoppingBasket className="w-5 h-5" />
                   Détails de la Commande
                 </CardTitle>
-                
+
                 <div className="flex items-center gap-3">
                   {/* Bouton modifier l'heure - Entre titre et statut */}
                   {commande?.date_et_heure_de_retrait_souhaitees && !isEditingTime && (
@@ -2762,7 +2994,7 @@ const CommandeDetailsModal = ({
                       Modifier l'heure
                     </Button>
                   )}
-                  
+
                   {/* Changement de Statut - Déplacé à droite */}
                 <Select
                   value={commande?.statut_commande === 'Récupérée' ? 'Terminée' : (commande?.statut_commande || 'En attente de confirmation')}
@@ -2873,7 +3105,7 @@ const CommandeDetailsModal = ({
                     <Button
                       variant="outline"
                       className="border-thai-orange text-thai-orange hover:bg-thai-orange hover:text-white border-dashed"
-                      onClick={() => setShowAddComplementModal(true)}
+                      onClick={() => setShowUnifiedExtraModal(true)}
                     >
                       <Plus className="w-4 h-4 mr-2" />
                       Extra
@@ -2951,7 +3183,7 @@ const CommandeDetailsModal = ({
 
       {/* Dialog d'ajout de plat */}
       {showAddPlatDialog && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4"
           onClick={(e) => {
             // Fermer le modal si on clique sur l'arrière-plan
@@ -3112,13 +3344,13 @@ const CommandeDetailsModal = ({
       )}
 
       {/* Modal Ajouter un Extra */}
-      {showAddComplementModal && (
-        <div 
+      {false && (
+        <div
           className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[70] p-4"
           onClick={(e) => {
             // Fermer le modal si on clique sur l'arrière-plan
             if (e.target === e.currentTarget) {
-              setShowAddComplementModal(false);
+              setShowUnifiedExtraModal(false);
               resetExtraForm();
             }
           }}
@@ -3127,10 +3359,10 @@ const CommandeDetailsModal = ({
             <div className="p-6 border-b">
               <div className="flex justify-between items-center">
                 <h3 className="text-xl font-bold text-thai-green">Ajouter un Extra</h3>
-                <Button 
-                  variant="ghost" 
+                <Button
+                  variant="ghost"
                   onClick={() => {
-                    setShowAddComplementModal(false);
+                    setShowUnifiedExtraModal(false);
                     resetExtraForm();
                   }}
                 >
@@ -3165,15 +3397,15 @@ const CommandeDetailsModal = ({
                       setPrixComplement('');
                     }}
                     className="flex-1"
-                    disabled={!existingExtras || existingExtras.length === 0}
+                    disabled={!extras || extras?.length === 0}
                   >
-                    Existant ({existingExtras?.length || 0})
+                    Existant ({extras?.length || 0})
                   </Button>
                 </div>
               </div>
 
               {/* Dropdown pour sélectionner un extra existant */}
-              {useExistingExtra && existingExtras && existingExtras.length > 0 && (
+              {useExistingExtra && extras?.length && (
                 <div>
                   <Label htmlFor="existing-extra">Choisir un Extra existant</Label>
                   <Select
@@ -3186,15 +3418,12 @@ const CommandeDetailsModal = ({
                       <SelectValue placeholder="Sélectionner un extra..." />
                     </SelectTrigger>
                     <SelectContent>
-                      {existingExtras.map((extra) => (
-                        <SelectItem key={extra.nom_plat} value={extra.nom_plat}>
+                      {extras?.map((extra: any) => (
+                        <SelectItem key={extra.nom_extra} value={extra.nom_extra}>
                           <div className="flex justify-between items-center w-full">
-                            <span>{extra.nom_plat}</span>
+                            <span>{extra.nom_extra}</span>
                             <span className="ml-4 text-thai-orange font-medium">
-                              {formatPrix(extra.prix_unitaire)}
-                            </span>
-                            <span className="ml-2 text-xs text-gray-500">
-                              ({extra.count}x)
+                              {formatPrix(extra.prix)}
                             </span>
                           </div>
                         </SelectItem>
@@ -3222,7 +3451,7 @@ const CommandeDetailsModal = ({
               {/* Prix de l'Extra */}
               <div>
                 <Label htmlFor="prix-complement">
-                  Prix (€) 
+                  Prix (€)
                   {useExistingExtra && (
                     <span className="text-xs text-gray-500 ml-2">
                       (modifiable)
@@ -3256,10 +3485,10 @@ const CommandeDetailsModal = ({
             </div>
 
             <div className="p-6 border-t bg-gray-50 flex justify-end gap-2">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => {
-                  setShowAddComplementModal(false);
+                  setShowUnifiedExtraModal(false);
                   resetExtraForm();
                 }}
               >
@@ -3277,6 +3506,13 @@ const CommandeDetailsModal = ({
           </div>
         </div>
       )}
+
+      {/* 🚀 NOUVELLE MODALE UNIFIÉE EXTRA */}
+      <UnifiedExtraModal
+        isOpen={showUnifiedExtraModal}
+        onClose={() => setShowUnifiedExtraModal(false)}
+        commandeId={commande.idcommande}
+      />
     </div>
   );
 };

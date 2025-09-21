@@ -66,6 +66,9 @@ Votre base de données Supabase révèle un **écosystème d'application restaur
 ### **📋 SYSTÈME COMMANDES**
 - **44 commandes** enregistrées avec statuts détaillés
 - **97 détails** de commande (relation many-to-many)
+- **Architecture hybride extras** : Support plats_db + extras_db unifié
+- **Calcul prix optimisé** : Priorité extras_db.prix > plats_db.prix > legacy
+- **Hooks cohérents** : useCommandeById, useCommandesByClient, useCommandes
 - **Statuts complets** : confirmation, préparation, récupération
 - **3 types livraison** : à emporter, livraison, sur place
 - **Intégration paiement** multi-modalité
@@ -172,8 +175,10 @@ Functions disponibles :
 ```
 
 ### **Dernières Évolutions Notables**
+- 🔧 **Correction hooks extras** (21/09/2025) - Fix calcul prix et mapping UI
+- ✨ **Architecture hybride extras** (21/09/2025) - Support plats_db + extras_db
 - ✨ **Système extras** (06/09/2025)
-- ✨ **Ruptures plats planifiées** (06/09/2025)  
+- ✨ **Ruptures plats planifiées** (06/09/2025)
 - ✨ **Fonctions RLS bypass** (07/09/2025)
 - ✨ **Optimisations sécurité** (05/08/2025)
 

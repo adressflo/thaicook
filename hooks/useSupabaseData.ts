@@ -602,6 +602,8 @@ export const useDeletePlatRupture = () => {
   });
 };
 
+
+
 // Hook pour vérifier si un plat est disponible à une date
 export const useCheckPlatAvailability = () => {
   return useMutation({
@@ -654,7 +656,8 @@ export const useCommandeById = (idcommande?: number) => {
           ),
           details_commande_db (
             *,
-            plats_db (*)
+            plats_db (*),
+            extras_db (*)
           )
         `
         )
@@ -703,11 +706,22 @@ export const useCommandeById = (idcommande?: number) => {
         details_commande_db: Array.isArray(commande.details_commande_db) ? commande.details_commande_db : []
       };
 
-      // Calculer le prix total avec validation
-      const prix_total = validatedCommande.details_commande_db.reduce((total: number, detail: DetailsCommande & { plats_db?: Plat }) => {
+      // Calculer le prix total avec validation (plats + extras)
+      const prix_total = validatedCommande.details_commande_db.reduce((total: number, detail: DetailsCommande & { plats_db?: Plat; extras_db?: any }) => {
         const quantite = detail.quantite_plat_commande || 0;
-        const prix = detail.plats_db?.prix || 0;
-        return total + quantite * prix;
+        let prixUnitaire = 0;
+
+        // Prioriser le prix des extras si c'est un extra, sinon utiliser le prix du plat
+        if ((detail as any).extras_db) {
+          prixUnitaire = (detail as any).extras_db.prix || 0;
+        } else if (detail.plats_db?.prix) {
+          prixUnitaire = detail.plats_db.prix || 0;
+        } else {
+          // Fallback pour les anciens extras stockés directement
+          prixUnitaire = (detail as any).prix_unitaire || 0;
+        }
+
+        return total + Number(quantite) * Number(prixUnitaire);
       }, 0) || 0;
 
       // Mapper idcommande vers id pour l'UI avec toutes les propriétés nécessaires
@@ -717,7 +731,8 @@ export const useCommandeById = (idcommande?: number) => {
         client: commande.client_db || null,
         details: validatedCommande.details_commande_db.map(detail => ({
           ...detail,
-          plat: detail.plats_db
+          plat: detail.plats_db,
+          extra: (detail as any).extras_db || null
         })),
         prix_total,
         statut: mapStatutCommande(
@@ -758,14 +773,14 @@ export const useCommandesByClient = (firebase_uid?: string) => {
             code_postal,
             ville
           ),
-          details_commande_db (
-            *,
-            plats_db (*)
-          )
-        `
-        )
-        .eq('client_r', firebase_uid)
-        .order('date_de_prise_de_commande', { ascending: false });
+                        details_commande_db (
+                          *,
+                          plats_db (*),
+                          extras_db (*)
+                        )
+                      `
+                      )
+                      .eq('client_r', firebase_uid)        .order('date_de_prise_de_commande', { ascending: false });
 
       if (error) {
         const contextError = new Error(`Échec chargement liste commandes (${firebase_uid}): ${error.message || 'Erreur base de données'}`);
@@ -816,15 +831,21 @@ export const useCommandesByClient = (firebase_uid?: string) => {
           details_commande_db: Array.isArray(commandeTyped.details_commande_db) ? commandeTyped.details_commande_db : []
         };
 
-        const prix_total = validatedCommande.details_commande_db.reduce((total: number, detail: DetailsCommande & { plats_db?: Plat }) => {
+        const prix_total = validatedCommande.details_commande_db.reduce((total: number, detail: DetailsCommande & { plats_db?: Plat; extras_db?: any }) => {
           const quantite = detail.quantite_plat_commande || 0;
           let prixUnitaire = 0;
-          
-          // Utiliser uniquement le prix depuis plats_db
-          // Note: Les types 'type' et 'prix_unitaire' ne sont pas dans le schéma actuel de details_commande_db
-          prixUnitaire = detail.plats_db?.prix || 0;
-          
-          return total + quantite * prixUnitaire;
+
+          // Prioriser le prix des extras si c'est un extra, sinon utiliser le prix du plat
+          if ((detail as any).extras_db) {
+            prixUnitaire = (detail as any).extras_db.prix || 0;
+          } else if (detail.plats_db?.prix) {
+            prixUnitaire = detail.plats_db.prix || 0;
+          } else {
+            // Fallback pour les anciens extras stockés directement
+            prixUnitaire = (detail as any).prix_unitaire || 0;
+          }
+
+          return total + Number(quantite) * Number(prixUnitaire);
         }, 0) || 0;
 
         // Corriger firebase_uid null pour compatibilité type
@@ -837,9 +858,10 @@ export const useCommandesByClient = (firebase_uid?: string) => {
           ...validatedCommande,
           id: validatedCommande.idcommande,
           client: clientData,
-          details: validatedCommande.details_commande_db.map((detail: DetailsCommande & { plats_db?: Plat }) => ({
+          details: validatedCommande.details_commande_db.map((detail: DetailsCommande & { plats_db?: Plat; extras_db?: any }) => ({
             ...detail,
-            plat: detail.plats_db
+            plat: detail.plats_db,
+            extra: (detail as any).extras_db || null
           })),
           prix_total,
           statut: validateStatutCommande(validatedCommande.statut_commande) || undefined,
@@ -877,7 +899,8 @@ export const useCommandes = () => {
           ),
           details_commande_db (
             *,
-            plats_db (*)
+            plats_db (*),
+            extras_db (*)
           )
         `
         )
@@ -928,15 +951,21 @@ export const useCommandes = () => {
           details_commande_db: Array.isArray(commandeTyped.details_commande_db) ? commandeTyped.details_commande_db : []
         };
 
-        // Calculer le prix total depuis les détails validés
-        const prix_total = validatedCommande.details_commande_db.reduce((total: number, detail: DetailsCommande & { plats_db?: Plat }) => {
+        // Calculer le prix total depuis les détails validés (plats + extras)
+        const prix_total = validatedCommande.details_commande_db.reduce((total: number, detail: DetailsCommande & { plats_db?: Plat; extras_db?: any }) => {
           const quantite = detail.quantite_plat_commande || 0;
           let prixUnitaire = 0;
-          
-          // Utiliser uniquement le prix depuis plats_db
-          // Note: Les types 'type' et 'prix_unitaire' ne sont pas dans le schéma actuel de details_commande_db
-          prixUnitaire = detail.plats_db?.prix || 0;
-          
+
+          // Prioriser le prix des extras si c'est un extra, sinon utiliser le prix du plat
+          if ((detail as any).extras_db) {
+            prixUnitaire = (detail as any).extras_db.prix || 0;
+          } else if (detail.plats_db?.prix) {
+            prixUnitaire = detail.plats_db.prix || 0;
+          } else {
+            // Fallback pour les anciens extras stockés directement
+            prixUnitaire = (detail as any).prix_unitaire || 0;
+          }
+
           return total + Number(quantite) * Number(prixUnitaire);
         }, 0) || 0;
 
@@ -952,7 +981,8 @@ export const useCommandes = () => {
           client: clientData,
           details: validatedCommande.details_commande_db.map(detail => ({
             ...detail,
-            plat: detail.plats_db
+            plat: detail.plats_db,
+            extra: (detail as any).extras_db || null
           })),
           prix_total,
           statut: validateStatutCommande(validatedCommande.statut_commande),
@@ -1094,7 +1124,8 @@ export const useCommandesRealtimeV1 = () => {
           *,
           details_commande_db (
             *,
-            plats_db (*)
+            plats_db (*),
+            extras_db (*)
           )
         `
         )
@@ -1695,7 +1726,8 @@ export const useUpdateCommande = () => {
           *,
           details_commande_db (
             *,
-            plats_db (*)
+            plats_db (*),
+            extras_db (*)
           )
         `
         )
@@ -1741,11 +1773,22 @@ export const useUpdateCommande = () => {
         details_commande_db: Array.isArray(commande.details_commande_db) ? commande.details_commande_db : []
       };
 
-      // Calculer le prix total
-      const prix_total = validatedCommande.details_commande_db.reduce((total: number, detail: DetailsCommande & { plats_db?: Plat }) => {
+      // Calculer le prix total (plats + extras)
+      const prix_total = validatedCommande.details_commande_db.reduce((total: number, detail: DetailsCommande & { plats_db?: Plat; extras_db?: any }) => {
         const quantite = detail.quantite_plat_commande || 0;
-        const prix = detail.plats_db?.prix || 0;
-        return total + quantite * prix;
+        let prixUnitaire = 0;
+
+        // Prioriser le prix des extras si c'est un extra, sinon utiliser le prix du plat
+        if ((detail as any).extras_db) {
+          prixUnitaire = (detail as any).extras_db.prix || 0;
+        } else if (detail.plats_db?.prix) {
+          prixUnitaire = detail.plats_db.prix || 0;
+        } else {
+          // Fallback pour les anciens extras stockés directement
+          prixUnitaire = (detail as any).prix_unitaire || 0;
+        }
+
+        return total + Number(quantite) * Number(prixUnitaire);
       }, 0) || 0;
 
       return {
@@ -1899,119 +1942,78 @@ const mapStatutToDatabase = (statut: string): string => {
   }
 };
 
-// Hook pour ajouter un plat à une commande existante
+// Hook pour ajouter un plat ou un extra à une commande existante
 export const useAddPlatToCommande = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async ({ 
-      commandeId, 
-      platId, 
+    mutationFn: async ({
+      commandeId,
+      platId,
+      extraId,
       quantite,
-      nomPlat,
-      prixUnitaire,
-      type
-    }: { 
-      commandeId: number; 
-      platId?: number | null; 
+      type,
+    }: {
+      commandeId: number;
+      platId?: number | null;
+      extraId?: number | null;
       quantite: number;
-      nomPlat?: string;
-      prixUnitaire?: number;
-      type?: string;
+      type?: 'plat' | 'extra';
     }): Promise<void> => {
-      console.log('Ajout plat à commande:', commandeId, 'plat:', platId, 'quantité:', quantite);
-      
-      // Ajout d'Extra (ancien complément divers) - VERSION TEMPORAIRE SIMPLIFIÉE
-      if (type === 'complement_divers') {
-        console.log('🥄 Ajout d\'Extra (simplifié):', {
-          nomPlat,
-          prixUnitaire,
-          commandeId
-        });
+      console.log('🔄 Ajout à commande:', { commandeId, platId, extraId, quantite, type });
 
-        // DIAGNOSTIC: Architecture hybride Firebase + Supabase pour les Extras
-        console.log('🔐 AVERTISSEMENT: RLS peut être activé sur details_commande_db - considérer désactiver temporairement');
-
-        // Insérer l'Extra avec toutes les données nécessaires
-        const insertData = {
-          commande_r: commandeId,
-          plat_r: 0, // Valeur spéciale pour identifier les extras
-          quantite_plat_commande: 1,
-          nom_plat: nomPlat,
-          prix_unitaire: prixUnitaire,
-          type: 'complement_divers'
-        };
-
-        console.log('📦 Données à insérer (RLS bypass requis):', insertData);
-
-        const { data, error } = await supabase
-          .from('details_commande_db')
-          .insert(insertData)
-          .select('*')
-          .single();
-
-        if (error) {
-          console.error('❌ Erreur lors de l\'ajout de l\'Extra:', error);
-          console.error('❌ Détails de l\'erreur:', JSON.stringify(error, null, 2));
-          throw new Error(`Erreur lors de l'ajout de l'Extra: ${error.message || 'Erreur inconnue'}`);
-        }
-
-        console.log('✅ Extra ajouté avec succès avec nom et prix personnalisés:', data);
-
-        // 🆕 NOUVELLE FONCTIONNALITÉ : Sauvegarder l'extra dans le catalogue extras_db
-        try {
-          await saveExtraToDatabase(nomPlat, prixUnitaire);
-          console.log('🏪 Extra sauvegardé dans le catalogue');
-        } catch (catalogError) {
-          console.warn('⚠️ Impossible de sauvegarder dans le catalogue, mais commande créée:', catalogError);
-          // Ne pas faire échouer la création de commande pour autant
-        }
-
-        return;
-      }
-      
-      // Code normal pour les plats réguliers
       const insertData: any = {
         commande_r: commandeId,
-        plat_r: platId,
-        quantite_plat_commande: quantite
+        quantite_plat_commande: quantite,
       };
-      
+
+      if (type === 'extra' && extraId) {
+        // Ajouter un extra depuis le catalogue extras_db
+        insertData.plat_r = null;
+        insertData.extra_r = extraId;
+        console.log('📦 Ajout EXTRA à la commande');
+      } else if (type === 'plat' && platId) {
+        // Ajouter un plat depuis plats_db
+        insertData.plat_r = platId;
+        insertData.extra_r = null;
+        console.log('🍽️ Ajout PLAT à la commande');
+      } else {
+        throw new Error("Il faut fournir soit un platId (type='plat'), soit un extraId (type='extra').");
+      }
+
       const { error } = await supabase
         .from('details_commande_db')
         .insert(insertData);
 
       if (error) {
-        console.error('Erreur ajout plat:', error);
-        const contextError = new Error(`Échec création événement: ${error.message || 'Erreur validation données'}`);
-        contextError.cause = error;
-        throw contextError;
+        console.error('❌ Erreur ajout plat/extra:', error);
+        throw new Error(`Échec de l'ajout à la commande: ${error.message}`);
       }
+
+      console.log('✅ Article ajouté avec succès à la commande');
     },
     onSuccess: () => {
-      // Invalider toutes les queries liées aux commandes
-      queryClient.invalidateQueries({ 
+      queryClient.invalidateQueries({
         predicate: (query) => {
           return query.queryKey[0] === 'commandes' || query.queryKey[0] === 'commande';
         }
       });
       toast({
-        title: '✅ Plat ajouté',
-        description: 'Le plat a été ajouté à la commande',
+        title: '✅ Article ajouté',
+        description: 'La commande a été mise à jour.',
       });
     },
     onError: error => {
-      console.error('Erreur ajout plat:', error);
+      console.error('Erreur ajout plat/extra à commande:', error);
       toast({
         title: 'Erreur',
-        description: 'Impossible d\'ajouter le plat',
+        description: 'Impossible d\'ajouter l\'article à la commande.',
         variant: 'destructive',
       });
     },
   });
 };
-
 // Hook pour modifier la quantité d'un plat dans une commande
 export const useUpdatePlatQuantite = () => {
   const queryClient = useQueryClient();
@@ -2107,21 +2109,6 @@ export const useRemovePlatFromCommande = () => {
   });
 };
 
-// Hook pour récupérer les extras existants (DEPRECATED - utilisez useExtras à la place)
-export const useExistingExtras = () => {
-  return useQuery({
-    queryKey: ['existing-extras'],
-    queryFn: async (): Promise<Array<{ nom_plat: string; prix_unitaire: number; count: number }>> => {
-      console.log('⚠️ useExistingExtras est déprécié, utilisez useExtras à la place');
-      // Retourner un tableau vide car cette fonctionnalité est maintenant dans extras_db
-      return [];
-    },
-    staleTime: CACHE_TIMES.PLATS,
-    gcTime: CACHE_TIMES.PLATS,
-    retry: 2,
-    refetchOnWindowFocus: false,
-  });
-};
 
 // =====================================
 // HOOKS POUR LA TABLE extras_db

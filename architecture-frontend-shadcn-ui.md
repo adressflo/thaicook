@@ -1,10 +1,11 @@
 # 🎨 ANALYSE ARCHITECTURALE FRONTEND - SHADCN/UI + TAILWIND V4 CHANTHANA
 
-**Généré automatiquement le : 19 septembre 2025**  
-**Stack Frontend :** Next.js 15.5.2 + React 19.1.1 + TypeScript 5  
-**UI Library :** shadcn/ui + Radix UI Primitives  
-**Styling :** Tailwind CSS v4.1.12 (CSS-first)  
+**Généré automatiquement le : 21 septembre 2025**
+**Stack Frontend :** Next.js 15.5.2 + React 19.1.1 + TypeScript 5
+**UI Library :** shadcn/ui + Radix UI Primitives
+**Styling :** Tailwind CSS v4.1.12 (CSS-first)
 **Thème :** Restaurant Thai personnalisé avec couleurs authentiques
+**Dernière MAJ :** Corrections hooks extras + Architecture hybride
 
 ---
 
@@ -309,25 +310,42 @@ components/
 - `PermissionGuard.tsx` - Contrôle d'accès granulaire
 - `FloatingUserIcon.tsx` - Indicateur utilisateur
 - `OptimizedImage.tsx` - Images optimisées Next.js
+- `UnifiedExtraModal.tsx` - Gestion unifiée plats + extras (nouveau)
+- `FormattedDisplay.tsx` - Affichage prix avec support extras (mis à jour)
 
 ---
 
 ## 📊 INTÉGRATIONS AVANCÉES
 
-### **React Query + Supabase**
+### **React Query + Supabase + Architecture Hybride Extras**
 ```tsx
-// Integration optimisée avec shadcn/ui
-const { data: commandes, isLoading } = useQuery({
-  queryKey: ['commandes'],
-  queryFn: () => supabase.from('commande_db').select('*')
-})
+// Integration optimisée avec shadcn/ui + gestion extras corrigée
+const { data: commandes, isLoading } = useCommandes() // Hook corrigé avec mapping extras
 
 return (
   <div className="space-y-4">
     {isLoading ? (
       <Skeleton className="h-20 w-full" />
     ) : (
-      <DataTable columns={columns} data={commandes} />
+      commandes?.map((commande) => (
+        <Card key={commande.id}>
+          <CardContent>
+            {commande.details.map((detail) => (
+              <div key={detail.id}>
+                {/* Affichage unifié plats + extras */}
+                {detail.extra ? (
+                  <Badge variant="secondary">{detail.extra.nom_extra}</Badge>
+                ) : (
+                  <Badge>{detail.plat?.plat || 'Plat supprimé'}</Badge>
+                )}
+                <span className="text-thai-orange font-bold">
+                  {formatPrix(detail.extra?.prix || detail.plat?.prix || 0)}
+                </span>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      ))
     )}
   </div>
 )

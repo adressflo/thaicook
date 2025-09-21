@@ -59,7 +59,7 @@ const HistoriquePage = memo(() => {
 
   // Fonction pour résoudre les noms des extras
   const resolveExtraName = useCallback((detail: DetailCommande) => {
-    if (detail.type !== 'complement_divers') return null;
+    if (detail.type !== 'extra' && detail.type !== 'complement_divers') return null;
 
     // Chercher dans extras_db par correspondance de nom (insensible à la casse)
     if (detail.nom_plat && detail.nom_plat.trim() !== '' && extras && extras.length > 0) {
@@ -99,18 +99,24 @@ const HistoriquePage = memo(() => {
 
   const calculateTotal = useCallback((commande: CommandeAvecDetails): number => {
     if (commande.prix_total != null) return commande.prix_total;
-    
+
     return commande.details?.reduce((acc, detail) => {
       const quantite = detail.quantite_plat_commande || 0;
       let prixUnitaire = 0;
-      
-      // Gérer les extras (complement_divers) vs plats normaux
-      if (detail.type === 'complement_divers') {
-        prixUnitaire = detail.prix_unitaire || 0;
+
+      // Gérer les extras vs plats normaux
+      if (detail.type === 'extra' || detail.type === 'complement_divers') {
+        // Pour les extras : utiliser le prix de extras_db si disponible, sinon prix_unitaire
+        if ((detail as any).extras_db) {
+          prixUnitaire = (detail as any).extras_db.prix || detail.prix_unitaire || 0;
+        } else {
+          prixUnitaire = detail.prix_unitaire || 0;
+        }
       } else {
+        // Pour les plats normaux
         prixUnitaire = detail.plat?.prix || 0;
       }
-      
+
       return acc + prixUnitaire * quantite;
     }, 0) || 0;
   }, []);
