@@ -30,7 +30,7 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
     params: {
       eventsPerSecond: 10,
       heartbeatIntervalMs: 30000
-    }
+    } as any
   }
 })
 
@@ -85,7 +85,12 @@ export const handleSupabaseError = (error: unknown, context: string): never => {
   }
   
   if (supabaseError?.code === '42501') {
-    throw new SupabaseError('Permissions insuffisantes', supabaseError.code, error)
+    console.error('🚨 RLS Policy Violation:', {
+      context,
+      error: supabaseError,
+      message: supabaseError.message
+    })
+    throw new SupabaseError(`Permissions insuffisantes pour ${context}`, supabaseError.code, error)
   }
   
   throw new SupabaseError(

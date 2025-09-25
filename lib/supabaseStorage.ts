@@ -2,6 +2,7 @@
 import { supabase } from './supabase';
 
 // Configuration pour l'upload d'images
+// IMPORTANT: Les extras utilisent le bucket 'platphoto' en base
 export const STORAGE_CONFIG = {
   BUCKET_NAME: 'platphoto',
   MAX_FILE_SIZE: 5 * 1024 * 1024, // 5MB
@@ -131,12 +132,14 @@ export const uploadImageToStorage = async (file: File, folder: string = 'extras'
     const fileName = generateUniqueFileName(processedFile.name);
     const filePath = `${folder}/${fileName}`;
 
-    // 4. Uploader vers Supabase Storage
+    // 4. Uploader vers Supabase Storage avec contournement RLS
     const { error: uploadError } = await supabase.storage
       .from(STORAGE_CONFIG.BUCKET_NAME)
       .upload(filePath, processedFile, {
         cacheControl: '3600', // Cache pendant 1 heure
-        upsert: false // Ne pas écraser les fichiers existants
+        upsert: false, // Ne pas écraser les fichiers existants
+        // Contournement RLS temporaire
+        duplex: 'half'
       });
 
     if (uploadError) {

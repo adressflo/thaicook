@@ -9,7 +9,8 @@ export type DetailCommande = Database['public']['Tables']['details_commande_db']
   // Extensions pour les extras
   prix_unitaire?: number | null // Prix custom pour les extras
   nom_plat?: string | null // Nom custom pour les extras
-  type?: 'plat' | 'extra' | 'complement_divers' | null // Type pour distinguer plats vs extras (complement_divers pour compatibilité)
+  type?: 'plat' | 'extra' | null // Type pour distinguer plats vs extras
+  extra?: Extra | null // Données de l'extra lié si applicable
 }
 export type Evenement = Database['public']['Tables']['evenements_db']['Row']
 export type Extra = Database['public']['Tables']['extras_db']['Row']
@@ -42,7 +43,7 @@ export interface PlatPanier {
   jourCommande?: string // Jour pour lequel le plat est commandé
   dateRetrait?: Date // Date de retrait associée
   uniqueId?: string // ID unique pour chaque article dans le panier
-  type?: 'plat' | 'extra' | 'complement_divers' // Type de l'item (compatible avec DetailCommande)
+  type?: 'plat' | 'extra' // Type de l'item (plat normal ou extra)
 }
 
 // Type pour l'interface utilisateur des commandes
@@ -87,6 +88,7 @@ export interface EvenementUI extends Evenement {
 // Type pour l'interface utilisateur des extras
 export interface ExtraUI extends Extra {
   id: number // Mappage de idextra vers id pour l'UI
+  est_disponible?: boolean // Alias pour actif pour compatibilité avec les composants
 }
 
 // Type pour l'interface utilisateur des clients

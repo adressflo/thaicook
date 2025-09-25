@@ -696,11 +696,11 @@ const AddComplementModal = ({
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 mt-4">
           <div>
-            <Label htmlFor="nom-complement" className="text-sm font-medium">
-              Nom du complément *
+            <Label htmlFor="nom-extra" className="text-sm font-medium">
+              Nom de l'extra *
             </Label>
             <Input
-              id="nom-complement"
+              id="nom-extra"
               value={nomComplement}
               onChange={e => setNomComplement(e.target.value)}
               placeholder="Ex: Sauce supplémentaire, Riz jasmin..."
@@ -709,11 +709,11 @@ const AddComplementModal = ({
             />
           </div>
           <div>
-            <Label htmlFor="prix-complement" className="text-sm font-medium">
+            <Label htmlFor="prix-extra" className="text-sm font-medium">
               Prix (€) *
             </Label>
             <Input
-              id="prix-complement"
+              id="prix-extra"
               type="number"
               step="0.01"
               min="0.01"
@@ -3143,9 +3143,9 @@ const CommandeDetailsModal = ({
             <div className="p-6 space-y-4">
               {/* Nom de l'Extra */}
               <div>
-                <Label htmlFor="nom-complement">Nom de l'Extra</Label>
+                <Label htmlFor="nom-extra">Nom de l'Extra</Label>
                 <Input
-                  id="nom-complement"
+                  id="nom-extra"
                   type="text"
                   placeholder="Ex: Riz supplémentaire, Sauce, etc."
                   value={nomComplement}
@@ -3156,9 +3156,9 @@ const CommandeDetailsModal = ({
 
               {/* Prix de l'Extra */}
               <div>
-                <Label htmlFor="prix-complement">Prix (€)</Label>
+                <Label htmlFor="prix-extra">Prix (€)</Label>
                 <Input
-                  id="prix-complement"
+                  id="prix-extra"
                   type="number"
                   step="0.01"
                   min="0"

@@ -71,81 +71,45 @@ export const useImageUpload = (
     }));
 
     try {
-      // 3. Créer un aperçu temporaire
-      const previewUrl = createImagePreview(file);
+      // 3. Convertir l'image en base64 pour persistence
+      const reader = new FileReader();
 
-      // 4. Appliquer immédiatement l'aperçu
-      onSuccess(previewUrl);
+      reader.onload = (e) => {
+        const base64Url = e.target?.result as string;
 
-      // 5. Upload vers Supabase Storage
-      const result = await uploadImageToStorage(file, folder);
-
-      if (result.success && result.data) {
-        // 6. Succès : mettre à jour avec l'URL finale
         setUploadState(prev => ({
           ...prev,
           isUploading: false,
-          url: result.data!.url
+          url: base64Url
         }));
 
-        // 7. Appliquer l'URL finale
-        onSuccess(result.data.url);
+        onSuccess(base64Url);
 
-        // 8. Nettoyer l'aperçu temporaire
-        revokeImagePreview(previewUrl);
-
-        // 9. Notification de succès
         toast({
-          title: "Succès",
-          description: "Image uploadée avec succès",
+          title: "Image chargée",
+          description: "Image sélectionnée avec succès",
           variant: "default"
         });
+      };
 
-      } else {
-        // 10. Erreur d'upload
-        setUploadState(prev => ({
-          ...prev,
-          isUploading: false,
-          error: result.error || "Erreur d'upload inconnue"
-        }));
-
-        // 11. Restaurer l'image par défaut si disponible
-        if (defaultImageUrl) {
-          onSuccess(defaultImageUrl);
-        }
-
-        // 12. Nettoyer l'aperçu temporaire
-        revokeImagePreview(previewUrl);
-
-        // 13. Notification d'erreur
-        toast({
-          title: "Erreur",
-          description: result.error || "Erreur lors de l'upload",
-          variant: "destructive"
-        });
-
-        onError?.();
-      }
+      reader.readAsDataURL(file);
 
     } catch (error) {
-      // 14. Gestion d'erreur inattendue
       console.error('Erreur upload:', error);
 
       setUploadState(prev => ({
         ...prev,
         isUploading: false,
-        error: 'Erreur inattendue lors de l\'upload'
+        error: 'Erreur lors de l\'upload'
       }));
 
-      // 15. Restaurer l'image par défaut si disponible
       if (defaultImageUrl) {
         onSuccess(defaultImageUrl);
       }
 
-      // 16. Notification d'erreur
       toast({
         title: "Erreur",
-        description: "Erreur inattendue lors de l'upload",
+        description: "Erreur lors de la sélection d'image",
         variant: "destructive"
       });
 

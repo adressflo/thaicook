@@ -2,25 +2,36 @@ import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { FileText, ShoppingCart, Hash, Euro, Calculator } from 'lucide-react';
-import type { DetailCommande, Plat } from '@/types/app';
+import type { DetailCommande, Plat, Extra } from '@/types/app';
 
 interface DishDetailsModalComplexProps {
-  detail: DetailCommande & { plat: Plat | null };
+  detail: DetailCommande & { plat: Plat | null; extra: Extra | null };
   children: React.ReactNode;
   formatPrix: (prix: number) => string;
 }
 
 export const DishDetailsModalComplex = React.memo<DishDetailsModalComplexProps>(({ detail, children, formatPrix }) => {
   const [open, setOpen] = React.useState(false);
-  const platName = detail.type === 'extra'
-    ? (detail.nom_plat || 'Extra')
+
+  // Détection si c'est un extra
+  const isExtra = detail.type === 'extra' || (!detail.plat && (detail.plat_r === 0 || detail.extra || detail.nom_plat));
+
+  // Nom de l'item
+  const platName = isExtra
+    ? (detail.nom_plat || detail.extra?.nom_extra || 'Extra')
     : (detail.plat?.plat || 'Plat supprimé');
+
   const quantite = detail.quantite_plat_commande || 0;
-  const prixUnitaire = detail.type === 'extra'
-    ? (detail.prix_unitaire || 0)
+
+  // Prix unitaire selon le type
+  const prixUnitaire = isExtra
+    ? (detail.prix_unitaire || detail.extra?.prix || 0)
     : (detail.plat?.prix || 0);
+
   const sousTotal = prixUnitaire * quantite;
-  const isDeleted = !detail.plat?.plat;
+
+  // Un item est considéré comme supprimé s'il n'y a ni plat ni extra
+  const isDeleted = !isExtra && !detail.plat?.plat;
 
   const handleModalClick = () => {
     setOpen(false);
@@ -38,12 +49,22 @@ export const DishDetailsModalComplex = React.memo<DishDetailsModalComplexProps>(
         <div className="relative">
           {/* Header avec photo */}
           <div className="relative h-64 md:h-72 bg-gradient-to-br from-thai-orange/10 to-thai-gold/10">
-            {detail.plat?.photo_du_plat && !isDeleted ? (
+            {(detail.plat?.photo_du_plat || detail.extra?.photo_url || isExtra) ? (
               <img
-                src={detail.plat.photo_du_plat}
+                src={
+                  isExtra
+                    ? (detail.extra?.photo_url || 'https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png')
+                    : (detail.plat?.photo_du_plat || '')
+                }
                 alt={platName}
                 className="w-full h-full object-cover transition-all duration-500 group-hover:scale-110 group-hover:rotate-1 filter group-hover:brightness-110"
                 title="Cliquer pour fermer"
+                onError={(e) => {
+                  // Fallback pour les extras si l'image ne charge pas
+                  if (isExtra) {
+                    e.currentTarget.src = 'https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png';
+                  }
+                }}
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-thai-cream to-thai-orange/20">
@@ -57,23 +78,10 @@ export const DishDetailsModalComplex = React.memo<DishDetailsModalComplexProps>(
             <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
             
             {/* Effet brillance Thai pour les extras */}
-            {detail.type === 'extra' && (
+            {isExtra && (
               <div className="absolute inset-0 bg-gradient-to-tr from-thai-gold/30 via-transparent to-thai-orange/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
             )}
             
-            {/* Badge statut */}
-            <div className="absolute top-3 left-3">
-              <Badge 
-                variant={isDeleted ? "destructive" : "default"}
-                className={`${
-                  isDeleted 
-                    ? 'bg-red-500 text-white' 
-                    : 'bg-thai-green text-white shadow-md'
-                } font-semibold px-3 py-1 transition-all duration-300`}
-              >
-                {isDeleted ? 'Supprimé' : detail.type === 'extra' ? '🍯 Extra' : '🍽️ Plat'}
-              </Badge>
-            </div>
 
           </div>
 
@@ -86,14 +94,14 @@ export const DishDetailsModalComplex = React.memo<DishDetailsModalComplexProps>(
             </DialogHeader>
 
             {/* Description */}
-            {detail.plat?.description && !isDeleted && (
+            {((detail.plat?.description || detail.extra?.description) && !isDeleted) && (
               <div className="space-y-2 animate-fadeIn">
                 <h4 className="text-sm font-semibold text-thai-orange flex items-center gap-2">
                   <FileText className="h-4 w-4" />
                   Description
                 </h4>
                 <p className="text-sm text-gray-700 leading-relaxed bg-thai-cream/30 p-3 rounded-lg border border-thai-orange/20 hover:bg-thai-cream/50 transition-colors duration-200">
-                  {detail.plat.description}
+                  {detail.plat?.description || detail.extra?.description}
                 </p>
               </div>
             )}
@@ -150,11 +158,11 @@ export const DishDetailsModalComplex = React.memo<DishDetailsModalComplexProps>(
               </div>
             </div>
 
-            {/* Message pour plats supprimés */}
+            {/* Message pour plats/extras supprimés */}
             {isDeleted && (
               <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-center">
                 <p className="text-sm text-red-700 font-medium">
-                  ⚠️ Ce plat n'est plus disponible au menu
+                  ⚠️ Cet {isExtra ? 'extra' : 'article'} n'est plus disponible
                 </p>
               </div>
             )}

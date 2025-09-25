@@ -2,25 +2,17 @@ import React from 'react';
 import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Users, Calendar, Utensils, Sparkles, Receipt, Star } from 'lucide-react';
-import type { Evenement, DetailCommande, Plat } from '@/types/app';
+import type { Evenement, DetailCommande, Plat, Extra, CommandeUI } from '@/types/app';
 import { DishDetailsModalComplex } from './DishDetailsModalComplex';
 import { CalendarIcon } from './CalendarIcon';
 
 interface FormattedPriceProps {
   prix: number;
   formatPrix: (prix: number) => string;
-  details?: Array<{
-    plat: { plat: string; prix: number; photo_du_plat?: string | null } | null;
-    quantite_plat_commande: number;
-    type?: string;
-    nom_plat?: string;
-    prix_unitaire?: number;
-    plat_r?: number;
-  }>;
-  resolveExtraName?: (detail: any) => string | null;
+  details?: any[]; // Type simplifié pour éviter conflits TypeScript complexes
 }
 
-export const FormattedPrice = React.memo<FormattedPriceProps>(({ prix, formatPrix, details, resolveExtraName }) => {
+export const FormattedPrice = React.memo<FormattedPriceProps>(({ prix, formatPrix, details }) => {
   const [isHovered, setIsHovered] = React.useState(false);
 
   return (
@@ -52,7 +44,7 @@ export const FormattedPrice = React.memo<FormattedPriceProps>(({ prix, formatPri
                   {details.map((detail, index) => {
                     const isExtra = detail.type === 'extra';
                     const platName = isExtra
-                      ? (resolveExtraName ? resolveExtraName(detail) || 'Extra (nom non trouvé)' : (detail.nom_plat || 'Extra'))
+                      ? (detail.nom_plat || 'Extra')
                       : (detail.plat?.plat || 'Plat supprimé');
                     const prixPlat = isExtra
                       ? (detail.prix_unitaire || 0)
@@ -64,14 +56,23 @@ export const FormattedPrice = React.memo<FormattedPriceProps>(({ prix, formatPri
                       <div key={index} className="bg-gradient-to-r from-thai-cream/10 to-thai-orange/5 rounded-lg p-2 border border-thai-orange/15 hover:border-thai-orange/30 transition-colors duration-150">
                         <div className="flex items-center justify-between gap-2">
                           <div className="flex items-center gap-2 flex-1">
-                            {/* Miniature photo du plat */}
-                            {detail.plat?.photo_du_plat && (
-                              <img
-                                src={detail.plat.photo_du_plat}
-                                alt={platName}
-                                className="w-5 h-5 flex-shrink-0 rounded-full object-cover border border-thai-orange/60 shadow-sm"
-                              />
-                            )}
+                            {/* Miniature photo du plat ou extra */}
+                            <img
+                              src={
+                                isExtra
+                                  ? 'https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png'
+                                  : (detail.plat?.photo_du_plat || '')
+                              }
+                              alt={platName}
+                              className="w-5 h-5 flex-shrink-0 rounded-full object-cover border border-thai-orange/60 shadow-sm"
+                              onError={(e) => {
+                                if (isExtra) {
+                                  e.currentTarget.src = 'https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png';
+                                } else {
+                                  e.currentTarget.style.display = 'none';
+                                }
+                              }}
+                            />
                             <span className="text-sm text-gray-800 font-bold truncate">{platName}</span>
                             <span className="text-xs bg-thai-orange/20 text-thai-orange px-1 py-0.5 rounded-full font-semibold shrink-0">×{quantite}</span>
                           </div>
@@ -202,12 +203,12 @@ export const PersonCount = React.memo<PersonCountProps>(({ count }) => (
 PersonCount.displayName = 'PersonCount';
 
 interface DishListProps {
-  details: Array<DetailCommande & { plat: Plat | null }>;
+  details: any[]; // Type simplifié pour éviter conflits TypeScript complexes
   formatPrix: (prix: number) => string;
-  resolveExtraName?: (detail: any) => string | null;
+  extras?: any[]; // Liste des extras pour résolution des noms
 }
 
-export const DishList = React.memo<DishListProps>(({ details, formatPrix, resolveExtraName }) => {
+export const DishList = React.memo<DishListProps>(({ details, formatPrix, extras }) => {
   if (!details?.length) {
     return (
       <div className="flex justify-center">
@@ -222,9 +223,25 @@ export const DishList = React.memo<DishListProps>(({ details, formatPrix, resolv
     <div className="flex flex-wrap gap-3 justify-center max-w-sm sm:max-w-md lg:max-w-lg mx-auto p-2">
       {details.map((detail, index) => {
         const isExtra = detail.type === 'extra';
-        const platName = isExtra
-          ? (resolveExtraName ? resolveExtraName(detail) || 'Extra (nom non trouvé)' : (detail.nom_plat || 'Extra'))
-          : (detail.plat?.plat || 'Plat supprimé');
+
+        // Logique améliorée de résolution des noms d'extras
+        let platName;
+        if (isExtra) {
+          // Architecture hybride: détecter et résoudre les extras
+          if (detail.plat_r && extras) {
+            // Récupérer le nom depuis extras_db avec plat_r
+            const extraData = extras.find((e: any) => e.idextra === detail.plat_r);
+            if (extraData?.nom_extra) {
+              platName = extraData.nom_extra;
+            } else {
+              platName = detail.nom_plat || 'Extra';
+            }
+          } else {
+            platName = detail.nom_plat || 'Extra';
+          }
+        } else {
+          platName = detail.plat?.plat || 'Plat supprimé';
+        }
         const quantite = detail.quantite_plat_commande || 0;
         const displayName = quantite > 1 ? `${platName} (x${quantite})` : platName;
         const isDeleted = !isExtra && !detail.plat?.plat;

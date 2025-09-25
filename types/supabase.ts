@@ -248,30 +248,39 @@ export type Database = {
           commande_r: number
           iddetails: number
           plat_r: number | null
-          extra_r: number | null
           quantite_plat_commande: number | null
+          nom_plat: string | null
+          prix_unitaire: number | null
+          type: string | null
+          extra_id: number | null
         }
         Insert: {
           commande_r: number
           iddetails?: number
           plat_r?: number | null
-          extra_r?: number | null
           quantite_plat_commande?: number | null
+          nom_plat?: string | null
+          prix_unitaire?: number | null
+          type?: string | null
+          extra_id?: number | null
         }
         Update: {
           commande_r?: number
           iddetails?: number
           plat_r?: number | null
-          extra_r?: number | null
           quantite_plat_commande?: number | null
+          nom_plat?: string | null
+          prix_unitaire?: number | null
+          type?: string | null
+          extra_id?: number | null
         }
         Relationships: [
           {
-            foreignKeyName: "details_commande_db_extra_r_fkey"
-            columns: ["extra_r"]
+            foreignKeyName: "details_commande_db_plat_r_fkey"
+            columns: ["plat_r"]
             isOneToOne: false
-            referencedRelation: "extras_db"
-            referencedColumns: ["idextra"]
+            referencedRelation: "plats_db"
+            referencedColumns: ["idplats"]
           }
         ]
       }

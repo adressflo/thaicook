@@ -131,13 +131,14 @@ const NewExtraButton = () => {
       </Button>
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-[500px] bg-white border border-thai-orange shadow-xl">
+        <DialogContent className="sm:max-w-[500px] bg-white border border-thai-orange shadow-xl" aria-describedby="dialog-description">
           <DialogHeader>
             <DialogTitle className="text-thai-green text-xl font-bold flex items-center gap-2">
               <Plus className="w-5 h-5 text-thai-orange" />
               Créer un Nouvel Extra Thai
             </DialogTitle>
           </DialogHeader>
+          <div id="dialog-description" className="sr-only">Formulaire de création d'un nouvel extra pour le menu</div>
           
           <div className="space-y-6 mt-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -273,10 +274,11 @@ const NewExtraButton = () => {
 };
 
 // Composant pour afficher et éditer les extras existants avec design Thai
-const ExistingExtrasDisplay = () => {
-  const { data: extras, isLoading, error } = useExtras();
+const ExistingExtrasDisplay = ({ refetchPlats }: { refetchPlats?: () => void }) => {
+  const { data: extras, isLoading, error, refetch: refetchExtras } = useExtras();
   const updateExtraMutation = useUpdateExtra();
   const deleteExtraMutation = useDeleteExtra();
+  const createPlatMutation = useCreatePlat();
   const [editingExtra, setEditingExtra] = useState<number | null>(null);
   const [editForm, setEditForm] = useState({
     nom_extra: '',
@@ -346,12 +348,55 @@ const ExistingExtrasDisplay = () => {
     }
   };
 
-  const handleTransformToPlat = () => {
-    // TODO: Transformer l&apos;extra en plat du menu
-    toast({
-      title: "Fonctionnalité prochainement disponible",
-      description: "La transformation en plat de menu sera bientôt disponible",
-    });
+  const handleTransformToPlat = async (extra: ExtraUI) => {
+    try {
+      console.log('🔄 DÉBUT: Transformation extra → plat:', extra);
+
+      // 1. CRÉER LE NOUVEAU PLAT avec la signature correcte useCreatePlat
+      const platData = {
+        plat: extra.nom_extra,
+        description: extra.description || `Plat créé depuis l'extra ${extra.nom_extra}`,
+        prix: extra.prix || 0,
+        photo_du_plat: extra.photo_url || 'https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png',
+        // ✅ TOUS LES JOURS OBLIGATOIRES avec valeurs correctes 'oui'/'non'
+        lundi_dispo: 'oui',
+        mardi_dispo: 'oui',
+        mercredi_dispo: 'oui',
+        jeudi_dispo: 'oui',
+        vendredi_dispo: 'oui',
+        samedi_dispo: 'oui',
+        dimanche_dispo: 'oui',
+        est_epuise: false
+      };
+
+      console.log('📤 Création plat avec données:', platData);
+
+      // ✅ SIGNATURE CORRECTE useCreatePlat({ data: ... })
+      await createPlatMutation.mutateAsync({ data: platData });
+      console.log('✅ Plat créé avec succès');
+
+      // 2. SUPPRIMER L'EXTRA (devient plat maintenant)
+      console.log('🗑️ Suppression extra ID:', extra.idextra);
+      await deleteExtraMutation.mutateAsync(extra.idextra);
+      console.log('✅ Extra supprimé avec succès');
+
+      // 3. RAFRAÎCHIR LES DEUX LISTES (plats + extras)
+      if (refetchPlats) await refetchPlats(); // Rafraîchir plats
+      await refetchExtras(); // Rafraîchir extras
+
+      toast({
+        title: "🎉 Extra transformé en plat menu !",
+        description: `"${extra.nom_extra}" est maintenant disponible dans le menu principal`,
+        variant: "default"
+      });
+    } catch (error) {
+      console.error('❌ ERREUR transformation extra → plat:', error);
+      toast({
+        title: "❌ Erreur de transformation",
+        description: `Impossible de transformer "${extra.nom_extra}" en plat menu`,
+        variant: "destructive"
+      });
+    }
   };
 
   if (isLoading) {
@@ -587,7 +632,7 @@ const ExistingExtrasDisplay = () => {
                     </div>
                     
                     <p className="text-thai-green/70 italic">
-                      {extra.description || "Extra Thai authentique"} • Cliquez pour éditer
+                      {extra.description || "Extra Thai authentique"}
                     </p>
                   </div>
 
@@ -610,7 +655,7 @@ const ExistingExtrasDisplay = () => {
                       <X className="w-4 h-4" />
                     </Button>
                     <Button
-                      onClick={() => handleTransformToPlat()}
+                      onClick={() => handleTransformToPlat(extra)}
                       variant="outline"
                       size="sm"
                       className="border-thai-green/50 text-thai-green hover:bg-thai-green hover:text-white opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-4 group-hover:translate-x-0"
@@ -699,6 +744,7 @@ export default function AdminGestionPlats() {
   const { data: extras } = useExtras(); // Récupérer les extras de la table extras_db
   const createPlatMutation = useCreatePlat();
   const updatePlatMutation = useUpdatePlat();
+  const deleteExtraMutation = useDeleteExtra();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -785,7 +831,7 @@ export default function AdminGestionPlats() {
         await createPlatMutation.mutateAsync({
           data: {
             ...form,
-            categorie: activeTab === 'complements' ? 'extra' : 'plat_principal'
+            categorie: activeTab === 'extras' ? 'extra' : 'plat_principal'
           }
         });
         toast({
@@ -1059,10 +1105,11 @@ export default function AdminGestionPlats() {
 
               {/* Modal de modification */}
               <Dialog open={!!isEditingPlat} onOpenChange={() => setIsEditingPlat(null)}>
-                <DialogContent className="sm:max-w-[425px] bg-white border border-thai-orange shadow-lg">
+                <DialogContent className="sm:max-w-[425px] bg-white border border-thai-orange shadow-lg" aria-describedby="edit-dialog-description">
                   <DialogHeader>
                     <DialogTitle className="text-thai-orange">Modifier le plat</DialogTitle>
                   </DialogHeader>
+                  <div id="edit-dialog-description" className="sr-only">Formulaire de modification d'un plat existant</div>
                   <div className="space-y-4 mt-4">
                     <div>
                       <Label htmlFor="plat-edit">Nom du plat *</Label>
@@ -1316,9 +1363,11 @@ export default function AdminGestionPlats() {
                       </div>
                       Extras Thai ({totalExtras})
                     </h3>
-                    <NewExtraButton />
+                    <div className="flex gap-3">
+                      <NewExtraButton />
+                    </div>
                   </div>
-                  <ExistingExtrasDisplay />
+                  <ExistingExtrasDisplay refetchPlats={refetch} />
                 </div>
               </div>
             </TabsContent>

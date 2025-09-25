@@ -24,7 +24,7 @@ import {
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { UnifiedExtraModal } from '@/components/admin/UnifiedExtraModal';
+// import { UnifiedExtraModal } from '@/components/admin/UnifiedExtraModal'; // Temporarily commented out
 import {
   ShoppingBasket,
   Clock,
@@ -517,7 +517,7 @@ const PlatCommandeCard = ({
 
     const isConfirmed = window.confirm(
       `Êtes-vous sûr de vouloir supprimer "${
-        item.type === 'extra'
+        item.type === 'complement_divers'
           ? item.nom_plat || item.plat?.plat
           : item.plat?.plat || item.nom_plat
       }" de cette commande ?`
@@ -572,25 +572,80 @@ const PlatCommandeCard = ({
             if (item.plat?.plat) {
               console.log('✅ Affichage depuis plats_db:', item.plat.plat);
 
-              // Gestion simple des extras
-              if (item.plat.plat === 'Extra' && item.nom_plat) {
-                console.log('✅ Extra détecté:', item.nom_plat);
-                return item.nom_plat;
+              // Si c'est un extra stocké dans plats_db, essayer d'extraire le vrai nom
+              if (item.plat.plat === 'Extra (Complément divers)' && item.nom_plat) {
+                console.log('🔧 Extra détecté dans plats_db, extraction du nom depuis nom_plat:', item.nom_plat);
+
+                // Patterns de nettoyage pour extraire le vrai nom
+                let nomNettoye = item.nom_plat;
+
+                // Pattern 1: "Extra (Complément divers)=nom_reel"
+                let match = nomNettoye.match(/Extra \(Complément divers\)=(.+)/);
+                if (match && match[1]) {
+                  nomNettoye = match[1].trim();
+                  console.log('🧹 Pattern 1 - Nom extrait:', nomNettoye);
+                  return nomNettoye;
+                }
+
+                // Pattern 2: "Extra (Complément divers) nom_reel"
+                match = nomNettoye.match(/Extra \(Complément divers\)\s+(.+)/);
+                if (match && match[1]) {
+                  nomNettoye = match[1].trim();
+                  console.log('🧹 Pattern 2 - Nom extrait:', nomNettoye);
+                  return nomNettoye;
+                }
+
+                // Si le nom_plat est différent de "Extra (Complément divers)", l'utiliser
+                if (nomNettoye !== 'Extra (Complément divers)' && nomNettoye.trim() !== '') {
+                  console.log('🧹 Utilisation directe de nom_plat:', nomNettoye);
+                  return nomNettoye;
+                }
+
+                console.log('⚠️ Impossible d\'extraire le nom, fallback vers "Extra"');
+                return 'Extra';
               }
 
               return item.plat.plat;
             }
 
             // Pour les extras sans relation mais avec nom_plat
-            if (item.type === 'extra' && item.nom_plat) {
-              console.log('✅ Extra avec nom_plat:', item.nom_plat);
-              return item.nom_plat;
+            if ((item.type === 'extra' || item.type === 'complement_divers') && item.nom_plat) {
+              // Nettoyer "Extra (Complément divers)" et extraire le vrai nom
+              let nomNettoye = item.nom_plat;
+              console.log('🔍 Nom original à nettoyer:', nomNettoye);
+
+              // Pattern 1: "Extra (Complément divers)=nom_reel"
+              let match = nomNettoye.match(/Extra \(Complément divers\)=(.+)/);
+              if (match && match[1]) {
+                nomNettoye = match[1].trim();
+                console.log('🧹 Pattern 1 - Nom nettoyé:', nomNettoye);
+                return nomNettoye;
+              }
+
+              // Pattern 2: "Extra (Complément divers) nom_reel"
+              match = nomNettoye.match(/Extra \(Complément divers\)\s+(.+)/);
+              if (match && match[1]) {
+                nomNettoye = match[1].trim();
+                console.log('🧹 Pattern 2 - Nom nettoyé:', nomNettoye);
+                return nomNettoye;
+              }
+
+              // Pattern 3: Juste "Extra (Complément divers)" - remplacer par "Extra"
+              if (nomNettoye === 'Extra (Complément divers)') {
+                nomNettoye = 'Extra';
+                console.log('🧹 Pattern 3 - Remplacé par:', nomNettoye);
+                return nomNettoye;
+              }
+
+              // Si aucun pattern ne correspond, retourner tel quel
+              console.log('⚠️ Aucun pattern trouvé, retour original:', nomNettoye);
+              return nomNettoye;
             }
 
             console.log('⚠️ Fallback vers nom_plat:', item.nom_plat);
             return item.nom_plat || 'Article inconnu';
           })()}
-          {item.type === 'extra' && (
+          {(item.type === 'extra' || item.type === 'complement_divers') && (
             <span className="ml-2 text-xs bg-thai-orange/20 text-thai-orange px-2 py-1 rounded-full">
               Extra
             </span>
@@ -2232,7 +2287,7 @@ const ModalPlatCard = ({
 
     const isConfirmed = window.confirm(
       `Êtes-vous sûr de vouloir supprimer "${
-        (item.nom_plat && item.prix_unitaire && !item.plat) || item.type === 'extra'
+        (item.nom_plat && item.prix_unitaire && !item.plat) || item.type === 'complement_divers'
           ? item.nom_plat || item.plat?.plat
           : item.plat?.plat || item.nom_plat
       }" de cette commande ?`
@@ -2262,7 +2317,7 @@ const ModalPlatCard = ({
           alt={item.extra.nom_extra || "Extra"}
           className="w-24 h-16 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity duration-200"
         />
-      ) : (item.nom_plat && item.prix_unitaire && !item.plat) || item.type === 'extra' ? (
+      ) : (item.nom_plat && item.prix_unitaire && !item.plat) || item.type === 'complement_divers' ? (
         <img
           src="https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png"
           alt="Extra"
@@ -2293,25 +2348,80 @@ const ModalPlatCard = ({
             if (item.plat?.plat) {
               console.log('✅ Affichage depuis plats_db (v2):', item.plat.plat);
 
-              // Gestion simple des extras
-              if (item.plat.plat === 'Extra' && item.nom_plat) {
-                console.log('✅ Extra détecté (v2):', item.nom_plat);
-                return item.nom_plat;
+              // Si c'est un extra stocké dans plats_db, essayer d'extraire le vrai nom
+              if (item.plat.plat === 'Extra (Complément divers)' && item.nom_plat) {
+                console.log('🔧 Extra détecté dans plats_db (v2), extraction du nom depuis nom_plat:', item.nom_plat);
+
+                // Patterns de nettoyage pour extraire le vrai nom
+                let nomNettoye = item.nom_plat;
+
+                // Pattern 1: "Extra (Complément divers)=nom_reel"
+                let match = nomNettoye.match(/Extra \(Complément divers\)=(.+)/);
+                if (match && match[1]) {
+                  nomNettoye = match[1].trim();
+                  console.log('🧹 Pattern 1 (v2) - Nom extrait:', nomNettoye);
+                  return nomNettoye;
+                }
+
+                // Pattern 2: "Extra (Complément divers) nom_reel"
+                match = nomNettoye.match(/Extra \(Complément divers\)\s+(.+)/);
+                if (match && match[1]) {
+                  nomNettoye = match[1].trim();
+                  console.log('🧹 Pattern 2 (v2) - Nom extrait:', nomNettoye);
+                  return nomNettoye;
+                }
+
+                // Si le nom_plat est différent de "Extra (Complément divers)", l'utiliser
+                if (nomNettoye !== 'Extra (Complément divers)' && nomNettoye.trim() !== '') {
+                  console.log('🧹 Utilisation directe de nom_plat (v2):', nomNettoye);
+                  return nomNettoye;
+                }
+
+                console.log('⚠️ Impossible d\'extraire le nom (v2), fallback vers "Extra"');
+                return 'Extra';
               }
 
               return item.plat.plat;
             }
 
             // Pour les extras sans relation mais avec nom_plat
-            if ((item.type === 'extra' || (item.nom_plat && item.prix_unitaire && !item.plat)) && item.nom_plat) {
-              console.log('✅ Extra avec nom_plat (v2):', item.nom_plat);
-              return item.nom_plat;
+            if ((item.type === 'extra' || item.type === 'complement_divers' || (item.nom_plat && item.prix_unitaire && !item.plat)) && item.nom_plat) {
+              // Nettoyer "Extra (Complément divers)" et extraire le vrai nom
+              let nomNettoye = item.nom_plat;
+              console.log('🔍 Nom original à nettoyer (v2):', nomNettoye);
+
+              // Pattern 1: "Extra (Complément divers)=nom_reel"
+              let match = nomNettoye.match(/Extra \(Complément divers\)=(.+)/);
+              if (match && match[1]) {
+                nomNettoye = match[1].trim();
+                console.log('🧹 Pattern 1 (v2) - Nom nettoyé:', nomNettoye);
+                return nomNettoye;
+              }
+
+              // Pattern 2: "Extra (Complément divers) nom_reel"
+              match = nomNettoye.match(/Extra \(Complément divers\)\s+(.+)/);
+              if (match && match[1]) {
+                nomNettoye = match[1].trim();
+                console.log('🧹 Pattern 2 (v2) - Nom nettoyé:', nomNettoye);
+                return nomNettoye;
+              }
+
+              // Pattern 3: Juste "Extra (Complément divers)" - remplacer par "Extra"
+              if (nomNettoye === 'Extra (Complément divers)') {
+                nomNettoye = 'Extra';
+                console.log('🧹 Pattern 3 (v2) - Remplacé par:', nomNettoye);
+                return nomNettoye;
+              }
+
+              // Si aucun pattern ne correspond, retourner tel quel
+              console.log('⚠️ Aucun pattern trouvé (v2), retour original:', nomNettoye);
+              return nomNettoye;
             }
 
             console.log('⚠️ Fallback vers nom_plat (v2):', item.nom_plat);
             return item.nom_plat || 'Article inconnu';
           })()}
-          {(item.type === 'extra' || (item.nom_plat && item.prix_unitaire && !item.plat)) && (
+          {(item.type === 'extra' || item.type === 'complement_divers' || (item.nom_plat && item.prix_unitaire && !item.plat)) && (
             <span className="ml-2 text-xs bg-thai-orange/20 text-thai-orange px-2 py-1 rounded-full">
               Extra
             </span>
@@ -3397,12 +3507,12 @@ const CommandeDetailsModal = ({
         </div>
       )}
 
-      {/* 🚀 NOUVELLE MODALE UNIFIÉE EXTRA */}
-      <UnifiedExtraModal
+      {/* 🚀 NOUVELLE MODALE UNIFIÉE EXTRA - Temporarily disabled */}
+      {/* <UnifiedExtraModal
         isOpen={showUnifiedExtraModal}
         onClose={() => setShowUnifiedExtraModal(false)}
         commandeId={commande.idcommande}
-      />
+      /> */}
     </div>
   );
 };

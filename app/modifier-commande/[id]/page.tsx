@@ -3,6 +3,7 @@
 import { Badge } from '@/components/ui/badge';
 import { DishDetailsModalComplex } from '@/components/historique/DishDetailsModalComplex';
 import { DishDetailsModalInteractive } from '@/components/historique/DishDetailsModalInteractive';
+import { ExtraDetailsModalInteractive } from '@/components/historique/ExtraDetailsModalInteractive';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -108,38 +109,54 @@ const ModifierCommande = memo(() => {
   const getItemPhotoUrl = (item: PlatPanier): string | undefined => {
     // Si c'est un extra (extra), utiliser la photo de la table extras_db
     if (item.type === 'extra' && extras) {
-      const extraData = extras.find(extra => extra.nom_extra === item.nom);
+      // Extraire l'ID de l'extra depuis l'ID du panier (format: "extra-123")
+      const extraId = parseInt(item.id.replace('extra-', '')) || 0;
+      const extraData = extras.find(extra => extra.idextra === extraId);
       return extraData?.photo_url ?? 'https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png';
     }
     // Sinon, utiliser la photo du plat normal
-    const platData = plats?.find(p => p.nom_plat === item.nom);
+    const platData = plats?.find(p => p.idplats.toString() === item.id);
     return platData?.photo_du_plat ?? undefined;
   };
 
   // Initialiser les données de la commande
   useEffect(() => {
-    if (commande && plats && commande.details && commande.details.length > 0) {
+    if (commande && plats && extras && commande.details && commande.details.length > 0) {
       const platsPanier: PlatPanier[] = [];
 
       commande.details.forEach((detail, index) => {
         if (detail.quantite_plat_commande) {
-          // Gérer les extras (extra)
-          if (detail.type === 'extra') {
+          // Utiliser les données enrichies du hook useCommandesByClient
+          // La logique d'enrichissement y est déjà appliquée
+
+          // Vérifier si c'est un extra (nouveau ou ancien système)
+          const isExtraNewSystem = !detail.plat && detail.plat_r && detail.plat_r > 0;
+          const isExtraOldSystem = detail.plat_r === 0 && detail.nom_plat && detail.plat?.plat === 'Extra (Complément divers)';
+          const isExtra = detail.type === 'extra' || isExtraNewSystem || isExtraOldSystem;
+
+          if (isExtra) {
+            // Utiliser les données enrichies (extra, nom_plat, prix_unitaire)
+            const extraNom = detail.nom_plat || detail.extra?.nom_extra || 'Extra';
+            const extraPrix = detail.prix_unitaire || detail.extra?.prix || 0;
+            const extraId = detail.extra?.idextra || detail.plat_r || detail.iddetails || index;
+
+            console.log('Extra détecté:', { extraNom, extraPrix, extraId, detail });
+
             platsPanier.push({
-              id: `extra-${detail.iddetails || index}`, // ID unique pour les extras
-              nom: detail.nom_plat || 'Extra',
-              prix: detail.prix_unitaire || 0,
+              id: `extra-${extraId}`,
+              nom: extraNom,
+              prix: extraPrix,
               quantite: detail.quantite_plat_commande,
               dateRetrait: commande.date_et_heure_de_retrait_souhaitees
                 ? new Date(commande.date_et_heure_de_retrait_souhaitees)
                 : new Date(),
               jourCommande: '',
-              uniqueId: `extra-${detail.iddetails || index}-${Date.now()}`,
+              uniqueId: `extra-${extraId}-${Date.now()}`,
               type: 'extra',
             });
           } else {
             // Gérer les plats normaux
-            const platData = plats.find(p => p.idplats === detail.plat_r);
+            const platData = detail.plat || plats.find(p => p.idplats === detail.plat_r);
             if (platData) {
               platsPanier.push({
                 id: platData.idplats.toString(),
@@ -191,7 +208,7 @@ const ModifierCommande = memo(() => {
         setIsCartCollapsed(false);
       }
     }
-  }, [commande, plats]);
+  }, [commande, plats, extras]);
 
   // Vérifier les changements
   useEffect(() => {
@@ -202,9 +219,12 @@ const ModifierCommande = memo(() => {
         const quantite = detail.quantite_plat_commande || 0;
         let prixUnitaire = 0;
         
-        // Gérer les extras (extra) vs plats normaux
-        if (detail.type === 'extra') {
-          prixUnitaire = detail.prix_unitaire || 0;
+        // Gérer les extras vs plats normaux (architecture hybride)
+        const platCorrespondant = plats?.find(p => p.idplats === detail.plat_r);
+        const isExtra = !platCorrespondant && detail.plat_r;
+        if (isExtra) {
+          const extraData = extras?.find(e => e.idextra === detail.plat_r);
+          prixUnitaire = extraData?.prix || detail.prix_unitaire || 0;
         } else {
           prixUnitaire = detail.plat?.prix || 0;
         }
@@ -238,10 +258,16 @@ const ModifierCommande = memo(() => {
   const platsDisponibles = useMemo(() => {
     if (!jourSelectionne || !plats) return [];
     const champDispoKey = `${jourSelectionne.toLowerCase()}_dispo` as keyof Plat;
-    return plats.filter(plat => 
+    return plats.filter(plat =>
       plat[champDispoKey] === 'oui' && plat.idplats !== 0 // Exclure les anciens extras
     );
   }, [jourSelectionne, plats]);
+
+  // Extras disponibles (toujours disponibles)
+  const extrasDisponibles = useMemo(() => {
+    if (!extras) return [];
+    return extras.filter(extra => extra.est_disponible);
+  }, [extras]);
 
   const joursOuverture = useMemo(() => {
     const joursMap = [
@@ -334,6 +360,7 @@ const ModifierCommande = memo(() => {
       jourCommande: jourSelectionne,
       dateRetrait: dateCompleteRetrait,
       uniqueId: `${plat.idplats}-${Date.now()}`,
+      type: 'plat',
     };
 
     setPanierModification(prev => [...prev, newItem]);
@@ -346,6 +373,46 @@ const ModifierCommande = memo(() => {
     toast({
       title: 'Plat ajouté !',
       description: `${plat.plat} a été ajouté à votre commande modifiée.`,
+    });
+  };
+
+  const handleAjouterExtraAuPanier = (extra: any) => {
+    if (!extra.idextra || !extra.nom_extra || extra.prix === undefined) return;
+
+    if (!dateRetrait || !heureRetrait) {
+      toast({
+        title: 'Informations requises',
+        description: "Veuillez d'abord sélectionner une date et une heure de retrait.",
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const dateCompleteRetrait = new Date(dateRetrait);
+    const [heures, minutes] = heureRetrait.split(':');
+    dateCompleteRetrait.setHours(parseInt(heures), parseInt(minutes), 0, 0);
+
+    const newItem: PlatPanier = {
+      id: `extra-${extra.idextra}`,
+      nom: extra.nom_extra,
+      prix: extra.prix ?? 0,
+      quantite: 1,
+      jourCommande: jourSelectionne || '',
+      dateRetrait: dateCompleteRetrait,
+      uniqueId: `extra-${extra.idextra}-${Date.now()}`,
+      type: 'extra',
+    };
+
+    setPanierModification(prev => [...prev, newItem]);
+
+    // Ouvrir automatiquement le panier sur ajout d'article
+    if (!isCartCollapsed) {
+      setIsCartCollapsed(false);
+    }
+
+    toast({
+      title: 'Extra ajouté !',
+      description: `${extra.nom_extra} a été ajouté à votre commande modifiée.`,
     });
   };
 
@@ -534,8 +601,9 @@ const ModifierCommande = memo(() => {
           details: items.map(item => {
             // Distinguer les extras des plats normaux
             if (item.id.startsWith('extra-')) {
+              const extraId = parseInt(item.id.replace('extra-', '')) || 0;
               return {
-                plat_r: 0, // ID pour les extras
+                plat_r: extraId, // Architecture hybride: plat_r vers extras_db.idextra
                 quantite_plat_commande: item.quantite,
                 nom_plat: item.nom,
                 prix_unitaire: item.prix,
@@ -791,6 +859,7 @@ const ModifierCommande = memo(() => {
 
                           <div className='space-y-3'>
                             {items.map(item => {
+
                               // Pour les extras, pas de platData correspondant
                               const platData = item.type === 'extra'
                                 ? null
@@ -801,14 +870,20 @@ const ModifierCommande = memo(() => {
                                 ? parseInt(item.id.replace('extra-', '')) || 0
                                 : parseInt(item.id);
 
-                              const detailForModal: DetailCommande & { plat: any } = {
+                              // Pour les extras, récupérer les vraies données depuis extras
+                              const extraData = item.type === 'extra' && extras
+                                ? extras.find(e => e.idextra === itemId)
+                                : null;
+
+                              const detailForModal: DetailCommande & { plat: any; extra: any } = {
                                 commande_r: commande?.idcommande || 0,
                                 iddetails: itemId,
-                                plat_r: item.type === 'extra' ? 0 : itemId,
+                                plat_r: itemId, // Architecture hybride: plat_r pointe vers plats_db ou extras_db
+                                extra_id: item.type === 'extra' ? itemId : null, // ID de l'extra si c'est un extra
                                 quantite_plat_commande: item.quantite,
-                                prix_unitaire: item.prix,
-                                nom_plat: item.nom,
-                                type: (item.type === 'extra' ? 'extra' : 'plat') as 'plat' | 'complement' | 'extra' | null,
+                                prix_unitaire: extraData?.prix || item.prix,
+                                nom_plat: extraData?.nom_extra || item.nom,
+                                type: (item.type === 'extra' ? 'extra' : 'plat') as 'plat' | 'extra' | null,
                                 plat: item.type === 'extra' ? null : {
                                   idplats: itemId,
                                   plat: item.nom,
@@ -826,7 +901,17 @@ const ModifierCommande = memo(() => {
                                   epuise_depuis: null,
                                   epuise_jusqu_a: null,
                                   nom_plat: item.nom
-                                }
+                                },
+                                extra: item.type === 'extra' ? {
+                                  idextra: itemId,
+                                  nom_extra: extraData?.nom_extra || item.nom,
+                                  prix: extraData?.prix || item.prix,
+                                  description: extraData?.description || null,
+                                  photo_url: extraData?.photo_url || getItemPhotoUrl(item) || null,
+                                  actif: extraData?.est_disponible ?? true,
+                                  created_at: extraData?.created_at || new Date().toISOString(),
+                                  updated_at: extraData?.updated_at || new Date().toISOString()
+                                } : null
                               };
 
                               return (
@@ -1071,7 +1156,7 @@ const ModifierCommande = memo(() => {
                       </div>
                       <p className='text-white/90 text-xs'>
                         {jourSelectionne
-                          ? `Plats disponibles le ${
+                          ? `Plats & Extras disponibles le ${
                               jourSelectionne.charAt(0).toUpperCase() + jourSelectionne.slice(1)
                             }${
                               dateRetrait
@@ -1210,6 +1295,116 @@ const ModifierCommande = memo(() => {
                             })}
                           </div>
                         )}
+
+                        {/* Section extras disponibles */}
+                        {extrasDisponibles.length > 0 && (
+                          <div className='mt-6'>
+                            <h3 className='text-lg font-semibold text-thai-green mb-4 flex items-center gap-2'>
+                              <span className='text-thai-gold'>⭐</span>
+                              Extras disponibles :
+                            </h3>
+                            <div className='grid grid-cols-2 gap-3'>
+                              {extrasDisponibles.map(extra => {
+                                // Calculer la quantité actuelle de cet extra dans le panier
+                                const currentQuantity = panierModification
+                                  .filter(item => item.id === `extra-${extra.idextra}`)
+                                  .reduce((total, item) => total + item.quantite, 0);
+
+                                // Fonction pour ajouter un extra au panier de modification
+                                const handleAddExtraToCart = (extraToAdd: any, quantity: number) => {
+                                  if (dateRetrait && heureRetrait) {
+                                    const newItem: PlatPanier = {
+                                      id: `extra-${extraToAdd.idextra}`,
+                                      nom: extraToAdd.nom_extra,
+                                      prix: extraToAdd.prix || 0,
+                                      quantite: quantity,
+                                      dateRetrait: new Date(dateRetrait.getTime()),
+                                      jourCommande: jourSelectionne || '',
+                                      type: 'extra',
+                                      uniqueId: `extra-${extraToAdd.idextra}-${Date.now()}`
+                                    };
+                                    setPanierModification(prev => [...prev, newItem]);
+                                    toast({
+                                      title: "Extra ajouté",
+                                      description: `${extraToAdd.nom_extra} (x${quantity}) a été ajouté à votre commande.`
+                                    });
+                                  }
+                                };
+
+                                return (
+                                  <ExtraDetailsModalInteractive
+                                    key={extra.idextra}
+                                    extra={{
+                                      ...extra,
+                                      est_disponible: extra.est_disponible ?? true
+                                    }}
+                                    formatPrix={formatPrix}
+                                    onAddToCart={handleAddExtraToCart}
+                                    currentQuantity={currentQuantity}
+                                    dateRetrait={dateRetrait}
+                                  >
+                                    <div
+                                      className={`border-thai-orange/20 p-3 border rounded-lg transition-all duration-300 cursor-pointer bg-gradient-to-br from-thai-gold/10 to-thai-orange/10 ${
+                                        highlightedPlatId === `extra-${extra.idextra}`
+                                          ? 'ring-2 ring-thai-gold/50 border-thai-gold scale-105 shadow-lg'
+                                          : 'hover:shadow-md hover:border-thai-gold/50'
+                                      }`}
+                                      onMouseEnter={() => setHighlightedPlatId(`extra-${extra.idextra}`)}
+                                      onMouseLeave={() => setHighlightedPlatId(null)}
+                                    >
+                                      {extra.photo_url && (
+                                        <div className='w-full aspect-square mx-auto overflow-hidden rounded-lg mb-2'>
+                                          <img
+                                            src={extra.photo_url}
+                                            alt={extra.nom_extra}
+                                            className='w-full h-full object-cover'
+                                            onError={(e) => {
+                                              e.currentTarget.src = 'https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png';
+                                            }}
+                                          />
+                                        </div>
+                                      )}
+                                      <div className='flex items-center gap-1 mb-2'>
+                                        <span className='text-thai-gold text-sm'>⭐</span>
+                                        <h4 className='font-semibold text-thai-green text-sm truncate'>
+                                          {extra.nom_extra}
+                                        </h4>
+                                      </div>
+                                      {extra.description && (
+                                        <p className='text-xs text-gray-600 mb-2 line-clamp-2'>
+                                          {extra.description}
+                                        </p>
+                                      )}
+                                      <div className='flex items-center justify-between' onClick={(e) => e.stopPropagation()}>
+                                        <Badge variant='secondary' className='text-xs bg-thai-gold/20 text-thai-gold border-thai-gold/30'>
+                                          {formatPrix(extra.prix || 0)}
+                                        </Badge>
+                                        <div className='flex items-center gap-2'>
+                                          {currentQuantity > 0 && (
+                                            <Badge variant='outline' className='text-xs bg-thai-orange/10 text-thai-orange border-thai-orange/30'>
+                                              {currentQuantity} dans le panier
+                                            </Badge>
+                                          )}
+                                          <Button
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleAjouterExtraAuPanier(extra);
+                                            }}
+                                            size='sm'
+                                            className='bg-thai-gold hover:bg-thai-gold/90 text-white text-xs px-2 py-1'
+                                          >
+                                            Ajouter
+                                          </Button>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </ExtraDetailsModalInteractive>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+
                         {dateRetrait && heureRetrait && (
                           <div className='mt-4 p-2 bg-green-50 border border-green-200 rounded-lg text-center'>
                             <p className='text-xs text-green-800 font-medium'>

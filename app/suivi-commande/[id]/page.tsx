@@ -4,7 +4,7 @@ import React, { memo } from 'react';
 import { useParams, redirect } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
-import { useCommandeById } from '@/hooks/useSupabaseData';
+import { useCommandeById, useExtras } from '@/hooks/useSupabaseData';
 import { useData } from '@/contexts/DataContext';
 import { extractRouteParam } from '@/lib/params-utils';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -29,8 +29,9 @@ const SuiviCommande = memo(() => {
   const { currentUser, isLoadingAuth } = useAuth();
   const { data: commande, isLoading: isLoadingCommande, error } = useCommandeById(id ? Number(id) : undefined);
   const { plats, isLoading: platsLoading } = useData();
+  const { data: extras, isLoading: extrasLoading } = useExtras();
 
-  if (isLoadingAuth || isLoadingCommande || platsLoading) {
+  if (isLoadingAuth || isLoadingCommande || platsLoading || extrasLoading) {
     return (
       <AppLayout>
         <div className="flex h-screen items-center justify-center">
@@ -77,8 +78,10 @@ const SuiviCommande = memo(() => {
   const calculateTotal = (): number => {
     if (!commande.details) return 0;
     return commande.details.reduce((total, detail) => {
-      const prix = detail.type === 'extra'
-        ? (detail.prix_unitaire || 0)
+      // Un extra est un détail sans plat mais avec plat_r
+      const isExtra = !detail.plat && detail.plat_r;
+      const prix = isExtra
+        ? ((detail as any).extra?.prix || detail.prix_unitaire || 0)
         : (detail.plat?.prix || 0);
       const quantite = detail.quantite_plat_commande || 0;
       return total + (prix * quantite);
@@ -158,11 +161,22 @@ const SuiviCommande = memo(() => {
                 {commande.details && commande.details.length > 0 ? (
                   <div className="border border-thai-orange/20 rounded-lg p-3 bg-thai-cream/20 space-y-4">
                     {commande.details.map((detail, index) => {
-                      const platDetails = getPlatDetails(detail.plat_r);
+                      const platDetails = detail.plat_r ? getPlatDetails(detail.plat_r) : null;
+
+                      // Détection hybride plus robuste des extras
+                      const isExtraByPlat = platDetails?.plat?.includes('Extra') || platDetails?.plat?.includes('Complément');
+                      const isExtraByMissingPlat = !platDetails && detail.plat_r && detail.plat_r > 0;
+                      const isExtraByZeroId = detail.plat_r === 0 && detail.nom_plat; // Ancienne architecture: plat_r = 0 pour extras
+                      const isExtra = isExtraByPlat || isExtraByMissingPlat || isExtraByZeroId;
+
+                      const extraDetails = isExtra ? extras?.find((e: any) => e.idextra === detail.plat_r) : null;
+
+
                       // Adapter les données pour DishDetailsModal
                       const detailForModal = {
                         ...detail,
-                        plat: platDetails || null
+                        plat: platDetails || null,
+                        extra: extraDetails || null
                       };
                       
                       return (
@@ -175,27 +189,61 @@ const SuiviCommande = memo(() => {
                                style={{ animationDelay: `${index * 100}ms` }}>
                             <div className="flex items-start gap-3 p-3 bg-white rounded-lg border border-gray-200 transition-all duration-300 hover:shadow-xl hover:bg-thai-cream/20 hover:border-thai-orange hover:ring-2 hover:ring-thai-orange/30 hover:scale-[1.02] transform w-full">
                               
-                              {/* Image du plat */}
+                              {/* Image du plat/extra */}
                               <div className="w-16 h-16 md:w-20 md:h-20 rounded-md overflow-hidden flex-shrink-0">
-                                {platDetails?.photo_du_plat ? (
-                                  <img 
-                                    src={platDetails.photo_du_plat} 
-                                    alt={platDetails.plat}
-                                    className="w-full h-full object-cover"
-                                  />
-                                ) : (
-                                  <div className="w-full h-full bg-thai-cream/30 border border-thai-orange/20 rounded-md flex items-center justify-center">
-                                    <span className="text-thai-orange text-2xl">🍽️</span>
-                                  </div>
-                                )}
+                                <img
+                                  src={
+                                    isExtra
+                                      ? (extraDetails?.photo_url || 'https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png')
+                                      : (platDetails?.photo_du_plat || '')
+                                  }
+                                  alt={
+                                    isExtra
+                                      ? (extraDetails?.nom_extra || detail.nom_plat || 'Extra')
+                                      : (platDetails?.plat || 'Plat')
+                                  }
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => {
+                                    // Fallback pour les extras si l'image ne charge pas
+                                    if (isExtra) {
+                                      e.currentTarget.src = 'https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png';
+                                    } else {
+                                      // Pour les plats sans image, on affiche un placeholder
+                                      e.currentTarget.style.display = 'none';
+                                      const parent = e.currentTarget.parentElement;
+                                      if (parent) {
+                                        parent.innerHTML = '<div class="w-full h-full bg-thai-cream/30 border border-thai-orange/20 rounded-md flex items-center justify-center"><span class="text-thai-orange text-2xl">🍽️</span></div>';
+                                      }
+                                    }
+                                  }}
+                                />
                               </div>
                               
                               {/* Détails du plat */}
                               <div className="flex-1 min-w-0">
                                 <h4 className="font-medium text-thai-green text-lg mb-1 truncate">
-                                  {detail.type === 'extra'
-                                    ? (detail.nom_plat || 'Extra non trouvé')
-                                    : (detail.plat?.plat || 'Plat non trouvé')}
+                                  {(() => {
+                                    if (isExtra) {
+                                      // Priorité 1: Extra trouvé via plat_r
+                                      if (extraDetails?.nom_extra) {
+                                        return extraDetails.nom_extra;
+                                      }
+                                      // Priorité 2: Nom direct depuis la commande (fallback)
+                                      if (detail.nom_plat && detail.nom_plat !== 'Extra (Complément divers)') {
+                                        return detail.nom_plat;
+                                      }
+                                      // Priorité 3: Recherche par nom dans la liste des extras
+                                      if (detail.nom_plat && extras) {
+                                        const extraByName = extras.find((e: any) =>
+                                          e.nom_extra.toLowerCase() === detail.nom_plat!.toLowerCase()
+                                        );
+                                        if (extraByName) return extraByName.nom_extra;
+                                      }
+                                      return 'Extra non trouvé';
+                                    } else {
+                                      return platDetails?.plat || 'Plat non trouvé';
+                                    }
+                                  })()}
                                 </h4>
                                 <div className="flex items-center gap-4 text-sm text-gray-600">
                                   <span className="flex items-center gap-1">
@@ -207,7 +255,24 @@ const SuiviCommande = memo(() => {
                                   <span className="flex items-center gap-1">
                                     <span className="font-medium">Prix unitaire:</span> 
                                     <span className="text-thai-green font-semibold">
-                                      {formatPrix(detail.type === 'extra' ? (detail.prix_unitaire || 0) : (detail.plat?.prix || 0))}
+                                      {formatPrix((() => {
+                                        if (isExtra) {
+                                          // Priorité 1: Prix de l'extra trouvé via plat_r
+                                          if (extraDetails?.prix) return extraDetails.prix;
+                                          // Priorité 2: Prix stocké dans la commande
+                                          if (detail.prix_unitaire) return detail.prix_unitaire;
+                                          // Priorité 3: Recherche par nom dans la liste des extras
+                                          if (detail.nom_plat && extras) {
+                                            const extraByName = extras.find((e: any) =>
+                                              e.nom_extra.toLowerCase() === detail.nom_plat!.toLowerCase()
+                                            );
+                                            if (extraByName?.prix) return extraByName.prix;
+                                          }
+                                          return 0;
+                                        } else {
+                                          return platDetails?.prix || 0;
+                                        }
+                                      })())}
                                     </span>
                                   </span>
                                 </div>
@@ -216,7 +281,29 @@ const SuiviCommande = memo(() => {
                               {/* Prix total */}
                               <div className="text-right">
                                 <div className="text-xl md:text-2xl font-bold text-thai-orange">
-                                  {formatPrix((detail.type === 'extra' ? (detail.prix_unitaire || 0) : (detail.plat?.prix || 0)) * (detail.quantite_plat_commande || 0))}
+                                  {formatPrix((() => {
+                                    let prixUnitaire = 0;
+                                    if (isExtra) {
+                                      // Priorité 1: Prix de l'extra trouvé via plat_r
+                                      if (extraDetails?.prix) {
+                                        prixUnitaire = extraDetails.prix;
+                                      }
+                                      // Priorité 2: Prix stocké dans la commande
+                                      else if (detail.prix_unitaire) {
+                                        prixUnitaire = detail.prix_unitaire;
+                                      }
+                                      // Priorité 3: Recherche par nom dans la liste des extras
+                                      else if (detail.nom_plat && extras) {
+                                        const extraByName = extras.find((e: any) =>
+                                          e.nom_extra.toLowerCase() === detail.nom_plat!.toLowerCase()
+                                        );
+                                        if (extraByName?.prix) prixUnitaire = extraByName.prix;
+                                      }
+                                    } else {
+                                      prixUnitaire = platDetails?.prix || 0;
+                                    }
+                                    return prixUnitaire * (detail.quantite_plat_commande || 0);
+                                  })())}
                                 </div>
                               </div>
                             </div>

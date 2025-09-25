@@ -117,7 +117,7 @@ export const useCreateClient = () => {
       const validatedData = validation.data;
 
       console.log('Données du client validées:', validatedData);
-      
+
       // Diagnostic de l'état de l'authentification Supabase
       const { data: { session } } = await supabase.auth.getSession();
       console.log('DIAGNOSTIC: Session Supabase actuelle:', {
@@ -126,7 +126,7 @@ export const useCreateClient = () => {
         firebaseUid: clientData.firebase_uid,
         sessionMatch: session?.user?.id === clientData.firebase_uid
       });
-      
+
       // Vérifier d'abord si le client existe déjà
       try {
         const { data: existingClient } = await supabase
@@ -134,7 +134,7 @@ export const useCreateClient = () => {
           .select('*')
           .eq('firebase_uid', validatedData.firebase_uid)
           .single();
-          
+
         if (existingClient) {
           console.log('Client existant trouvé:', existingClient);
           return existingClient;
@@ -144,7 +144,7 @@ export const useCreateClient = () => {
         console.log('Aucun client existant trouvé, création en cours...');
         console.log('Détails de l\'erreur de vérification:', checkError);
       }
-      
+
       try {
         const { data, error } = await supabase
           .from('client_db')
@@ -154,42 +154,42 @@ export const useCreateClient = () => {
 
         if (error) {
           console.error('Erreur Supabase lors de la création du client:', error);
-          
+
           // Vérification si l'error est un objet vide ou null
           const isEmptyError = !error || (typeof error === 'object' && Object.keys(error).length === 0);
-          
+
           if (isEmptyError) {
             console.error('DIAGNOSTIC: Erreur Supabase vide détectée');
             console.error('DIAGNOSTIC: Type de l\'erreur:', typeof error);
             console.error('DIAGNOSTIC: Contenu de l\'erreur:', JSON.stringify(error));
             throw new Error('Erreur Supabase inconnue: objet erreur vide. Vérifiez les politiques RLS et les permissions de la base de données.');
           }
-          
+
           // Gestion robuste des erreurs normales
           const message = error?.message || 'Erreur inconnue';
           const code = error?.code || 'UNKNOWN';
           const details = error?.details || 'Aucun détail disponible';
           const hint = error?.hint || 'Aucune suggestion disponible';
-          
+
           const errorDetails = { message, code, details, hint, fullError: error };
           console.error('Détails de l\'erreur Supabase:', errorDetails);
-          
+
           // Gestion spécifique des codes d'erreur
           if (code === '42501') {
             throw new Error('Permissions insuffisantes: Les politiques RLS empêchent la création du profil. L\'utilisateur doit être authentifié avec Firebase.');
           }
-          
+
           if (code === '23505') {
             throw new Error('Ce profil existe déjà. Connexion en cours...');
           }
-          
+
           throw new Error(`Erreur Supabase: ${message} (Code: ${code})`);
         }
-        
+
         if (!data) {
           throw new Error('Aucune donnée retournée après la création du client');
         }
-        
+
         return data;
       } catch (networkError: unknown) {
         console.error('Erreur réseau ou de connexion:', networkError);
@@ -235,7 +235,7 @@ export const useUpdateClient = () => {
       data: Partial<ClientInputData>;
     }): Promise<Client> => {
       console.log('Mise à jour profil pour:', firebase_uid, 'avec données:', data);
-      
+
       // Diagnostic de l'état de l'authentification Supabase
       const { data: { session } } = await supabase.auth.getSession();
       console.log('DIAGNOSTIC UPDATE: Session Supabase:', {
@@ -244,7 +244,7 @@ export const useUpdateClient = () => {
         firebaseUid: firebase_uid,
         sessionMatch: session?.user?.id === firebase_uid
       });
-      
+
       const { data: updatedData, error } = await supabase
         .from('client_db')
         .update(data)
@@ -254,41 +254,41 @@ export const useUpdateClient = () => {
 
       if (error) {
         console.error('Erreur Supabase lors de la mise à jour du client:', error);
-        
+
         // Vérification si l'error est un objet vide ou null
         const isEmptyError = !error || (typeof error === 'object' && Object.keys(error).length === 0);
-        
+
         if (isEmptyError) {
           console.error('DIAGNOSTIC UPDATE: Erreur Supabase vide détectée');
           console.error('DIAGNOSTIC UPDATE: Type de l\'erreur:', typeof error);
           console.error('DIAGNOSTIC UPDATE: Contenu de l\'erreur:', JSON.stringify(error));
           throw new Error('Erreur Supabase inconnue lors de la mise à jour: objet erreur vide. Vérifiez les politiques RLS et les permissions UPDATE.');
         }
-        
+
         // Gestion robuste des erreurs normales
         const message = error?.message || 'Erreur inconnue';
         const code = error?.code || 'UNKNOWN';
         const details = error?.details || 'Aucun détail disponible';
         const hint = error?.hint || 'Aucune suggestion disponible';
-        
+
         console.error('Détails de l\'erreur UPDATE:', { message, code, details, hint, fullError: error });
-        
+
         // Gestion spécifique des codes d'erreur
         if (code === '42501') {
           throw new Error('Permissions insuffisantes: Les politiques RLS empêchent la mise à jour du profil.');
         }
-        
+
         if (code === 'PGRST116') {
           throw new Error('Profil non trouvé: Impossible de mettre à jour un profil qui n\'existe pas.');
         }
-        
+
         throw new Error(`Erreur Supabase UPDATE: ${message} (Code: ${code})`);
       }
-      
+
       if (!updatedData) {
         throw new Error('Aucune donnée retournée après la mise à jour du client');
       }
-      
+
       return updatedData;
     },
     onSuccess: data => {
@@ -298,9 +298,9 @@ export const useUpdateClient = () => {
     },
     onError: error => {
       console.error('Erreur mise à jour client:', error);
-      const errorMessage = error instanceof Error ? error.message : 
-                          typeof error === 'object' && error && 'message' in error ? 
-                          (error as any).message : 
+      const errorMessage = error instanceof Error ? error.message :
+                          typeof error === 'object' && error && 'message' in error ?
+                          (error as any).message :
                           'Erreur inconnue';
       toast({
         title: 'Erreur mise à jour profil',
@@ -328,7 +328,7 @@ export const usePlats = () => {
       }
 
       // Mapper idplats vers id pour l'UI
-      return (data || []).map(plat => ({
+      return (data || []).map((plat: any) => ({
         ...plat,
         id: plat.idplats,
         nom_plat: plat.plat,
@@ -377,7 +377,7 @@ export const useCreatePlat = () => {
       if (!result || result.length === 0) {
         throw new Error('Aucune ligne créée');
       }
-      
+
       return result[0]; // Retourner la première ligne créée
     },
     onSuccess: () => {
@@ -463,7 +463,7 @@ export const useDeletePlat = () => {
     },
     onError: (error) => {
       toast({
-        title: "Erreur", 
+        title: "Erreur",
         description: error.message || "Impossible de supprimer le plat",
         variant: "destructive"
       });
@@ -530,25 +530,6 @@ export const useCreatePlatRupture = () => {
       // TODO: Table 'plats_rupture_dates' n'existe pas encore dans le schéma Supabase
       console.warn('Table plats_rupture_dates non disponible dans le schéma actuel');
       throw new Error('Fonctionnalité de rupture de plats non disponible temporairement');
-
-      // const { data, error } = await supabase
-      //   .from('plats_rupture_dates')
-      //   .insert(ruptureData)
-      //   .select();
-
-      // if (error) {
-      //   console.error('Erreur Supabase lors de la création rupture:', error);
-      //   const contextError = new Error(`Échec création rupture: ${error.message || 'Erreur validation données'}`);
-      //   contextError.cause = error;
-      //   throw contextError;
-      // }
-
-      // // Vérifier qu'au moins une ligne a été créée
-      // if (!data || data.length === 0) {
-      //   throw new Error('Aucune rupture créée');
-      // }
-
-      // return data[0]; // Retourner la première ligne créée
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['plat-ruptures', variables.plat_id] });
@@ -579,23 +560,12 @@ export const useDeletePlatRupture = () => {
       // TODO: Table 'plats_rupture_dates' n'existe pas encore dans le schéma Supabase
       console.warn('Table plats_rupture_dates non disponible dans le schéma actuel');
       throw new Error('Fonctionnalité de suppression de rupture non disponible temporairement');
-
-      // const { error } = await supabase
-      //   .from('plats_rupture_dates')
-      //   .update({ is_active: false })
-      //   .eq('id', ruptureId);
-
-      // if (error) {
-      //   const contextError = new Error(`Échec suppression rupture (${ruptureId}): ${error.message || 'Erreur permissions'}`);
-      //   contextError.cause = error;
-      //   throw contextError;
-      // }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['plat-ruptures'] });
       queryClient.invalidateQueries({ queryKey: ['plats'] });
       toast({
-        title: "Succès", 
+        title: "Succès",
         description: "Rupture annulée"
       });
     }
@@ -613,19 +583,6 @@ export const useCheckPlatAvailability = () => {
       // Par défaut, on considère que tous les plats sont disponibles
       return true;
 
-      // const { data, error } = await supabase
-      //   .rpc('is_plat_available_on_date', {
-      //     p_plat_id: platId,
-      //     p_date: date
-      //   });
-
-      // if (error) {
-      //   const contextError = new Error(`Échec vérification disponibilité plat: ${error.message || 'Erreur base de données'}`);
-      //   contextError.cause = error;
-      //   throw contextError;
-      // }
-
-      // return data || false;
     }
   });
 };
@@ -673,7 +630,7 @@ export const useCommandeById = (idcommande?: number) => {
 
       // Validation des données Supabase avec gestion des erreurs de relation
       if (!data) return null;
-      
+
       const commandeData = data as unknown;
       const commande = commandeData as {
         idcommande: number;
@@ -691,7 +648,7 @@ export const useCommandeById = (idcommande?: number) => {
         client_db?: Client | null;
         details_commande_db?: Array<DetailsCommande & { plats_db?: Plat }>;
       };
-      
+
       // Validation des propriétés critiques
       const validatedCommande = {
         ...commande,
@@ -706,8 +663,11 @@ export const useCommandeById = (idcommande?: number) => {
         details_commande_db: Array.isArray(commande.details_commande_db) ? commande.details_commande_db : []
       };
 
+      // Avec les jointures directes, les données extras_db sont déjà disponibles
+      const enrichedDetails = validatedCommande.details_commande_db;
+
       // Calculer le prix total avec validation (plats + extras)
-      const prix_total = validatedCommande.details_commande_db.reduce((total: number, detail: DetailsCommande & { plats_db?: Plat; extras_db?: any }) => {
+      const prix_total = enrichedDetails.reduce((total: number, detail: DetailsCommande & { plats_db?: Plat; extras_db?: any }) => {
         const quantite = detail.quantite_plat_commande || 0;
         let prixUnitaire = 0;
 
@@ -729,10 +689,12 @@ export const useCommandeById = (idcommande?: number) => {
         ...validatedCommande,
         id: validatedCommande.idcommande,
         client: commande.client_db || null,
-        details: validatedCommande.details_commande_db.map(detail => ({
+        details: enrichedDetails.map(detail => ({
           ...detail,
           plat: detail.plats_db,
-          extra: (detail as any).extras_db || null
+          extra: (detail as any).extras_db || null,
+          // Assurer que type soit du bon type Union
+          type: (detail.type === 'plat' || detail.type === 'extra') ? detail.type : null
         })),
         prix_total,
         statut: mapStatutCommande(
@@ -752,7 +714,7 @@ export const useCommandeById = (idcommande?: number) => {
 // Hook pour récupérer les commandes d'un client
 export const useCommandesByClient = (firebase_uid?: string) => {
   return useQuery({
-    queryKey: ['commandes', 'client', firebase_uid],
+    queryKey: ['commandes-fixed', 'client', firebase_uid],
     queryFn: async (): Promise<CommandeUI[]> => {
       if (!firebase_uid) return [];
 
@@ -788,8 +750,10 @@ export const useCommandesByClient = (firebase_uid?: string) => {
         throw contextError;
       }
 
+      // Avec les jointures directes, les données extras_db sont déjà disponibles
+
       // Validation et mappage des données avec type safety
-      return (data || []).map((commande: unknown) => {
+      return (data || []).map((commande: unknown): CommandeUI => {
         const commandeTyped = commande as {
           idcommande: number;
           client_r: string | null;
@@ -817,7 +781,7 @@ export const useCommandesByClient = (firebase_uid?: string) => {
           };
           details_commande_db?: Array<DetailsCommande & { plats_db?: Plat }>;
         };
-        
+
         const validatedCommande = {
           ...commandeTyped,
           client_r: commandeTyped.client_r || '',
@@ -831,7 +795,10 @@ export const useCommandesByClient = (firebase_uid?: string) => {
           details_commande_db: Array.isArray(commandeTyped.details_commande_db) ? commandeTyped.details_commande_db : []
         };
 
-        const prix_total = validatedCommande.details_commande_db.reduce((total: number, detail: DetailsCommande & { plats_db?: Plat; extras_db?: any }) => {
+        // Avec les jointures directes, les données extras_db sont déjà disponibles
+        const enrichedDetails = validatedCommande.details_commande_db;
+
+        const prix_total = enrichedDetails.reduce((total: number, detail: DetailsCommande & { plats_db?: Plat; extras_db?: any }) => {
           const quantite = detail.quantite_plat_commande || 0;
           let prixUnitaire = 0;
 
@@ -858,11 +825,19 @@ export const useCommandesByClient = (firebase_uid?: string) => {
           ...validatedCommande,
           id: validatedCommande.idcommande,
           client: clientData,
-          details: validatedCommande.details_commande_db.map((detail: DetailsCommande & { plats_db?: Plat; extras_db?: any }) => ({
-            ...detail,
-            plat: detail.plats_db,
-            extra: (detail as any).extras_db || null
-          })),
+          details: enrichedDetails.map((detail: DetailsCommande & { plats_db?: Plat; extras_db?: any }) => {
+            const mappedDetail = {
+              ...detail,
+              plat: detail.plats_db,
+              extra: (detail as any).extras_db || null,
+              type: (detail as any).extras_db ? 'extra' as const : 'plat' as const,
+              nom_plat: (detail as any).extras_db ? (detail as any).extras_db.nom_extra : detail.nom_plat,
+              prix_unitaire: (detail as any).extras_db ? (detail as any).extras_db.prix : detail.prix_unitaire
+            };
+
+
+            return mappedDetail;
+          }),
           prix_total,
           statut: validateStatutCommande(validatedCommande.statut_commande) || undefined,
           statut_commande: validateStatutCommande(validatedCommande.statut_commande),
@@ -912,6 +887,8 @@ export const useCommandes = () => {
         throw contextError;
       }
 
+      // Avec les jointures directes, les données extras_db sont déjà disponibles
+
       // Mapper les données pour l'UI avec validation
       return (data || []).map((commande: unknown) => {
         const commandeTyped = commande as {
@@ -951,8 +928,11 @@ export const useCommandes = () => {
           details_commande_db: Array.isArray(commandeTyped.details_commande_db) ? commandeTyped.details_commande_db : []
         };
 
-        // Calculer le prix total depuis les détails validés (plats + extras)
-        const prix_total = validatedCommande.details_commande_db.reduce((total: number, detail: DetailsCommande & { plats_db?: Plat; extras_db?: any }) => {
+        // Avec les jointures directes, les données extras_db sont déjà disponibles
+        const enrichedDetails = validatedCommande.details_commande_db;
+
+        // Calculer le prix total depuis les détails enrichis (plats + extras)
+        const prix_total = enrichedDetails.reduce((total: number, detail: DetailsCommande & { plats_db?: Plat; extras_db?: any }) => {
           const quantite = detail.quantite_plat_commande || 0;
           let prixUnitaire = 0;
 
@@ -979,11 +959,18 @@ export const useCommandes = () => {
           ...validatedCommande,
           id: validatedCommande.idcommande,
           client: clientData,
-          details: validatedCommande.details_commande_db.map(detail => ({
-            ...detail,
-            plat: detail.plats_db,
-            extra: (detail as any).extras_db || null
-          })),
+          details: enrichedDetails.map((detail: DetailsCommande & { plats_db?: Plat; extras_db?: any }) => {
+            const mappedDetail = {
+              ...detail,
+              plat: detail.plats_db,
+              extra: (detail as any).extras_db || null,
+              type: (detail as any).extras_db ? 'extra' as const : 'plat' as const,
+              nom_plat: (detail as any).extras_db ? (detail as any).extras_db.nom_extra : detail.nom_plat,
+              prix_unitaire: (detail as any).extras_db ? (detail as any).extras_db.prix : detail.prix_unitaire
+            };
+
+            return mappedDetail;
+          }),
           prix_total,
           statut: validateStatutCommande(validatedCommande.statut_commande),
           statut_commande: validateStatutCommande(validatedCommande.statut_commande),
@@ -1010,7 +997,8 @@ export const useCommandesStats = () => {
           *,
           details_commande_db (
             *,
-            plats_db (prix)
+            plats_db (prix),
+            extras_db (prix)
           )
         `);
 
@@ -1052,13 +1040,13 @@ export const useCommandesStats = () => {
       // Initialiser les compteurs de statut
       const statutsCommande = [
         'En attente de confirmation',
-        'Confirmée', 
+        'Confirmée',
         'En préparation',
         'Prête à récupérer',
         'Récupérée',
         'Annulée'
       ];
-      
+
       statutsCommande.forEach(statut => {
         stats.parStatut[statut] = 0;
       });
@@ -1068,14 +1056,16 @@ export const useCommandesStats = () => {
           idcommande: number;
           statut_commande: string | null;
           date_de_prise_de_commande: string | null;
-          details_commande_db?: Array<{ quantite_plat_commande: number | null; plats_db?: { prix: number | null } }>;
+          details_commande_db?: Array<{ quantite_plat_commande: number | null; plats_db?: { prix: number | null }; extras_db?: { prix: number | null } }>;
         };
 
         const commandeDate = new Date(commandeTyped.date_de_prise_de_commande || '');
-        const revenue = Array.isArray(commandeTyped.details_commande_db) 
+        const revenue = Array.isArray(commandeTyped.details_commande_db)
           ? commandeTyped.details_commande_db.reduce((total: number, detail) => {
-              return total + (detail.quantite_plat_commande || 0) * (detail.plats_db?.prix || 0);
-            }, 0) 
+              const quantite = detail.quantite_plat_commande || 0;
+              const prixUnitaire = detail.extras_db?.prix || detail.plats_db?.prix || 0;
+              return total + quantite * prixUnitaire;
+            }, 0)
           : 0;
 
         stats.revenue.total += revenue;
@@ -1138,6 +1128,8 @@ export const useCommandesRealtimeV1 = () => {
         throw contextError;
       }
 
+      // Avec les jointures directes, les données extras_db sont déjà disponibles
+
       return (data || []).map((commande: unknown) => {
         const commandeTyped = commande as {
           idcommande: number;
@@ -1168,7 +1160,8 @@ export const useCommandesRealtimeV1 = () => {
           notes_internes: commandeTyped.notes_internes || null,
           details: Array.isArray(commandeTyped.details_commande_db) ? commandeTyped.details_commande_db.map(detail => ({
             ...detail,
-            plat: detail.plats_db
+            plat: detail.plats_db,
+            extra: (detail as any).extras_db || null
           })) : [],
           'Date & Heure de retrait': commandeTyped.date_et_heure_de_retrait_souhaitees || undefined,
           'Statut Commande': validateStatutCommande(commandeTyped.statut_commande) || undefined,
@@ -1266,7 +1259,7 @@ export const useCreateDetailsCommande = () => {
         const errorMessages = validation.errors?.issues?.map((err: any) => `${err.path.join('.')}: ${err.message}`).join('; ') || 'Erreur de validation inconnue';
         throw new Error(`Données détail commande invalides: ${errorMessages}`);
       }
-      
+
       const { data, error } = await supabase.from('details_commande_db').insert(validation.data).select();
 
       if (error) {
@@ -1299,13 +1292,13 @@ export const useCreateCommande = () => {
         statut_commande: 'En attente de confirmation', // valeur par défaut
         statut_paiement: 'En attente sur place', // valeur par défaut
       });
-      
+
       if (!validation.success) {
         console.error('Validation failed:', validation.errors);
         const errorMessages = validation.errors?.issues?.map((err: any) => `${err.path.join('.')}: ${err.message}`).join('; ') || 'Erreur de validation inconnue';
         throw new Error(`Données commande invalides: ${errorMessages}`);
       }
-      
+
       // Récupérer l'idclient si on a le firebase_uid
       let client_r_id = commandeData.client_r_id;
 
@@ -1385,7 +1378,7 @@ export const useDeleteCommande = () => {
   return useMutation({
     mutationFn: async (commandeId: number): Promise<void> => {
       console.log('Début suppression commande ID:', commandeId);
-      
+
       // Supprimer d'abord les détails de la commande
       console.log('Suppression des détails de la commande...');
       const { error: detailsError } = await supabase
@@ -1449,7 +1442,7 @@ export const useCreateEvenement = () => {
         contact_client_r: evenementData.contact_client_r,
         is_public: false, // valeur par défaut
       });
-      
+
       if (!validation.success) {
         const errorMessages = validation.errors?.issues?.map((err: any) => `${err.path.join('.')}: ${err.message}`).join('; ') || 'Erreur de validation inconnue';
         throw new Error(`Données événement invalides: ${errorMessages}`);
@@ -1497,7 +1490,7 @@ export const useCreateEvenement = () => {
           stringified: JSON.stringify(error),
           isInstance: error instanceof Error
         };
-        
+
         console.error('❌ ERREUR COMPLÈTE:', fullErrorInfo);
         throw new Error(`Erreur Supabase: ${errorMessage}. Détails: ${JSON.stringify(fullErrorInfo)}`);
       }
@@ -1568,7 +1561,7 @@ export const useClients = () => {
         throw contextError;
       }
 
-      return (data || []).map(client => ({
+      return (data || []).map((client: any) => ({
         ...client,
         id: client.firebase_uid, // Pour compatibilité
         // Propriétés compatibles avec l'ancien système Airtable
@@ -1612,7 +1605,7 @@ export const useEvenementsByClient = (firebase_uid?: string) => {
       }
 
       // Mapper idevenements vers id pour l'UI
-      return (data || []).map(evenement => ({
+      return (data || []).map((evenement: any) => ({
         ...evenement,
         id: evenement.idevenements,
       }));
@@ -1797,7 +1790,9 @@ export const useUpdateCommande = () => {
         client: null, // Sera résolu par une requête séparée si nécessaire
         details: validatedCommande.details_commande_db.map(detail => ({
           ...detail,
-          plat: detail.plats_db
+          plat: detail.plats_db,
+          // Assurer que type soit du bon type Union
+          type: (detail.type === 'plat' || detail.type === 'extra') ? detail.type : null
         })),
         prix_total,
         statut: mapStatutCommande(
@@ -1961,7 +1956,7 @@ export const useAddPlatToCommande = () => {
       quantite: number;
       type?: 'plat' | 'extra';
     }): Promise<void> => {
-      console.log('🔄 Ajout à commande:', { commandeId, platId, extraId, quantite, type });
+      console.log('🔄 useAddPlatToCommande - Paramètres reçus:', { commandeId, platId, extraId, quantite, type });
 
       const insertData: any = {
         commande_r: commandeId,
@@ -1969,15 +1964,37 @@ export const useAddPlatToCommande = () => {
       };
 
       if (type === 'extra' && extraId) {
-        // Ajouter un extra depuis le catalogue extras_db
-        insertData.plat_r = null;
-        insertData.extra_r = extraId;
-        console.log('📦 Ajout EXTRA à la commande');
+        // ✅ SOLUTION CORRECTE: Utiliser les champs existants pour les extras
+        // D'abord récupérer les données de l'extra
+        const { data: extraData, error: extraError } = await supabase
+          .from('extras_db')
+          .select('*')
+          .eq('idextra', extraId)
+          .single();
+
+        if (extraError || !extraData) {
+          console.error('❌ Erreur récupération extra:', extraError);
+          throw new Error(`Extra introuvable (ID: ${extraId}): ${extraError?.message || 'Extra non trouvé'}`);
+        }
+
+        // ✅ ARCHITECTURE HYBRIDE: plat_r pointe vers l'ID de l'extra
+        insertData.plat_r = extraId; // ID de l'extra dans plat_r (architecture hybride)
+        insertData.type = 'extra'; // Marquer comme extra
+        insertData.extra_id = extraId; // ID de l'extra pour clarté
+        insertData.nom_plat = extraData.nom_extra; // Nom de l'extra
+        insertData.prix_unitaire = extraData.prix; // Prix de l'extra
+
+        console.log('📦 EXTRA - Données à insérer:', insertData);
+        console.log('📦 EXTRA - Extra sélectionné:', extraData);
       } else if (type === 'plat' && platId) {
-        // Ajouter un plat depuis plats_db
+        // Ajouter un plat depuis plats_db (logique existante)
         insertData.plat_r = platId;
-        insertData.extra_r = null;
-        console.log('🍽️ Ajout PLAT à la commande');
+        insertData.type = 'plat'; // Marquer comme plat
+        insertData.extra_id = null; // Pas d'extra
+        insertData.nom_plat = null; // Le nom viendra de la jointure avec plats_db
+        insertData.prix_unitaire = null; // Le prix viendra de la jointure avec plats_db
+
+        console.log('🍽️ PLAT - Données à insérer:', insertData);
       } else {
         throw new Error("Il faut fournir soit un platId (type='plat'), soit un extraId (type='extra').");
       }
@@ -1994,11 +2011,19 @@ export const useAddPlatToCommande = () => {
       console.log('✅ Article ajouté avec succès à la commande');
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        predicate: (query) => {
-          return query.queryKey[0] === 'commandes' || query.queryKey[0] === 'commande';
-        }
-      });
+      console.log('🔄 useAddPlatToCommande - Invalidation du cache...');
+
+      // Invalidation spécifique et forcée
+      queryClient.invalidateQueries({ queryKey: ['commandes'] });
+      queryClient.invalidateQueries({ queryKey: ['commandes-realtime'] });
+      queryClient.invalidateQueries({ queryKey: ['commande'] });
+      queryClient.invalidateQueries({ queryKey: ['extras'] });
+
+      // Force le refetch immédiat
+      queryClient.refetchQueries({ queryKey: ['commandes'] });
+
+      console.log('✅ useAddPlatToCommande - Cache invalidé et refetch forcé');
+
       toast({
         title: '✅ Article ajouté',
         description: 'La commande a été mise à jour.',
@@ -2020,15 +2045,15 @@ export const useUpdatePlatQuantite = () => {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async ({ 
-      detailId, 
-      quantite 
-    }: { 
-      detailId: number; 
+    mutationFn: async ({
+      detailId,
+      quantite
+    }: {
+      detailId: number;
       quantite: number;
     }): Promise<void> => {
       console.log('Modification quantité détail:', detailId, 'nouvelle quantité:', quantite);
-      
+
       const { error } = await supabase
         .from('details_commande_db')
         .update({ quantite_plat_commande: quantite })
@@ -2043,7 +2068,7 @@ export const useUpdatePlatQuantite = () => {
     },
     onSuccess: () => {
       // Invalider toutes les queries liées aux commandes
-      queryClient.invalidateQueries({ 
+      queryClient.invalidateQueries({
         predicate: (query) => {
           return query.queryKey[0] === 'commandes' || query.queryKey[0] === 'commande';
         }
@@ -2073,7 +2098,7 @@ export const useRemovePlatFromCommande = () => {
     mutationFn: async (detailId: number): Promise<void> => {
       console.log('🗑️ HOOK - Suppression plat détail ID:', detailId);
       console.log('🗑️ HOOK - Type de détail ID:', typeof detailId, detailId);
-      
+
       const { error } = await supabase
         .from('details_commande_db')
         .delete()
@@ -2088,7 +2113,7 @@ export const useRemovePlatFromCommande = () => {
     },
     onSuccess: () => {
       // Invalider toutes les queries liées aux commandes
-      queryClient.invalidateQueries({ 
+      queryClient.invalidateQueries({
         predicate: (query) => {
           return query.queryKey[0] === 'commandes' || query.queryKey[0] === 'commande';
         }
@@ -2120,7 +2145,7 @@ export const useExtras = () => {
     queryKey: ['extras'],
     queryFn: async (): Promise<ExtraUI[]> => {
       console.log('🔍 Récupération des extras depuis extras_db...');
-      
+
       const { data, error } = await supabase
         .from('extras_db')
         .select('*')
@@ -2135,9 +2160,10 @@ export const useExtras = () => {
       }
 
       // Mapper vers ExtraUI
-      const extras: ExtraUI[] = data?.map(extra => ({
+      const extras: ExtraUI[] = data?.map((extra: any) => ({
         ...extra,
-        id: extra.idextra
+        id: extra.idextra,
+        est_disponible: extra.actif ?? true // Mapper actif vers est_disponible pour compatibilité
       })) || [];
 
       console.log(`✅ ${extras.length} extras trouvés`);
@@ -2199,12 +2225,12 @@ export const useUpdateExtra = () => {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async ({ 
-      id, 
-      updates 
-    }: { 
-      id: number; 
-      updates: Partial<Omit<ExtraInputData, 'idextra' | 'created_at'>>; 
+    mutationFn: async ({
+      id,
+      updates
+    }: {
+      id: number;
+      updates: Partial<Omit<ExtraInputData, 'idextra' | 'created_at'>>;
     }): Promise<Extra> => {
       console.log('🔄 Mise à jour extra:', id, updates);
 
@@ -2261,9 +2287,9 @@ export const useDeleteExtra = () => {
       // Soft delete: marquer comme inactif au lieu de supprimer
       const { error } = await supabase
         .from('extras_db')
-        .update({ 
-          actif: false, 
-          updated_at: new Date().toISOString() 
+        .update({
+          actif: false,
+          updated_at: new Date().toISOString()
         })
         .eq('idextra', id);
 
@@ -2295,7 +2321,7 @@ export const useDeleteExtra = () => {
 };
 
 // 🆕 FONCTION UTILITAIRE : Sauvegarder un extra dans le catalogue extras_db
-const saveExtraToDatabase = async (nomExtra: string, prix: number): Promise<void> => {
+export const saveExtraToDatabase = async (nomExtra: string, prix: number): Promise<void> => {
   // Vérifier si l'extra existe déjà dans le catalogue
   const { data: existing, error: searchError } = await supabase
     .from('extras_db')

@@ -85,7 +85,6 @@ const getAvailableDays = (plat: Plat): { value: string; label: string }[] => {
 const Commander = memo(() => {
   const { toast } = useToast();
   const { plats, isLoading: dataIsLoading, error: dataError } = useData();
-  const { data: extras, isLoading: extrasLoading } = useExtras();
   const createCommande = useCreateCommande();
   const { currentUser } = useAuth();
   const {
@@ -284,50 +283,6 @@ const Commander = memo(() => {
     });
   };
 
-  // Fonction pour ajouter un extra au panier (depuis extras_db)
-  const handleAjouterExtraAuPanier = (extra: any, quantite: number = 1) => {
-    if (!extra.idextras || !extra.nom_extra || extra.prix === undefined) return;
-
-    // Vérifier qu'un jour, une date et une heure sont sélectionnés
-    if (!jourSelectionne || !dateRetrait || !heureRetrait) {
-      toast({
-        title: 'Informations requises',
-        description:
-          "Veuillez d'abord sélectionner un jour, une date et une heure de retrait.",
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    // Créer une date complète avec l'heure
-    const dateCompleteRetrait = new Date(dateRetrait);
-    const [heures, minutes] = heureRetrait.split(':');
-    dateCompleteRetrait.setHours(parseInt(heures), parseInt(minutes), 0, 0);
-
-    // Ajouter l'extra avec la quantité spécifiée
-    for (let i = 0; i < quantite; i++) {
-      ajouterAuPanier({
-        id: `extra-${extra.idextras}`,
-        nom: extra.nom_extra, // Utilise le nom depuis extras_db
-        prix: extra.prix ?? 0,
-        quantite: 1,
-        jourCommande: jourSelectionne,
-        dateRetrait: dateCompleteRetrait,
-        type: 'extra' // Marquer comme extra
-      });
-    }
-
-    setIsCartCollapsed(false); // Open cart on add
-
-    toast({
-      title: 'Extra ajouté !',
-      description: `${quantite} ${extra.nom_extra}${quantite > 1 ? 's' : ''} ajouté${quantite > 1 ? 's' : ''} à votre panier pour le ${format(
-        dateCompleteRetrait,
-        'eeee dd MMMM',
-        { locale: fr }
-      )} à ${heureRetrait}.`,
-    });
-  };
 
   const validerCommande = async () => {
     if (!currentUser || !clientFirebaseUID) {

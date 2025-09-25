@@ -87,3 +87,7 @@ nul
 # AI Configuration files (ne pas versionner)
 CLAUDE.md
 GEMINI.md
+
+
+#Ignore vscode AI rules
+.github\instructions\codacy.instructions.md
