@@ -6,11 +6,12 @@ export type Client = Database['public']['Tables']['client_db']['Row']
 export type Plat = Database['public']['Tables']['plats_db']['Row']
 export type Commande = Database['public']['Tables']['commande_db']['Row']
 export type DetailCommande = Database['public']['Tables']['details_commande_db']['Row'] & {
-  // Extensions pour les extras
+  // Extensions pour les extras et plats
   prix_unitaire?: number | null // Prix custom pour les extras
   nom_plat?: string | null // Nom custom pour les extras
   type?: 'plat' | 'extra' | null // Type pour distinguer plats vs extras
   extra?: Extra | null // Données de l'extra lié si applicable
+  plat?: Plat | null // Données du plat lié si applicable
 }
 export type Evenement = Database['public']['Tables']['evenements_db']['Row']
 export type Extra = Database['public']['Tables']['extras_db']['Row']

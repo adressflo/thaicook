@@ -249,6 +249,10 @@ const SuiviEvenement = memo(() => {
                           iddetails: index, // Utiliser l'index comme ID fictif
                           plat_r: plat.idplats,
                           quantite_plat_commande: 1, // Quantité par défaut pour les événements
+                          nom_plat: plat.plat || null,
+                          prix_unitaire: plat.prix || null,
+                          type: 'plat' as const,
+                          extra_id: null,
                           plat: {
                             idplats: plat.idplats,
                             plat: plat.plat,

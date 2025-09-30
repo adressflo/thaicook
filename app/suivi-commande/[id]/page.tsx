@@ -4,7 +4,7 @@ import React, { memo } from 'react';
 import { useParams, redirect } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
-import { useCommandeById, useExtras } from '@/hooks/useSupabaseData';
+import { useCommandeById, useExtras, useCommandesRealtime } from '@/hooks/useSupabaseData';
 import { useData } from '@/contexts/DataContext';
 import { extractRouteParam } from '@/lib/params-utils';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -27,7 +27,11 @@ const SuiviCommande = memo(() => {
   const params = useParams();
   const id = extractRouteParam(params?.id);
   const { currentUser, isLoadingAuth } = useAuth();
-  const { data: commande, isLoading: isLoadingCommande, error } = useCommandeById(id ? Number(id) : undefined);
+
+  // ✅ Activation Real-time Supabase pour synchronisation automatique
+  useCommandesRealtime();
+
+  const { data: commande, isLoading: isLoadingCommande, error } = useCommandeById(id ? Number(id) : undefined, currentUser?.uid);
   const { plats, isLoading: platsLoading } = useData();
   const { data: extras, isLoading: extrasLoading } = useExtras();
 

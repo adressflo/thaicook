@@ -70,7 +70,7 @@ const ModifierCommande = memo(() => {
     data: commande,
     isLoading: isLoadingCommande,
     error: commandeError,
-  } = useCommandeById(id ? Number(id) : undefined);
+  } = useCommandeById(id ? Number(id) : undefined, currentUser?.uid);
   const createCommande = useCreateCommande();
   const deleteCommande = useDeleteCommande();
   const { data: extras } = useExtras();

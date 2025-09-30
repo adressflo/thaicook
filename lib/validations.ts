@@ -48,6 +48,23 @@ export const clientUpdateSchema = clientProfileSchema.partial().extend({
   firebase_uid: z.string().min(1, "UID Firebase requis"),
 });
 
+// Schéma spécial pour création automatique de profils avec placeholders temporaires
+export const clientAutoCreateSchema = z.object({
+  firebase_uid: z.string().min(1, "UID Firebase requis"),
+  email: emailSchema,
+  nom: z.string()
+    .min(1, "Nom requis")
+    .max(100, "Nom trop long (max 100 caractères)"),
+  prenom: z.string()
+    .min(1, "Prénom requis")
+    .max(100, "Prénom trop long (max 100 caractères)"),
+  role: z.enum(['client', 'admin']).default('client'),
+  // Champs optionnels pour création automatique
+  telephone: phoneSchema,
+  adresse: z.string().max(500, "Adresse trop longue (max 500 caractères)").optional(),
+  date_de_naissance: dateSchema,
+});
+
 // ============================================
 // VALIDATION ÉVÉNEMENTS
 // ============================================
@@ -166,6 +183,7 @@ export const platSchema = z.object({
 
 export type ClientProfileInput = z.infer<typeof clientProfileSchema>;
 export type ClientUpdateInput = z.infer<typeof clientUpdateSchema>;
+export type ClientAutoCreateInput = z.infer<typeof clientAutoCreateSchema>;
 export type EvenementInput = z.infer<typeof evenementSchema>;
 export type EvenementUpdateInput = z.infer<typeof evenementUpdateSchema>;
 export type CommandeInput = z.infer<typeof commandeSchema>;
@@ -179,6 +197,10 @@ export type PlatInput = z.infer<typeof platSchema>;
 
 export const validateClientProfile = (data: unknown): ClientProfileInput => {
   return clientProfileSchema.parse(data);
+};
+
+export const validateClientAutoCreate = (data: unknown): ClientAutoCreateInput => {
+  return clientAutoCreateSchema.parse(data);
 };
 
 export const validateEvenement = (data: unknown): EvenementInput => {

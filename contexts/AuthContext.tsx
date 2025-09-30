@@ -1,12 +1,20 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { onAuthStateChanged, type User as FirebaseUser } from 'firebase/auth';
+import { onIdTokenChanged, type User as FirebaseUser } from 'firebase/auth';
 import { auth } from '../lib/firebaseConfig';
 import { supabase } from '../lib/supabase'; // AJOUT: Import de supabase
 // Utilisation des hooks Supabase
-import { useClient, useCreateClient } from '../hooks/useSupabaseData';
+import { useClient, useCreateClientAutomatic } from '../hooks/useSupabaseData';
 import type { ClientUI } from '../types/app'
+
+// Admin detection utility
+const isAdminUser = (email: string | null | undefined): boolean => {
+  if (!email) return false;
+  return email === 'fouquet_florian@hotmail.com' ||
+         email.includes('admin') ||
+         email === 'votre-email@example.com';
+};
 
 // 1. Définir la structure des données que le contexte va fournir
 interface AuthContextType {
@@ -40,123 +48,234 @@ interface AuthProviderProps {
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [currentUser, setCurrentUser] = useState<FirebaseUser | null>(null);
   const [isLoadingAuth, setIsLoadingAuth] = useState(true);
+  const [adminProfile, setAdminProfile] = useState<ClientUI | null>(null);
+  const [isLoadingAdminProfile, setIsLoadingAdminProfile] = useState(false);
 
-  // Ce hook récupère les données Supabase du client quand l'utilisateur Firebase est connu
-  const { 
-    data: currentUserProfile, 
-    isLoading: isLoadingUserRole, 
-    refetch: refetchClient 
-  } = useClient(currentUser?.uid);
+  // Check if current user is admin
+  const isCurrentUserAdmin = isAdminUser(currentUser?.email);
 
-  // Hook pour créer un client automatiquement
-  const createClientMutation = useCreateClient();
+  // For non-admin users: use authenticated client
+  // For admin users: skip authenticated client to avoid multiple GoTrueClient instances
+  const {
+    data: clientUserProfile,
+    isLoading: isLoadingClientUserRole,
+    refetch: refetchClient
+  } = useClient(!isCurrentUserAdmin ? currentUser?.uid : undefined);
 
-  // Met en place un "écouteur" qui réagit aux changements de connexion/déconnexion
+  // Hook pour créer un client automatiquement (optimisé pour placeholders)
+  const createClientMutation = useCreateClientAutomatic();
+
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      setCurrentUser(user);
-      
-      // IMPORTANT: Synchronisation Firebase + Supabase pour RLS
+    const unsubscribe = onIdTokenChanged(auth, async (user) => {
+      setIsLoadingAuth(true);
       if (user) {
         try {
-          // Obtenir le token Firebase
-          const idToken = await user.getIdToken();
-          console.log('✅ Utilisateur Firebase connecté:', user.email);
-          console.log('🔑 UID Firebase:', user.uid);
-          
-          // Synchroniser avec l'authentification Supabase pour RLS
-          const { error } = await supabase.auth.setSession({
-            access_token: idToken,
-            refresh_token: user.refreshToken || ''
-          });
-          
-          if (error) {
-            console.warn('⚠️ Erreur sync Supabase Auth:', error.message);
-            // Fallback: utiliser signInWithCustomToken
-            try {
-              const { error: signInError } = await supabase.auth.signInWithIdToken({
-                provider: 'firebase',
-                token: idToken
-              });
-              if (signInError) {
-                console.warn('⚠️ Erreur signInWithIdToken:', signInError.message);
-              } else {
-                console.log('✅ Auth Supabase synchronisée via IdToken');
-              }
-            } catch (fallbackError) {
-              console.warn('⚠️ Fallback auth échoué:', fallbackError);
+          // Récupérer le token Firebase pour les headers personnalisés
+          const token = await user.getIdToken();
+
+          // Synchronisation manuelle : on stocke le Firebase UID pour Supabase
+          // sans passer par l'auth Supabase qui ne supporte pas le provider 'firebase'
+          console.log('✅ Utilisateur Firebase authentifié:', user.email);
+          console.log('🔗 Firebase UID:', user.uid);
+
+          // Optionnel : Vérifier la connectivité Supabase
+          try {
+            const { data, error } = await supabase.from('client_db').select('firebase_uid').limit(1);
+            if (error && error.code !== 'PGRST116') {
+              console.warn('⚠️ Problème de connexion Supabase:', error.message);
+            } else {
+              console.log('✅ Connexion Supabase OK');
             }
-          } else {
-            console.log('✅ Auth Supabase synchronisée via setSession');
+          } catch (e) {
+            console.warn('⚠️ Test connexion Supabase échoué:', e);
           }
-          
-          // Vérifier la session Supabase
-          const { data: { session } } = await supabase.auth.getSession();
-          if (session) {
-            console.log('🔐 Session Supabase active:', session.user.id);
-          } else {
-            console.warn('⚠️ Aucune session Supabase active');
-          }
-          
-        } catch (error) {
-          console.error('❌ Erreur synchronisation Firebase + Supabase:', error);
+
+          setCurrentUser(user);
+        } catch (e) {
+          console.error('❌ Erreur lors de la récupération du token Firebase:', e);
+          setCurrentUser(user); // On garde l'utilisateur même si le token échoue
         }
       } else {
-        console.log('❌ Utilisateur Firebase déconnecté');
-        // Déconnecter Supabase aussi
-        await supabase.auth.signOut();
+        // User is signed out
+        console.log('👋 Utilisateur déconnecté de Firebase');
+        setCurrentUser(null);
       }
-      
       setIsLoadingAuth(false);
     });
-    // Nettoie l'écouteur quand le composant est retiré
+
     return unsubscribe;
   }, []);
 
+  // Fetch admin profile using global Supabase client when user is admin
+  useEffect(() => {
+    const fetchAdminProfile = async () => {
+      if (currentUser && isCurrentUserAdmin && !isLoadingAuth) {
+        setIsLoadingAdminProfile(true);
+        try {
+          const { data, error } = await supabase
+            .from('client_db')
+            .select('*')
+            .eq('firebase_uid', currentUser.uid)
+            .single();
+
+          if (error && error.code !== 'PGRST116') {
+            console.error('Erreur lors de la récupération du profil admin:', error);
+          } else if (data) {
+            setAdminProfile({
+              id: data.firebase_uid, // Utiliser firebase_uid comme id pour ClientUI
+              idclient: data.idclient,
+              firebase_uid: data.firebase_uid,
+              email: data.email,
+              nom: data.nom || '',
+              prenom: data.prenom || '',
+              numero_de_telephone: data.numero_de_telephone || '',
+              adresse_numero_et_rue: data.adresse_numero_et_rue || '',
+              date_de_naissance: data.date_de_naissance || '',
+              role: data.role as 'admin' | 'client',
+              code_postal: data.code_postal,
+              ville: data.ville,
+              preference_client: data.preference_client,
+              comment_avez_vous_connu: data.comment_avez_vous_connu,
+              souhaitez_vous_recevoir_actualites: data.souhaitez_vous_recevoir_actualites,
+              photo_client: data.photo_client
+            });
+          }
+        } catch (error) {
+          console.error('Erreur lors de la récupération du profil admin:', error);
+        } finally {
+          setIsLoadingAdminProfile(false);
+        }
+      } else if (!isCurrentUserAdmin) {
+        // Clear admin profile if user is not admin
+        setAdminProfile(null);
+        setIsLoadingAdminProfile(false);
+      }
+    };
+
+    fetchAdminProfile();
+  }, [currentUser, isCurrentUserAdmin, isLoadingAuth]);
+
   // Créer automatiquement le profil Supabase si l'utilisateur Firebase existe mais pas le profil
   useEffect(() => {
-    if (currentUser && !isLoadingUserRole && !currentUserProfile) {
+    const currentProfile = isCurrentUserAdmin ? adminProfile : clientUserProfile;
+    const isLoadingProfile = isCurrentUserAdmin ? isLoadingAdminProfile : isLoadingClientUserRole;
+
+    if (currentUser && !isLoadingProfile && !currentProfile && !isLoadingAuth) {
       // L'utilisateur Firebase existe mais pas son profil Supabase
       console.log('Création automatique du profil Supabase pour:', currentUser.email);
-      
-      // Créer un admin par défaut pour les premiers tests
-      const isFirstAdmin = currentUser.email?.includes('admin') || 
-                          currentUser.email === 'votre-email@example.com'; // Remplacez par votre email
-      
+
+      // ⚠️ ATTENTION : Création profil temporaire avec placeholders
+      // Ces données devront être complétées par l'utilisateur via le formulaire profil
       const clientData = {
         firebase_uid: currentUser.uid,
         email: currentUser.email || '',
-        nom: '',
-        prenom: '',
-        role: isFirstAdmin ? 'admin' : 'client'
+        nom: 'Temporaire', // Placeholder temporaire pour passer validation Zod
+        prenom: 'Temporaire', // Placeholder temporaire pour passer validation Zod
+        role: isCurrentUserAdmin ? 'admin' : 'client'
       };
-      
+
       console.log('Données client à créer:', clientData);
-      
+
       createClientMutation.mutate(clientData, {
         onError: (error) => {
           console.error('Erreur lors de la création automatique du profil:', error);
         },
         onSuccess: (data) => {
           console.log('Profil créé automatiquement avec succès:', data);
-          refetchClient();
+          if (isCurrentUserAdmin) {
+            // Refresh admin profile manually
+            setAdminProfile({
+              id: data.firebase_uid, // Utiliser firebase_uid comme id pour ClientUI
+              idclient: data.idclient,
+              firebase_uid: data.firebase_uid,
+              email: data.email,
+              nom: data.nom || '',
+              prenom: data.prenom || '',
+              numero_de_telephone: data.numero_de_telephone || '',
+              adresse_numero_et_rue: data.adresse_numero_et_rue || '',
+              date_de_naissance: data.date_de_naissance || '',
+              role: data.role as 'admin' | 'client',
+              code_postal: data.code_postal,
+              ville: data.ville,
+              preference_client: data.preference_client,
+              comment_avez_vous_connu: data.comment_avez_vous_connu,
+              souhaitez_vous_recevoir_actualites: data.souhaitez_vous_recevoir_actualites,
+              photo_client: data.photo_client
+            });
+          } else {
+            // Refresh client profile via hook
+            refetchClient();
+          }
         }
       });
     }
-  }, [currentUser, currentUserProfile, isLoadingUserRole, createClientMutation, refetchClient]);
+  }, [currentUser, adminProfile, clientUserProfile, isLoadingAdminProfile, isLoadingClientUserRole, isLoadingAuth, isCurrentUserAdmin, createClientMutation, refetchClient]);
+
+  // Determine current profile and loading state based on user type
+  const currentProfile = isCurrentUserAdmin ? adminProfile : clientUserProfile;
+  const isLoadingProfile = isCurrentUserAdmin ? isLoadingAdminProfile : isLoadingClientUserRole;
+
+  const refetchProfile = () => {
+    if (isCurrentUserAdmin) {
+      // For admin, trigger a manual refetch by clearing and refetching
+      const fetchAdminProfile = async () => {
+        if (currentUser) {
+          setIsLoadingAdminProfile(true);
+          try {
+            const { data, error } = await supabase
+              .from('client_db')
+              .select('*')
+              .eq('firebase_uid', currentUser.uid)
+              .single();
+
+            if (error && error.code !== 'PGRST116') {
+              console.error('Erreur lors de la récupération du profil admin:', error);
+            } else if (data) {
+              setAdminProfile({
+                id: data.firebase_uid, // Utiliser firebase_uid comme id pour ClientUI
+                idclient: data.idclient,
+                firebase_uid: data.firebase_uid,
+                email: data.email,
+                nom: data.nom || '',
+                prenom: data.prenom || '',
+                numero_de_telephone: data.numero_de_telephone || '',
+                adresse_numero_et_rue: data.adresse_numero_et_rue || '',
+                date_de_naissance: data.date_de_naissance || '',
+                role: data.role as 'admin' | 'client',
+                code_postal: data.code_postal,
+                ville: data.ville,
+                preference_client: data.preference_client,
+                comment_avez_vous_connu: data.comment_avez_vous_connu,
+                souhaitez_vous_recevoir_actualites: data.souhaitez_vous_recevoir_actualites,
+                photo_client: data.photo_client
+              });
+            }
+          } catch (error) {
+            console.error('Erreur lors de la récupération du profil admin:', error);
+          } finally {
+            setIsLoadingAdminProfile(false);
+          }
+        }
+      };
+      fetchAdminProfile();
+    } else {
+      // For clients, use the existing refetch function
+      refetchClient();
+    }
+  };
 
   const value = {
     currentUser,
-    currentUserProfile: currentUserProfile ? {
-      ...currentUserProfile,
-      id: currentUserProfile.firebase_uid
+    currentUserProfile: currentProfile ? {
+      ...currentProfile,
+      id: currentProfile.firebase_uid
     } : null,
-    currentUserRole: (currentUserProfile?.role === 'admin' || currentUserProfile?.role === 'client') 
-      ? currentUserProfile.role as 'admin' | 'client' 
+    currentUserRole: (currentProfile?.role === 'admin' || currentProfile?.role === 'client')
+      ? currentProfile.role as 'admin' | 'client'
       : null,
     isLoadingAuth,
-    isLoadingUserRole: isLoadingUserRole || createClientMutation.isPending,
-    refetchClient,
+    isLoadingUserRole: isLoadingProfile || createClientMutation.isPending,
+    refetchClient: refetchProfile,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

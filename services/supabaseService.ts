@@ -1,21 +1,16 @@
 // services/supabaseService.ts
-import { createClient } from '@supabase/supabase-js'
+import { supabase } from '@/lib/supabase' // ✅ Utilisation de l'instance Singleton
 import type { Database } from '@/types/supabase'
-import type { 
+import type {
   Client, ClientUI, ClientInputData,
-  Plat, PlatUI, 
+  Plat, PlatUI,
   Commande, CommandeUI, CommandeInputData,
   DetailCommande,
   Evenement, EvenementInputData
 } from '@/types/app'
 
-// Configuration Supabase
-const SUPABASE_URL = 'https://lkaiwnkyoztebplqoifc.supabase.co'
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxrYWl3bmt5b3p0ZWJwbHFvaWZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk3NzM1MTcsImV4cCI6MjA2NTM0OTUxN30.FicSTtfVzfXIEAPawUyHAGf6LeRiTr3OwF_FyG-YCaw'
-
-// Initialisation du client Supabase
-export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY)
+// ✅ PLUS BESOIN DE CRÉER UNE NOUVELLE INSTANCE
+// Utilisation de l'instance Singleton de lib/supabase.ts pour éviter Multiple GoTrueClient
 
 class SupabaseService {
   // ========== CLIENTS ==========

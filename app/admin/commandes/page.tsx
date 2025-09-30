@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import {
   Dialog,
@@ -53,6 +54,7 @@ import {
   Phone,
 } from 'lucide-react';
 import {
+  useCommandesAdmin,
   useCommandes,
   useUpdateCommande,
   useUpdatePlatQuantite,
@@ -62,6 +64,7 @@ import {
   useCommandeById,
   useExtras,
   useCreateExtra,
+  useCommandesRealtime,
 } from '@/hooks/useSupabaseData';
 import { useImageUpload } from '@/hooks/useImageUpload';
 import { format, isToday, isPast, isFuture } from 'date-fns';
@@ -956,6 +959,7 @@ const AddPlatModal = ({
         commandeId,
         platId,
         quantite,
+        type: 'plat',
       });
 
       toast({
@@ -1154,7 +1158,12 @@ export default function AdminCommandes() {
     commandeId: null,
   });
 
-  const { data: commandes, refetch } = useCommandes();
+  const { currentUser } = useAuth();
+
+  // ✅ Activation Real-time Supabase pour synchronisation automatique admin ↔ client
+  useCommandesRealtime();
+
+  const { data: commandes, refetch } = useCommandesAdmin();
   const updateCommandeMutation = useUpdateCommande();
   const { toast } = useToast();
 
@@ -1453,7 +1462,7 @@ export default function AdminCommandes() {
             >
               {filteredAndSortedCommandes
                 ?.filter(
-                  c => c.statut_commande === 'En attente de confirmation'
+                  c => c.statut_commande === 'En attente de confirmation' || !c.statut_commande
                 )
                 .sort((a, b) => {
                   const dateA = a.date_et_heure_de_retrait_souhaitees

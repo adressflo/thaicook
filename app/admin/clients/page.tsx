@@ -48,6 +48,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { ClientCombobox } from '@/components/admin/clients/ClientCombobox';
+import CreateClientModal from '@/components/admin/clients/CreateClientModal';
 
 const DATE_FORMAT_DB = 'yyyy-MM-dd';
 
@@ -536,7 +538,7 @@ const FicheClient = ({ client, commandes, onBack, router }: { client: ClientUI, 
                         </div>
                         <div className="text-right">
                           <div className="font-bold text-thai-orange">
-                            {(commande.details?.reduce((sum, d) => sum + ((d.plat?.prix || 0) * (d.quantite_plat_commande || 0)), 0) || 0).toFixed(2)}€
+                            {(commande.prix_total || 0).toFixed(2)}€
                           </div>
                         </div>
                       </div>
@@ -641,43 +643,28 @@ const FicheClient = ({ client, commandes, onBack, router }: { client: ClientUI, 
 
 // --- Composant Principal ---
 export default function AdminClients() {
-  const [searchTerm, setSearchTerm] = useState('');
   const [selectedClient, setSelectedClient] = useState<ClientUI | null>(null);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const router = useRouter();
   
   const { data: clients } = useClients();
   const { data: commandes } = useCommandes();
 
-  // Fonction pour obtenir les initiales comme dans FloatingUserIcon
-  const getInitials = (nom: string | null | undefined, prenom: string | null | undefined) => {
-    if (prenom) {
-      return prenom.charAt(0).toUpperCase()
-    }
-    if (!nom) return 'C'
-    return nom.split(' ').map(word => word[0]).join('').toUpperCase().slice(0, 2)
-  }
-
-  // Fonction pour obtenir le nom d'affichage comme dans FloatingUserIcon
-  const getDisplayName = (client: ClientUI) => {
-    return client.prenom && client.nom 
-      ? `${client.prenom} ${client.nom}`
-      : client.nom || client.email?.split('@')[0] || 'Client'
-  }
-
-  const filteredClients = useMemo(() => {
-    if (!clients) return [];
-    if (!searchTerm) return []; // Ne rien afficher si la recherche est vide
-    
-    const term = searchTerm.toLowerCase();
-    return clients.filter(client => 
-      client.nom?.toLowerCase().includes(term) ||
-      client.prenom?.toLowerCase().includes(term) ||
-      client.email?.toLowerCase().includes(term)
-    );
-  }, [clients, searchTerm]);
-
   const selectClient = (client: ClientUI) => {
     setSelectedClient(client);
+  };
+
+  const handleCreateNewClient = () => {
+    setIsCreateModalOpen(true);
+  };
+
+  const handleCloseCreateModal = () => {
+    setIsCreateModalOpen(false);
+  };
+
+  const handleClientCreated = (newClient: any) => {
+    console.log('Nouveau client créé:', newClient);
+    // Optionnel: rafraîchir la liste des clients ou sélectionner le nouveau client
   };
 
   if (selectedClient) {
@@ -693,216 +680,19 @@ export default function AdminClients() {
 
   return (
     <div className="space-y-6">
-      {/* Section Recherche Premium */}
-      <Card className="shadow-xl border-thai-orange/20 animate-in fade-in-0 hover:shadow-2xl transition-all duration-300 bg-white/95 backdrop-blur-sm">
-        <CardHeader className="bg-gradient-to-r from-thai-cream/30 to-white border-b border-thai-orange/10">
-          <CardTitle className="text-thai-green flex items-center gap-3">
-            <div className="p-2 bg-thai-orange/10 rounded-lg border border-thai-orange/20 shadow-sm">
-              <Search className="w-6 h-6 text-thai-orange" />
-            </div>
-            <div>
-              <span className="text-xl font-bold">Recherche Intelligente</span>
-              <p className="text-sm text-gray-600 font-normal mt-1">
-                Recherchez par nom, prénom, email ou ID client
-              </p>
-            </div>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-6">
-          <div className="relative group">
-            <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-thai-orange transition-all duration-200 group-hover:scale-110">
-              <Search className="w-5 h-5" />
-            </div>
-            <Input
-              placeholder="Taper le nom, prénom, email ou ID du client..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-12 pr-4 h-14 text-lg border-2 border-thai-orange/30 rounded-xl bg-white/50 backdrop-blur-sm focus:border-thai-orange focus:ring-2 focus:ring-thai-orange/30 focus:bg-white transition-all duration-300 hover:border-thai-orange/60"
-            />
-            {searchTerm && (
-              <button
-                onClick={() => setSearchTerm('')}
-                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-thai-red transition-colors duration-200 hover:scale-110"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            )}
-          </div>
-          
-          {/* Statistiques de recherche */}
-          <div className="mt-4 flex items-center justify-between text-sm">
-            <div className="flex items-center gap-4">
-              <span className="text-gray-600">
-                Total clients: <span className="font-bold text-thai-green">{clients?.length || 0}</span>
-              </span>
-              {searchTerm && (
-                <span className="text-thai-orange font-medium">
-                  Résultats trouvés: <span className="font-bold">{filteredClients.length}</span>
-                </span>
-              )}
-            </div>
-            {searchTerm && (
-              <div className="flex items-center gap-2 text-thai-orange">
-                <div className="w-2 h-2 bg-thai-orange rounded-full animate-pulse"></div>
-                Recherche active
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+      {/* Nouveau Combobox Unifié */}
+      <ClientCombobox
+        clients={clients}
+        onSelectClient={selectClient}
+        onCreateNewClient={handleCreateNewClient}
+      />
 
-      {/* Section Sélection Premium */}
-      <Card className="shadow-xl border-thai-green/20 animate-in fade-in-0 hover:shadow-2xl transition-all duration-300 bg-white/95 backdrop-blur-sm">
-        <CardHeader className="bg-gradient-to-r from-thai-green/5 to-thai-cream/20 border-b border-thai-green/10">
-          <CardTitle className="text-thai-green flex items-center gap-3">
-            <div className="p-2 bg-thai-green/10 rounded-lg border border-thai-green/20 shadow-sm">
-              <Users className="w-6 h-6 text-thai-green" />
-            </div>
-            <div>
-              <span className="text-xl font-bold">Sélection Rapide</span>
-              <p className="text-sm text-gray-600 font-normal mt-1">
-                Accès direct à tous les clients enregistrés
-              </p>
-            </div>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-6">
-          <Select onValueChange={(value) => {
-            const client = clients?.find(c => c.idclient.toString() === value);
-            if (client) selectClient(client);
-          }}>
-            <SelectTrigger className="w-full h-16 text-lg border-2 border-thai-green/30 rounded-xl bg-white/50 backdrop-blur-sm hover:border-thai-green hover:bg-white focus:border-thai-green focus:ring-2 focus:ring-thai-green/30 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg group">
-              <div className="flex items-center gap-3 w-full">
-                <div className="p-2 bg-thai-green/10 rounded-lg border border-thai-green/20 shadow-sm group-hover:bg-thai-green/20 transition-colors duration-200">
-                  <Users className="w-5 h-5 text-thai-green" />
-                </div>
-                <SelectValue placeholder="Choisir un client dans la liste complète..." />
-              </div>
-            </SelectTrigger>
-            <SelectContent className="bg-white/95 backdrop-blur-md border-2 border-thai-green/20 shadow-2xl rounded-xl overflow-hidden max-h-80">
-              {clients?.map((client) => (
-                <SelectItem 
-                  key={client.idclient} 
-                  value={client.idclient.toString()}
-                  className="hover:bg-thai-green/10 focus:bg-thai-green/10 transition-all duration-200 cursor-pointer py-3 px-4 my-1 mx-1 rounded-lg"
-                >
-                  <div className="flex items-center gap-3 w-full">
-                    {/* Avatar avec hover effect */}
-                    <div className="relative group-hover:scale-110 transition-transform duration-200">
-                      {client.photo_client ? (
-                        <img 
-                          src={client.photo_client} 
-                          alt={getDisplayName(client)}
-                          className="w-10 h-10 rounded-full object-cover border-2 border-thai-green/30 shadow-sm"
-                        />
-                      ) : (
-                        <div className="w-10 h-10 rounded-full flex items-center justify-center bg-thai-green text-white text-sm font-bold shadow-sm">
-                          {getInitials(client.nom, client.prenom)}
-                        </div>
-                      )}
-                      <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-thai-green rounded-full flex items-center justify-center shadow-sm">
-                        <User className="w-2 h-2 text-white" />
-                      </div>
-                    </div>
-                    
-                    {/* Informations client */}
-                    <div className="flex-1 min-w-0">
-                      <div className="font-semibold text-thai-green text-base truncate">
-                        {getDisplayName(client)}
-                      </div>
-                      {client.email && (
-                        <div className="text-gray-500 text-sm truncate">
-                          {client.email}
-                        </div>
-                      )}
-                      <div className="flex flex-col gap-1 mt-1 text-xs text-gray-500">
-                        {client.numero_de_telephone && (
-                          <div className="flex items-center gap-1.5">
-                            <Phone className="w-3 h-3 text-thai-green" />
-                            <span>{client.numero_de_telephone}</span>
-                          </div>
-                        )}
-                        {client.adresse_numero_et_rue && (
-                          <div className="flex items-center gap-1.5">
-                            <MapPin className="w-3 h-3 text-thai-green" />
-                            <span className="truncate">{client.adresse_numero_et_rue}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    
-                    {/* Indicateur de sélection */}
-                    <ChevronRight className="w-5 h-5 text-thai-green/50 group-hover:text-thai-green group-hover:translate-x-1 transition-all duration-200" />
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          
-          {/* Actions rapides */}
-          <div className="mt-4 flex items-center justify-between">
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <div className="w-2 h-2 bg-thai-green rounded-full"></div>
-              <span>Clients disponibles: {clients?.length || 0}</span>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => window.location.reload()}
-              className="border-thai-green text-thai-green hover:bg-thai-green hover:text-white transition-all duration-200 hover:scale-105"
-            >
-              <RefreshCw className="w-4 h-4 mr-2" />
-              Actualiser
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {searchTerm && (
-        <div className="space-y-2">
-          <h3 className="text-sm font-semibold text-gray-600">Résultats de la recherche ({filteredClients.length})</h3>
-          {filteredClients.length > 0 ? (
-            filteredClients.map(client => (
-              <Card 
-                key={client.idclient} 
-                className="hover:bg-thai-cream/50 cursor-pointer transition-colors"
-                onClick={() => selectClient(client)}
-              >
-                <CardContent className="p-3 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    {client.photo_client ? (
-                      <img 
-                        src={client.photo_client} 
-                        alt={getDisplayName(client)}
-                        className="w-10 h-10 rounded-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-10 h-10 rounded-full flex items-center justify-center bg-thai-orange text-white font-bold">
-                        {getInitials(client.nom, client.prenom)}
-                      </div>
-                    )}
-                    <div>
-                      <p className="font-semibold text-thai-green">{getDisplayName(client)}</p>
-                      <p className="text-sm text-gray-500">{client.email}</p>
-                    </div>
-                  </div>
-                  <ChevronRight className="w-5 h-5 text-gray-400" />
-                </CardContent>
-              </Card>
-            ))
-          ) : (
-            <p className="text-center text-gray-500 py-4">Aucun client ne correspond à votre recherche.</p>
-          )}
-        </div>
-      )}
-
-      {!searchTerm && (
-        <div className="text-center py-16 text-gray-500">
-          <Users className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-          <h2 className="text-xl font-medium">Commencez par rechercher un client</h2>
-          <p>Utilisez la barre de recherche ci-dessus pour trouver une fiche client.</p>
-        </div>
-      )}
+      {/* Modal de création de client */}
+      <CreateClientModal
+        isOpen={isCreateModalOpen}
+        onClose={handleCloseCreateModal}
+        onClientCreated={handleClientCreated}
+      />
     </div>
   );
 }

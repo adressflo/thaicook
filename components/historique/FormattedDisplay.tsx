@@ -223,25 +223,9 @@ export const DishList = React.memo<DishListProps>(({ details, formatPrix, extras
     <div className="flex flex-wrap gap-3 justify-center max-w-sm sm:max-w-md lg:max-w-lg mx-auto p-2">
       {details.map((detail, index) => {
         const isExtra = detail.type === 'extra';
-
-        // Logique améliorée de résolution des noms d'extras
-        let platName;
-        if (isExtra) {
-          // Architecture hybride: détecter et résoudre les extras
-          if (detail.plat_r && extras) {
-            // Récupérer le nom depuis extras_db avec plat_r
-            const extraData = extras.find((e: any) => e.idextra === detail.plat_r);
-            if (extraData?.nom_extra) {
-              platName = extraData.nom_extra;
-            } else {
-              platName = detail.nom_plat || 'Extra';
-            }
-          } else {
-            platName = detail.nom_plat || 'Extra';
-          }
-        } else {
-          platName = detail.plat?.plat || 'Plat supprimé';
-        }
+        const platName = isExtra
+          ? (detail.nom_plat || 'Extra')
+          : (detail.plat?.plat || 'Plat supprimé');
         const quantite = detail.quantite_plat_commande || 0;
         const displayName = quantite > 1 ? `${platName} (x${quantite})` : platName;
         const isDeleted = !isExtra && !detail.plat?.plat;

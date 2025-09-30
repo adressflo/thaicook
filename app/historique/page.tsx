@@ -7,6 +7,7 @@ import {
   useCommandesByClient,
   useEvenementsByClient,
   useExtras,
+  useCommandesRealtime,
 } from '@/hooks/useSupabaseData';
 import {
   Card,
@@ -43,6 +44,10 @@ type CommandeAvecDetails = CommandeUI;
 
 const HistoriquePage = memo(() => {
   const { currentUser } = useAuth();
+
+  // ✅ Activation Real-time Supabase pour synchronisation automatique
+  useCommandesRealtime();
+
   const {
     data: commandes,
     isLoading: isLoadingCommandes,
