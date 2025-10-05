@@ -1,0 +1,114 @@
+{
+  "timestamp": "2025-10-05",
+  "agent": "code-quality-specialist",
+  "project": "APPChanthana",
+  "tech_stack": "Next.js 15 + TypeScript 5 + React 19",
+  "analysis_duration": "15min",
+  "complexity": {
+    "large_functions": [
+      {
+        "file": "app/admin/commandes/page.tsx",
+        "lines": 3527,
+        "issue": "Mega file with multiple components",
+        "recommendation": "Split into components/ directory"
+      },
+      {
+        "file": "hooks/useSupabaseData.ts",
+        "lines": 2917,
+        "hooks_count": 34,
+        "operations": 31,
+        "issue": "God hook with all operations",
+        "recommendation": "Split into domain hooks"
+      }
+    ],
+    "large_files": [
+      {
+        "file": "app/admin/commandes/page.tsx",
+        "lines": 3527,
+        "severity": "critical"
+      },
+      {
+        "file": "hooks/useSupabaseData.ts",
+        "lines": 2917,
+        "severity": "critical"
+      },
+      {
+        "file": "app/admin/clients/[id]/orders/page.tsx",
+        "lines": 3210,
+        "severity": "critical"
+      }
+    ]
+  },
+  "duplications": {
+    "component_patterns": [
+      {
+        "pattern": "Price calculation with extras_db",
+        "occurrences": 4,
+        "locations": [
+          "useSupabaseData.ts:688",
+          "useSupabaseData.ts:821",
+          "useSupabaseData.ts:993"
+        ]
+      },
+      {
+        "pattern": "QueryClient invalidation",
+        "occurrences": 41,
+        "recommendation": "Create useInvalidateQueries hook"
+      }
+    ]
+  },
+  "anti_patterns": {
+    "large_components": [
+      {
+        "component": "AdminCommandesPage",
+        "lines": 3527
+      }
+    ],
+    "props_drilling": [
+      {
+        "issue": "toast prop through 4+ levels",
+        "occurrences": 12
+      }
+    ]
+  },
+  "typescript_issues": {
+    "any_usage": [
+      {
+        "total": 157,
+        "hot_spots": [
+          {
+            "file": "hooks/useSupabaseData.ts",
+            "occurrences": 45
+          },
+          {
+            "file": "app/admin/commandes/page.tsx",
+            "occurrences": 22
+          }
+        ]
+      }
+    ]
+  },
+  "technical_debt": {
+    "todos": 13,
+    "console_statements": 322
+  },
+  "recommendations": [
+    {
+      "priority": "CRITICAL",
+      "action": "Split useSupabaseData.ts into domain hooks",
+      "effort": "12-16 hours"
+    },
+    {
+      "priority": "HIGH",
+      "action": "Eliminate 157 any types",
+      "effort": "8-12 hours"
+    }
+  ],
+  "metrics": {
+    "total_files": 43,
+    "total_lines": 43182,
+    "any_types": 157,
+    "console_logs": 322,
+    "code_quality_score": "6.5/10"
+  }
+}

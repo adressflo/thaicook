@@ -1,0 +1,267 @@
+{
+  "playwright_config": {
+    "browsers": ["chromium", "firefox", "webkit"],
+    "base_url": "http://localhost:3001",
+    "timeout": 30000,
+    "parallel": true,
+    "retry_ci": 2,
+    "reporter": "html",
+    "web_server": {
+      "command": "npm run dev",
+      "url": "http://localhost:3001"
+    }
+  },
+  "existing_tests": {
+    "total_files": 1,
+    "test_cases": 1,
+    "categories": [
+      {
+        "category": "Navigation",
+        "test_file": "tests/order-funnel.e2e.spec.ts",
+        "test_count": 1,
+        "description": "Basic navigation through main pages (homepage, commander, events, about, location, profile)"
+      }
+    ],
+    "covered_pages": [
+      "/",
+      "/commander",
+      "/evenements",
+      "/a-propos",
+      "/nous-trouver",
+      "/profil"
+    ]
+  },
+  "coverage_analysis": {
+    "critical_flows": {
+      "authentication": {
+        "covered": false,
+        "missing_tests": [
+          "User signup with Firebase",
+          "User login with email/password",
+          "User logout",
+          "Profile auto-creation in Supabase after Firebase signup",
+          "Admin role detection via email pattern",
+          "Session persistence across page refresh"
+        ]
+      },
+      "ordering": {
+        "covered": false,
+        "missing_tests": [
+          "Add dish to cart",
+          "Add extras to dish",
+          "Remove item from cart",
+          "Update quantity in cart",
+          "Apply promo code",
+          "Validate cart and create order",
+          "View order confirmation",
+          "View order history"
+        ]
+      },
+      "admin": {
+        "covered": false,
+        "missing_tests": [
+          "Admin login and dashboard access",
+          "Create new dish with image upload",
+          "Update dish details and extras",
+          "Delete dish",
+          "View all orders",
+          "Update order status (pending -> preparing -> ready -> delivered)",
+          "Manage clients (view, edit, delete)",
+          "Create/edit events"
+        ]
+      },
+      "cart": {
+        "covered": false,
+        "missing_tests": [
+          "Add multiple items to cart",
+          "Persist cart across page refresh",
+          "Cart total calculation with extras",
+          "Empty cart action",
+          "Cart item counter update in header"
+        ]
+      },
+      "payment": {
+        "covered": false,
+        "missing_tests": [
+          "Checkout flow",
+          "Payment method selection",
+          "Payment confirmation"
+        ]
+      },
+      "real_time": {
+        "covered": false,
+        "missing_tests": [
+          "Order status updates in real-time (Supabase subscriptions)",
+          "New order notification for admin"
+        ]
+      }
+    },
+    "estimated_coverage": "3%",
+    "calculation": "1 navigation test covering 6 basic pages out of ~26 total routes with 4 critical user flows (auth, ordering, admin, cart) completely untested"
+  },
+  "priority_missing_tests": [
+    {
+      "name": "E2E: Complete order flow (guest user)",
+      "criticality": "high",
+      "reason": "Core business functionality - user must be able to order without account, add dishes/extras, validate cart, create order",
+      "steps": [
+        "Navigate to /commander",
+        "Add dish to cart with extras",
+        "Open cart modal",
+        "Validate cart",
+        "Fill guest info form",
+        "Create order",
+        "Verify order confirmation"
+      ]
+    },
+    {
+      "name": "E2E: User authentication flow",
+      "criticality": "high",
+      "reason": "Critical for returning users - Firebase login + Supabase profile sync required for order history",
+      "steps": [
+        "Navigate to /profil",
+        "Click login",
+        "Fill Firebase credentials",
+        "Verify Supabase profile created",
+        "Verify user data displayed",
+        "Logout"
+      ]
+    },
+    {
+      "name": "E2E: Admin order management",
+      "criticality": "high",
+      "reason": "Critical for restaurant operations - admin must process orders in real-time",
+      "steps": [
+        "Login as admin",
+        "Navigate to /admin/commandes",
+        "View pending orders",
+        "Update order status to 'preparing'",
+        "Update to 'ready'",
+        "Update to 'delivered'",
+        "Verify real-time updates"
+      ]
+    },
+    {
+      "name": "E2E: Cart persistence and total calculation",
+      "criticality": "high",
+      "reason": "User experience - cart must persist and calculate correct totals with extras pricing",
+      "steps": [
+        "Add 3 dishes with different extras",
+        "Verify cart total = sum(dish prices + extras prices)",
+        "Refresh page",
+        "Verify cart persisted (localStorage)",
+        "Remove 1 item",
+        "Verify total recalculated"
+      ]
+    },
+    {
+      "name": "E2E: Admin dish creation with image upload",
+      "criticality": "medium",
+      "reason": "Admin productivity - must be able to add menu items with photos",
+      "steps": [
+        "Login as admin",
+        "Navigate to /admin/plats",
+        "Click create dish",
+        "Fill form (name, description, price, category)",
+        "Upload image to Supabase storage (plats bucket)",
+        "Add extras",
+        "Save",
+        "Verify dish appears in menu"
+      ]
+    },
+    {
+      "name": "E2E: Event creation and display",
+      "criticality": "medium",
+      "reason": "Marketing feature - admin creates events visible to public",
+      "steps": [
+        "Login as admin",
+        "Navigate to /admin/evenements",
+        "Create new event with image",
+        "Set date and location",
+        "Publish",
+        "Logout",
+        "Navigate to /evenements",
+        "Verify event displayed for public"
+      ]
+    },
+    {
+      "name": "E2E: Profile update with image upload",
+      "criticality": "medium",
+      "reason": "User engagement - clients can customize profile",
+      "steps": [
+        "Login as client",
+        "Navigate to /profil",
+        "Update name, phone, address",
+        "Upload profile photo",
+        "Save",
+        "Refresh",
+        "Verify changes persisted"
+      ]
+    },
+    {
+      "name": "E2E: Order history view",
+      "criticality": "medium",
+      "reason": "User retention - clients can track past orders",
+      "steps": [
+        "Login as client with existing orders",
+        "Navigate to /profil",
+        "Click order history",
+        "Verify orders displayed with status",
+        "Click order details",
+        "Verify dishes and extras displayed correctly"
+      ]
+    },
+    {
+      "name": "E2E: Responsive mobile ordering",
+      "criticality": "medium",
+      "reason": "Mobile-first restaurant - majority of orders likely from mobile",
+      "steps": [
+        "Set viewport to iPhone 12 (390x844)",
+        "Navigate to /commander",
+        "Verify mobile menu displays correctly",
+        "Add items to cart (mobile drawer)",
+        "Complete order on mobile",
+        "Verify mobile-optimized forms"
+      ]
+    },
+    {
+      "name": "E2E: Admin client management",
+      "criticality": "low",
+      "reason": "Admin utility - manage customer database",
+      "steps": [
+        "Login as admin",
+        "Navigate to /admin/clients",
+        "Search for client by name",
+        "View client details",
+        "View client order history",
+        "Edit client info",
+        "Save changes"
+      ]
+    }
+  ],
+  "recommendations": [
+    "CRITICAL: Implement authentication E2E tests to prevent Firebase + Supabase sync regressions",
+    "CRITICAL: Add complete ordering flow test to catch cart/checkout bugs before production",
+    "HIGH: Test admin order management with real-time subscriptions to ensure Supabase realtime works",
+    "MEDIUM: Add mobile viewport tests since restaurant orders are typically mobile-heavy",
+    "MEDIUM: Test image upload flows (dishes, events, profiles) to prevent Supabase storage issues",
+    "LOW: Add visual regression testing with Playwright screenshots for UI consistency",
+    "Consider adding API tests for Supabase RLS policies once re-enabled (currently disabled)",
+    "Add test data fixtures for consistent E2E test results",
+    "Implement CI/CD pipeline to run E2E tests on every PR",
+    "Current coverage of 3% is extremely low for a production restaurant app - aim for >70% coverage of critical flows"
+  ],
+  "test_infrastructure_gaps": [
+    "No test data seeding scripts",
+    "No mock authentication for faster test execution",
+    "No visual regression testing setup",
+    "No performance testing (Lighthouse)",
+    "No accessibility testing (axe-core)",
+    "No API contract testing for Supabase endpoints"
+  ],
+  "estimated_test_development_time": {
+    "10_priority_tests": "20-30 hours",
+    "full_critical_coverage": "40-60 hours",
+    "complete_test_suite": "80-120 hours"
+  }
+}
