@@ -28,11 +28,16 @@ export type ExtraInputData = Database['public']['Tables']['extras_db']['Insert']
 
 // Type pour l'interface utilisateur des plats
 export interface PlatUI extends Plat {
-  id: number // Mappage de idplats vers id pour l'UI
-  nom_plat?: string // Alias pour `plat`
-  url_photo?: string // Alias pour `photo_du_plat`
-  disponible?: boolean // Calculé depuis les jours et est_epuise
-  categorie?: string // Catégorie du plat (plat principal, extra, etc.)
+  id: number; // Mappage de idplats vers id pour l'UI
+  idplats: number;
+  plat: string;
+  prix: number | null;
+  description: string | null;
+  photo_du_plat: string | null;
+  nom_plat?: string; // Alias pour `plat`
+  url_photo?: string; // Alias pour `photo_du_plat`
+  disponible?: boolean; // Calculé depuis les jours et est_epuise
+  categorie?: string; // Catégorie du plat (plat principal, extra, etc.)
 }
 
 // Type pour un plat dans le panier
@@ -88,8 +93,15 @@ export interface EvenementUI extends Evenement {
 
 // Type pour l'interface utilisateur des extras
 export interface ExtraUI extends Extra {
-  id: number // Mappage de idextra vers id pour l'UI
-  est_disponible?: boolean // Alias pour actif pour compatibilité avec les composants
+  id: number; // Mappage de idextra vers id pour l'UI
+  idextra: number;
+  nom_extra: string;
+  prix: number;
+  description: string | null;
+  photo_url: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+  est_disponible?: boolean; // Alias pour actif pour compatibilité avec les composants
 }
 
 // Type pour l'interface utilisateur des clients

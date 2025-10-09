@@ -40,9 +40,14 @@ function Calendar({
         ...classNames,
       }}
       components={{
-        IconLeft: ({ ...props }) => <ChevronLeft className="h-4 w-4" />,
-        IconRight: ({ ...props }) => <ChevronRight className="h-4 w-4" />,
-        Caption: ({ displayMonth }) => {
+        Chevron: ({ orientation, ...props }) => {
+          return orientation === 'left' ? (
+            <ChevronLeft className="h-4 w-4" {...props} />
+          ) : (
+            <ChevronRight className="h-4 w-4" {...props} />
+          )
+        },
+        Caption: ({ displayMonth }: { displayMonth: Date }) => {
           const months = [
             "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
             "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"

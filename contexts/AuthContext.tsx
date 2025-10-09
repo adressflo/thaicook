@@ -171,7 +171,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         email: currentUser.email || '',
         nom: 'Temporaire', // Placeholder temporaire pour passer validation Zod
         prenom: 'Temporaire', // Placeholder temporaire pour passer validation Zod
-        role: isCurrentUserAdmin ? 'admin' : 'client'
+        role: (isCurrentUserAdmin ? 'admin' : 'client') as 'admin' | 'client'
       };
 
       console.log('Données client à créer:', clientData);

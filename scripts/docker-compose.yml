@@ -1,0 +1,122 @@
+################################################################################
+# Stack Docker Simplifiée - Chanthana Thai Cook
+# Services: Traefik, n8n, Landing Page Coming Soon
+################################################################################
+
+networks:
+  traefik_network:
+    driver: bridge
+
+volumes:
+  traefik_certs:
+  n8n_data:
+
+services:
+  # ============================================================================
+  # TRAEFIK - Reverse Proxy avec Let's Encrypt SSL
+  # ============================================================================
+  traefik:
+    image: traefik:v3.0
+    container_name: traefik
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - traefik_network
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - TZ=Europe/Paris
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik/traefik.yml:/traefik.yml:ro
+      - ./traefik/config:/config:ro
+      - traefik_certs:/letsencrypt
+    labels:
+      - "traefik.enable=true"
+      # Dashboard Traefik (optionnel, décommenter si besoin)
+      # - "traefik.http.routers.traefik.rule=Host(`traefik.cthaicook.com`)"
+      # - "traefik.http.routers.traefik.entrypoints=websecure"
+      # - "traefik.http.routers.traefik.tls.certresolver=letsencrypt"
+      # - "traefik.http.routers.traefik.service=api@internal"
+
+  # ============================================================================
+  # N8N - Automation Platform (Official Image - Production Ready)
+  # ============================================================================
+  n8n:
+    image: docker.n8n.io/n8nio/n8n
+    container_name: n8n
+    restart: always
+    networks:
+      - traefik_network
+    environment:
+      # Configuration production
+      - NODE_ENV=production
+      - N8N_HOST=n8n.cthaicook.com
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=https
+      - WEBHOOK_URL=https://n8n.cthaicook.com/
+      - GENERIC_TIMEZONE=Europe/Paris
+      - TZ=Europe/Paris
+      # Runners pour meilleures performances
+      - N8N_RUNNERS_ENABLED=true
+      - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
+      # Désactiver la télémétrie
+      - N8N_DIAGNOSTICS_ENABLED=false
+      - N8N_VERSION_NOTIFICATIONS_ENABLED=false
+      - N8N_TEMPLATES_ENABLED=true
+      # Configuration base de données (SQLite par défaut)
+      - DB_TYPE=sqlite
+      - DB_SQLITE_VACUUM_ON_STARTUP=true
+      - DB_SQLITE_POOL_SIZE=3
+      # Licence Community Edition (débloque fonctionnalités bonus gratuites)
+      - N8N_LICENSE_ACTIVATION_KEY=63e5c659-fede-48e5-84b1-45eac7c4221f
+      # Trust proxy pour X-Forwarded-For headers depuis Traefik
+      - N8N_PROXY_HOPS=1
+      # Sécurité - Bloquer accès env dans Code Node (recommandé)
+      - N8N_BLOCK_ENV_ACCESS_IN_NODE=true
+      # Sécurité - Désactiver bare repos Git Node (recommandé)
+      - N8N_GIT_NODE_DISABLE_BARE_REPOS=true
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - ./local-files:/files
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.n8n.rule=Host(`n8n.cthaicook.com`)"
+      - "traefik.http.routers.n8n.entrypoints=web,websecure"
+      - "traefik.http.routers.n8n.tls=true"
+      - "traefik.http.routers.n8n.tls.certresolver=letsencrypt"
+      - "traefik.http.services.n8n.loadbalancer.server.port=5678"
+      # Security headers (PAS de Basic Auth - n8n a son propre système d'auth)
+      - "traefik.http.middlewares.n8n-headers.headers.SSLRedirect=true"
+      - "traefik.http.middlewares.n8n-headers.headers.STSSeconds=315360000"
+      - "traefik.http.middlewares.n8n-headers.headers.browserXSSFilter=true"
+      - "traefik.http.middlewares.n8n-headers.headers.contentTypeNosniff=true"
+      - "traefik.http.middlewares.n8n-headers.headers.forceSTSHeader=true"
+      - "traefik.http.middlewares.n8n-headers.headers.STSIncludeSubdomains=true"
+      - "traefik.http.middlewares.n8n-headers.headers.STSPreload=true"
+      - "traefik.http.routers.n8n.middlewares=n8n-headers"
+
+  # ============================================================================
+  # LANDING PAGE - Page "Coming Soon" avec Nginx
+  # ============================================================================
+  landing:
+    image: nginx:alpine
+    container_name: landing-page
+    restart: unless-stopped
+    networks:
+      - traefik_network
+    volumes:
+      - ./landing-page:/usr/share/nginx/html:ro
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.landing.rule=Host(`cthaicook.com`) || Host(`www.cthaicook.com`)"
+      - "traefik.http.routers.landing.entrypoints=websecure"
+      - "traefik.http.routers.landing.tls.certresolver=letsencrypt"
+      - "traefik.http.services.landing.loadbalancer.server.port=80"
+      # Redirection www vers domaine principal
+      - "traefik.http.middlewares.redirect-www.redirectregex.regex=^https://www\\.cthaicook\\.com/(.*)"
+      - "traefik.http.middlewares.redirect-www.redirectregex.replacement=https://cthaicook.com/$${1}"
+      - "traefik.http.routers.landing.middlewares=redirect-www"

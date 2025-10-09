@@ -1,7 +1,5 @@
 'use server'
 
-import { supabase } from '@/services/supabaseService'
-
 // Configuration ISR pour les données de menu
 export async function getPlatsWithISR() {
   const { data: plats, error } = await fetch(
