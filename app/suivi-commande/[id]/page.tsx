@@ -31,7 +31,7 @@ const SuiviCommande = memo(() => {
   // ✅ Activation Real-time Supabase pour synchronisation automatique
   useCommandesRealtime();
 
-  const { data: commande, isLoading: isLoadingCommande, error } = useCommandeById(id ? Number(id) : undefined, currentUser?.uid);
+  const { data: commande, isLoading: isLoadingCommande, error } = useCommandeById(id ? Number(id) : undefined, currentUser?.id);
   const { plats, isLoading: platsLoading } = useData();
   const { data: extras, isLoading: extrasLoading } = useExtras();
 
@@ -65,7 +65,7 @@ const SuiviCommande = memo(() => {
   }
 
   // Vérifie que l'utilisateur connecté est bien le propriétaire de la commande
-  if (currentUser?.uid !== commande.client_r) {
+  if (currentUser?.id !== commande.client_r) {
     redirect('/historique');
   }
 

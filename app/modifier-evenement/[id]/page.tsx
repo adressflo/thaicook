@@ -144,7 +144,7 @@ const ModifierEvenement = memo(() => {
     if (
       !isLoadingEvenement &&
       evenement &&
-      currentUser?.uid !== evenement.contact_client_r
+      currentUser?.id !== evenement.contact_client_r
     ) {
       router.replace('/historique');
     }

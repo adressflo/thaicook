@@ -1,6 +1,129 @@
 ### 🎯 Plan d'Amélioration Stratégique : ChanthanaThaiCook
 Notre feuille de route pour faire évoluer l'expérience ChanthanaThaiCook. Ce document est notre espace de collaboration pour construire l'avenir de l'application.
 
+### 🔧 Phase 0 : Infrastructure et Outils Modernes (Préparatoire)
+**Préparation des fondations techniques avec 13 outils octobre 2025**
+**1️⃣ Prisma ORM - Migration Base de Données**
+✅ **Infrastructure complétée** (2025-10-12)
+- [x] Schéma Prisma généré avec 26 modèles depuis Supabase
+- [x] Types TypeScript auto-générés et BigInt corrigés
+- [x] Hooks Prisma créés : `hooks/usePrismaData.ts` (13 hooks)
+- [x] Tests CRUD validés : `npm run prisma:test` (18 tests ✅)
+
+❌ **Migration application restante**
+- [ ] Remplacer imports dans les composants (app/profil, app/commander, etc.)
+- [ ] Migrer hooks événements manquants (useCreateEvenement, useUpdateEvenement)
+- [ ] Migrer hooks extras (useExtras, useCreateExtra, useUpdateExtra)
+- [ ] Tester pages modifiées (E2E Playwright)
+- [ ] Supprimer `hooks/useSupabaseData.ts` après migration complète
+
+📊 **Statut : Infrastructure 100% ✅ | Application 0% ❌ | Global ~30%**
+📖 **Doc :** `documentation/prisma-migration.md`
+
+**2️⃣ n8n - Préparation Intégrations**
+✅ **Déjà hébergé sur serveur Hetzner** (pas d'installation requise)
+
+**Configuration initiale :**
+- [ ] Vérifier instance n8n opérationnelle et accessible
+- [ ] Configurer webhooks entrants depuis Next.js
+- [ ] Tester connexion Next.js → n8n (ping/pong simple)
+
+**Intégrations tierces à préparer :**
+- [ ] **Brevo/SendGrid** : Compte + API key pour emails transactionnels
+- [ ] **Telegram Bot** : Création bot + token pour notifications admin
+- [ ] **WhatsApp Business API** : Vérification compte + configuration
+- [ ] **Twilio/Vonage** : Évaluation coût SMS (optionnel)
+
+📋 **Note :** Les workflows détaillés seront définis dans la section dédiée **§IV. n8n Workflows** en analysant page par page les besoins spécifiques.
+
+**3️⃣ React Email - Templates Professionnels**
+- [x] Installation et configuration de base (`react-email`, `resend`)
+- [x] Création du dossier `emails` et du template de bienvenue
+- [ ] Créer les templates transactionnels (détaillés dans la nouvelle section V)
+- [ ] Intégrer l'envoi dans l'application via des Server Actions
+- [ ] Configurer la clé API Resend dans le fichier `.env.local`
+- [ ] Tester l'envoi des emails (simulé et réel)
+- [ ] Tests visuels sur différents clients email
+
+**4️⃣ Next Safe Action - Server Actions Sécurisés**
+- [x] Installation de la bibliothèque `next-safe-action`
+- [x] Création du client d'action public dans `lib/safe-action.ts`
+- [ ] Création du middleware d'authentification (sera fait après l'installation de **5️⃣ Better Auth**)
+- [ ] Valider l'installation avec une action de test
+- [ ] Migration de toutes les autres Server Actions
+- [ ] Création des schémas de validation Zod pour chaque action
+- [ ] Gestion d'erreurs unifiée pour les retours d'action
+- [ ] Tests unitaires des actions critiques
+
+**5️⃣ Better Auth  - Authentication Moderne TypeScript**
+- [ ] Installation et configuration initiale (MIT License, gratuit)
+- [ ] Migration progressive depuis Firebase Auth (compatible hybrid)
+- [ ] Setup type-safe authentication avec schémas TypeScript
+- [ ] Configuration 2FA et passkeys pour sécurité renforcée
+- [ ] Tests authentification et gestion sessions
+
+**6️⃣ nuqs - URL State Management Type-Safe**
+- [ ] Installation de la bibliothèque nuqs (NPM, gratuit)
+- [ ] Implémentation filtres menu avec query params typés
+- [ ] Migration pagination historique vers nuqs
+- [ ] Setup recherche clients avec URL state sync
+- [ ] Tests navigation et bookmarking d'états filtrés
+
+**7️⃣ next-intl - Internationalization App Router**
+- [ ] Configuration routing multilingue (fr/th/en)
+- [ ] Structure répertoires locales et fichiers traductions
+- [ ] Migration textes UI vers système i18n type-safe
+- [ ] Traduction contenu statique (menu, événements)
+- [ ] Tests changement langue et SSR multilingue
+
+**8️⃣ react-pdf - Génération Documents PDF**
+- [ ] Installation react-pdf et configuration (NPM, gratuit)
+- [ ] Création template facture commande (design Thai)
+- [ ] Création template devis événement professionnel
+- [ ] Génération tickets de caisse pour impression
+- [ ] Tests PDF sur différents appareils et navigateurs
+
+**9️⃣ Vitest - Tests Unitaires Modernes**
+- [ ] Installation : `npm install -D vitest @testing-library/react @testing-library/jest-dom`
+- [ ] Configuration vitest.config.ts avec support React + TypeScript
+- [ ] Scripts tests unitaires pour hooks (useSupabaseData, useAuth)
+- [ ] Tests validation Zod et fonctions utilitaires
+- [ ] Intégration CI/CD pour exécution automatique tests
+
+**🔟 Upload Fichiers Native - Stockage Local Hetzner**
+- [ ] Création Server Action pour upload avec FormData Next.js 15
+- [ ] Configuration dossier `/public/uploads` (80GB disque local)
+- [ ] Validation fichiers : taille max, types MIME autorisés (images)
+- [ ] Implémentation `fs/promises.writeFile()` pour stockage
+- [ ] Tests upload photos plats, événements, avatars
+
+**1️⃣1️⃣ Stack PLG - Monitoring Infrastructure & Logs**
+- [ ] Installation Prometheus via image pré-configurée Hetzner Cloud
+- [ ] Configuration node_exporter pour métriques serveur (CPU, RAM, Disk, Network)
+- [ ] Installation Loki pour centralisation logs application Next.js
+- [ ] Setup Grafana + connexion sources (Prometheus + Loki)
+- [ ] Import dashboards communautaires (Hetzner Server + Next.js App)
+- [ ] Configuration alertes automatiques (CPU > 80%, RAM > 90%, Disk > 85%)
+- [ ] Tests corrélation métriques serveur ↔ logs application
+
+**1️⃣2️⃣ GlitchTip - Monitoring Erreurs Application**
+- [ ] Setup Docker Compose (PostgreSQL + Redis + GlitchTip)
+- [ ] Configuration sous-domaine monitoring.chanthana.com
+- [ ] Installation SDK `@sentry/nextjs` dans projet
+- [ ] Configuration DSN pointant vers GlitchTip self-hosted
+- [ ] Intégration error boundaries avec envoi automatique erreurs
+- [ ] Configuration alertes email pour erreurs critiques
+- [ ] Tests capture erreurs (client-side + server-side)
+
+**1️⃣3️⃣ UptimeRobot - Monitoring Disponibilité Externe**
+- [ ] Création compte gratuit UptimeRobot (50 monitors inclus)
+- [ ] Configuration monitors : homepage, /api/health, /admin, /commander
+- [ ] Setup alertes email + SMS optionnel si site down
+- [ ] Configuration interval checks (5 minutes)
+- [ ] Tests notifications downtime et recovery
+
+---
+
 ### 🚀 Phase 1 : Fondations et Expérience Globale
 **📱 Vers une Expérience Native : PWA &amp; Notifications**
 - [ ] Fondations PWA : Mettre en place les bases de la Progressive Web App (Service Worker, Manifest) pour rendre l'application installable.
@@ -163,5 +286,84 @@ Notre feuille de route pour faire évoluer l'expérience ChanthanaThaiCook. Ce d
 - [ ] Formulaire de création : Développer un formulaire pour saisir les informations du client (prénom, nom, email, téléphone, etc.).
 - [ ] Validation et Enregistrement : Valider les données et créer le nouveau client dans la base de données.
 
-### 📚 IV. Autres Pages
+### 🤖 IV. n8n Workflows - Automatisations par Page
+*Cette section définit les workflows n8n spécifiques à créer en analysant les besoins de chaque page. Les workflows seront complétés au fur et à mesure de l'analyse détaillée.*
+
+**Architecture générale :**
+```
+Next.js App → Webhook POST → n8n → Fan-out multicanal
+                                   ├── SMS/WhatsApp
+                                   ├── Email (Brevo/SendGrid)
+                                   ├── Telegram Bot
+                                   └── Server Action (PDF, etc.)
+```
+
+#### 📦 A. Workflows Commandes (/commander, /panier, /suivi-commande)
+*À définir lors de l'analyse détaillée des pages commandes*
+
+**Besoins identifiés :**
+- [ ] Notification changement statut (Confirmée → En préparation → Prête → Récupérée)
+- [ ] Génération + envoi facture automatique (statut "Récupérée")
+- [ ] Notification retard personnalisée (admin → client)
+- [ ] Demande avis post-commande (1h après "Récupérée")
+- [ ] Notification modification commande (client → admin)
+
+#### 🎉 B. Workflows Événements (/evenements, /suivi-evenement)
+*À définir lors de l'analyse détaillée des pages événements*
+
+**Besoins identifiés :**
+- [ ] Confirmation réception demande (automatique)
+- [ ] Notification envoi devis (admin → client)
+- [ ] Rappel 48h avant événement (SMS + Email)
+- [ ] Rappel 24h avant événement (WhatsApp)
+- [ ] Message remerciement 24h après événement
+- [ ] Relance paiement solde si nécessaire
+
+#### 👤 C. Workflows Profil & Clients (/profil, /admin/clients)
+*À définir lors de l'analyse détaillée*
+
+**Besoins identifiés :**
+- [ ] Message anniversaire automatique (cron quotidien)
+- [ ] Newsletter actualités/offres (manuel ou programmé)
+- [ ] Confirmation modification email/téléphone
+
+#### 🍜 D. Workflows Gestion Menu (/admin/plats)
+*À définir lors de l'analyse détaillée*
+
+**Besoins identifiés :**
+- [ ] Alerte stock faible (webhook depuis Prisma)
+- [ ] Notification plat épuisé vers clients ayant commandé récemment
+
+#### 📊 E. Workflows Admin Généraux (/admin/*)
+*À définir lors de l'analyse détaillée*
+
+**Besoins identifiés :**
+- [ ] Impression automatique tickets de caisse (commande "Confirmée")
+- [ ] Résumé quotidien commandes/événements (cron 8h30)
+- [ ] Alertes anomalies (commandes sans client, doublons, etc.)
+
+---
+
+### 📧 V. React Email - Templates
+*Cette section détaille les templates d'emails à créer.*
+
+**Emails de Commande**
+- [ ] **Confirmation de Commande** : Récapitulatif complet, heure de retrait, QR code.
+- [ ] **Commande Prête** : Notification simple et directe.
+- [ ] **Mise à jour Commande** : Détail des modifications (articles, prix, heure).
+- [ ] **Annulation Commande** : Confirmation de l'annulation.
+
+**Emails d'Événement**
+- [ ] **Confirmation de Demande** : Accusé de réception de la demande de devis.
+- [ ] **Envoi du Devis** : Lien vers le devis PDF, instructions pour la validation.
+- [ ] **Confirmation d'Événement** : Récapitulatif final après acceptation du devis.
+- [ ] **Rappel d'Événement** : Rappel 24h ou 48h avant.
+
+**Emails de Compte Client**
+- [x] **Bienvenue** : Le template `ChanthanaWelcomeEmail.tsx` déjà créé.
+- [ ] **Réinitialisation Mot de Passe** : Lien sécurisé pour la réinitialisation.
+
+---
+
+### 📚 VI. Autres Pages
 *Cette section sera complétée au fur et à mesure de notre analyse.*

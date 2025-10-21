@@ -53,7 +53,7 @@ const SuiviEvenement = memo(() => {
   }
 
   // Vérifie que l'utilisateur connecté est bien le propriétaire de l'événement
-  if (currentUser?.uid !== evenement.contact_client_r) {
+  if (currentUser?.id !== evenement.contact_client_r) {
     redirect('/historique');
   }
 

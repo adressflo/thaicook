@@ -6,7 +6,7 @@ import { useClient } from '@/hooks/useSupabaseData';
 // Hook pour vérifier les permissions
 export const usePermissions = () => {
   const { currentUser, currentUserProfile } = useAuth();
-  const { data: clientProfile } = useClient(currentUser?.uid);
+  const { data: clientProfile } = useClient(currentUser?.id);
 
   const profile = clientProfile || currentUserProfile;
 
