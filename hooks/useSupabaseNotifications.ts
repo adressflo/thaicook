@@ -40,7 +40,7 @@ export const useSupabaseNotifications = () => {
       // const { data, error } = await supabase
       //   .from('notifications')
       //   .select('*')
-      //   .eq('user_id', currentUser.uid)
+      //   .eq('user_id', currentUser.id)
       //   .order('created_at', { ascending: false });
 
       // if (error) {
@@ -90,7 +90,7 @@ export const useSupabaseNotifications = () => {
       // const { error } = await supabase
       //   .from('notifications')
       //   .insert({
-      //     user_id: currentUser.uid,
+      //     user_id: currentUser.id,
       //     type: notification.type,
       //     title: notification.title,
       //     message: notification.message,
@@ -147,13 +147,13 @@ export const useSupabaseNotifications = () => {
 
     // TODO: Implémenter les subscriptions Supabase en temps réel
     // const subscription = supabase
-    //   .channel(`notifications:user_id=eq.${currentUser.uid}`)
+    //   .channel(`notifications:user_id=eq.${currentUser.id}`)
     //   .on('postgres_changes', 
     //     { 
     //       event: 'INSERT', 
     //       schema: 'public', 
     //       table: 'notifications',
-    //       filter: `user_id=eq.${currentUser.uid}`
+    //       filter: `user_id=eq.${currentUser.id}`
     //     }, 
     //     (payload) => {
     //       const newNotification = payload.new as SupabaseNotification;

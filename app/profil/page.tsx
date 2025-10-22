@@ -38,12 +38,7 @@ import {
 import { format, parse, isValid as isValidDate, startOfDay } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
-import { auth } from '@/lib/firebaseConfig';
-import {
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  signOut,
-} from 'firebase/auth';
+import { authClient } from '@/lib/auth-client';
 import ReactCrop, {
   type Crop,
   centerCrop,
@@ -112,7 +107,7 @@ const Profil = memo(() => {
 
   const createClientMutation = useCreateClient();
   const updateClientMutation = useUpdateClient();
-  
+
   // ✅ GESTION ERREURS DE VALIDATION ZOD
   const { validationError, setValidationError, clearValidationError, handleValidationError } = useValidationErrors();
 
@@ -120,14 +115,14 @@ const Profil = memo(() => {
   const [password, setPassword] = useState('');
   // États d'authentification
   const [authError, setAuthError] = useState<string | null>(null);
-  
+
   // États du profil
   const [profileEmail, setProfileEmail] = useState('');
   const [isEditingEmail, setIsEditingEmail] = useState(false);
   const [isLoadingProfile, setIsLoadingProfile] = useState(false);
   const [birthDate, setBirthDate] = useState<Date | undefined>();
   const [formData, setFormData] = useState<FormDataState>(initialFormData);
-  
+
   // États de la photo
   const defaultProfilePhoto = '/logo.ico';
   const [profilePhotoPreview, setProfilePhotoPreview] = useState<string>(defaultProfilePhoto);
@@ -181,9 +176,24 @@ const Profil = memo(() => {
     setAuthError(null);
     try {
       if (action === 'signup') {
-        await createUserWithEmailAndPassword(auth, loginEmail, password);
+        const result = await authClient.signUp.email({
+          email: loginEmail,
+          password: password,
+          name: 'Nouvel utilisateur', // Sera mis à jour dans le profil
+        });
+
+        if (result.error) {
+          throw new Error(result.error.message);
+        }
       } else {
-        await signInWithEmailAndPassword(auth, loginEmail, password);
+        const result = await authClient.signIn.email({
+          email: loginEmail,
+          password: password,
+        });
+
+        if (result.error) {
+          throw new Error(result.error.message);
+        }
       }
       toast({ title: action === 'signup' ? 'Compte créé !' : 'Connecté !' });
     } catch (error: unknown) {
@@ -201,7 +211,7 @@ const Profil = memo(() => {
 
   const handleLogout = async () => {
     try {
-      await signOut(auth);
+      await authClient.signOut();
       toast({ title: 'Déconnexion réussie' });
     } catch (error) {
       toast({
@@ -288,13 +298,13 @@ const Profil = memo(() => {
       const croppedFile = await getCroppedImg(
         imgCropRef.current,
         crop,
-        `profile-${currentUser.uid}.jpg`
+        `profile-${currentUser.id}.jpg`
       );
 
       // Uploader vers Supabase
       const uploadResult = await uploadProfilePhoto(
         croppedFile,
-        currentUser.uid
+        currentUser.id
       );
 
       if (uploadResult.success && uploadResult.url) {
@@ -305,7 +315,7 @@ const Profil = memo(() => {
 
         if (currentUserProfile) {
           await updateClientMutation.mutateAsync({
-            firebase_uid: currentUser.uid,
+            firebase_uid: currentUser.id,
             data: dataToUpdate,
           });
         }
@@ -342,7 +352,7 @@ const Profil = memo(() => {
     setIsUploadingPhoto(true);
     try {
       // Supprimer de Supabase Storage
-      const deleteSuccess = await deleteProfilePhoto(currentUser.uid);
+      const deleteSuccess = await deleteProfilePhoto(currentUser.id);
 
       if (deleteSuccess) {
         // Mettre à jour le profil en supprimant l'URL de la photo
@@ -351,7 +361,7 @@ const Profil = memo(() => {
         };
 
         await updateClientMutation.mutateAsync({
-          firebase_uid: currentUser.uid,
+          firebase_uid: currentUser.id,
           data: dataToUpdate,
         });
 
@@ -387,7 +397,7 @@ const Profil = memo(() => {
 
   const handleSubmitProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!currentUser?.email) return;
+    if (!currentUser || !currentUser.email) return;
 
     // Adaptation pour Supabase
     const dataToSave: Partial<ClientInputData> = {
@@ -401,7 +411,7 @@ const Profil = memo(() => {
         ? parseInt(formData.codePostal)
         : null,
       ville: formData.ville || null,
-      comment_avez_vous_connu: formData.commentConnuChanthana.length > 0 ? 
+      comment_avez_vous_connu: formData.commentConnuChanthana.length > 0 ?
         formData.commentConnuChanthana.filter(item =>
           [
             'Bouche à oreille',
@@ -433,13 +443,24 @@ const Profil = memo(() => {
     setIsLoadingProfile(true);
     try {
       if (currentUserProfile) {
+        if (!currentUser) return;
         await updateClientMutation.mutateAsync({
-          firebase_uid: currentUser.uid,
+          firebase_uid: currentUser.id,
           data: dataToSave,
         });
         toast({ title: 'Profil mis à jour !' });
       } else {
-        await createClientMutation.mutateAsync(dataToSave);
+        // Créer un nouveau profil avec firebase_uid obligatoire
+        if (!currentUser) return;
+        const completeData = {
+          firebase_uid: currentUser.id,
+          email: profileEmail || currentUser.email || '',
+          nom: formData.nom || 'Temporaire',
+          prenom: formData.prenom || 'Temporaire',
+          role: 'client' as const,
+          ...dataToSave, // Ajouter les autres champs optionnels
+        };
+        await createClientMutation.mutateAsync(completeData);
         toast({ title: 'Profil sauvegardé !' });
       }
       refetchClient();
@@ -1101,7 +1122,7 @@ const Profil = memo(() => {
             )}
           </CardContent>
         </Card>
-        
+
         {/* FloatingUserIcon ajouté pour navigation universelle */}
         <FloatingUserIcon />
       </div>

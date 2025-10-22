@@ -44,12 +44,12 @@ const SuiviPage = memo(() => {
     data: commandes,
     isLoading: isLoadingCommandes,
     error,
-  } = useCommandesByClient(currentUser?.uid);
+  } = useCommandesByClient(currentUser?.id);
   const {
     data: evenements,
     isLoading: isLoadingEvenements,
     error: errorEvenements,
-  } = useEvenementsByClient(currentUser?.uid);
+  } = useEvenementsByClient(currentUser?.id);
 
   // Fonctions optimisées avec memoization
   const formatPrix = useCallback((prix: number): string => {

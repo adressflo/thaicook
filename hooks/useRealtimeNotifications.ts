@@ -21,9 +21,9 @@ export const useRealtimeNotifications = () => {
           schema: 'public',
           table: 'commande_db',
         },
-        (payload) => {
+        (payload: { new: { idcommande: number } }) => {
           console.log('Nouvelle commande détectée:', payload);
-          
+
           // Éviter les notifications en rafale
           const now = Date.now();
           if (now - lastNotificationTime.current > 5000) { // 5 secondes minimum entre notifications
@@ -34,7 +34,7 @@ export const useRealtimeNotifications = () => {
             });
             lastNotificationTime.current = now;
           }
-          
+
           // Invalider les caches pour refresh automatique
           queryClient.invalidateQueries({ queryKey: ['commandes'] });
           queryClient.invalidateQueries({ queryKey: ['commandes-stats'] });
@@ -47,13 +47,13 @@ export const useRealtimeNotifications = () => {
           schema: 'public',
           table: 'commande_db',
         },
-        (payload) => {
+        (payload: { old?: { statut_commande?: string }; new: { idcommande: number; statut_commande?: string } }) => {
           console.log('Commande mise à jour:', payload);
-          
+
           // Notification seulement pour les changements de statut importants
           const oldStatus = payload.old?.statut_commande;
           const newStatus = payload.new?.statut_commande;
-          
+
           if (oldStatus !== newStatus && newStatus === 'Confirmée') {
             toast({
               title: "✅ Commande confirmée",
@@ -61,7 +61,7 @@ export const useRealtimeNotifications = () => {
               duration: 3000,
             });
           }
-          
+
           // Invalider les caches
           queryClient.invalidateQueries({ queryKey: ['commandes'] });
           queryClient.invalidateQueries({ queryKey: ['commande', payload.new.idcommande] });
@@ -80,9 +80,9 @@ export const useRealtimeNotifications = () => {
           schema: 'public',
           table: 'evenements_db',
         },
-        (payload) => {
+        (payload: { new: { nom_evenement: string } }) => {
           console.log('Nouvel événement détecté:', payload);
-          
+
           const now = Date.now();
           if (now - lastNotificationTime.current > 5000) {
             toast({
@@ -92,7 +92,7 @@ export const useRealtimeNotifications = () => {
             });
             lastNotificationTime.current = now;
           }
-          
+
           queryClient.invalidateQueries({ queryKey: ['evenements'] });
         }
       )

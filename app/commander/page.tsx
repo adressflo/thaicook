@@ -98,7 +98,7 @@ const Commander = memo(() => {
   const isMobile = useIsMobile();
   const platsSectionRef = useRef<HTMLDivElement>(null);
 
-  const clientFirebaseUID = currentUser?.uid;
+  const clientFirebaseUID = currentUser?.id;
 
   // États pour la sidebar mobile
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -316,7 +316,7 @@ const Commander = memo(() => {
         if (!dateKey) continue;
 
         await createCommande.mutateAsync({
-          client_r: currentUser.uid,
+          client_r: currentUser.id,
           date_et_heure_de_retrait_souhaitees: dateKey,
           demande_special_pour_la_commande: demandesSpeciales,
           details: items.map(item => ({

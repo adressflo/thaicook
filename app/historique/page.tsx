@@ -52,12 +52,12 @@ const HistoriquePage = memo(() => {
     data: commandes,
     isLoading: isLoadingCommandes,
     error,
-  } = useCommandesByClient(currentUser?.uid);
+  } = useCommandesByClient(currentUser?.id);
   const {
     data: evenements,
     isLoading: isLoadingEvenements,
     error: errorEvenements,
-  } = useEvenementsByClient(currentUser?.uid);
+  } = useEvenementsByClient(currentUser?.id);
   const { data: extras, isLoading: isLoadingExtras } = useExtras();
 
 

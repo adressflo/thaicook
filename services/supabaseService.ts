@@ -1,6 +1,6 @@
 // services/supabaseService.ts
 import { supabase } from '@/lib/supabase' // ✅ Utilisation de l'instance Singleton
-import type { Database } from '@/types/supabase'
+import type { Database } from '@/lib/database.types'
 import type {
   Client, ClientUI, ClientInputData,
   Plat, PlatUI,
@@ -8,6 +8,9 @@ import type {
   DetailCommande,
   Evenement, EvenementInputData
 } from '@/types/app'
+
+// ✅ Export supabase instance for direct usage
+export { supabase } from '@/lib/supabase'
 
 // ✅ PLUS BESOIN DE CRÉER UNE NOUVELLE INSTANCE
 // Utilisation de l'instance Singleton de lib/supabase.ts pour éviter Multiple GoTrueClient
@@ -212,36 +215,38 @@ class SupabaseService {
       
       validatedDetails = (simpleDetails || []).map(detail => ({
         ...detail,
-        plat: undefined // Pas de données de plat disponibles
-      }))
+        nom_plat: detail.nom_plat ?? null,
+        prix_unitaire: detail.prix_unitaire ?? null,
+        type: (detail.type as 'plat' | 'extra' | null) ?? 'plat',
+        plat: undefined
+      }));
     } else {
       // Valider que les données sont correctes et filtrer les erreurs de relation
       validatedDetails = (details || [])
-        .filter((detail: unknown): detail is DetailCommande & { plat?: Plat } => {
-          // Vérifier que l'objet detail est valide
+        .map((detail): DetailCommande & { plat?: Plat } => {
+          const platData = detail.plat && typeof detail.plat === 'object' && !('error' in (detail.plat as any))
+            ? detail.plat as Plat
+            : null;
+
+          return {
+            ...detail,
+            plat_r: detail.plat_r ?? null,
+            quantite_plat_commande: detail.quantite_plat_commande ?? 0,
+            nom_plat: detail.nom_plat ?? (platData?.plat || null),
+            prix_unitaire: detail.prix_unitaire ?? (platData?.prix || null),
+            type: (detail.type as 'plat' | 'extra' | null) ?? 'plat',
+            extra_id: detail.extra_id ?? null,
+            plat: platData,
+          };
+        })
+        .filter((detail): detail is DetailCommande & { plat?: Plat } => {
           if (!detail || typeof detail !== 'object') return false;
-          
           const detailObj = detail as Record<string, unknown>;
-          if (!('iddetails' in detailObj)) return false;
-          if (!('commande_r' in detailObj)) return false;
-          if (!('plat_r' in detailObj)) return false;
-          
-          // Vérifier que plat n'est pas une erreur de Supabase
           if (detailObj.plat && typeof detailObj.plat === 'object' && 'error' in detailObj.plat) {
             return false;
           }
-          
           return true;
-        })
-        .map((detail): DetailCommande & { plat?: Plat } => ({
-          iddetails: detail.iddetails,
-          commande_r: detail.commande_r,
-          plat_r: detail.plat_r,
-          quantite_plat_commande: detail.quantite_plat_commande,
-          plat: detail.plat && detail.plat !== null && typeof detail.plat === 'object' && !('error' in (detail.plat as any)) 
-            ? detail.plat as Plat 
-            : undefined
-        }));
+        });
     }
 
     // Récupérer le client s'il y a un client_r_id

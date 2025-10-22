@@ -1,5 +1,5 @@
 // Types d'application basés sur la nouvelle structure Supabase
-import type { Database } from './supabase'
+import type { Database } from '../lib/database.types';
 
 // Types de base extraits de Supabase
 export type Client = Database['public']['Tables']['client_db']['Row']
@@ -28,11 +28,16 @@ export type ExtraInputData = Database['public']['Tables']['extras_db']['Insert']
 
 // Type pour l'interface utilisateur des plats
 export interface PlatUI extends Plat {
-  id: number // Mappage de idplats vers id pour l'UI
-  nom_plat?: string // Alias pour `plat`
-  url_photo?: string // Alias pour `photo_du_plat`
-  disponible?: boolean // Calculé depuis les jours et est_epuise
-  categorie?: string // Catégorie du plat (plat principal, extra, etc.)
+  id: number; // Mappage de idplats vers id pour l'UI
+  idplats: number;
+  plat: string;
+  prix: number | null;
+  description: string | null;
+  photo_du_plat: string | null;
+  nom_plat?: string; // Alias pour `plat`
+  url_photo?: string; // Alias pour `photo_du_plat`
+  disponible?: boolean; // Calculé depuis les jours et est_epuise
+  categorie?: string; // Catégorie du plat (plat principal, extra, etc.)
 }
 
 // Type pour un plat dans le panier
@@ -88,29 +93,22 @@ export interface EvenementUI extends Evenement {
 
 // Type pour l'interface utilisateur des extras
 export interface ExtraUI extends Extra {
-  id: number // Mappage de idextra vers id pour l'UI
-  est_disponible?: boolean // Alias pour actif pour compatibilité avec les composants
+  id: number; // Mappage de idextra vers id pour l'UI
+  idextra: number;
+  nom_extra: string;
+  prix: number;
+  description: string | null;
+  photo_url: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+  est_disponible?: boolean; // Alias pour actif pour compatibilité avec les composants
 }
 
-// Type pour l'interface utilisateur des clients
+// Type pour l'interface utilisateur des clients, directement basé sur le type Prisma
 export interface ClientUI extends Client {
-  id: string // Utiliser firebase_uid comme id pour compatibilité
-  // Propriétés compatibles avec l'ancien système Airtable
-  Nom?: string | undefined // Alias pour nom
-  Prénom?: string | undefined // Alias pour prenom
-  'Numéro de téléphone'?: string | undefined // Alias pour numero_de_telephone
-  'e-mail'?: string | undefined // Alias pour email
-  'Adresse (numéro et rue)'?: string | undefined // Alias pour adresse_numero_et_rue
-  'Code postal'?: number | undefined // Alias pour code_postal
-  Ville?: string | undefined // Alias pour ville
-  'Préférence client'?: string | undefined // Alias pour preference_client
-  'Comment avez-vous connu ChanthanaThaiCook ?'?: string[] | undefined // Alias pour comment_avez_vous_connu
-  'Souhaitez-vous recevoir les actualités et offres par e-mail ?'?: string | undefined // Calculé depuis souhaitez_vous_recevoir_actualites
-  'Date de naissance'?: string | undefined // Alias pour date_de_naissance
-  'Photo Client'?: Array<{ url: string }> | undefined // Transformé depuis photo_client
-  FirebaseUID?: string | undefined // Alias pour firebase_uid
-  Role?: string | undefined // Alias pour role
+  id: string; // Utiliser firebase_uid comme id pour compatibilité
 }
+
 
 // Types pour les requêtes API
 export interface CreateCommandeData {

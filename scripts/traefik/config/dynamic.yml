@@ -1,0 +1,63 @@
+################################################################################
+# Configuration Dynamique Traefik - Chanthana Thai Cook
+# Middlewares et configurations avancées
+################################################################################
+
+http:
+  # Middlewares de sécurité
+  middlewares:
+    # Headers de sécurité globaux
+    security-headers:
+      headers:
+        frameDeny: true
+        browserXssFilter: true
+        contentTypeNosniff: true
+        stsIncludeSubdomains: true
+        stsPreload: true
+        stsSeconds: 31536000
+        forceSTSHeader: true
+        customResponseHeaders:
+          X-Robots-Tag: "noindex, nofollow"
+
+    # Compression Gzip
+    compress:
+      compress: {}
+
+    # Rate limiting (protection DDoS basique)
+    rate-limit:
+      rateLimit:
+        average: 100
+        burst: 50
+        period: 1s
+
+    # Headers CORS (si nécessaire pour API)
+    cors-headers:
+      headers:
+        accessControlAllowMethods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+          - OPTIONS
+        accessControlAllowOriginList:
+          - "https://cthaicook.com"
+          - "https://www.cthaicook.com"
+        accessControlMaxAge: 100
+        addVaryHeader: true
+
+# Configuration TLS
+tls:
+  options:
+    default:
+      minVersion: VersionTLS12
+      cipherSuites:
+        - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+        - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305
+        - TLS_AES_128_GCM_SHA256
+        - TLS_AES_256_GCM_SHA384
+        - TLS_CHACHA20_POLY1305_SHA256
+      curvePreferences:
+        - CurveP521
+        - CurveP384
+      sniStrict: true

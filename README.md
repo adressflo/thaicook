@@ -147,6 +147,21 @@ L'application est compatible avec :
 
 Ce projet est sous licence MIT. Voir le fichier `LICENSE` pour plus de détails.
 
+## 📚 Documentation
+
+Consultez la documentation complète dans `/documentation/` :
+
+- [Architecture Globale](documentation/1-architecture-globale.md)
+- [Frontend Architecture](documentation/2-frontend-architecture.md)
+- [Backend & Database](documentation/3-backend-architecture.md)
+- [Code Quality Standards](documentation/4-code-quality-standards.md)
+- [Security Guidelines](documentation/5-security-guidelines.md)
+- [Performance Optimization](documentation/6-performance-optimization.md)
+- [Testing Strategy](documentation/7-testing-strategy.md)
+- [Refactoring Roadmap](documentation/8-refactoring-roadmap.md)
+
+[Voir tous les docs →](documentation/)
+
 ## 📞 Support
 
 Pour toute question ou support :

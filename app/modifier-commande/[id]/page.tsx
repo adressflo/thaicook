@@ -70,7 +70,7 @@ const ModifierCommande = memo(() => {
     data: commande,
     isLoading: isLoadingCommande,
     error: commandeError,
-  } = useCommandeById(id ? Number(id) : undefined, currentUser?.uid);
+  } = useCommandeById(id ? Number(id) : undefined, currentUser?.id);
   const createCommande = useCreateCommande();
   const deleteCommande = useDeleteCommande();
   const { data: extras } = useExtras();
@@ -445,7 +445,7 @@ const ModifierCommande = memo(() => {
   }
 
   // Vérifier permissions
-  if (currentUser?.uid !== commande.client_r) {
+  if (currentUser?.id !== commande.client_r) {
     redirect('/historique');
   }
 
@@ -548,7 +548,7 @@ const ModifierCommande = memo(() => {
       }
     }
 
-    if (!currentUser?.uid) {
+    if (!currentUser?.id) {
       toast({
         title: 'Erreur utilisateur',
         description: "Impossible d'identifier l'utilisateur.",
@@ -595,7 +595,7 @@ const ModifierCommande = memo(() => {
         if (!dateKey) continue;
 
         const nouvelleCommande = await createCommande.mutateAsync({
-          client_r: currentUser.uid,
+          client_r: currentUser.id,
           date_et_heure_de_retrait_souhaitees: dateKey,
           demande_special_pour_la_commande: demandesSpeciales,
           details: items.map(item => {

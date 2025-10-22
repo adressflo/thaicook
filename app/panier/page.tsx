@@ -28,7 +28,7 @@ export default function PanierPage() {
   const { currentUser } = useAuth();
   const { panier, modifierQuantite, supprimerDuPanier, viderPanier, totalPrix, ajouterAuPanier } = useCart();
   
-  const clientFirebaseUID = currentUser?.uid;
+  const clientFirebaseUID = currentUser?.id;
   const [demandesSpeciales, setDemandesSpeciales] = useState<string>('');
 
   // Fonction pour formater les prix
@@ -68,7 +68,7 @@ export default function PanierPage() {
         if (!dateKey) continue;
         
         await createCommande.mutateAsync({
-          client_r: currentUser.uid,
+          client_r: currentUser.id,
           date_et_heure_de_retrait_souhaitees: dateKey,
           demande_special_pour_la_commande: demandesSpeciales,
           details: items.map(item => ({

@@ -118,7 +118,7 @@ const Evenements = memo(() => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!currentUser?.uid || !currentUserProfile?.idclient) {
+    if (!currentUser?.id || !currentUserProfile?.idclient) {
       toast({
         title: 'Profil requis',
         description:
@@ -172,7 +172,7 @@ const Evenements = memo(() => {
         formData.typeEvenement === 'Autre'
           ? autreTypeEvenementPrecision.trim()
           : formData.typeEvenement,
-      contact_client_r: currentUser.uid, // UID Firebase pour le lien utilisateur
+      contact_client_r: currentUser.id, // UID Firebase pour le lien utilisateur
       contact_client_r_id: currentUserProfile!.idclient,
       date_evenement: dateEvenementISO,
       type_d_evenement: formData.typeEvenement,

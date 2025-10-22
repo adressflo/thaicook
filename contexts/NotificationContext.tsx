@@ -53,7 +53,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
           read: false,
           category: 'system',
           actionUrl: '/commander',
-          userId: currentUser.uid
+          userId: currentUser.id
         },
         {
           id: 'promo-weekend',
@@ -64,7 +64,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
           read: false,
           category: 'promotion',
           actionUrl: '/commander',
-          userId: currentUser.uid
+          userId: currentUser.id
         },
         {
           id: 'order-ready-demo',
@@ -75,7 +75,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
           read: true,
           category: 'order',
           actionUrl: '/historique',
-          userId: currentUser.uid
+          userId: currentUser.id
         }
       ];
       
@@ -105,7 +105,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
           read: false,
           category: 'cart',
           actionUrl: '/panier',
-          userId: currentUser.uid
+          userId: currentUser.id
         };
         return [cartNotification, ...prev];
       } else if (!hasUnvalidatedCart && cartNotificationExists) {
@@ -136,7 +136,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
       ...notification,
       id: `notification-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       timestamp: new Date(),
-      userId: currentUser?.uid || 'anonymous'
+      userId: currentUser?.id || 'anonymous'
     };
 
     setNotifications(prev => [newNotification, ...prev].slice(0, 100)); // Garder max 100 notifications

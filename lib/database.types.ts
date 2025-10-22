@@ -1132,11 +1132,12 @@ export type Database = {
       jour_dispo: 'oui' | 'non' | 'sur commande';
       role_client: 'client' | 'admin' | 'visiteur';
       source_connaissance:
-        | 'Recherche en ligne'
-        | 'Réseaux sociaux'
-        | 'Bouche à oreille'
-        | 'Publicité locale'
-        | 'Autre';
+        | "Bouche à oreille"
+        | "Réseaux sociaux"
+        | "Recherche Google"
+        | "En passant devant"
+        | "Recommandation d'un ami"
+        | "Autre";
       statut_acompte: 'En attente' | 'Payé' | 'Partiellement payé' | 'Non applicable';
       statut_commande:
         | 'En attente de confirmation'

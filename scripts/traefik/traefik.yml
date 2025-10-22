@@ -1,0 +1,83 @@
+################################################################################
+# Configuration Traefik v3.0 - Chanthana Thai Cook
+# Reverse Proxy avec Let's Encrypt SSL Automatique
+################################################################################
+
+global:
+  checkNewVersion: false
+  sendAnonymousUsage: false
+
+# Configuration API et Dashboard (optionnel)
+api:
+  dashboard: false  # Mettre à true pour activer le dashboard
+  insecure: false   # Ne jamais activer en production
+
+# Points d'entrée HTTP et HTTPS
+entryPoints:
+  # HTTP (port 80) - Redirige automatiquement vers HTTPS
+  web:
+    address: ":80"
+    http:
+      redirections:
+        entryPoint:
+          to: websecure
+          scheme: https
+          permanent: true
+
+  # HTTPS (port 443) - SSL avec Let's Encrypt
+  websecure:
+    address: ":443"
+    http:
+      tls:
+        certResolver: letsencrypt
+        domains:
+          - main: cthaicook.com
+            sans:
+              - www.cthaicook.com
+              - n8n.cthaicook.com
+              - portainer.cthaicook.com
+
+# Configuration certificats Let's Encrypt
+certificatesResolvers:
+  letsencrypt:
+    acme:
+      email: chanthanacook@gmail.com
+      storage: /letsencrypt/acme.json
+      # Production Let's Encrypt
+      caServer: https://acme-v02.api.letsencrypt.org/directory
+      # Pour tests (supprime limite de 5 certificats/semaine) :
+      # caServer: https://acme-staging-v02.api.letsencrypt.org/directory
+
+      # Challenge HTTP (recommandé pour Hetzner)
+      httpChallenge:
+        entryPoint: web
+
+# Fournisseurs de configuration
+providers:
+  # Configuration depuis Docker labels
+  docker:
+    endpoint: "unix:///var/run/docker.sock"
+    exposedByDefault: false
+    network: traefik_network
+    watch: true
+
+  # Configuration depuis fichiers (optionnel)
+  file:
+    directory: /config
+    watch: true
+
+# Logs
+log:
+  level: INFO  # DEBUG, INFO, WARN, ERROR
+  format: common  # common, json
+
+# Logs d'accès
+accessLog:
+  format: common
+  bufferingSize: 100
+
+# Métriques (optionnel)
+# metrics:
+#   prometheus:
+#     addEntryPointsLabels: true
+#     addServicesLabels: true

@@ -16,7 +16,7 @@ export const PermissionGuard = ({
   fallback = null 
 }: PermissionGuardProps) => {
   const { currentUser, currentUserProfile } = useAuth();
-  const { data: clientProfile, isLoading } = useClient(currentUser?.uid);
+  const { data: clientProfile, isLoading } = useClient(currentUser?.id);
 
   // Attendre le chargement
   if (isLoading) {
@@ -64,7 +64,7 @@ export const PermissionGuard = ({
 // eslint-disable-next-line react-refresh/only-export-components
 export const usePermissions = () => {
   const { currentUser, currentUserProfile } = useAuth();
-  const { data: clientProfile } = useClient(currentUser?.uid);
+  const { data: clientProfile } = useClient(currentUser?.id);
 
   const profile = clientProfile || currentUserProfile;
 
