@@ -10,8 +10,6 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model activites_flux {
   id            BigInt         @id @default(autoincrement())
   type_activite String         @db.VarChar(50)
@@ -32,9 +30,6 @@ model activites_flux {
   @@index([type_activite], map: "idx_activites_type")
 }
 
-/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model announcements {
   id         BigInt    @id @default(autoincrement())
   message    String
@@ -48,8 +43,6 @@ model announcements {
   @@index([is_active, created_at(sort: Desc)], map: "idx_announcements_active")
 }
 
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model articles_liste_courses {
   id                   BigInt          @id @default(autoincrement())
   liste_id             BigInt?
@@ -71,8 +64,6 @@ model articles_liste_courses {
   @@index([liste_id], map: "idx_articles_liste_id")
 }
 
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model catalogue_articles {
   id                    BigInt    @id @default(autoincrement())
   nom_article           String    @unique @db.VarChar(255)
@@ -91,8 +82,6 @@ model catalogue_articles {
   @@index([nom_article], map: "idx_catalogue_nom")
 }
 
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model categories_articles {
   id              BigInt  @id @default(autoincrement())
   nom_categorie   String  @unique @db.VarChar(100)
@@ -101,8 +90,6 @@ model categories_articles {
   ordre_affichage Int?    @default(0)
 }
 
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model client_db {
   firebase_uid                       String                     @unique @default(dbgenerated("auth.uid()"))
   role                               role_client?               @default(client)
@@ -127,8 +114,6 @@ model client_db {
   notification_queue                 notification_queue[]
   notification_tokens                notification_tokens[]
   notifications_history              notifications_history[]
-  accounts                           Account[] // Relation to Better Auth accounts
-  sessions                           Session[] // Relation to Better Auth sessions
 
   @@index([firebase_uid, role], map: "idx_client_db_firebase_uid_role")
   @@index([email], map: "idx_client_email")
@@ -137,7 +122,6 @@ model client_db {
   @@index([numero_de_telephone], map: "idx_client_telephone")
 }
 
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model commande_db {
   idcommande                          Int                     @id @default(autoincrement())
   client_r                            String?
@@ -169,7 +153,6 @@ model commande_db {
   @@index([type_livraison], map: "idx_commande_type_livraison")
 }
 
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model details_commande_db {
   iddetails              Int         @id(map: "détails_commande_db_pkey") @default(autoincrement())
   commande_r             Int
@@ -190,8 +173,6 @@ model details_commande_db {
   @@index([plat_r], map: "idx_details_plat_id")
 }
 
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model evenements_db {
   idevenements                 Int                           @id(map: "Événements_db_pkey") @default(autoincrement())
   nom_evenement                String?
@@ -235,8 +216,6 @@ model evenements_db {
   @@index([type_d_evenement], map: "idx_evenements_type")
 }
 
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model evenements_plats_r {
   evenement_id  Int
   plat_id       Int
@@ -247,7 +226,6 @@ model evenements_plats_r {
   @@index([plat_id], map: "idx_evenements_plats_r_plat_id")
 }
 
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model extras_db {
   idextra             Int                   @id @default(autoincrement())
   nom_extra           String                @db.VarChar(255)
@@ -260,9 +238,6 @@ model extras_db {
   details_commande_db details_commande_db[]
 }
 
-/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model historique_communication {
   id         BigInt     @id @default(autoincrement())
   client_id  BigInt?
@@ -280,8 +255,6 @@ model historique_communication {
   @@index([timestamp(sort: Desc)], map: "idx_historique_timestamp")
 }
 
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model ingredients_db {
   idingredients       Int                    @id(map: "ingrédients_db_pkey") @default(autoincrement())
   ingredient          String
@@ -294,9 +267,6 @@ model ingredients_db {
   plats_ingredients_r plats_ingredients_r[]
 }
 
-/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model listes_courses {
   id                         BigInt                   @id @default(autoincrement())
   nom_liste                  String                   @db.VarChar(255)
@@ -312,8 +282,6 @@ model listes_courses {
   @@index([statut], map: "idx_listes_courses_statut")
 }
 
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model menus_evenementiels_types_db {
   idevenementiels                     Int                   @id(map: "menus_Événementiels_types_db_pkey") @default(autoincrement())
   nom_menu_type                       String
@@ -327,8 +295,6 @@ model menus_evenementiels_types_db {
   menus_types_plats_r                 menus_types_plats_r[]
 }
 
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model menus_types_plats_r {
   menu_type_id                 Int
   plat_id                      Int
@@ -339,8 +305,6 @@ model menus_types_plats_r {
   @@index([plat_id], map: "idx_menus_types_plats_r_plat_id")
 }
 
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model notification_preferences {
   id                    BigInt     @id @default(autoincrement())
   client_id             BigInt?    @unique
@@ -368,9 +332,6 @@ model notification_preferences {
   @@index([client_id], map: "idx_notification_preferences_client")
 }
 
-/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model notification_queue {
   id                     BigInt                  @id @default(autoincrement())
   client_id              BigInt?
@@ -390,8 +351,6 @@ model notification_queue {
   @@index([status], map: "idx_notification_queue_status")
 }
 
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model notification_templates {
   id                    BigInt               @id @default(autoincrement())
   code                  String               @unique @db.VarChar(50)
@@ -409,9 +368,6 @@ model notification_templates {
   notification_queue    notification_queue[]
 }
 
-/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model notification_tokens {
   id           BigInt     @id @default(autoincrement())
   client_id    BigInt?
@@ -430,9 +386,6 @@ model notification_tokens {
   @@index([client_id, is_active], map: "idx_notification_tokens_client_active")
 }
 
-/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model notifications_history {
   id                    BigInt         @id @default(autoincrement())
   client_id             BigInt?
@@ -459,8 +412,6 @@ model notifications_history {
   @@index([type_notification, created_at(sort: Desc)], map: "idx_notifications_history_type_date")
 }
 
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model plats_db {
   idplats             Int                   @id @default(autoincrement())
   plat                String
@@ -489,8 +440,6 @@ model plats_db {
   @@index([prix], map: "idx_plats_prix")
 }
 
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model plats_ingredients_r {
   plat_id        Int
   ingredient_id  Int
@@ -501,8 +450,6 @@ model plats_ingredients_r {
   @@index([ingredient_id], map: "idx_plats_ingredients_r_ingredient_id")
 }
 
-/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model plats_rupture_dates {
   id             Int       @id @default(autoincrement())
   plat_id        Int
@@ -520,8 +467,6 @@ model plats_rupture_dates {
   @@index([plat_id, date_rupture], map: "idx_plats_rupture_dates_plat_date")
 }
 
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model restaurant_settings {
   id            BigInt    @id @default(autoincrement())
   setting_key   String    @unique @db.VarChar(100)
@@ -534,8 +479,6 @@ model restaurant_settings {
   @@index([setting_key], map: "idx_restaurant_settings_key")
 }
 
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model system_settings {
   id            BigInt    @id @default(autoincrement())
   setting_key   String    @unique @db.VarChar(100)
@@ -649,24 +592,43 @@ enum unite_ingredient {
   boite
 }
 
-// Models for Better Auth
-model Account {
-  id                String    @id @default(cuid())
-  userId            BigInt
-  providerId        String
-  accountId         String
-  accessToken       String?   @db.Text
-  refreshToken      String?   @db.Text
-  idToken           String?   @db.Text
-  accessTokenExpiresAt DateTime?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  user              client_db @relation(fields: [userId], references: [idclient], onDelete: Cascade)
-
-  @@unique([providerId, accountId])
-  @@index([userId])
+// 1. MODÈLE USER (POUR L'AUTH)
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @default(now()) @updatedAt
+  sessions      Session[]
+  accounts      Account[]
+  @@map("user")
 }
 
+// 2. MODÈLE ACCOUNT (POUR GITHUB, GOOGLE, MOT DE PASSE)
+model Account {
+  id                    String    @id @default(cuid())
+  providerId            String
+  accountId             String
+  type                  String
+  provider              String
+  accessToken           String?   @db.Text
+  idToken               String?   @db.Text
+  accessTokenExpiresAt  DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([providerId, accountId])
+  @@index([userId])
+  @@map("account")
+}
+
+// 3. MODÈLE SESSION (POUR LES CONNEXIONS)
 model Session {
   id        String    @id @default(cuid())
   expiresAt DateTime
@@ -675,19 +637,20 @@ model Session {
   updatedAt DateTime  @updatedAt
   ipAddress String?
   userAgent String?
-  userId    BigInt
-  user      client_db @relation(fields: [userId], references: [idclient], onDelete: Cascade)
-
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   @@index([userId])
+  @@map("session")
 }
 
+// 4. MODÈLE VERIFICATION (POUR RESET MOT DE PASSE)
 model Verification {
-  id        String   @id @default(cuid())
+  id         String   @id @default(cuid())
   identifier String
-  value     String   @unique
-  expiresAt DateTime
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
+  value      String   @unique
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
   @@unique([identifier, value])
+  @@map("verification")
 }

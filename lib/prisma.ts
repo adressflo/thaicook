@@ -2,7 +2,8 @@
 // Prisma Client configuration for Next.js 15 App Router
 // Implements singleton pattern to prevent multiple instances in development
 
-import { PrismaClient } from '@prisma/client'
+// Remplacez l'ancienne ligne par celle-ci
+import { PrismaClient } from '@/generated/prisma/client'
 
 // ============================================
 // TYPE EXTENSIONS AND CUSTOM TYPES
@@ -169,43 +170,10 @@ export function handlePrismaError(error: unknown, context: string): never {
   )
 }
 
-// ============================================
-// TYPE EXPORTS FOR CONVENIENCE
-// ============================================
-
-// Export commonly used types (using actual generated model names)
-export type {
-  client_db,
-  plats_db,
-  extras_db,
-  commande_db,
-  details_commande_db,
-  evenements_db,
-  statut_commande,
-  statut_paiement,
-  type_livraison,
-} from '@prisma/client'
 
 // Export Prisma types for advanced usage
 export type { Prisma } from '@prisma/client'
 
-// ============================================
-// DEVELOPMENT UTILITIES
-// ============================================
-
-if (process.env.NODE_ENV === 'development') {
-  // Log when Prisma client is initialized
-  console.log('✅ Prisma Client initialized')
-
-  // Optionally check connection on startup
-  checkDatabaseConnection().then((isConnected) => {
-    if (isConnected) {
-      console.log('✅ Database connection established')
-    } else {
-      console.error('❌ Database connection failed')
-    }
-  })
-}
 
 // Export default for convenience
 export default prisma

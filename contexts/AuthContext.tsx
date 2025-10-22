@@ -166,7 +166,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
               photo_client: data.photo_client
             });
           } else {
-            refetchClient();
+            //refetchClient();
           }
         }
       });
@@ -234,7 +234,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       ? currentProfile.role as 'admin' | 'client'
       : null,
     isLoadingAuth: isLoadingSession,
-    isLoadingUserRole: isLoadingProfile || createClientMutation.isPending,
+    isLoadingUserRole: isLoadingProfile,
     refetchClient: refetchProfile,
   };
 
