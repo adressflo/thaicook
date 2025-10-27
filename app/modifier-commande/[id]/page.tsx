@@ -47,7 +47,7 @@ import { getClientProfile } from '@/app/profil/actions';
 import { useData } from '@/contexts/DataContext';
 import { usePrismaCommandeById, usePrismaCreateCommande, usePrismaDeleteCommande, usePrismaExtras } from "@/hooks/usePrismaData";
 import { extractRouteParam } from '@/lib/params-utils';
-import { supabase } from '@/services/supabaseService';
+import { supabase } from '@/lib/supabase';
 import type { PlatUI as Plat, PlatPanier, DetailCommande } from '@/types/app';
 
 const dayNameToNumber: { [key: string]: Day } = {
