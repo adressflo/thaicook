@@ -1,10 +1,12 @@
 'use client';
 
-import React, { memo } from 'react';
+import React, { memo, useState, useEffect } from 'react';
 import { useParams, redirect } from 'next/navigation';
 import Link from 'next/link';
-import { useAuth } from '@/contexts/AuthContext';
-import { useCommandeById, useExtras, useCommandesRealtime } from '@/hooks/useSupabaseData';
+import { useSession } from '@/lib/auth-client';
+import { getClientProfile } from '@/app/profil/actions';
+import { usePrismaCommandeById, usePrismaExtras } from "@/hooks/usePrismaData";
+import { useCommandesRealtime } from "@/hooks/useSupabaseData";
 import { useData } from '@/contexts/DataContext';
 import { extractRouteParam } from '@/lib/params-utils';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -26,14 +28,28 @@ import { ProgressTimeline } from '@/components/suivi-commande/ProgressTimeline';
 const SuiviCommande = memo(() => {
   const params = useParams();
   const id = extractRouteParam(params?.id);
-  const { currentUser, isLoadingAuth } = useAuth();
+
+  // Better Auth session
+  const { data: session, isPending: isLoadingAuth } = useSession();
+  const currentUser = session?.user;
+
+  // Client profile
+  const [clientProfile, setClientProfile] = useState<any>(null);
+
+  useEffect(() => {
+    if (currentUser) {
+      getClientProfile().then(setClientProfile);
+    } else {
+      setClientProfile(null);
+    }
+  }, [currentUser?.id]);
 
   // ✅ Activation Real-time Supabase pour synchronisation automatique
   useCommandesRealtime();
 
-  const { data: commande, isLoading: isLoadingCommande, error } = useCommandeById(id ? Number(id) : undefined, currentUser?.id);
+  const { data: commande, isLoading: isLoadingCommande, error } = usePrismaCommandeById(id ? Number(id) : undefined);
   const { plats, isLoading: platsLoading } = useData();
-  const { data: extras, isLoading: extrasLoading } = useExtras();
+  const { data: extras, isLoading: extrasLoading } = usePrismaExtras();
 
   if (isLoadingAuth || isLoadingCommande || platsLoading || extrasLoading) {
     return (
@@ -181,8 +197,8 @@ const SuiviCommande = memo(() => {
                         ...detail,
                         plat: platDetails || null,
                         extra: extraDetails || null
-                      };
-                      
+                      } as any; // Type casting pour compatibilité Prisma types
+
                       return (
                         <DishDetailsModalComplex
                           key={`${detail.plat_r || 'unknown'}-${index}`}

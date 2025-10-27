@@ -10,14 +10,15 @@ Notre feuille de route pour faire évoluer l'expérience ChanthanaThaiCook. Ce d
 - [x] Hooks Prisma créés : `hooks/usePrismaData.ts` (13 hooks)
 - [x] Tests CRUD validés : `npm run prisma:test` (18 tests ✅)
 
-❌ **Migration application restante**
-- [ ] Remplacer imports dans les composants (app/profil, app/commander, etc.)
+⏳ **Migration application en cours**
+- [x] Remplacer imports: app/profil ✅ (déjà migré Prisma)
+- [ ] Remplacer imports: app/commander, app/panier (en cours aujourd'hui)
 - [ ] Migrer hooks événements manquants (useCreateEvenement, useUpdateEvenement)
-- [ ] Migrer hooks extras (useExtras, useCreateExtra, useUpdateExtra)
-- [ ] Tester pages modifiées (E2E Playwright)
+- [ ] Migrer hook useExtras (en cours aujourd'hui)
+- [ ] Tester pages modifiées (tests manuels aujourd'hui)
 - [ ] Supprimer `hooks/useSupabaseData.ts` après migration complète
 
-📊 **Statut : Infrastructure 100% ✅ | Application 0% ❌ | Global ~30%**
+📊 **Statut : Infrastructure 100% ✅ | Application ~15% ⏳ | Global ~40%**
 📖 **Doc :** `documentation/prisma-migration.md`
 
 **2️⃣ n8n - Préparation Intégrations**
@@ -56,11 +57,11 @@ Notre feuille de route pour faire évoluer l'expérience ChanthanaThaiCook. Ce d
 - [ ] Tests unitaires des actions critiques
 
 **5️⃣ Better Auth  - Authentication Moderne TypeScript**
-- [ ] Installation et configuration initiale (MIT License, gratuit)
-- [ ] Migration progressive depuis Firebase Auth (compatible hybrid)
-- [ ] Setup type-safe authentication avec schémas TypeScript
-- [ ] Configuration 2FA et passkeys pour sécurité renforcée
-- [ ] Tests authentification et gestion sessions
+- [x] Installation et configuration initiale (MIT License, gratuit)
+- [x] Migration progressive depuis Firebase Auth (pages auth créées)
+- [x] Setup type-safe authentication avec schémas TypeScript
+- [ ] Configuration 2FA et passkeys pour sécurité renforcée (Phase 4)
+- [ ] Tests authentification et gestion sessions (en cours aujourd'hui)
 
 **6️⃣ nuqs - URL State Management Type-Safe**
 - [ ] Installation de la bibliothèque nuqs (NPM, gratuit)

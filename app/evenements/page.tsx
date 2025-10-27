@@ -47,18 +47,36 @@ import { cn } from '@/lib/utils';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 import { useData } from '@/contexts/DataContext';
-import { useCreateEvenement } from '@/hooks/useSupabaseData';
+import { usePrismaCreateEvenement } from "@/hooks/usePrismaData";
 import type { PlatUI as Plat, CreateEvenementData } from '@/types/app';
-import { useAuth } from '@/contexts/AuthContext';
+import { useSession } from '@/lib/auth-client';
+import { useState as useReactState, useEffect } from 'react';
+import { getClientProfile } from '@/app/profil/actions';
 
 export const dynamic = 'force-dynamic';
 
 const Evenements = memo(() => {
   const { toast } = useToast();
-  const createEvenement = useCreateEvenement();
+  const createEvenement = usePrismaCreateEvenement();
 
   const { plats, isLoading: dataIsLoading, error: dataError } = useData();
-  const { currentUser, currentUserProfile } = useAuth();
+
+  // Better Auth session
+  const { data: session } = useSession();
+  const currentUser = session?.user;
+
+  // Client profile
+  const [clientProfile, setClientProfile] = useReactState<any>(null);
+
+  useEffect(() => {
+    if (currentUser) {
+      getClientProfile().then(setClientProfile);
+    } else {
+      setClientProfile(null);
+    }
+  }, [currentUser?.id]);
+
+  const currentUserProfile = clientProfile;
 
   const [dateEvenement, setDateEvenement] = useState<Date | undefined>();
   const [heureEvenement, setHeureEvenement] = useState<string>('');

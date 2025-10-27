@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { useAuth } from '@/contexts/AuthContext';
+import { usePermissions } from '@/hooks/usePermissions';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -33,7 +33,9 @@ interface SidebarProps {
 export const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => {
   const isMobile = useIsMobile();
   const pathname = usePathname();
-  const { currentUserRole, currentUser } = useAuth();
+  const { isAuthenticated, isAdmin, clientProfile } = usePermissions();
+  const currentUserRole = clientProfile?.role;
+  const currentUser = isAuthenticated ? clientProfile : null;
 
   const logoPath = '/logo.svg';
 

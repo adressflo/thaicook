@@ -34,7 +34,7 @@ import {
   Utensils,
   ChefHat
 } from 'lucide-react';
-import { usePlats, useCreatePlat, useUpdatePlat, useExtras, useCreateExtra, useUpdateExtra, useDeleteExtra } from '@/hooks/useSupabaseData';
+import { usePrismaPlats, usePrismaCreatePlat, usePrismaUpdatePlat, usePrismaExtras, usePrismaCreateExtra, usePrismaUpdateExtra, usePrismaDeleteExtra } from "@/hooks/usePrismaData";
 import { useImageUpload } from '@/hooks/useImageUpload';
 import type { PlatUI as Plat, ExtraUI } from '@/types/app';
 import { EditableField } from '@/components/ui/EditableField';
@@ -51,8 +51,8 @@ const formatPrice = (price: number): string => {
 // Composant pour créer un nouvel extra
 const NewExtraButton = () => {
   const { toast } = useToast();
-  const createExtraMutation = useCreateExtra();
-  const { refetch: refetchExtras } = useExtras();
+  const createExtraMutation = usePrismaCreateExtra();
+  const { refetch: refetchExtras } = usePrismaExtras();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newExtraForm, setNewExtraForm] = useState({
     nom_extra: '',
@@ -275,10 +275,10 @@ const NewExtraButton = () => {
 
 // Composant pour afficher et éditer les extras existants avec design Thai
 const ExistingExtrasDisplay = ({ refetchPlats }: { refetchPlats?: () => void }) => {
-  const { data: extras, isLoading, error, refetch: refetchExtras } = useExtras();
-  const updateExtraMutation = useUpdateExtra();
-  const deleteExtraMutation = useDeleteExtra();
-  const createPlatMutation = useCreatePlat();
+  const { data: extras, isLoading, error, refetch: refetchExtras } = usePrismaExtras();
+  const updateExtraMutation = usePrismaUpdateExtra();
+  const deleteExtraMutation = usePrismaDeleteExtra();
+  const createPlatMutation = usePrismaCreatePlat();
   const [editingExtra, setEditingExtra] = useState<number | null>(null);
   const [editForm, setEditForm] = useState({
     nom_extra: '',
@@ -318,7 +318,7 @@ const ExistingExtrasDisplay = ({ refetchPlats }: { refetchPlats?: () => void }) 
     try {
       await updateExtraMutation.mutateAsync({
         id: editingExtra,
-        updates: {
+        data: {
           nom_extra: editForm.nom_extra,
           prix: parseFloat(editForm.prix),
           description: editForm.description,
@@ -352,27 +352,19 @@ const ExistingExtrasDisplay = ({ refetchPlats }: { refetchPlats?: () => void }) 
     try {
       console.log('🔄 DÉBUT: Transformation extra → plat:', extra);
 
-      // 1. CRÉER LE NOUVEAU PLAT avec la signature correcte useCreatePlat
+      // 1. CRÉER LE NOUVEAU PLAT avec la signature correcte usePrismaCreatePlat
       const platData = {
-        plat: extra.nom_extra,
+        nom_plat: extra.nom_extra,
         description: extra.description || `Plat créé depuis l'extra ${extra.nom_extra}`,
         prix: extra.prix || 0,
-        photo_du_plat: extra.photo_url || 'https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png',
-        // ✅ TOUS LES JOURS OBLIGATOIRES avec valeurs correctes 'oui'/'non'
-        lundi_dispo: 'oui',
-        mardi_dispo: 'oui',
-        mercredi_dispo: 'oui',
-        jeudi_dispo: 'oui',
-        vendredi_dispo: 'oui',
-        samedi_dispo: 'oui',
-        dimanche_dispo: 'oui',
-        est_epuise: false
+        photo_url: extra.photo_url || 'https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png',
+        actif: true
       };
 
       console.log('📤 Création plat avec données:', platData);
 
-      // ✅ SIGNATURE CORRECTE useCreatePlat({ data: ... })
-      await createPlatMutation.mutateAsync({ data: platData });
+      // ✅ SIGNATURE CORRECTE usePrismaCreatePlat(platData)
+      await createPlatMutation.mutateAsync(platData);
       console.log('✅ Plat créé avec succès');
 
       // 2. SUPPRIMER L'EXTRA (devient plat maintenant)
@@ -740,11 +732,11 @@ export default function AdminGestionPlats() {
   const [showRuptureManager, setShowRuptureManager] = useState<{platId: number; platNom: string} | null>(null);
   const [isEditingPlat, setIsEditingPlat] = useState<Plat | null>(null);
   
-  const { data: allPlats, refetch } = usePlats();
-  const { data: extras } = useExtras(); // Récupérer les extras de la table extras_db
-  const createPlatMutation = useCreatePlat();
-  const updatePlatMutation = useUpdatePlat();
-  const deleteExtraMutation = useDeleteExtra();
+  const { data: allPlats, refetch } = usePrismaPlats();
+  const { data: extras } = usePrismaExtras(); // Récupérer les extras de la table extras_db
+  const createPlatMutation = usePrismaCreatePlat();
+  const updatePlatMutation = usePrismaUpdatePlat();
+  const deleteExtraMutation = usePrismaDeleteExtra();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -792,8 +784,8 @@ export default function AdminGestionPlats() {
     try {
       await updatePlatMutation.mutateAsync({
         id: platId,
-        updateData: typeof updateData === 'object' && !Array.isArray(updateData) 
-          ? updateData 
+        data: typeof updateData === 'object' && !Array.isArray(updateData)
+          ? updateData
           : { [Object.keys(updateData)[0]]: Object.values(updateData)[0] }
       });
       toast({
@@ -829,10 +821,12 @@ export default function AdminGestionPlats() {
     try {
       if (isCreating) {
         await createPlatMutation.mutateAsync({
-          data: {
-            ...form,
-            categorie: activeTab === 'extras' ? 'extra' : 'plat_principal'
-          }
+          nom_plat: form.plat,
+          description: form.description,
+          prix: form.prix,
+          photo_url: form.photo_du_plat,
+          categorie: activeTab === 'extras' ? 'extra' : 'plat_principal',
+          actif: true
         });
         toast({
           title: "Succès",
@@ -843,7 +837,7 @@ export default function AdminGestionPlats() {
       } else if (editingId) {
         await updatePlatMutation.mutateAsync({
           id: editingId,
-          updateData: form
+          data: form
         });
         toast({
           title: "Succès",

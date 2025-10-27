@@ -1,12 +1,13 @@
 'use client';
 
-import React, { memo, useMemo, useCallback, useState } from 'react';
+import React, { memo, useMemo, useCallback, useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useAuth } from '@/contexts/AuthContext';
+import { useSession } from '@/lib/auth-client';
+import { getClientProfile } from '@/app/profil/actions';
 import {
-  useCommandesByClient,
-  useEvenementsByClient,
-} from '@/hooks/useSupabaseData';
+  usePrismaCommandesByClient,
+  usePrismaEvenementsByClient,
+} from "@/hooks/usePrismaData";
 import {
   Card,
   CardContent,
@@ -39,17 +40,31 @@ export const dynamic = 'force-dynamic';
 type CommandeAvecDetails = CommandeUI;
 
 const SuiviPage = memo(() => {
-  const { currentUser } = useAuth();
+  // Better Auth session
+  const { data: session } = useSession();
+  const currentUser = session?.user;
+
+  // Client profile
+  const [clientProfile, setClientProfile] = useState<any>(null);
+
+  useEffect(() => {
+    if (currentUser) {
+      getClientProfile().then(setClientProfile);
+    } else {
+      setClientProfile(null);
+    }
+  }, [currentUser?.id]);
+
   const {
     data: commandes,
     isLoading: isLoadingCommandes,
     error,
-  } = useCommandesByClient(currentUser?.id);
+  } = usePrismaCommandesByClient(clientProfile?.idclient);
   const {
     data: evenements,
     isLoading: isLoadingEvenements,
     error: errorEvenements,
-  } = useEvenementsByClient(currentUser?.id);
+  } = usePrismaEvenementsByClient(clientProfile?.idclient);
 
   // Fonctions optimisées avec memoization
   const formatPrix = useCallback((prix: number): string => {
@@ -60,9 +75,9 @@ const SuiviPage = memo(() => {
 
   const calculateTotal = useCallback((commande: CommandeAvecDetails): number => {
     if (commande.prix_total != null) return commande.prix_total;
-    
-    return commande.details?.reduce((acc, detail) => 
-      acc + (detail.plat?.prix || 0) * (detail.quantite_plat_commande || 0), 0
+
+    return commande.details?.reduce((acc, detail) =>
+      acc + (Number(detail.plat?.prix) || 0) * (detail.quantite_plat_commande || 0), 0
     ) || 0;
   }, []);
 
@@ -73,7 +88,7 @@ const SuiviPage = memo(() => {
     );
 
     const evenementsEnCours = (evenements || []).filter(
-      e => e.statut_evenement !== 'Réalisé' && e.statut_evenement !== 'Annulé'
+      e => (e.statut_evenement as any) !== 'Réalisé' && (e.statut_evenement as any) !== 'Annulé'
     );
 
     return { commandesEnCours, evenementsEnCours };
@@ -270,8 +285,8 @@ const SuiviPage = memo(() => {
                     <TableBody>
                       {evenementsEnCours.map(evt => {
                         const canEdit =
-                          evt.statut_evenement !== 'Réalisé' &&
-                          evt.statut_evenement !== 'Payé intégralement';
+                          (evt.statut_evenement as any) !== 'Réalisé' &&
+                          (evt.statut_evenement as any) !== 'Payé intégralement';
                         return (
                           <TableRow key={evt.idevenements} className="hover:bg-gradient-to-r hover:from-thai-green/5 hover:to-transparent transition-all duration-200 hover:scale-[1.01] hover:shadow-sm">
                             <TableCell className="text-center">

@@ -6,14 +6,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { useClients } from '@/hooks/useSupabaseData';
-import { supabase } from '@/lib/supabase';
+import { usePrismaClients, usePrismaUpdateClient } from '@/hooks/usePrismaData';
 import { Shield, ShieldCheck, Users, Mail, UserPlus, UserMinus } from 'lucide-react';
 
 export const AdminManagement = () => {
   const [emailToPromote, setEmailToPromote] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { data: clients, refetch } = useClients();
+  const { data: clients, refetch } = usePrismaClients();
+  const updateClientMutation = usePrismaUpdateClient();
   const { toast } = useToast();
 
   const promoteToAdmin = async () => {
@@ -28,29 +28,31 @@ export const AdminManagement = () => {
 
     setIsLoading(true);
     try {
-      // Mettre à jour directement le rôle dans la table client_db
-      const { data, error } = await supabase
-        .from('client_db')
-        .update({ role: 'admin' })
-        .eq('email', emailToPromote.trim())
-        .select();
+      // Trouver le client par email
+      const client = clients?.find(c => c.email === emailToPromote.trim());
 
-      if (error) throw error;
-
-      if (data && data.length > 0) {
-        toast({
-          title: "Succès",
-          description: `${emailToPromote} a été promu administrateur`
-        });
-        setEmailToPromote('');
-        refetch();
-      } else {
+      if (!client) {
         toast({
           title: "Erreur",
           description: "Aucun utilisateur trouvé avec cet email",
           variant: "destructive"
         });
+        setIsLoading(false);
+        return;
       }
+
+      // Mettre à jour le rôle via Prisma
+      await updateClientMutation.mutateAsync({
+        authUserId: client.auth_user_id,
+        data: { role: 'admin' }
+      });
+
+      toast({
+        title: "Succès",
+        description: `${emailToPromote} a été promu administrateur`
+      });
+      setEmailToPromote('');
+      refetch();
     } catch (error) {
       console.error('Erreur promotion admin:', error);
       toast({
@@ -66,28 +68,30 @@ export const AdminManagement = () => {
   const demoteToClient = async (email: string) => {
     setIsLoading(true);
     try {
-      // Mettre à jour directement le rôle dans la table client_db
-      const { data, error } = await supabase
-        .from('client_db')
-        .update({ role: 'client' })
-        .eq('email', email)
-        .select();
+      // Trouver le client par email
+      const client = clients?.find(c => c.email === email);
 
-      if (error) throw error;
-
-      if (data && data.length > 0) {
-        toast({
-          title: "Succès",
-          description: `${email} a été rétrogradé en client`
-        });
-        refetch();
-      } else {
+      if (!client) {
         toast({
           title: "Erreur",
           description: "Utilisateur non trouvé",
           variant: "destructive"
         });
+        setIsLoading(false);
+        return;
       }
+
+      // Mettre à jour le rôle via Prisma
+      await updateClientMutation.mutateAsync({
+        authUserId: client.auth_user_id,
+        data: { role: 'client' }
+      });
+
+      toast({
+        title: "Succès",
+        description: `${email} a été rétrogradé en client`
+      });
+      refetch();
     } catch (error) {
       console.error('Erreur rétrogradation:', error);
       toast({
@@ -151,7 +155,7 @@ export const AdminManagement = () => {
               <p className="text-gray-500 text-center py-4">Aucun administrateur trouvé</p>
             ) : (
               admins.map((admin) => (
-                <div key={admin.firebase_uid} className="flex items-center justify-between p-3 bg-green-50 rounded-lg border">
+                <div key={admin.auth_user_id} className="flex items-center justify-between p-3 bg-green-50 rounded-lg border">
                   <div className="flex items-center gap-3">
                     <Shield className="w-5 h-5 text-green-600" />
                     <div>
@@ -201,7 +205,7 @@ export const AdminManagement = () => {
               <p className="text-gray-500 text-center py-4">Aucun client trouvé</p>
             ) : (
               regularClients.map((client) => (
-                <div key={client.firebase_uid} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded">
+                <div key={client.auth_user_id} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded">
                   <div>
                     <p className="font-medium">
                       {client.prenom || 'Prénom'} {client.nom || 'Nom'}

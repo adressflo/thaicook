@@ -33,7 +33,7 @@ import {
   Eye,
   ArrowRight
 } from 'lucide-react';
-import { useClients, useCommandes, useUpdateClient, useEvenementsByClient } from '@/hooks/useSupabaseData';
+import { usePrismaClients, usePrismaCommandes, usePrismaUpdateClient, usePrismaEvenementsByClient } from "@/hooks/usePrismaData";
 import { format, parse, isValid as isValidDate } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import type { ClientUI, CommandeUI, ClientInputData } from '@/types/app';
@@ -68,7 +68,10 @@ const FicheClient = ({ client, commandes, onBack, router }: { client: ClientUI, 
 
   const [birthDate, setBirthDate] = useState<Date | undefined>(() => {
     if (client.date_de_naissance) {
-      const parsedDate = parse(client.date_de_naissance, DATE_FORMAT_DB, new Date());
+      const dateString = typeof client.date_de_naissance === 'string'
+        ? client.date_de_naissance
+        : client.date_de_naissance.toISOString().split('T')[0];
+      const parsedDate = parse(dateString, DATE_FORMAT_DB, new Date());
       if (isValidDate(parsedDate)) {
         return parsedDate;
       }
@@ -76,11 +79,11 @@ const FicheClient = ({ client, commandes, onBack, router }: { client: ClientUI, 
     return undefined;
   });
   
-  const updateClientMutation = useUpdateClient();
+  const updateClientMutation = usePrismaUpdateClient();
   const { toast } = useToast();
   
   // Hook pour récupérer les événements du client
-  const { data: evenements } = useEvenementsByClient(client.firebase_uid);
+  const { data: evenements } = usePrismaEvenementsByClient(client.idclient);
 
   // Fonction pour gérer les changements de date de naissance avec sauvegarde automatique
   const handleBirthDateChange = async (newDate: Date | undefined) => {
@@ -94,7 +97,7 @@ const FicheClient = ({ client, commandes, onBack, router }: { client: ClientUI, 
       };
 
       await updateClientMutation.mutateAsync({
-        firebase_uid: client.firebase_uid,
+        authUserId: client.auth_user_id,
         data: dataToUpdate,
       });
 
@@ -139,7 +142,7 @@ const FicheClient = ({ client, commandes, onBack, router }: { client: ClientUI, 
       };
 
       await updateClientMutation.mutateAsync({
-        firebase_uid: client.firebase_uid,
+        authUserId: client.auth_user_id,
         data: dataToUpdate,
       });
 
@@ -159,19 +162,19 @@ const FicheClient = ({ client, commandes, onBack, router }: { client: ClientUI, 
 
   // Fonctions de navigation vers les pages dédiées
   const navigateToStats = () => {
-    router.push(`/admin/clients/${client.firebase_uid}/stats`);
+    router.push(`/admin/clients/${client.auth_user_id}/stats`);
   };
 
   const navigateToContact = () => {
-    router.push(`/admin/clients/${client.firebase_uid}/contact`);
+    router.push(`/admin/clients/${client.auth_user_id}/contact`);
   };
 
   const navigateToOrders = () => {
-    router.push(`/admin/clients/${client.firebase_uid}/orders`);
+    router.push(`/admin/clients/${client.auth_user_id}/orders`);
   };
 
   const navigateToEvents = () => {
-    router.push(`/admin/clients/${client.firebase_uid}/events`);
+    router.push(`/admin/clients/${client.auth_user_id}/events`);
   };
 
   return (
@@ -647,8 +650,8 @@ export default function AdminClients() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const router = useRouter();
   
-  const { data: clients } = useClients();
-  const { data: commandes } = useCommandes();
+  const { data: clients } = usePrismaClients();
+  const { data: commandes } = usePrismaCommandes();
 
   const selectClient = (client: ClientUI) => {
     setSelectedClient(client);

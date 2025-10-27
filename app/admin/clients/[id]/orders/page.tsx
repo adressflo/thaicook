@@ -52,19 +52,18 @@ import {
   Check,
 } from 'lucide-react';
 import {
-  useCommandesByClient,
-  useCommandeById,
-  useClient,
-  useUpdateCommande,
-  useUpdatePlatQuantite,
-  useRemovePlatFromCommande,
-  useAddPlatToCommande,
-  usePlats,
-} from '@/hooks/useSupabaseData';
+  usePrismaCommandesByClient,
+  usePrismaCommandeById,
+  usePrismaClient,
+  usePrismaUpdateCommande,
+  usePrismaUpdatePlatQuantite,
+  usePrismaRemovePlatFromCommande,
+  usePrismaAddPlatToCommande,
+  usePrismaPlats,
+} from "@/hooks/usePrismaData";
 import { format, isToday, isPast, isFuture } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import type { CommandeUI, CommandeUpdate } from '@/types/app';
-import type { StatutCommandeAffichage } from '@/types/supabase';
 
 // Composant pour les actions rapides selon le statut
 const QuickActionButtons = ({
@@ -215,7 +214,7 @@ const QuickPaymentActions = ({
   ) => void;
 }) => {
   const [isPaymentLoading, setIsPaymentLoading] = useState(false);
-  const updateCommandeMutation = useUpdateCommande();
+  const updateCommandeMutation = usePrismaUpdateCommande();
 
   const handlePaymentToggle = async () => {
     setIsPaymentLoading(true);
@@ -228,7 +227,7 @@ const QuickPaymentActions = ({
 
       await updateCommandeMutation.mutateAsync({
         id: commande.idcommande,
-        updates: {
+        data: {
           statut_paiement: newPaymentStatus as
             | 'En attente sur place'
             | 'Payé sur place'
@@ -302,7 +301,7 @@ const QuickActionsModal = ({
   const [isOpen, setIsOpen] = useState(false);
   const [notes, setNotes] = useState(commande.notes_internes || '');
   const [isLoading, setIsLoading] = useState(false);
-  const updateCommandeMutation = useUpdateCommande();
+  const updateCommandeMutation = usePrismaUpdateCommande();
   const { toast } = useToast();
 
   const handleSaveNotes = async () => {
@@ -310,7 +309,7 @@ const QuickActionsModal = ({
     try {
       await updateCommandeMutation.mutateAsync({
         id: commande.idcommande,
-        updates: { notes_internes: notes },
+        data: { notes_internes: notes },
       });
       toast({
         title: 'Notes mises à jour',
@@ -454,8 +453,8 @@ const PlatCommandeCard = ({
   commandeId: number;
   toast: any;
 }) => {
-  const updateQuantiteMutation = useUpdatePlatQuantite();
-  const removePlatMutation = useRemovePlatFromCommande();
+  const updateQuantiteMutation = usePrismaUpdatePlatQuantite();
+  const removePlatMutation = usePrismaRemovePlatFromCommande();
   const [isModifying, setIsModifying] = useState(false);
 
   // Fonction formatPrix identique à celle du panier
@@ -629,7 +628,7 @@ const AddComplementModal = ({
 }) => {
   const [nomComplement, setNomComplement] = useState('');
   const [prixComplement, setPrixComplement] = useState('');
-  const addPlatMutation = useAddPlatToCommande();
+  const addPlatMutation = usePrismaAddPlatToCommande();
   const isLoading = addPlatMutation.isPending;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -653,12 +652,9 @@ const AddComplementModal = ({
       // Utiliser le hook existant pour ajouter le complément comme un "plat" spécial
       await addPlatMutation.mutateAsync({
         commandeId: commandeId,
-        platId: null, // Pas d'ID plat pour un Extra
-        nomPlat: nomComplement.trim(),
-        prixUnitaire: parseFloat(prixComplement),
+        platId: 0, // ID temporaire pour Extra (à adapter avec hook dédié)
         quantite: 1,
-        type: 'extra',
-      });
+      } as any); // Type casting pour compatibilité temporaire
 
       toast({
         title: 'Succès',
@@ -759,8 +755,8 @@ const AddPlatModal = ({
   onClose: () => void;
   toast: any;
 }) => {
-  const { data: plats, isLoading: platsLoading } = usePlats();
-  const addPlatMutation = useAddPlatToCommande();
+  const { data: plats, isLoading: platsLoading } = usePrismaPlats();
+  const addPlatMutation = usePrismaAddPlatToCommande();
   const [selectedPlats, setSelectedPlats] = useState<{ [key: number]: number }>(
     {}
   );
@@ -984,9 +980,9 @@ export default function ClientOrdersPage() {
   });
 
   // Récupérer les données du client et ses commandes
-  const { data: client } = useClient(clientId);
-  const { data: commandes, refetch } = useCommandesByClient(clientId);
-  const updateCommandeMutation = useUpdateCommande();
+  const { data: client } = usePrismaClient(clientId);
+  const { data: commandes, refetch } = usePrismaCommandesByClient(client?.idclient);
+  const updateCommandeMutation = usePrismaUpdateCommande();
   const { toast } = useToast();
 
   // Filtrage par recherche et tri par date
@@ -1123,7 +1119,7 @@ export default function ClientOrdersPage() {
     try {
       await updateCommandeMutation.mutateAsync({
         id: commandeId,
-        updates: {
+        data: {
           statut_commande: newStatus as
             | 'En attente de confirmation'
             | 'Confirmée'
@@ -1721,7 +1717,7 @@ const CommandeCard = ({
 
       await updateCommandeMutation.mutateAsync({
         id: commande.idcommande,
-        updates: {
+        data: {
           date_et_heure_de_retrait_souhaitees: currentDate.toISOString(),
         },
       });
@@ -1753,7 +1749,7 @@ const CommandeCard = ({
     if (!commande.details || !Array.isArray(commande.details)) return 0;
     return commande.details.reduce((sum, detail) => {
       // Pour les compléments divers, utiliser prix_unitaire, sinon utiliser le prix du plat
-      const prix = detail.prix_unitaire ?? detail.plat?.prix ?? 0;
+      const prix = Number(detail.prix_unitaire ?? detail.plat?.prix) ?? 0;
       const quantite = detail.quantite_plat_commande ?? 0;
       return sum + prix * quantite;
     }, 0);
@@ -1784,7 +1780,7 @@ const CommandeCard = ({
   };
 
   // Obtenir la couleur du point selon le statut
-  const getStatusPointColor = (status: StatutCommandeAffichage) => {
+  const getStatusPointColor = (status: CommandeUI['statut_commande']) => {
     switch (status) {
       case 'En attente de confirmation':
         return 'bg-thai-orange animate-pulse';
@@ -1794,7 +1790,6 @@ const CommandeCard = ({
         return 'bg-yellow-500 animate-pulse';
       case 'Prête à récupérer':
         return 'bg-thai-gold animate-bounce';
-      case 'Terminée':
       case 'Récupérée':
         return 'bg-thai-green';
       case 'Annulée':
@@ -1965,8 +1960,8 @@ const CommandeCard = ({
               <div className="flex items-center gap-2 mb-2">
                 <div
                   className={`w-3 h-3 rounded-full ${getStatusPointColor(
-                    (commande.statut_commande ||
-                      'En attente de confirmation') as StatutCommandeAffichage
+                    commande.statut_commande ||
+                      'En attente de confirmation'
                   )}`}
                 ></div>
                 <span className="text-sm font-medium text-thai-green">
@@ -2140,8 +2135,8 @@ const ModalPlatCard = ({
   toast: any;
   formatPrix: (prix: number) => string;
 }) => {
-  const updateQuantiteMutation = useUpdatePlatQuantite();
-  const removePlatMutation = useRemovePlatFromCommande();
+  const updateQuantiteMutation = usePrismaUpdatePlatQuantite();
+  const removePlatMutation = usePrismaRemovePlatFromCommande();
   const [isModifying, setIsModifying] = useState(false);
 
   const handleQuantiteChange = async (nouvelleQuantite: number) => {
@@ -2302,7 +2297,7 @@ const CommandeDetailsModal = ({
   toast: any;
 }) => {
   // Tous les hooks doivent être appelés avant tout return conditionnel
-  const { data: commande, isLoading, error } = useCommandeById(commandeId);
+  const { data: commande, isLoading, error } = usePrismaCommandeById(commandeId);
   const [isStatusLoading, setIsStatusLoading] = useState(false);
   const [isAddingPlat, setIsAddingPlat] = useState(false);
   const [showAddPlatDialog, setShowAddPlatDialog] = useState(false);
@@ -2318,9 +2313,9 @@ const CommandeDetailsModal = ({
   const [isLoadingTime, setIsLoadingTime] = useState(false);
   
   // Hooks pour la gestion des plats
-  const { data: plats } = usePlats();
-  const addPlatMutation = useAddPlatToCommande();
-  const updateCommandeMutation = useUpdateCommande();
+  const { data: plats } = usePrismaPlats();
+  const addPlatMutation = usePrismaAddPlatToCommande();
+  const updateCommandeMutation = usePrismaUpdateCommande();
   
   // Fonctions pour la modification d'heure
   const handleTimeEdit = () => {
@@ -2347,7 +2342,7 @@ const CommandeDetailsModal = ({
 
       await updateCommandeMutation.mutateAsync({
         id: commande.idcommande,
-        updates: {
+        data: {
           date_et_heure_de_retrait_souhaitees: currentDate.toISOString(),
         },
       });
@@ -2427,7 +2422,7 @@ const CommandeDetailsModal = ({
     if (!commande.details || !Array.isArray(commande.details)) return 0;
     return commande.details.reduce((sum, detail) => {
       // Pour les compléments divers, utiliser prix_unitaire, sinon utiliser le prix du plat
-      const prix = detail.prix_unitaire ?? detail.plat?.prix ?? 0;
+      const prix = Number(detail.prix_unitaire ?? detail.plat?.prix) ?? 0;
       const quantite = detail.quantite_plat_commande ?? 0;
       return sum + prix * quantite;
     }, 0);
@@ -2490,12 +2485,9 @@ const CommandeDetailsModal = ({
     try {
       await addPlatMutation.mutateAsync({
         commandeId: commande.idcommande,
-        platId: null,
+        platId: 0, // ID temporaire pour Extra
         quantite: 1,
-        nomPlat: nomComplement.trim(),
-        prixUnitaire: parseFloat(prixComplement),
-        type: 'extra'
-      });
+      } as any); // Type casting pour compatibilité temporaire
 
       toast({
         title: "✅ Extra ajouté",
@@ -2627,7 +2619,7 @@ const CommandeDetailsModal = ({
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    const clientFirebaseUID = commande.client_r || commande.FirebaseUID || commande.client?.firebase_uid;
+                    const clientFirebaseUID = commande.client_r || commande.FirebaseUID || commande.client?.auth_user_id;
                     if (clientFirebaseUID) {
                       router.push(`/admin/clients/${clientFirebaseUID}/contact`);
                       onClose(); // Fermer le modal

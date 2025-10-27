@@ -29,6 +29,7 @@ class SupabaseService {
     return (data || []).map(client => ({
       ...client,
       id: client.firebase_uid, // Pour compatibilité
+      auth_user_id: client.firebase_uid, // Pour compatibilité ClientUI
       Nom: client.nom ?? undefined,
       Prénom: client.prenom ?? undefined,
       'Numéro de téléphone': client.numero_de_telephone ?? undefined,
@@ -55,7 +56,7 @@ class SupabaseService {
       .single()
 
     if (error && error.code !== 'PGRST116') throw error
-    return data
+    return data ? { ...data, auth_user_id: data.firebase_uid } as any : null
   }
 
   async createClient(clientData: ClientInputData): Promise<Client> {
@@ -72,28 +73,28 @@ class SupabaseService {
         adresse_numero_et_rue: clientData.adresse_numero_et_rue,
         code_postal: clientData.code_postal,
         ville: clientData.ville,
-        comment_avez_vous_connu: clientData.comment_avez_vous_connu,
+        comment_avez_vous_connu: clientData.comment_avez_vous_connu as any,
         souhaitez_vous_recevoir_actualites: clientData.souhaitez_vous_recevoir_actualites,
         date_de_naissance: clientData.date_de_naissance,
         photo_client: clientData.photo_client
-      })
+      } as any)
       .select()
       .single()
 
     if (error) throw error
-    return data
+    return { ...data, auth_user_id: data.firebase_uid } as any
   }
 
   async updateClient(firebase_uid: string, clientData: Partial<ClientInputData>): Promise<Client> {
     const { data, error } = await supabase
       .from('client_db')
-      .update(clientData)
+      .update(clientData as any)
       .eq('firebase_uid', firebase_uid)
       .select()
       .single()
 
     if (error) throw error
-    return data
+    return { ...data, auth_user_id: data.firebase_uid } as any
   }
 
   // ========== PLATS ==========
@@ -236,7 +237,7 @@ class SupabaseService {
             prix_unitaire: detail.prix_unitaire ?? (platData?.prix || null),
             type: (detail.type as 'plat' | 'extra' | null) ?? 'plat',
             extra_id: detail.extra_id ?? null,
-            plat: platData,
+            plat: platData || undefined,
           };
         })
         .filter((detail): detail is DetailCommande & { plat?: Plat } => {
@@ -325,28 +326,28 @@ class SupabaseService {
         client_r: commandeData.client_r,
         client_r_id: commandeData.client_r_id,
         date_et_heure_de_retrait_souhaitees: commandeData.date_et_heure_de_retrait_souhaitees,
-        statut_commande: 'En attente de confirmation',
+        statut_commande: 'En attente de confirmation' as any,
         demande_special_pour_la_commande: commandeData.demande_special_pour_la_commande,
-        statut_paiement: 'En attente sur place',
-        type_livraison: commandeData.type_livraison || 'À emporter'
-      })
+        statut_paiement: 'En attente sur place' as any,
+        type_livraison: (commandeData.type_livraison || 'À emporter') as any
+      } as any)
       .select()
       .single()
 
     if (error) throw error
-    return data
+    return data as any
   }
 
   async updateCommande(idcommande: number, updates: Partial<Commande>): Promise<Commande> {
     const { data, error } = await supabase
       .from('commande_db')
-      .update(updates)
+      .update(updates as any)
       .eq('idcommande', idcommande)
       .select()
       .single()
 
     if (error) throw error
-    return data
+    return data as any
   }
 
   // ========== DÉTAILS DE COMMANDE ==========
@@ -362,7 +363,7 @@ class SupabaseService {
       .single()
 
     if (error) throw error
-    return data
+    return data as any
   }
 
   // ========== ÉVÉNEMENTS ==========
@@ -373,7 +374,7 @@ class SupabaseService {
       .order('date_evenement', { ascending: false })
 
     if (error) throw error
-    return data || []
+    return (data || []).map(e => ({ ...e } as any))
   }
 
   async createEvenement(evenementData: EvenementInputData): Promise<Evenement> {
@@ -381,27 +382,27 @@ class SupabaseService {
       .from('evenements_db')
       .insert({
         ...evenementData,
-        statut_evenement: 'Demande initiale',
-        statut_acompte: 'Non applicable',
-        statut_paiement_final: 'En attente'
-      })
+        statut_evenement: 'Demande initiale' as any,
+        statut_acompte: 'Non applicable' as any,
+        statut_paiement_final: 'En attente' as any
+      } as any)
       .select()
       .single()
 
     if (error) throw error
-    return data
+    return data as any
   }
 
   async updateEvenement(id: number, updates: Partial<Evenement>): Promise<Evenement> {
     const { data, error } = await supabase
       .from('evenements_db')
-      .update(updates)
+      .update(updates as any)
       .eq('idevenements', id)
       .select()
       .single()
 
     if (error) throw error
-    return data
+    return data as any
   }
 }
 

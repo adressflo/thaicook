@@ -91,7 +91,6 @@ model categories_articles {
 }
 
 model client_db {
-  firebase_uid                       String                     @unique @default(dbgenerated("auth.uid()"))
   role                               role_client?               @default(client)
   nom                                String?
   prenom                             String?
@@ -101,11 +100,12 @@ model client_db {
   adresse_numero_et_rue              String?
   code_postal                        Int?
   ville                              String?
-  comment_avez_vous_connu            source_connaissance[]
+  comment_avez_vous_connu            String[]
   souhaitez_vous_recevoir_actualites Boolean?                   @default(false)
   date_de_naissance                  DateTime?                  @db.Date
   photo_client                       String?
   idclient                           BigInt                     @id @unique @default(autoincrement())
+  auth_user_id                       String                     @unique
   activites_flux                     activites_flux[]
   commande_db                        commande_db[]
   evenements_db                      evenements_db[]
@@ -115,9 +115,9 @@ model client_db {
   notification_tokens                notification_tokens[]
   notifications_history              notifications_history[]
 
-  @@index([firebase_uid, role], map: "idx_client_db_firebase_uid_role")
+  @@index([auth_user_id, role], map: "idx_client_db_auth_user_id_role")
   @@index([email], map: "idx_client_email")
-  @@index([firebase_uid], map: "idx_client_firebase_uid")
+  @@index([auth_user_id], map: "idx_client_auth_user_id")
   @@index([role], map: "idx_client_role")
   @@index([numero_de_telephone], map: "idx_client_telephone")
 }
@@ -491,6 +491,69 @@ model system_settings {
   @@index([setting_key], map: "idx_system_settings_key")
 }
 
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @default(now()) @updatedAt
+  accounts      Account[]
+  sessions      Session[]
+
+  @@map("user")
+}
+
+model Account {
+  id                    String    @id @default(cuid())
+  providerId            String
+  accountId             String
+  type                  String    @default("credential")
+  provider              String    @default("credential")
+  accessToken           String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, accountId])
+  @@index([userId])
+  @@map("account")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("session")
+}
+
+model Verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String   @unique
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([identifier, value])
+  @@map("verification")
+}
+
 enum categorie_ingredient {
   L_gumes             @map("Légumes")
   pices___Herbes      @map("Épices & Herbes")
@@ -511,15 +574,6 @@ enum jour_dispo {
 enum role_client {
   client
   admin
-}
-
-enum source_connaissance {
-  Bouche___oreille        @map("Bouche à oreille")
-  R_seaux_sociaux         @map("Réseaux sociaux")
-  Recherche_Google        @map("Recherche Google")
-  En_passant_devant       @map("En passant devant")
-  Recommandation_d_un_ami @map("Recommandation d'un ami")
-  Autre
 }
 
 enum statut_acompte {
@@ -592,65 +646,11 @@ enum unite_ingredient {
   boite
 }
 
-// 1. MODÈLE USER (POUR L'AUTH)
-model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String    @unique
-  emailVerified Boolean   @default(false)
-  image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @default(now()) @updatedAt
-  sessions      Session[]
-  accounts      Account[]
-  @@map("user")
-}
-
-// 2. MODÈLE ACCOUNT (POUR GITHUB, GOOGLE, MOT DE PASSE)
-model Account {
-  id                    String    @id @default(cuid())
-  providerId            String
-  accountId             String
-  type                  String
-  provider              String
-  accessToken           String?   @db.Text
-  idToken               String?   @db.Text
-  accessTokenExpiresAt  DateTime?
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
-  refreshTokenExpiresAt DateTime?
-  scope                 String?
-  password              String?
-  userId                String
-  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  @@unique([providerId, accountId])
-  @@index([userId])
-  @@map("account")
-}
-
-// 3. MODÈLE SESSION (POUR LES CONNEXIONS)
-model Session {
-  id        String    @id @default(cuid())
-  expiresAt DateTime
-  token     String    @unique
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  ipAddress String?
-  userAgent String?
-  userId    String
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  @@index([userId])
-  @@map("session")
-}
-
-// 4. MODÈLE VERIFICATION (POUR RESET MOT DE PASSE)
-model Verification {
-  id         String   @id @default(cuid())
-  identifier String
-  value      String   @unique
-  expiresAt  DateTime
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  @@unique([identifier, value])
-  @@map("verification")
+enum source_connaissance {
+  Bouche___oreille        @map("Bouche à oreille")
+  R_seaux_sociaux         @map("Réseaux sociaux")
+  Recherche_Google        @map("Recherche Google")
+  En_passant_devant       @map("En passant devant")
+  Recommandation_d_un_ami @map("Recommandation d'un ami")
+  Autre
 }

@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
+import type { Route } from 'next';
 
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
@@ -46,11 +47,12 @@ import {
 } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
-import { useAuth } from '@/contexts/AuthContext';
+import { useSession } from '@/lib/auth-client';
+import { getClientProfile } from '@/app/profil/actions';
 import { useData } from '@/contexts/DataContext';
-// Utilisation des hooks Supabase
+// Utilisation des hooks
 import { useCart } from '@/contexts/CartContext';
-import { useCreateCommande, useExtras } from '@/hooks/useSupabaseData';
+import { usePrismaCreateCommande } from '@/hooks/usePrismaData';
 import type { PlatUI as Plat, PlatPanier } from '@/types/app';
 import { DishDetailsModalInteractive } from '@/components/historique/DishDetailsModalInteractive';
 
@@ -85,8 +87,25 @@ const getAvailableDays = (plat: Plat): { value: string; label: string }[] => {
 const Commander = memo(() => {
   const { toast } = useToast();
   const { plats, isLoading: dataIsLoading, error: dataError } = useData();
-  const createCommande = useCreateCommande();
-  const { currentUser } = useAuth();
+  const createCommande = usePrismaCreateCommande();
+
+  // Better Auth session
+  const { data: session } = useSession();
+  const currentUser = session?.user;
+
+  // Client profile (pour obtenir idclient)
+  const [clientProfile, setClientProfile] = useState<any>(null);
+
+  useEffect(() => {
+    if (currentUser) {
+      getClientProfile().then(setClientProfile);
+    } else {
+      setClientProfile(null);
+    }
+  }, [currentUser?.id]);
+
+  const clientFirebaseUID = clientProfile?.idclient;
+
   const {
     panier,
     ajouterAuPanier,
@@ -97,8 +116,6 @@ const Commander = memo(() => {
   } = useCart();
   const isMobile = useIsMobile();
   const platsSectionRef = useRef<HTMLDivElement>(null);
-
-  const clientFirebaseUID = currentUser?.id;
 
   // États pour la sidebar mobile
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -316,7 +333,7 @@ const Commander = memo(() => {
         if (!dateKey) continue;
 
         await createCommande.mutateAsync({
-          client_r: currentUser.id,
+          client_r: clientFirebaseUID,
           date_et_heure_de_retrait_souhaitees: dateKey,
           demande_special_pour_la_commande: demandesSpeciales,
           details: items.map(item => ({
@@ -393,7 +410,7 @@ const Commander = memo(() => {
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
                   <strong>Profil requis :</strong> Pour commander, veuillez vous{' '}
-                  <Link href="/profil" className="underline font-medium">
+                  <Link href={"/auth/login" as Route} className="underline font-medium">
                     connecter et compléter votre profil
                   </Link>
                   .

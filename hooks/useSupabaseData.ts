@@ -264,7 +264,7 @@ export const useUpdateClient = () => {
 
       const { data: updatedData, error } = await supabase
         .from('client_db')
-        .update(data)
+        .update(data as any)
         .eq('firebase_uid', firebase_uid)
         .select()
         .single();
@@ -706,14 +706,14 @@ export const useCommandeById = (idcommande?: number, firebase_uid?: string) => {
       return {
         ...validatedCommande,
         id: validatedCommande.idcommande,
-        client: commande.client_db || null,
-        details: enrichedDetails.map(detail => ({
+        client: (commande.client_db as any) || null,
+        details: (enrichedDetails.map(detail => ({
           ...detail,
           plat: detail.plats_db,
           extra: (detail as any).extras_db || null,
           // Assurer que type soit du bon type Union
           type: (detail.type === 'plat' || detail.type === 'extra') ? detail.type : null
-        })),
+        })) as any),
         prix_total,
         statut: mapStatutCommande(
           validatedCommande.statut_commande || 'En attente de confirmation'
@@ -858,7 +858,7 @@ export const useCommandesByClient = (firebase_uid?: string) => {
         return {
           ...validatedCommande,
           id: validatedCommande.idcommande,
-          client: clientData,
+          client: (clientData as any),
           details: enrichedDetails.map((detail: DetailsCommande & { plats_db?: Plat; extras_db?: any }) => {
             const mappedDetail = {
               ...detail,
@@ -1252,13 +1252,7 @@ export const useUpdateCommandeV1 = () => {
       const { data, error } = await supabase
         .from('commande_db')
         .update({
-          statut_commande: updates.statut as
-            | 'En attente de confirmation'
-            | 'Confirmée'
-            | 'En préparation'
-            | 'Prête à récupérer'
-            | 'Récupérée'
-            | 'Annulée',
+          statut_commande: updates.statut as any,
         })
         .eq('idcommande', id)
         .select();
@@ -1390,11 +1384,10 @@ export const useCreateCommande = () => {
           client_r_id,
           date_et_heure_de_retrait_souhaitees: commandeData.date_et_heure_de_retrait_souhaitees,
           demande_special_pour_la_commande: commandeData.demande_special_pour_la_commande,
-          type_livraison:
-            (commandeData.type_livraison as 'À emporter' | 'Livraison') || 'À emporter',
+          type_livraison: (commandeData.type_livraison || 'À emporter') as any,
           adresse_specifique: commandeData.adresse_specifique,
-          statut_commande: 'En attente de confirmation',
-          statut_paiement: 'En attente sur place',
+          statut_commande: 'En attente de confirmation' as any,
+          statut_paiement: 'En attente sur place' as any,
         })
         .select()
         .single();
@@ -1546,7 +1539,7 @@ export const useCreateEvenement = () => {
         contact_client_r: evenementData.contact_client_r || null, // Firebase UID
         contact_client_r_id: evenementData.contact_client_r_id || null,
         date_evenement: evenementData.date_evenement || null,
-        type_d_evenement: (evenementData.type_d_evenement || 'Autre') as 'Autre' | 'Anniversaire' | "Repas d'entreprise" | 'Fête de famille' | 'Cocktail dînatoire' | 'Buffet traiteur',
+        type_d_evenement: (evenementData.type_d_evenement || 'Autre') as any,
         nombre_de_personnes: evenementData.nombre_de_personnes || null,
         budget_client: evenementData.budget_client || null,
         demandes_speciales_evenement: evenementData.demandes_speciales_evenement || null,
@@ -1557,7 +1550,7 @@ export const useCreateEvenement = () => {
       // Test direct sans try-catch complexe
       const { data, error } = await supabase
         .from('evenements_db')
-        .insert(insertData)
+        .insert(insertData as any)
         .select()
         .single();
 
@@ -1628,7 +1621,7 @@ export const useEvenementById = (idevenements?: number) => {
       return {
         ...data,
         id: data.idevenements,
-      };
+      } as any;
     },
     enabled: !!idevenements,
   });
@@ -1820,19 +1813,13 @@ export const useUpdateCommande = () => {
       // Mapper le statut vers la base de données
       const dbUpdates: Partial<Commande> = {};
       if (updates.statut) {
-        dbUpdates.statut_commande = mapStatutToDatabase(updates.statut) as
-          | 'En attente de confirmation'
-          | 'Confirmée'
-          | 'En préparation'
-          | 'Prête à récupérer'
-          | 'Récupérée'
-          | 'Annulée';
+        dbUpdates.statut_commande = mapStatutToDatabase(updates.statut) as any;
       }
       if (updates.statut_commande) {
-        dbUpdates.statut_commande = updates.statut_commande;
+        dbUpdates.statut_commande = updates.statut_commande as any;
       }
       if (updates.statut_paiement) {
-        dbUpdates.statut_paiement = updates.statut_paiement;
+        dbUpdates.statut_paiement = updates.statut_paiement as any;
       }
       if (updates.notes_internes) {
         dbUpdates.notes_internes = updates.notes_internes;
@@ -1841,7 +1828,7 @@ export const useUpdateCommande = () => {
         dbUpdates.date_et_heure_de_retrait_souhaitees = updates.date_et_heure_de_retrait_souhaitees;
       }
       if (updates.type_livraison) {
-        dbUpdates.type_livraison = updates.type_livraison;
+        dbUpdates.type_livraison = updates.type_livraison as any;
       }
       if (updates.adresse_specifique) {
         dbUpdates.adresse_specifique = updates.adresse_specifique;

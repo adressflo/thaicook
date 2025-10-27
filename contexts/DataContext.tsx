@@ -1,8 +1,8 @@
 'use client';
 
 import { createContext, useContext, ReactNode } from 'react';
-// Utilisation des hooks Supabase
-import { usePlats, useClients, useCommandes } from '../hooks/useSupabaseData';
+// Migration Prisma - Utilisation des hooks Prisma
+import { usePrismaPlats, usePrismaClients, usePrismaCommandes } from '../hooks/usePrismaData';
 import type { PlatUI, ClientUI, CommandeUI } from '../types/app'
 
 interface DataContextType {
@@ -26,10 +26,9 @@ interface DataProviderProps {
 }
 
 export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
-  const { data: plats, isLoading: platsLoading, error: platsError } = usePlats();
-  // CORRECTION: 'useClientsList' a été remplacé par 'useClients'
-  const { data: clients, isLoading: clientsLoading, error: clientsError } = useClients(); 
-  const { data: commandes, isLoading: commandesLoading, error: commandesError } = useCommandes();
+  const { data: plats, isLoading: platsLoading, error: platsError } = usePrismaPlats();
+  const { data: clients, isLoading: clientsLoading, error: clientsError } = usePrismaClients();
+  const { data: commandes, isLoading: commandesLoading, error: commandesError } = usePrismaCommandes();
 
   const isLoading = platsLoading || clientsLoading || commandesLoading;
   const error = platsError || clientsError || commandesError;

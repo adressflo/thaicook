@@ -7,14 +7,14 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import { useAuth } from '@/contexts/AuthContext'
+import { useSession } from '@/lib/auth-client'
 import { useCart } from '@/contexts/CartContext'
 import { useNotifications } from '@/contexts/NotificationContext'
-import { signOut } from 'firebase/auth'
-import { auth } from '@/lib/firebaseConfig'
-import { 
-  User, 
-  LogOut, 
+import { authClient } from '@/lib/auth-client'
+import { getClientProfile } from '@/app/profil/actions'
+import {
+  User,
+  LogOut,
   Bell,
   ChevronDown,
   History,
@@ -27,15 +27,32 @@ import {
   Shield
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import type { Route } from 'next'
 
 const FloatingUserIcon = memo(() => {
   const [isOpen, setIsOpen] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
-  const { currentUser, currentUserProfile } = useAuth()
+
+  // Better Auth session
+  const { data: session } = useSession()
+  const currentUser = session?.user
+
+  // Client profile
+  const [currentUserProfile, setCurrentUserProfile] = useState<any>(null)
+
   const { panier } = useCart()
   const { notifications, unreadCount, markAsRead } = useNotifications()
   const router = useRouter()
+
+  // Charger le profil client au montage
+  useEffect(() => {
+    if (currentUser) {
+      getClientProfile().then(setCurrentUserProfile)
+    } else {
+      setCurrentUserProfile(null)
+    }
+  }, [currentUser?.id])
 
   // Vérifier si le panier a des articles non validés
   const hasUnvalidatedCart = panier.length > 0
@@ -63,10 +80,10 @@ const FloatingUserIcon = memo(() => {
     if (!notification.read) {
       markAsRead(notification.id);
     }
-    
+
     // Fermer le dropdown
     setShowNotifications(false);
-    
+
     // Naviguer vers la page d'action avec un léger délai pour laisser le dropdown se fermer
     if (notification.actionUrl) {
       setTimeout(() => {
@@ -90,7 +107,7 @@ const FloatingUserIcon = memo(() => {
 
   const handleLogout = useCallback(async () => {
     try {
-      await signOut(auth)
+      await authClient.signOut()
       setIsOpen(false)
       router.push('/')
     } catch (error) {
@@ -109,17 +126,17 @@ const FloatingUserIcon = memo(() => {
     return name.split(' ').map(word => word[0]).join('').toUpperCase().slice(0, 2)
   }
 
-  const displayName = currentUserProfile?.prenom && currentUserProfile?.nom 
+  const displayName = currentUserProfile?.prenom && currentUserProfile?.nom
     ? `${currentUserProfile.prenom} ${currentUserProfile.nom}`
-    : currentUser?.displayName || currentUser?.email?.split('@')[0] || 'Utilisateur'
-  const firstName = currentUserProfile?.prenom || currentUser?.displayName?.split(' ')[0]
+    : currentUser?.name || currentUser?.email?.split('@')[0] || 'Utilisateur'
+  const firstName = currentUserProfile?.prenom || currentUser?.name?.split(' ')[0]
 
   return (
     <div className="fixed top-4 right-4 z-[70] floating-user-icon" ref={dropdownRef}>
       {/* Icône utilisateur plus grande avec contour ondulé amélioré */}
       <div className="relative">
-        
-        
+
+
         <Button
           variant="ghost"
           size="icon"
@@ -130,10 +147,10 @@ const FloatingUserIcon = memo(() => {
           className="relative z-10 h-32 w-32 flex items-center justify-center !outline-none !ring-0 !border-0 hover:bg-transparent active:bg-transparent focus-visible:!ring-0 focus-visible:!ring-offset-0 !shadow-none group"
           aria-label="Ouvrir le menu"
         >
-          <img 
-            src="/logo.svg" 
-            alt="Logo Chanthana" 
-            className="w-full h-full object-contain animate-pulse-soft hover:rotate-6 hover:scale-110 active:scale-95 transition-all duration-300 group-hover:animate-none" 
+          <img
+            src="/logo.svg"
+            alt="Logo Chanthana"
+            className="w-full h-full object-contain animate-pulse-soft hover:rotate-6 hover:scale-110 active:scale-95 transition-all duration-300 group-hover:animate-none"
           />
         </Button>
 
@@ -151,7 +168,7 @@ const FloatingUserIcon = memo(() => {
             aria-label="Notifications"
           >
             <Bell className="h-5 w-5 text-thai-orange" />
-            
+
             {/* Badge de notification avec numéro plus grand */}
             {unreadCount > 0 && (
               <span className="absolute -top-2 -right-2 h-7 w-7 bg-red-500 text-white text-base font-bold rounded-full flex items-center justify-center shadow-lg border-2 border-white">
@@ -174,7 +191,7 @@ const FloatingUserIcon = memo(() => {
                     )}
                   </div>
                 </div>
-                
+
                 <div className="max-h-64 overflow-y-auto">
                   {dropdownNotifications.length > 0 ? (
                     dropdownNotifications.map((notification) => (
@@ -204,7 +221,7 @@ const FloatingUserIcon = memo(() => {
                           <p className="text-xs text-gray-400 mt-2">{formatTime(notification.timestamp)}</p>
                         </Link>
                       ) : (
-                        <div 
+                        <div
                           key={notification.id}
                           onClick={() => handleNotificationClick(notification)}
                           className={`p-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors ${
@@ -231,12 +248,12 @@ const FloatingUserIcon = memo(() => {
                     </div>
                   )}
                 </div>
-                
+
                 {dropdownNotifications.length > 0 && (
                   <div className="p-3 bg-gray-50 rounded-b-lg border-t">
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
+                    <Button
+                      variant="ghost"
+                      size="sm"
                       className="w-full text-thai-orange hover:bg-thai-orange/10"
                       onClick={() => {
                         setShowNotifications(false);
@@ -262,7 +279,7 @@ const FloatingUserIcon = memo(() => {
           <Card className="absolute top-22 right-0 w-72 shadow-xl border-0 bg-white/95 backdrop-blur-sm animate-in slide-in-from-top-2 duration-200 z-50">
             <CardContent className="p-0">
               {/* Header utilisateur */}
-              <div className={cn("p-4 rounded-t-lg", (currentUser?.photoURL || currentUserProfile?.photo_client) && "bg-gradient-to-r from-thai-orange/10 to-thai-gold/10")}>
+              <div className={cn("p-4 rounded-t-lg", (currentUser?.image || currentUserProfile?.photo_client) && "bg-gradient-to-r from-thai-orange/10 to-thai-gold/10")}>
                 <div className="flex items-center space-x-3">
                   <Link
                     href="/profil"
@@ -270,9 +287,9 @@ const FloatingUserIcon = memo(() => {
                     className="group cursor-pointer"
                     aria-label="Aller au profil"
                   >
-                    {(currentUser?.photoURL || currentUserProfile?.photo_client) ? (
-                      <img 
-                        src={currentUserProfile?.photo_client ?? currentUser?.photoURL ?? ''} 
+                    {(currentUser?.image || currentUserProfile?.photo_client) ? (
+                      <img
+                        src={currentUserProfile?.photo_client ?? currentUser?.image ?? ''}
                         alt={displayName}
                         className="w-12 h-12 rounded-full object-cover hover:scale-105 hover:ring-2 hover:ring-thai-orange/50 transition-all duration-200"
                       />
@@ -309,7 +326,7 @@ const FloatingUserIcon = memo(() => {
                       <ShoppingCart className="h-5 w-5 mr-3 text-thai-orange" />
                       Commander maintenant
                     </Link>
-                    
+
                     <Link
                       href="/panier"
                       onClick={() => setIsOpen(false)}
@@ -323,9 +340,9 @@ const FloatingUserIcon = memo(() => {
                         </span>
                       )}
                     </Link>
-                    
+
                     <Separator className="my-2" />
-                    
+
                     {/* Navigation principale */}
                     <Link
                       href="/"
@@ -335,7 +352,7 @@ const FloatingUserIcon = memo(() => {
                       <Home className="h-4 w-4 mr-3 text-thai-orange" />
                       Accueil
                     </Link>
-                    
+
                     <Link
                       href="/suivi"
                       onClick={() => setIsOpen(false)}
@@ -344,7 +361,7 @@ const FloatingUserIcon = memo(() => {
                       <Clock className="h-4 w-4 mr-3 text-thai-orange" />
                       Mes commandes en cours
                     </Link>
-                    
+
                     <Link
                       href="/historique"
                       onClick={() => setIsOpen(false)}
@@ -353,7 +370,7 @@ const FloatingUserIcon = memo(() => {
                       <History className="h-4 w-4 mr-3 text-thai-orange" />
                       Historique des commandes
                     </Link>
-                    
+
                     <Link
                       href="/evenements"
                       onClick={() => setIsOpen(false)}
@@ -362,7 +379,7 @@ const FloatingUserIcon = memo(() => {
                       <Calendar className="h-4 w-4 mr-3 text-thai-orange" />
                       Événements
                     </Link>
-                    
+
                     <Link
                       href="/nous-trouver"
                       onClick={() => setIsOpen(false)}
@@ -371,9 +388,9 @@ const FloatingUserIcon = memo(() => {
                       <MapPin className="h-4 w-4 mr-3 text-thai-orange" />
                       Nous trouver
                     </Link>
-                    
+
                     <Separator className="my-2" />
-                    
+
                     {/* Profil utilisateur */}
                     <Link
                       href="/profil"
@@ -400,7 +417,7 @@ const FloatingUserIcon = memo(() => {
                     )}
 
                     <Separator className="my-2" />
-                    
+
                     {/* Actions */}
                     <Button
                       variant="ghost"
@@ -422,7 +439,7 @@ const FloatingUserIcon = memo(() => {
                       <ShoppingCart className="h-5 w-5 mr-3 text-thai-orange" />
                       Commander maintenant
                     </Link>
-                    
+
                     <Link
                       href="/panier"
                       onClick={() => setIsOpen(false)}
@@ -436,9 +453,9 @@ const FloatingUserIcon = memo(() => {
                         </span>
                       )}
                     </Link>
-                    
+
                     <Separator className="my-2" />
-                    
+
                     {/* Navigation pour visiteurs */}
                     <Link
                       href="/"
@@ -448,7 +465,7 @@ const FloatingUserIcon = memo(() => {
                       <Home className="h-4 w-4 mr-3 text-thai-orange" />
                       Accueil
                     </Link>
-                    
+
                     <Link
                       href="/evenements"
                       onClick={() => setIsOpen(false)}
@@ -457,29 +474,29 @@ const FloatingUserIcon = memo(() => {
                       <Calendar className="h-4 w-4 mr-3 text-thai-orange" />
                       Événements
                     </Link>
-                    
-                    <Link
-                      href="/nous-trouver"
-                      onClick={() => setIsOpen(false)}
-                      className="flex items-center px-3 py-2 text-sm rounded-lg hover:bg-thai-orange/10 transition-colors w-full"
-                    >
-                      <MapPin className="h-4 w-4 mr-3 text-thai-orange" />
-                      Nous trouver
-                    </Link>
-                    
-                    <Separator className="my-2" />
-                    
-                    {/* Connexion */}
-                    <Link
-                      href="/profil"
-                      onClick={() => setIsOpen(false)}
-                      className="flex items-center px-3 py-2 text-sm rounded-lg hover:bg-thai-orange/10 transition-colors w-full"
-                    >
-                      <User className="h-4 w-4 mr-3 text-thai-orange" />
-                      Se connecter / S'inscrire
-                    </Link>
-                  </>
-                )}
+
+                                        <Link
+                                          href="/nous-trouver"
+                                          onClick={() => setIsOpen(false)}
+                                          className="flex items-center px-3 py-2 text-sm rounded-lg hover:bg-thai-orange/10 transition-colors w-full"
+                                        >
+                                          <MapPin className="h-4 w-4 mr-3 text-thai-orange" />
+                                          Nous trouver
+                                        </Link>
+                                        
+                                        <Separator className="my-2" />
+                                        
+                                        {/* Connexion */}
+                                        <Link
+                                          href={"/auth/login" as Route}
+                                          passHref
+                                          onClick={() => setIsOpen(false)}
+                                          className="flex items-center px-3 py-2 text-sm rounded-lg hover:bg-thai-orange/10 transition-colors w-full"
+                                        >
+                                          <User className="h-4 w-4 mr-3 text-thai-orange" />
+                                          Se connecter / S'inscrire
+                                        </Link>
+                                      </>                )}
               </div>
 
               {/* Footer optimisé avec lien vers l'accueil */}

@@ -1,6 +1,6 @@
-import { useAuth } from '@/contexts/AuthContext';
-import { useClient } from '@/hooks/useSupabaseData';
-import { ReactNode } from 'react';
+import { useSession } from '@/lib/auth-client';
+import { getClientProfile } from '@/app/profil/actions';
+import { ReactNode, useState, useEffect } from 'react';
 
 interface PermissionGuardProps {
   children: ReactNode;
@@ -9,14 +9,33 @@ interface PermissionGuardProps {
   fallback?: ReactNode;
 }
 
-export const PermissionGuard = ({ 
-  children, 
-  requireAdmin = false, 
+export const PermissionGuard = ({
+  children,
+  requireAdmin = false,
   requireAuth = true,
-  fallback = null 
+  fallback = null
 }: PermissionGuardProps) => {
-  const { currentUser, currentUserProfile } = useAuth();
-  const { data: clientProfile, isLoading } = useClient(currentUser?.id);
+  // Better Auth session
+  const { data: session, isPending: isLoadingAuth } = useSession();
+  const currentUser = session?.user;
+
+  // Client profile
+  const [clientProfile, setClientProfile] = useState<any>(null);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+
+  useEffect(() => {
+    if (currentUser) {
+      setIsLoadingProfile(true);
+      getClientProfile()
+        .then(setClientProfile)
+        .finally(() => setIsLoadingProfile(false));
+    } else {
+      setClientProfile(null);
+      setIsLoadingProfile(false);
+    }
+  }, [currentUser?.id]);
+
+  const isLoading = isLoadingAuth || isLoadingProfile;
 
   // Attendre le chargement
   if (isLoading) {
@@ -30,8 +49,7 @@ export const PermissionGuard = ({
     return fallback || <div>Authentification requise</div>;
   }
 
-  // Utiliser le profil le plus à jour (hook ou contexte)
-  const profile = clientProfile || currentUserProfile;
+  const profile = clientProfile;
 
   // Vérifier les permissions admin
   if (requireAdmin && profile?.role !== 'admin') {
@@ -58,25 +76,6 @@ export const PermissionGuard = ({
   }
 
   return <>{children}</>;
-};
-
-// Hook pour vérifier les permissions
-// eslint-disable-next-line react-refresh/only-export-components
-export const usePermissions = () => {
-  const { currentUser, currentUserProfile } = useAuth();
-  const { data: clientProfile } = useClient(currentUser?.id);
-
-  const profile = clientProfile || currentUserProfile;
-
-  return {
-    isAuthenticated: !!currentUser,
-    isAdmin: profile?.role === 'admin',
-    isClient: profile?.role === 'client',
-    clientProfile: profile,
-    canViewAllCommandes: profile?.role === 'admin',
-    canModifyCommandes: profile?.role === 'admin',
-    canViewAdminPanel: profile?.role === 'admin'
-  };
 };
 
 export default PermissionGuard;

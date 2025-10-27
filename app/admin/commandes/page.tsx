@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/contexts/AuthContext';
+import { useSession } from '@/lib/auth-client';
 import { useRouter } from 'next/navigation';
 import {
   Dialog,
@@ -54,23 +54,21 @@ import {
   Phone,
 } from 'lucide-react';
 import {
-  useCommandesAdmin,
-  useCommandes,
-  useUpdateCommande,
-  useUpdatePlatQuantite,
-  useRemovePlatFromCommande,
-  useAddPlatToCommande,
-  usePlats,
-  useCommandeById,
-  useExtras,
-  useCreateExtra,
-  useCommandesRealtime,
-} from '@/hooks/useSupabaseData';
+  usePrismaCommandes,
+  usePrismaUpdateCommande,
+  usePrismaUpdatePlatQuantite,
+  usePrismaRemovePlatFromCommande,
+  usePrismaAddPlatToCommande,
+  usePrismaPlats,
+  usePrismaCommandeById,
+  usePrismaExtras,
+  usePrismaCreateExtra,
+} from "@/hooks/usePrismaData";
+import { useCommandesRealtime } from "@/hooks/useSupabaseData";
 import { useImageUpload } from '@/hooks/useImageUpload';
 import { format, isToday, isPast, isFuture } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import type { CommandeUI, CommandeUpdate } from '@/types/app';
-import type { StatutCommandeAffichage } from '@/types/supabase';
 
 // Composant pour les actions rapides selon le statut
 const QuickActionButtons = ({
@@ -221,7 +219,7 @@ const QuickPaymentActions = ({
   ) => void;
 }) => {
   const [isPaymentLoading, setIsPaymentLoading] = useState(false);
-  const updateCommandeMutation = useUpdateCommande();
+  const updateCommandeMutation = usePrismaUpdateCommande();
 
   const handlePaymentToggle = async () => {
     setIsPaymentLoading(true);
@@ -234,7 +232,7 @@ const QuickPaymentActions = ({
 
       await updateCommandeMutation.mutateAsync({
         id: commande.idcommande,
-        updates: {
+        data: {
           statut_paiement: newPaymentStatus as
             | 'En attente sur place'
             | 'Payé sur place'
@@ -308,7 +306,7 @@ const QuickActionsModal = ({
   const [isOpen, setIsOpen] = useState(false);
   const [notes, setNotes] = useState(commande.notes_internes || '');
   const [isLoading, setIsLoading] = useState(false);
-  const updateCommandeMutation = useUpdateCommande();
+  const updateCommandeMutation = usePrismaUpdateCommande();
   const { toast } = useToast();
 
   const handleSaveNotes = async () => {
@@ -316,7 +314,7 @@ const QuickActionsModal = ({
     try {
       await updateCommandeMutation.mutateAsync({
         id: commande.idcommande,
-        updates: { notes_internes: notes },
+        data: { notes_internes: notes },
       });
       toast({
         title: 'Notes mises à jour',
@@ -460,8 +458,8 @@ const PlatCommandeCard = ({
   commandeId: number;
   toast: any;
 }) => {
-  const updateQuantiteMutation = useUpdatePlatQuantite();
-  const removePlatMutation = useRemovePlatFromCommande();
+  const updateQuantiteMutation = usePrismaUpdatePlatQuantite();
+  const removePlatMutation = usePrismaRemovePlatFromCommande();
   const [isModifying, setIsModifying] = useState(false);
 
   // Fonction formatPrix identique à celle du panier
@@ -744,7 +742,7 @@ const AddComplementModal = ({
   const [activeTab, setActiveTab] = useState('select'); // 'select' or 'create'
 
   // For selecting existing extra
-  const { data: extras, isLoading: extrasLoading } = useExtras();
+  const { data: extras, isLoading: extrasLoading } = usePrismaExtras();
   const [selectedExtraId, setSelectedExtraId] = useState<number | null>(null);
 
   // For creating a new extra
@@ -754,13 +752,13 @@ const AddComplementModal = ({
     description: '',
     photo_url: 'https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png'
   });
-  const createExtraMutation = useCreateExtra();
+  const createExtraMutation = usePrismaCreateExtra();
   const { uploadState, uploadFile, resetUpload } = useImageUpload(
     'extras',
     'https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png'
   );
 
-  const addPlatMutation = useAddPlatToCommande();
+  const addPlatMutation = usePrismaAddPlatToCommande();
 
   const handleImageUpload = async (file: File) => {
     await uploadFile(file, (url: string) => {
@@ -785,10 +783,9 @@ const AddComplementModal = ({
 
       await addPlatMutation.mutateAsync({
         commandeId: commandeId,
-        extraId: newExtra.idextra,
+        platId: newExtra.idextra,
         quantite: 1,
-        type: 'extra',
-      });
+      } as any); // Type casting pour compatibilité temporaire
 
       toast({ title: 'Succès', description: `Nouvel extra "${newExtra.nom_extra}" créé et ajouté à la commande.` });
       resetForm();
@@ -810,10 +807,9 @@ const AddComplementModal = ({
 
       await addPlatMutation.mutateAsync({
         commandeId: commandeId,
-        extraId: selectedExtraId,
+        platId: selectedExtraId,
         quantite: 1,
-        type: 'extra',
-      });
+      } as any); // Type casting pour compatibilité temporaire
       toast({ title: 'Succès', description: `Extra "${extra?.nom_extra}" ajouté à la commande.` });
       resetForm();
       onClose();
@@ -936,8 +932,8 @@ const AddPlatModal = ({
   onClose: () => void;
   toast: any;
 }) => {
-  const { data: plats, isLoading: platsLoading } = usePlats();
-  const addPlatMutation = useAddPlatToCommande();
+  const { data: plats, isLoading: platsLoading } = usePrismaPlats();
+  const addPlatMutation = usePrismaAddPlatToCommande();
   const [selectedPlats, setSelectedPlats] = useState<{ [key: number]: number }>(
     {}
   );
@@ -959,7 +955,6 @@ const AddPlatModal = ({
         commandeId,
         platId,
         quantite,
-        type: 'plat',
       });
 
       toast({
@@ -1158,13 +1153,15 @@ export default function AdminCommandes() {
     commandeId: null,
   });
 
-  const { currentUser } = useAuth();
+  // Better Auth session
+  const { data: session } = useSession();
+  const currentUser = session?.user;
 
   // ✅ Activation Real-time Supabase pour synchronisation automatique admin ↔ client
   useCommandesRealtime();
 
-  const { data: commandes, refetch } = useCommandesAdmin();
-  const updateCommandeMutation = useUpdateCommande();
+  const { data: commandes, refetch } = usePrismaCommandes();
+  const updateCommandeMutation = usePrismaUpdateCommande();
   const { toast } = useToast();
 
   // Filtrage par recherche et tri par date
@@ -1305,7 +1302,7 @@ export default function AdminCommandes() {
     try {
       await updateCommandeMutation.mutateAsync({
         id: commandeId,
-        updates: {
+        data: {
           statut_commande: newStatus as
             | 'En attente de confirmation'
             | 'Confirmée'
@@ -1829,7 +1826,7 @@ const CommandeCard = ({
 
       await updateCommandeMutation.mutateAsync({
         id: commande.idcommande,
-        updates: {
+        data: {
           date_et_heure_de_retrait_souhaitees: currentDate.toISOString(),
         },
       });
@@ -1861,7 +1858,7 @@ const CommandeCard = ({
     if (!commande.details || !Array.isArray(commande.details)) return 0;
     return commande.details.reduce((sum, detail) => {
       // Pour les compléments divers, utiliser prix_unitaire, sinon utiliser le prix du plat
-      const prix = detail.prix_unitaire ?? detail.plat?.prix ?? 0;
+      const prix = Number(detail.prix_unitaire ?? detail.plat?.prix) ?? 0;
       const quantite = detail.quantite_plat_commande ?? 0;
       return sum + prix * quantite;
     }, 0);
@@ -1897,7 +1894,7 @@ const CommandeCard = ({
   };
 
   // Obtenir la couleur du point selon le statut
-  const getStatusPointColor = (status: StatutCommandeAffichage) => {
+  const getStatusPointColor = (status: CommandeUI['statut_commande']) => {
     switch (status) {
       case 'En attente de confirmation':
         return 'bg-thai-orange animate-pulse';
@@ -1907,7 +1904,6 @@ const CommandeCard = ({
         return 'bg-yellow-500 animate-pulse';
       case 'Prête à récupérer':
         return 'bg-thai-gold animate-bounce';
-      case 'Terminée':
       case 'Récupérée':
         return 'bg-thai-green';
       case 'Annulée':
@@ -2074,7 +2070,7 @@ const CommandeCard = ({
               <div className="flex items-center gap-2 mb-2">
                 <div
                   className={`w-3 h-3 rounded-full ${getStatusPointColor(
-                    (commande.statut_commande || 'En attente de confirmation') as StatutCommandeAffichage
+                    (commande.statut_commande || 'En attente de confirmation')
                   )}`}
                 ></div>
                 <span className="text-sm font-medium text-thai-green">
@@ -2113,7 +2109,7 @@ const CommandeCard = ({
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                const clientFirebaseUID = commande.client_r || commande.FirebaseUID || commande.client?.firebase_uid;
+                const clientFirebaseUID = commande.client_r || commande.FirebaseUID || commande.client?.auth_user_id;
                 if (clientFirebaseUID) {
                   router.push(`/admin/clients/${clientFirebaseUID}/contact`);
                 } else {
@@ -2256,8 +2252,8 @@ const ModalPlatCard = ({
   toast: any;
   formatPrix: (prix: number) => string;
 }) => {
-  const updateQuantiteMutation = useUpdatePlatQuantite();
-  const removePlatMutation = useRemovePlatFromCommande();
+  const updateQuantiteMutation = usePrismaUpdatePlatQuantite();
+  const removePlatMutation = usePrismaRemovePlatFromCommande();
   const [isModifying, setIsModifying] = useState(false);
 
   const handleQuantiteChange = async (nouvelleQuantite: number) => {
@@ -2526,7 +2522,7 @@ const CommandeDetailsModal = ({
   toast: any;
 }) => {
   // Tous les hooks doivent être appelés avant tout return conditionnel
-  const { data: commande, isLoading, error } = useCommandeById(commandeId);
+  const { data: commande, isLoading, error } = usePrismaCommandeById(commandeId);
   const [isStatusLoading, setIsStatusLoading] = useState(false);
   const [isAddingPlat, setIsAddingPlat] = useState(false);
   const [showAddPlatDialog, setShowAddPlatDialog] = useState(false);
@@ -2544,13 +2540,13 @@ const CommandeDetailsModal = ({
   const [isLoadingTime, setIsLoadingTime] = useState(false);
 
   // Hooks pour la gestion des plats
-  const { data: plats } = usePlats();
-  const { data: extras, isLoading: extrasLoading } = useExtras();
-  const addPlatMutation = useAddPlatToCommande();
+  const { data: plats } = usePrismaPlats();
+  const { data: extras, isLoading: extrasLoading } = usePrismaExtras();
+  const addPlatMutation = usePrismaAddPlatToCommande();
 
   // Debug des extras existants
   console.log('🔍 DEBUG - Extras:', { extras, extrasLoading });
-  const updateCommandeMutation = useUpdateCommande();
+  const updateCommandeMutation = usePrismaUpdateCommande();
 
   // Fonctions pour la modification d'heure
   const handleTimeEdit = () => {
@@ -2577,7 +2573,7 @@ const CommandeDetailsModal = ({
 
       await updateCommandeMutation.mutateAsync({
         id: commande.idcommande,
-        updates: {
+        data: {
           date_et_heure_de_retrait_souhaitees: currentDate.toISOString(),
         },
       });
@@ -2657,7 +2653,7 @@ const CommandeDetailsModal = ({
     if (!commande.details || !Array.isArray(commande.details)) return 0;
     return commande.details.reduce((sum, detail) => {
       // Pour les compléments divers, utiliser prix_unitaire, sinon utiliser le prix du plat
-      const prix = detail.prix_unitaire ?? detail.plat?.prix ?? 0;
+      const prix = Number(detail.prix_unitaire ?? detail.plat?.prix) ?? 0;
       const quantite = detail.quantite_plat_commande ?? 0;
       return sum + prix * quantite;
     }, 0);
@@ -2869,7 +2865,7 @@ const CommandeDetailsModal = ({
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    const clientFirebaseUID = commande.client_r || commande.FirebaseUID || commande.client?.firebase_uid;
+                    const clientFirebaseUID = commande.client_r || commande.FirebaseUID || commande.client?.auth_user_id;
                     if (clientFirebaseUID) {
                       router.push(`/admin/clients/${clientFirebaseUID}/contact`);
                       onClose(); // Fermer le modal

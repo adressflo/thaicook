@@ -25,8 +25,8 @@ export const DishDetailsModalComplex = React.memo<DishDetailsModalComplexProps>(
 
   // Prix unitaire selon le type
   const prixUnitaire = isExtra
-    ? (detail.prix_unitaire || detail.extra?.prix || 0)
-    : (detail.plat?.prix || 0);
+    ? Number(detail.prix_unitaire) || Number(detail.extra?.prix) || 0
+    : Number(detail.plat?.prix) || 0;
 
   const sousTotal = prixUnitaire * quantite;
 

@@ -1,14 +1,15 @@
 'use client';
 
-import React, { memo, useMemo, useCallback, useState } from 'react';
+import React, { memo, useMemo, useCallback, useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useAuth } from '@/contexts/AuthContext';
+import { useSession } from '@/lib/auth-client';
+import { getClientProfile } from '@/app/profil/actions';
 import {
-  useCommandesByClient,
-  useEvenementsByClient,
-  useExtras,
-  useCommandesRealtime,
-} from '@/hooks/useSupabaseData';
+  usePrismaCommandesByClient,
+  usePrismaEvenementsByClient,
+  usePrismaExtras,
+} from "@/hooks/usePrismaData";
+import { useCommandesRealtime } from "@/hooks/useSupabaseData";
 import {
   Card,
   CardContent,
@@ -43,7 +44,20 @@ export const dynamic = 'force-dynamic';
 type CommandeAvecDetails = CommandeUI;
 
 const HistoriquePage = memo(() => {
-  const { currentUser } = useAuth();
+  // Better Auth session
+  const { data: session } = useSession();
+  const currentUser = session?.user;
+
+  // Client profile (pour obtenir idclient)
+  const [clientProfile, setClientProfile] = useState<any>(null);
+
+  useEffect(() => {
+    if (currentUser) {
+      getClientProfile().then(setClientProfile);
+    } else {
+      setClientProfile(null);
+    }
+  }, [currentUser?.id]);
 
   // ✅ Activation Real-time Supabase pour synchronisation automatique
   useCommandesRealtime();
@@ -52,13 +66,13 @@ const HistoriquePage = memo(() => {
     data: commandes,
     isLoading: isLoadingCommandes,
     error,
-  } = useCommandesByClient(currentUser?.id);
+  } = usePrismaCommandesByClient(clientProfile?.idclient);
   const {
     data: evenements,
     isLoading: isLoadingEvenements,
     error: errorEvenements,
-  } = useEvenementsByClient(currentUser?.id);
-  const { data: extras, isLoading: isLoadingExtras } = useExtras();
+  } = usePrismaEvenementsByClient(clientProfile?.idclient);
+  const { data: extras, isLoading: isLoadingExtras } = usePrismaExtras();
 
 
 
@@ -88,9 +102,9 @@ const HistoriquePage = memo(() => {
       let prixUnitaire = 0;
       if (detail.type === 'extra' && detail.plat_r && extras) {
         const extraData = extras.find((e: any) => e.idextra === detail.plat_r);
-        prixUnitaire = extraData?.prix || detail.prix_unitaire || 0;
+        prixUnitaire = extraData?.prix || Number(detail.prix_unitaire) || 0;
       } else {
-        prixUnitaire = detail.prix_unitaire || detail.plat?.prix || 0;
+        prixUnitaire = Number(detail.prix_unitaire) || Number(detail.plat?.prix) || 0;
       }
 
       return acc + prixUnitaire * quantite;
@@ -200,11 +214,11 @@ const HistoriquePage = memo(() => {
       .slice(0, 10);
 
     const evenementsEnCours = filteredEvenements.filter(
-      e => e.statut_evenement !== 'Réalisé' && e.statut_evenement !== 'Annulé'
+      e => (e.statut_evenement as any) !== 'Réalisé' && (e.statut_evenement as any) !== 'Annulé'
     );
 
     const evenementsHistorique = filteredEvenements.filter(
-      e => e.statut_evenement === 'Réalisé' || e.statut_evenement === 'Annulé'
+      e => (e.statut_evenement as any) === 'Réalisé' || (e.statut_evenement as any) === 'Annulé'
     );
 
     return { 
@@ -493,8 +507,8 @@ const HistoriquePage = memo(() => {
                   <div className="border border-thai-green/20 rounded-lg p-3 bg-thai-cream/20 space-y-4">
                   {evenementsEnCours.map(evt => {
                     const canEdit =
-                      evt.statut_evenement !== 'Réalisé' &&
-                      evt.statut_evenement !== 'Payé intégralement';
+                      (evt.statut_evenement as any) !== 'Réalisé' &&
+                      (evt.statut_evenement as any) !== 'Payé intégralement';
                     return (
                       <div key={evt.idevenements} className="flex items-center gap-4 px-4 py-4 bg-white rounded-lg border border-gray-200 transition-all duration-300 hover:shadow-xl hover:bg-thai-cream/20 hover:border-thai-green hover:ring-2 hover:ring-thai-green/30 hover:scale-[1.02] transform cursor-pointer min-h-[4rem]">
                         <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-6 items-center">

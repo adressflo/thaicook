@@ -1,11 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 // Utilisation des hooks Supabase
-import { useClients } from '@/hooks/useSupabaseData';
+import { usePrismaClients } from '@/hooks/usePrismaData';
 import { Users, Mail, Phone, MapPin, Loader2 } from 'lucide-react';
 
 const ClientsList = () => {
-  const { data: clients, isLoading, error } = useClients();
+  const { data: clients, isLoading, error } = usePrismaClients();
 
   if (isLoading) {
     return (

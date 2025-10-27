@@ -14,7 +14,7 @@ export const DishDetailsModal = React.memo<DishDetailsModalProps>(({ detail, chi
   const [open, setOpen] = React.useState(false);
   const platName = detail.plat?.plat || 'Plat supprimé';
   const quantite = detail.quantite_plat_commande || 0;
-  const prixUnitaire = detail.plat?.prix || 0;
+  const prixUnitaire = Number(detail.plat?.prix) || 0;
   const sousTotal = prixUnitaire * quantite;
   const isDeleted = !detail.plat?.plat;
 

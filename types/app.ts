@@ -1,11 +1,19 @@
-// Types d'application basés sur la nouvelle structure Supabase
+// Types d'application basés sur Prisma ORM
 import type { Database } from '../lib/database.types';
+import type {
+  client_db,
+  plats_db,
+  commande_db,
+  details_commande_db,
+  evenements_db,
+  extras_db
+} from '../generated/prisma/client';
 
-// Types de base extraits de Supabase
-export type Client = Database['public']['Tables']['client_db']['Row']
-export type Plat = Database['public']['Tables']['plats_db']['Row']
-export type Commande = Database['public']['Tables']['commande_db']['Row']
-export type DetailCommande = Database['public']['Tables']['details_commande_db']['Row'] & {
+// Types de base depuis Prisma (auth_user_id remplace firebase_uid)
+export type Client = client_db
+export type Plat = plats_db
+export type Commande = commande_db
+export type DetailCommande = details_commande_db & {
   // Extensions pour les extras et plats
   prix_unitaire?: number | null // Prix custom pour les extras
   nom_plat?: string | null // Nom custom pour les extras
@@ -13,8 +21,8 @@ export type DetailCommande = Database['public']['Tables']['details_commande_db']
   extra?: Extra | null // Données de l'extra lié si applicable
   plat?: Plat | null // Données du plat lié si applicable
 }
-export type Evenement = Database['public']['Tables']['evenements_db']['Row']
-export type Extra = Database['public']['Tables']['extras_db']['Row']
+export type Evenement = evenements_db
+export type Extra = extras_db
 
 // Types d'approvisionnement
 export type ListeCourse = Database['public']['Tables']['listes_courses']['Row']
@@ -27,13 +35,15 @@ export type EvenementInputData = Database['public']['Tables']['evenements_db']['
 export type ExtraInputData = Database['public']['Tables']['extras_db']['Insert']
 
 // Type pour l'interface utilisateur des plats
-export interface PlatUI extends Plat {
+export interface PlatUI extends Omit<Plat, 'epuise_depuis' | 'epuise_jusqu_a' | 'prix'> {
   id: number; // Mappage de idplats vers id pour l'UI
   idplats: number;
   plat: string;
-  prix: number | null;
+  prix: number | null; // Converti de Decimal vers number
   description: string | null;
   photo_du_plat: string | null;
+  epuise_depuis: string | null; // Converti de Date vers ISO string
+  epuise_jusqu_a: string | null; // Converti de Date vers ISO string
   nom_plat?: string; // Alias pour `plat`
   url_photo?: string; // Alias pour `photo_du_plat`
   disponible?: boolean; // Calculé depuis les jours et est_epuise
@@ -53,10 +63,13 @@ export interface PlatPanier {
 }
 
 // Type pour l'interface utilisateur des commandes
-export interface CommandeUI extends Omit<Commande, 'statut_commande' | 'statut_paiement' | 'type_livraison'> {
+export interface CommandeUI extends Omit<Commande, 'statut_commande' | 'statut_paiement' | 'type_livraison' | 'client_r_id' | 'date_et_heure_de_retrait_souhaitees' | 'date_de_prise_de_commande'> {
   id: number // Mappage de idcommande vers id pour l'UI
-  client_r: string // Assurer la compatibilité
-  client?: Pick<Client, 'nom' | 'prenom' | 'numero_de_telephone' | 'email' | 'preference_client' | 'photo_client' | 'firebase_uid' | 'adresse_numero_et_rue' | 'code_postal' | 'ville'> | null // Données du client jointes (partielles)
+  client_r: string | null // Assurer la compatibilité
+  client_r_id: number | null // Converti de bigint vers number
+  date_et_heure_de_retrait_souhaitees: string | null // Converti de Date vers ISO string
+  date_de_prise_de_commande: string | null // Converti de Date vers ISO string
+  client?: Pick<Client, 'nom' | 'prenom' | 'numero_de_telephone' | 'email' | 'preference_client' | 'photo_client' | 'auth_user_id' | 'adresse_numero_et_rue' | 'code_postal' | 'ville'> | null // Données du client jointes (partielles)
   details?: Array<DetailCommande & {
     plat?: Plat
   }>
@@ -72,6 +85,8 @@ export interface CommandeUI extends Omit<Commande, 'statut_commande' | 'statut_p
   Total?: number // Alias pour prix_total
   FirebaseUID?: string // Alias pour client_r
   createdTime?: string | undefined // Alias pour date_de_prise_de_commande
+  created_at?: string | null // ISO string
+  updated_at?: string | null // ISO string
 }
 
 // Type pour une commande avec ses détails (alias pour CommandeUI)
@@ -87,46 +102,71 @@ export interface CommandeAvecDetails extends Commande {
 }
 
 // Type pour l'interface utilisateur des événements
-export interface EvenementUI extends Evenement {
+export interface EvenementUI extends Omit<Evenement, 'contact_client_r_id' | 'budget_client' | 'prix_total_devise' | 'acompte_demande' | 'acompte_recu' | 'date_evenement' | 'date_acompte_recu' | 'created_at' | 'updated_at'> {
   id: number // Mappage de idevenements vers id pour l'UI
+  contact_client_r_id: number | null // Converti de bigint vers number
+  budget_client: number | null // Converti de Decimal vers number
+  prix_total_devise: number | null // Converti de Decimal vers number
+  acompte_demande: number | null // Converti de Decimal vers number
+  acompte_recu: number | null // Converti de Decimal vers number
+  date_evenement: string | null // Converti de Date vers ISO string
+  date_acompte_recu: string | null // Converti de Date vers ISO string
+  created_at: string | null // Converti de Date vers ISO string
+  updated_at: string | null // Converti de Date vers ISO string
+  // Aliases pour compatibilité
+  client_r_id?: number | null
+  date_evenement_formatee?: string
+  budget_estime?: number | null
+  demandes_speciales?: string | null
+  statut?: string | null
+  notes_internes?: string | null
+  type_evenement?: string | null
+  client?: Pick<Client, 'nom' | 'prenom' | 'email' | 'numero_de_telephone'> | null
 }
 
 // Type pour l'interface utilisateur des extras
-export interface ExtraUI extends Extra {
+export interface ExtraUI extends Omit<Extra, 'prix' | 'created_at' | 'updated_at'> {
   id: number; // Mappage de idextra vers id pour l'UI
   idextra: number;
   nom_extra: string;
-  prix: number;
+  prix: number; // Converti de Decimal vers number
   description: string | null;
   photo_url: string | null;
-  created_at: string | null;
-  updated_at: string | null;
+  created_at: string | null; // Converti de Date vers ISO string
+  updated_at: string | null; // Converti de Date vers ISO string
   est_disponible?: boolean; // Alias pour actif pour compatibilité avec les composants
 }
 
 // Type pour l'interface utilisateur des clients, directement basé sur le type Prisma
-export interface ClientUI extends Client {
-  id: string; // Utiliser firebase_uid comme id pour compatibilité
+export interface ClientUI extends Omit<Client, 'idclient'> {
+  id: string; // Utiliser auth_user_id comme id pour compatibilité
+  idclient: number; // Converti de bigint vers number pour l'UI
+  // Note: firebase_uid n'existe plus - utiliser auth_user_id à la place
 }
 
 
 // Types pour les requêtes API
 export interface CreateCommandeData {
-  client_r: string // firebase_uid
-  client_r_id?: number // idclient
-  date_et_heure_de_retrait_souhaitees: string
+  client_r?: string // auth_user_id (optionnel)
+  client_r_id?: number // idclient (optionnel pour compatibilité backward)
+  date_et_heure_de_retrait_souhaitees?: string
   demande_special_pour_la_commande?: string
   type_livraison?: 'À emporter' | 'Livraison' | 'Sur place'
   adresse_specifique?: string
-  details: Array<{
-    plat_r: number | string // idplats - accepter string et number pour conversion
-    quantite_plat_commande: number
+  // Accepter les deux formats pour compatibilité
+  details?: Array<{
+    plat_r: string | number // ancien format
+    quantite_plat_commande?: number
+  }>
+  plats?: Array<{
+    plat_r_id: number // nouveau format
+    quantite?: number
   }>
 }
 
 export interface CreateEvenementData {
   nom_evenement: string
-  contact_client_r?: string // firebase_uid (optionnel maintenant)
+  contact_client_r?: string // auth_user_id (optionnel maintenant)
   contact_client_r_id: number // idclient (obligatoire maintenant)
   date_evenement: string
   type_d_evenement: string

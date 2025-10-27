@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useCreateClient } from '@/hooks/useSupabaseData';
+import { usePrismaCreateClient } from '@/hooks/usePrismaData';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -43,7 +43,7 @@ const CreateClientModal = ({
     preference_client: ''
   });
 
-  const createClientMutation = useCreateClient();
+  const createClientMutation = usePrismaCreateClient();
   const { toast } = useToast();
 
   const handleInputChange = (field: string, value: string) => {
@@ -67,22 +67,16 @@ const CreateClientModal = ({
     }
 
     try {
-      // Générer un firebase_uid temporaire pour les clients créés manuellement
-      // Dans un vrai scénario, cela viendrait de l'authentification Firebase
-      const temporaryFirebaseUid = `manual_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      // Générer un auth_user_id temporaire pour les clients créés manuellement
+      // Dans un vrai scénario, cela viendrait de Better Auth
+      const temporaryAuthUserId = `manual_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-      const clientData: ClientInputData = {
-        firebase_uid: temporaryFirebaseUid,
+      const clientData = {
+        auth_user_id: temporaryAuthUserId,
+        email: formData.email.trim(),
         nom: formData.nom.trim(),
         prenom: formData.prenom.trim(),
-        email: formData.email.trim(),
         numero_de_telephone: formData.numero_de_telephone.trim() || undefined,
-        adresse_numero_et_rue: formData.adresse_numero_et_rue.trim() || undefined,
-        code_postal: formData.code_postal.trim() ? parseInt(formData.code_postal.trim()) : undefined,
-        ville: formData.ville.trim() || undefined,
-        date_de_naissance: formData.date_de_naissance || undefined,
-        preference_client: formData.preference_client.trim() || undefined,
-        role: 'client'
       };
 
       const newClient = await createClientMutation.mutateAsync(clientData);

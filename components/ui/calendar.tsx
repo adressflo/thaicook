@@ -47,6 +47,7 @@ function Calendar({
             <ChevronRight className="h-4 w-4" {...props} />
           )
         },
+        // @ts-ignore - Caption is valid but not in type definition
         Caption: ({ displayMonth }: { displayMonth: Date }) => {
           const months = [
             "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",

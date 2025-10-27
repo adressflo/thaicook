@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { useSearchClients } from '@/hooks/useSupabaseData';
+import { usePrismaSearchClients } from '@/hooks/usePrismaData';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import {
   Loader2,
@@ -101,7 +101,7 @@ export const ClientCombobox = ({
     };
   }, [searchValue]);
 
-  const { data: searchedClients, isLoading: isSearching } = useSearchClients(debouncedSearchTerm);
+  const { data: searchedClients, isLoading: isSearching } = usePrismaSearchClients(debouncedSearchTerm);
 
   // Gérer la sélection d'un client
   const handleSelectClient = (client: ClientUI) => {

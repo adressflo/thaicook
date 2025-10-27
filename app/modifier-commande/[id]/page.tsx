@@ -42,9 +42,10 @@ import { cn } from '@/lib/utils';
 import { addDays, format, getDay, isFuture, isSameDay, startOfDay, type Day } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
-import { useAuth } from '@/contexts/AuthContext';
+import { useSession } from '@/lib/auth-client';
+import { getClientProfile } from '@/app/profil/actions';
 import { useData } from '@/contexts/DataContext';
-import { useCommandeById, useCreateCommande, useDeleteCommande, useExtras } from '@/hooks/useSupabaseData';
+import { usePrismaCommandeById, usePrismaCreateCommande, usePrismaDeleteCommande, usePrismaExtras } from "@/hooks/usePrismaData";
 import { extractRouteParam } from '@/lib/params-utils';
 import { supabase } from '@/services/supabaseService';
 import type { PlatUI as Plat, PlatPanier, DetailCommande } from '@/types/app';
@@ -65,15 +66,26 @@ const ModifierCommande = memo(() => {
   const router = useRouter();
   const { toast } = useToast();
   const { plats, isLoading: dataIsLoading } = useData();
-  const { currentUser, isLoadingAuth } = useAuth();
+  const { data: session, isPending: isLoadingAuth } = useSession();
+  const currentUser = session?.user;
+  const [clientProfile, setClientProfile] = useState<any>(null);
+
+  useEffect(() => {
+    if (currentUser) {
+      getClientProfile().then(setClientProfile);
+    } else {
+      setClientProfile(null);
+    }
+  }, [currentUser?.id]);
+
   const {
     data: commande,
     isLoading: isLoadingCommande,
     error: commandeError,
-  } = useCommandeById(id ? Number(id) : undefined, currentUser?.id);
-  const createCommande = useCreateCommande();
-  const deleteCommande = useDeleteCommande();
-  const { data: extras } = useExtras();
+  } = usePrismaCommandeById(id ? Number(id) : undefined);
+  const createCommande = usePrismaCreateCommande();
+  const deleteCommande = usePrismaDeleteCommande();
+  const { data: extras } = usePrismaExtras();
   const isMobile = useIsMobile();
   const platsSectionRef = useRef<HTMLDivElement>(null);
 
@@ -126,7 +138,7 @@ const ModifierCommande = memo(() => {
 
       commande.details.forEach((detail, index) => {
         if (detail.quantite_plat_commande) {
-          // Utiliser les données enrichies du hook useCommandesByClient
+          // Utiliser les données enrichies du hook usePrismaCommandesByClient
           // La logique d'enrichissement y est déjà appliquée
 
           // Vérifier si c'est un extra (nouveau ou ancien système)
@@ -137,7 +149,7 @@ const ModifierCommande = memo(() => {
           if (isExtra) {
             // Utiliser les données enrichies (extra, nom_plat, prix_unitaire)
             const extraNom = detail.nom_plat || detail.extra?.nom_extra || 'Extra';
-            const extraPrix = detail.prix_unitaire || detail.extra?.prix || 0;
+            const extraPrix = Number(detail.prix_unitaire) || Number(detail.extra?.prix) || 0;
             const extraId = detail.extra?.idextra || detail.plat_r || detail.iddetails || index;
 
             console.log('Extra détecté:', { extraNom, extraPrix, extraId, detail });
@@ -161,7 +173,7 @@ const ModifierCommande = memo(() => {
               platsPanier.push({
                 id: platData.idplats.toString(),
                 nom: platData.plat,
-                prix: platData.prix || 0,
+                prix: Number(platData.prix) || 0,
                 quantite: detail.quantite_plat_commande,
                 dateRetrait: commande.date_et_heure_de_retrait_souhaitees
                   ? new Date(commande.date_et_heure_de_retrait_souhaitees)
@@ -224,9 +236,9 @@ const ModifierCommande = memo(() => {
         const isExtra = !platCorrespondant && detail.plat_r;
         if (isExtra) {
           const extraData = extras?.find(e => e.idextra === detail.plat_r);
-          prixUnitaire = extraData?.prix || detail.prix_unitaire || 0;
+          prixUnitaire = extraData?.prix || Number(detail.prix_unitaire) || 0;
         } else {
-          prixUnitaire = detail.plat?.prix || 0;
+          prixUnitaire = Number(detail.plat?.prix) || 0;
         }
         
         return total + prixUnitaire * quantite;
@@ -445,7 +457,7 @@ const ModifierCommande = memo(() => {
   }
 
   // Vérifier permissions
-  if (currentUser?.id !== commande.client_r) {
+  if (clientProfile?.idclient !== commande.client_r) {
     redirect('/historique');
   }
 
@@ -516,7 +528,7 @@ const ModifierCommande = memo(() => {
         const { error: updateError } = await supabase
           .from('commande_db')
           .update({
-            statut_commande: 'Annulée' as const,
+            statut_commande: 'Annulée' as any,
             notes_internes: 'Commande annulée - panier vidé par le client',
           })
           .eq('idcommande', commande.idcommande);
@@ -548,7 +560,7 @@ const ModifierCommande = memo(() => {
       }
     }
 
-    if (!currentUser?.id) {
+    if (!clientProfile?.idclient) {
       toast({
         title: 'Erreur utilisateur',
         description: "Impossible d'identifier l'utilisateur.",
@@ -564,7 +576,7 @@ const ModifierCommande = memo(() => {
       const { error: updateError } = await supabase
         .from('commande_db')
         .update({
-          statut_commande: 'Annulée' as const,
+          statut_commande: 'Annulée' as any,
           notes_internes: 'Commande annulée - modifiée par le client',
         })
         .eq('idcommande', commande.idcommande);
@@ -595,7 +607,7 @@ const ModifierCommande = memo(() => {
         if (!dateKey) continue;
 
         const nouvelleCommande = await createCommande.mutateAsync({
-          client_r: currentUser.id,
+          client_r: clientProfile.idclient,
           date_et_heure_de_retrait_souhaitees: dateKey,
           demande_special_pour_la_commande: demandesSpeciales,
           details: items.map(item => {
@@ -875,7 +887,7 @@ const ModifierCommande = memo(() => {
                                 ? extras.find(e => e.idextra === itemId)
                                 : null;
 
-                              const detailForModal: DetailCommande & { plat: any; extra: any } = {
+                              const detailForModal: any = {
                                 commande_r: commande?.idcommande || 0,
                                 iddetails: itemId,
                                 plat_r: itemId, // Architecture hybride: plat_r pointe vers plats_db ou extras_db

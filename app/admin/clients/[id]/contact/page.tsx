@@ -26,7 +26,7 @@ import {
   Globe,
   Smartphone
 } from 'lucide-react';
-import { useClients, useUpdateClient } from '@/hooks/useSupabaseData';
+import { usePrismaClients, usePrismaUpdateClient } from "@/hooks/usePrismaData";
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useParams, useRouter } from 'next/navigation';
@@ -67,8 +67,8 @@ export default function ClientContactPage() {
   const { toast } = useToast();
   const clientId = params.id as string;
   
-  const { data: clients } = useClients();
-  const updateClientMutation = useUpdateClient();
+  const { data: clients } = usePrismaClients();
+  const updateClientMutation = usePrismaUpdateClient();
 
   const [isEditing, setIsEditing] = useState(false);
   const [contactData, setContactData] = useState({
@@ -87,7 +87,7 @@ export default function ClientContactPage() {
 
   // Trouver le client actuel
   const client = useMemo(() => {
-    const foundClient = clients?.find(c => c.firebase_uid === clientId);
+    const foundClient = clients?.find(c => c.auth_user_id === clientId);
     if (foundClient) {
       setContactData({
         whatsapp: foundClient.numero_de_telephone || '',
@@ -112,7 +112,7 @@ export default function ClientContactPage() {
       };
 
       await updateClientMutation.mutateAsync({
-        firebase_uid: client.firebase_uid,
+        authUserId: client.auth_user_id,
         data: dataToUpdate,
       });
 

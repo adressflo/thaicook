@@ -2,7 +2,7 @@
 
 import React, { memo, useState, useMemo, useCallback, Suspense } from 'react';
 import Link from 'next/link';
-import { useAuth } from '@/contexts/AuthContext';
+import { useSession } from '@/lib/auth-client';
 import { useCart } from '@/contexts/CartContext';
 import { useNotifications, type Notification } from '@/contexts/NotificationContext';
 import {
@@ -52,7 +52,10 @@ import { AppLayout } from '@/components/AppLayout';
 export const dynamic = 'force-dynamic';
 
 const NotificationsPage = memo(() => {
-  const { currentUser } = useAuth();
+  // Better Auth session
+  const { data: session } = useSession();
+  const currentUser = session?.user;
+
   const { panier } = useCart();
   const { notifications, unreadCount, markAsRead, markAsUnread, markAllAsRead, deleteNotification } = useNotifications();
   const [searchTerm, setSearchTerm] = useState('');

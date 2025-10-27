@@ -26,7 +26,7 @@ import {
   Save,
   X
 } from 'lucide-react';
-import { useClients, useEvenementsByClient, useCreateEvenement } from '@/hooks/useSupabaseData';
+import { usePrismaClients, usePrismaEvenementsByClient, usePrismaCreateEvenement } from "@/hooks/usePrismaData";
 import { format, addDays, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useParams, useRouter } from 'next/navigation';
@@ -56,11 +56,12 @@ export default function ClientEventsPage() {
   const params = useParams();
   const router = useRouter();
   const { toast } = useToast();
-  const clientId = params.id as string;
-  
-  const { data: clients } = useClients();
-  const { data: evenements } = useEvenementsByClient(clientId);
-  const createEvenementMutation = useCreateEvenement();
+  const clientAuthId = params.id as string;
+
+  const { data: clients } = usePrismaClients();
+  const client = clients?.find(c => c.auth_user_id === clientAuthId);
+  const { data: evenements } = usePrismaEvenementsByClient(client?.idclient);
+  const createEvenementMutation = usePrismaCreateEvenement();
 
   const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
   const [searchTerm, setSearchTerm] = useState('');
@@ -80,10 +81,7 @@ export default function ClientEventsPage() {
     statut: 'Devis demandé'
   });
 
-  // Trouver le client actuel
-  const client = useMemo(() => {
-    return clients?.find(c => c.firebase_uid === clientId);
-  }, [clients, clientId]);
+  // Le client est déjà récupéré plus haut (ligne 62)
 
   // Filtrer les événements
   const filteredEvenements = useMemo(() => {
@@ -173,7 +171,7 @@ export default function ClientEventsPage() {
     try {
       const eventData: CreateEvenementData = {
         nom_evenement: formData.nom_evenement,
-        contact_client_r: clientId,
+        contact_client_r: clientAuthId,
         contact_client_r_id: client?.idclient || 0,
         date_evenement: formData.date_evenement || new Date().toISOString().split('T')[0],
         type_d_evenement: formData.type_d_evenement,

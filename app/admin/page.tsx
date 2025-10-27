@@ -24,7 +24,7 @@ import {
   CheckCircle,
   AlertTriangle
 } from 'lucide-react';
-import { useCommandes, useClients, usePlats } from '@/hooks/useSupabaseData';
+import { usePrismaCommandes, usePrismaClients, usePrismaPlats } from "@/hooks/usePrismaData";
 import { format, isToday, isTomorrow, startOfWeek, endOfWeek, subDays } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -59,9 +59,9 @@ export default function AdminCentreCommandement() {
   const [currentTime, setCurrentTime] = useState(new Date());
 
   // Utilisation de React Query hooks - pas de boucles infinies
-  const { data: commandes = [], isLoading: commandesLoading, refetch: refetchCommandes } = useCommandes();
-  const { data: clients = [], isLoading: clientsLoading } = useClients();
-  const { data: plats = [], isLoading: platsLoading } = usePlats();
+  const { data: commandes = [], isLoading: commandesLoading, refetch: refetchCommandes } = usePrismaCommandes();
+  const { data: clients = [], isLoading: clientsLoading } = usePrismaClients();
+  const { data: plats = [], isLoading: platsLoading } = usePrismaPlats();
 
   const loading = commandesLoading || clientsLoading || platsLoading;
 
@@ -98,7 +98,7 @@ export default function AdminCentreCommandement() {
       return cmdList.reduce((sum, commande) => {
         if (!commande.details) return sum;
         return sum + commande.details.reduce((detailSum, detail) => {
-          return detailSum + ((detail.plat?.prix || 0) * (detail.quantite_plat_commande || 0));
+          return detailSum + ((Number(detail.plat?.prix) || 0) * (detail.quantite_plat_commande || 0));
         }, 0);
       }, 0);
     };
@@ -163,7 +163,7 @@ export default function AdminCentreCommandement() {
       const revenus = dayCommandes.reduce((sum, cmd) => {
         if (!cmd.details) return sum;
         return sum + cmd.details.reduce((detailSum, detail) => {
-          return detailSum + ((detail.plat?.prix || 0) * (detail.quantite_plat_commande || 0));
+          return detailSum + ((Number(detail.plat?.prix) || 0) * (detail.quantite_plat_commande || 0));
         }, 0);
       }, 0);
 

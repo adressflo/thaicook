@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/contexts/AuthContext';
+import { useSession } from '@/lib/auth-client';
 import { Loader2 } from 'lucide-react';
 import { useEffect } from 'react';
 
@@ -16,13 +16,14 @@ interface PrivateRouteProps {
 }
 
 const PrivateRoute: React.FC<PrivateRouteProps> = ({ children }) => {
-    const { currentUser, isLoadingAuth } = useAuth();
+    const { data: session, isPending: isLoadingAuth } = useSession();
+    const currentUser = session?.user;
     const router = useRouter();
 
     useEffect(() => {
-        // Si l'utilisateur n'est pas connecté, il est redirigé vers la page profil pour se connecter
+        // Si l'utilisateur n'est pas connecté, il est redirigé vers la page de login
         if (!isLoadingAuth && !currentUser) {
-            router.push('/profil');
+            router.push('/auth/login' as any);
         }
     }, [currentUser, isLoadingAuth, router]);
 

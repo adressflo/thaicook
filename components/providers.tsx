@@ -1,7 +1,6 @@
 'use client';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { AuthProvider } from '../contexts/AuthContext';
 import { DataProvider } from '../contexts/DataContext';
 import { CartProvider } from '../contexts/CartContext';
 import { NotificationProvider } from '../contexts/NotificationContext';
@@ -23,15 +22,13 @@ export function Providers({ children }: ProvidersProps) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <DataProvider>
-          <CartProvider>
-            <NotificationProvider>
-              {children}
-            </NotificationProvider>
-          </CartProvider>
-        </DataProvider>
-      </AuthProvider>
+      <DataProvider>
+        <CartProvider>
+          <NotificationProvider>
+            {children}
+          </NotificationProvider>
+        </CartProvider>
+      </DataProvider>
     </QueryClientProvider>
   );
 }

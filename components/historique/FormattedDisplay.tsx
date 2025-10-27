@@ -2,7 +2,7 @@ import React from 'react';
 import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Users, Calendar, Utensils, Sparkles, Receipt, Star } from 'lucide-react';
-import type { Evenement, DetailCommande, Plat, Extra, CommandeUI } from '@/types/app';
+import type { EvenementUI, DetailCommande, Plat, Extra, CommandeUI } from '@/types/app';
 import { DishDetailsModalComplex } from './DishDetailsModalComplex';
 import { CalendarIcon } from './CalendarIcon';
 
@@ -168,7 +168,7 @@ export const FormattedDate = React.memo<FormattedDateProps>(({ date }) => {
 FormattedDate.displayName = 'FormattedDate';
 
 interface FormattedEventProps {
-  event: Evenement;
+  event: EvenementUI;
 }
 
 export const FormattedEvent = React.memo<FormattedEventProps>(({ event }) => (

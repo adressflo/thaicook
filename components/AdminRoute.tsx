@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/contexts/AuthContext';
+import { useSession } from '@/lib/auth-client';
+import { getClientProfile } from '@/app/profil/actions';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
@@ -39,17 +40,33 @@ interface AdminRouteProps {
 
 const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
   const router = useRouter();
-  const { 
-    currentUser, 
-    currentUserRole, 
-    isLoadingAuth, 
-    isLoadingUserRole 
-  } = useAuth();
+
+  // Better Auth session
+  const { data: session, isPending: isLoadingAuth } = useSession();
+  const currentUser = session?.user;
+
+  // Client profile pour vérifier le rôle
+  const [clientProfile, setClientProfile] = useState<any>(null);
+  const [isLoadingUserRole, setIsLoadingUserRole] = useState(true);
+
+  useEffect(() => {
+    if (currentUser) {
+      setIsLoadingUserRole(true);
+      getClientProfile()
+        .then(setClientProfile)
+        .finally(() => setIsLoadingUserRole(false));
+    } else {
+      setClientProfile(null);
+      setIsLoadingUserRole(false);
+    }
+  }, [currentUser?.id]);
+
+  const currentUserRole = clientProfile?.role;
 
   useEffect(() => {
     // Si l'utilisateur n'est pas connecté, redirection vers la page de connexion
     if (!isLoadingAuth && !currentUser) {
-      router.push('/profil');
+      router.push('/auth/login' as any);
       return;
     }
 

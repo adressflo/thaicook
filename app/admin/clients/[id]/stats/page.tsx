@@ -17,7 +17,7 @@ import {
   Clock,
   Activity
 } from 'lucide-react';
-import { useClients, useCommandes, useEvenementsByClient } from '@/hooks/useSupabaseData';
+import { usePrismaClients, usePrismaCommandes, usePrismaEvenementsByClient } from "@/hooks/usePrismaData";
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useParams, useRouter } from 'next/navigation';
@@ -26,21 +26,22 @@ import type { ClientUI, CommandeUI } from '@/types/app';
 export default function ClientStatsPage() {
   const params = useParams();
   const router = useRouter();
-  const clientId = params.id as string;
-  
-  const { data: clients } = useClients();
-  const { data: commandes } = useCommandes();
-  const { data: evenements } = useEvenementsByClient(clientId);
+  const clientAuthId = params.id as string;
+
+  const { data: clients } = usePrismaClients();
 
   // Trouver le client actuel
   const client = useMemo(() => {
-    return clients?.find(c => c.firebase_uid === clientId);
-  }, [clients, clientId]);
+    return clients?.find(c => c.auth_user_id === clientAuthId);
+  }, [clients, clientAuthId]);
+
+  const { data: commandes } = usePrismaCommandes();
+  const { data: evenements } = usePrismaEvenementsByClient(client?.idclient);
 
   // Filtrer les commandes du client
   const clientCommandes = useMemo(() => {
-    return commandes?.filter(c => c.client_r === clientId) || [];
-  }, [commandes, clientId]);
+    return commandes?.filter(c => c.client_r === clientAuthId) || [];
+  }, [commandes, clientAuthId]);
 
   // Calculs statistiques avancés
   const statsGenerales = useMemo(() => {
@@ -61,7 +62,7 @@ export default function ClientStatsPage() {
     const totalCommandes = clientCommandes.length;
     const totalSpent = clientCommandes.reduce((sum, commande) => {
       const orderTotal = commande.details?.reduce((detailSum, detail) => {
-        return detailSum + ((detail.plat?.prix || 0) * (detail.quantite_plat_commande || 0));
+        return detailSum + ((Number(detail.plat?.prix) || 0) * (detail.quantite_plat_commande || 0));
       }, 0) || 0;
       return sum + orderTotal;
     }, 0);

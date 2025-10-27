@@ -22,7 +22,7 @@ import {
   Trash2,
   ShoppingCart
 } from 'lucide-react';
-import { useCatalogueArticles, useListesCourses, useArticlesListeCourses } from '@/hooks/useSupabaseData';
+import { useCatalogueArticles, useListesCourses, useArticlesListeCourses } from "@/hooks/useSupabaseData";
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 

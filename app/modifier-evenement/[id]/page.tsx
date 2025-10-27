@@ -50,24 +50,36 @@ import { cn } from '@/lib/utils';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 import { useData } from '@/contexts/DataContext';
-import { useEvenementById, useUpdateEvenement } from '@/hooks/useSupabaseData';
+import { usePrismaEvenementById, usePrismaUpdateEvenement } from "@/hooks/usePrismaData";
 import type { PlatUI as Plat, EvenementInputData } from '@/types/app';
-import { useAuth } from '@/contexts/AuthContext';
+import { useSession } from '@/lib/auth-client';
+import { getClientProfile } from '@/app/profil/actions';
 
 const ModifierEvenement = memo(() => {
   const params = useParams();
   const id = params.id as string;
   const router = useRouter();
   const { toast } = useToast();
-  const updateEvenement = useUpdateEvenement();
+  const updateEvenement = usePrismaUpdateEvenement();
 
   const { plats, isLoading: dataIsLoading } = useData();
-  const { currentUser } = useAuth();
+  const { data: session } = useSession();
+  const currentUser = session?.user;
+  const [clientProfile, setClientProfile] = useState<any>(null);
+
+  useEffect(() => {
+    if (currentUser) {
+      getClientProfile().then(setClientProfile);
+    } else {
+      setClientProfile(null);
+    }
+  }, [currentUser?.id]);
+
   const {
     data: evenement,
     isLoading: isLoadingEvenement,
     error,
-  } = useEvenementById(id ? Number(id) : undefined);
+  } = usePrismaEvenementById(id ? Number(id) : undefined);
 
   const [dateEvenement, setDateEvenement] = useState<Date | undefined>();
   const [heureEvenement, setHeureEvenement] = useState<string>('');
@@ -144,11 +156,11 @@ const ModifierEvenement = memo(() => {
     if (
       !isLoadingEvenement &&
       evenement &&
-      currentUser?.id !== evenement.contact_client_r
+      clientProfile?.idclient !== evenement.contact_client_r
     ) {
       router.replace('/historique');
     }
-  }, [isLoadingEvenement, evenement, currentUser, router]);
+  }, [isLoadingEvenement, evenement, clientProfile, router]);
 
   const isLoading = isLoadingEvenement || dataIsLoading;
 
@@ -178,8 +190,8 @@ const ModifierEvenement = memo(() => {
 
   // Vérifier si l'événement peut être modifié
   const canEdit =
-    evenement.statut_evenement !== 'Réalisé' &&
-    evenement.statut_evenement !== 'Payé intégralement';
+    (evenement.statut_evenement as any) !== 'Réalisé' &&
+    (evenement.statut_evenement as any) !== 'Payé intégralement';
 
   if (!canEdit) {
     return (
@@ -287,7 +299,7 @@ const ModifierEvenement = memo(() => {
     try {
       await updateEvenement.mutateAsync({
         id: evenement.idevenements,
-        data: updateData,
+        data: updateData as any,
       });
       toast({
         title: 'Événement modifié !',

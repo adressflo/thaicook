@@ -22,7 +22,7 @@ import {
   Zap,
   TrendingDown
 } from 'lucide-react';
-import { useCommandes, useClients, usePlats } from '@/hooks/useSupabaseData';
+import { usePrismaCommandes, usePrismaClients, usePrismaPlats } from "@/hooks/usePrismaData";
 import { format, startOfWeek, startOfMonth, isWithinInterval, subDays, subWeeks, subMonths } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -30,9 +30,9 @@ export default function AdminStatistiques() {
   const [selectedPeriod, setSelectedPeriod] = useState<'week' | 'month' | 'quarter' | 'year'>('month');
   const [viewMode, setViewMode] = useState<'overview' | 'detailed' | 'trends'>('overview');
   
-  const { data: commandes, refetch } = useCommandes();
-  const { data: clients } = useClients();
-  const { data: plats } = usePlats();
+  const { data: commandes, refetch } = usePrismaCommandes();
+  const { data: clients } = usePrismaClients();
+  const { data: plats } = usePrismaPlats();
 
   // Calculer les statistiques
   const stats = useMemo(() => {
@@ -61,7 +61,7 @@ export default function AdminStatistiques() {
       return cmdList?.reduce((sum, commande) => {
         if (!commande.details) return sum;
         return sum + commande.details.reduce((detailSum, detail) => {
-          return detailSum + ((detail.plat?.prix || 0) * (detail.quantite_plat_commande || 0));
+          return detailSum + ((Number(detail.plat?.prix) || 0) * (detail.quantite_plat_commande || 0));
         }, 0);
       }, 0) || 0;
     };
@@ -110,7 +110,7 @@ export default function AdminStatistiques() {
             platStats[platId] = { count: 0, revenue: 0, name: platName };
           }
           platStats[platId].count += detail.quantite_plat_commande || 0;
-          platStats[platId].revenue += (detail.plat?.prix || 0) * (detail.quantite_plat_commande || 0);
+          platStats[platId].revenue += (Number(detail.plat?.prix) || 0) * (detail.quantite_plat_commande || 0);
         }
       });
     });
@@ -163,7 +163,7 @@ export default function AdminStatistiques() {
         if (dayOfWeekStats[dayKey as keyof typeof dayOfWeekStats]) {
           dayOfWeekStats[dayKey as keyof typeof dayOfWeekStats].commandes++;
           const cmdRevenue = cmd.details?.reduce((sum, detail) => {
-            return sum + ((detail.plat?.prix || 0) * (detail.quantite_plat_commande || 0));
+            return sum + ((Number(detail.plat?.prix) || 0) * (detail.quantite_plat_commande || 0));
           }, 0) || 0;
           dayOfWeekStats[dayKey as keyof typeof dayOfWeekStats].revenus += cmdRevenue;
         }

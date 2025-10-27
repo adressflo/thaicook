@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
-import { useAuth } from './AuthContext';
+import { useSession } from '@/lib/auth-client';
 import { useCart } from './CartContext';
 
 export interface Notification {
@@ -36,7 +36,8 @@ interface NotificationProviderProps {
 }
 
 export const NotificationProvider: React.FC<NotificationProviderProps> = ({ children }) => {
-  const { currentUser } = useAuth();
+  const { data: session } = useSession();
+  const currentUser = session?.user;
   const { panier } = useCart();
   const [notifications, setNotifications] = useState<Notification[]>([]);
 

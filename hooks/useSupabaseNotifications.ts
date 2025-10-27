@@ -2,7 +2,7 @@
 
 import { useEffect, useCallback } from 'react';
 import { useNotifications, useNotificationActions, type Notification } from '@/contexts/NotificationContext';
-import { useAuth } from '@/contexts/AuthContext';
+import { useSession } from '@/lib/auth-client';
 import { supabase } from '@/lib/supabase';
 
 // Types pour les notifications Supabase (à créer dans la DB plus tard)
@@ -21,7 +21,10 @@ interface SupabaseNotification {
 
 // Hook pour synchroniser les notifications avec Supabase
 export const useSupabaseNotifications = () => {
-  const { currentUser } = useAuth();
+  // Better Auth session
+  const { data: session } = useSession();
+  const currentUser = session?.user;
+
   const { addNotification } = useNotifications();
   const {
     notifyOrderConfirmed,

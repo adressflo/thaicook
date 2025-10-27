@@ -1,11 +1,12 @@
 'use client';
 
-import { memo } from 'react';
+import { memo, useState, useEffect } from 'react';
 import { useParams, redirect } from 'next/navigation';
 import Link from 'next/link';
 import { AppLayout } from '@/components/AppLayout';
-import { useAuth } from '@/contexts/AuthContext';
-import { useEvenementById } from '@/hooks/useSupabaseData';
+import { useSession } from '@/lib/auth-client';
+import { getClientProfile } from '@/app/profil/actions';
+import { usePrismaEvenementById } from "@/hooks/usePrismaData";
 import { useData } from '@/contexts/DataContext';
 import { extractRouteParam } from '@/lib/params-utils';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -23,8 +24,19 @@ import type { PlatUI as Plat } from '@/types/app';
 const SuiviEvenement = memo(() => {
   const params = useParams();
   const id = extractRouteParam(params?.id);
-  const { currentUser, isLoadingAuth } = useAuth();
-  const { data: evenement, isLoading: isLoadingEvenement, error } = useEvenementById(id ? Number(id) : undefined);
+  const { data: session, isPending: isLoadingAuth } = useSession();
+  const currentUser = session?.user;
+  const [clientProfile, setClientProfile] = useState<any>(null);
+
+  useEffect(() => {
+    if (currentUser) {
+      getClientProfile().then(setClientProfile);
+    } else {
+      setClientProfile(null);
+    }
+  }, [currentUser?.id]);
+
+  const { data: evenement, isLoading: isLoadingEvenement, error } = usePrismaEvenementById(id ? Number(id) : undefined);
   const { plats, isLoading: platsLoading } = useData();
 
   if (isLoadingAuth || isLoadingEvenement || platsLoading) {
@@ -53,12 +65,12 @@ const SuiviEvenement = memo(() => {
   }
 
   // Vérifie que l'utilisateur connecté est bien le propriétaire de l'événement
-  if (currentUser?.id !== evenement.contact_client_r) {
+  if (clientProfile?.idclient !== evenement.contact_client_r) {
     redirect('/historique');
   }
 
   // Vérifier si l'événement peut être modifié
-  const canEdit = evenement.statut_evenement !== 'Réalisé' && evenement.statut_evenement !== 'Payé intégralement';
+  const canEdit = (evenement.statut_evenement as any) !== 'Réalisé' && (evenement.statut_evenement as any) !== 'Payé intégralement';
 
   // Fonction pour obtenir la couleur du statut
   const getStatutColor = (statut: string | null) => {
@@ -271,7 +283,7 @@ const SuiviEvenement = memo(() => {
                             samedi_dispo: plat.samedi_dispo || null,
                             vendredi_dispo: plat.vendredi_dispo || null
                           }
-                        };
+                        } as any; // Type casting pour compatibilité Prisma types
 
                         return (
                           <DishDetailsModal
@@ -330,9 +342,9 @@ const SuiviEvenement = memo(() => {
               <Card className="border-thai-green/20 bg-gradient-to-br from-thai-cream/40 to-thai-gold/15 animate-fadeIn shadow-xl">
                 <CardContent className="p-6">
                   <div className="text-center space-y-6">
-                    {(evenement.statut_evenement === 'Demande initiale' || 
-                      evenement.statut_evenement === 'En préparation' || 
-                      evenement.statut_evenement === 'Contact établi') && (
+                    {((evenement.statut_evenement as any) === 'Demande initiale' ||
+                      (evenement.statut_evenement as any) === 'En préparation' ||
+                      (evenement.statut_evenement as any) === 'Contact établi') && (
                       <div className="p-6 bg-gradient-to-r from-blue-50 to-blue-100/70 border-2 border-blue-200/60 rounded-xl shadow-lg backdrop-blur-sm">
                         <p className="text-blue-800 text-center font-semibold text-lg leading-relaxed">
                           🎉 Votre demande d'événement est en cours de traitement. Nous vous recontacterons prochainement pour finaliser les détails.
@@ -340,7 +352,7 @@ const SuiviEvenement = memo(() => {
                       </div>
                     )}
 
-                    {evenement.statut_evenement === 'Confirmé / Acompte reçu' && (
+                    {(evenement.statut_evenement as any) === 'Confirmé / Acompte reçu' && (
                       <div className="p-6 bg-gradient-to-r from-green-50 to-green-100/70 border-2 border-green-200/60 rounded-xl shadow-lg backdrop-blur-sm">
                         <div className="flex items-center justify-center mb-3">
                           <div className="w-12 h-12 bg-green-200/50 rounded-full flex items-center justify-center">
@@ -353,7 +365,7 @@ const SuiviEvenement = memo(() => {
                       </div>
                     )}
 
-                    {evenement.statut_evenement === 'Réalisé' && (
+                    {(evenement.statut_evenement as any) === 'Réalisé' && (
                       <div className="p-6 bg-gradient-to-r from-green-50 to-emerald-100/70 border-2 border-emerald-200/60 rounded-xl shadow-lg backdrop-blur-sm">
                         <div className="flex items-center justify-center mb-3">
                           <div className="w-12 h-12 bg-emerald-200/50 rounded-full flex items-center justify-center">

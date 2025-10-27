@@ -6,12 +6,14 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Utensils, Calendar, MapPin, User, Users, History, Info, Phone, Clock, AlertTriangle, CheckCircle, XCircle, Shield } from 'lucide-react';
 import { memo, useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { usePermissions } from '@/hooks/usePermissions';
 import { getActiveAnnouncement, announcementTypeConfig, type Announcement } from '@/lib/announcements';
 import { FloatingUserIcon } from '@/components/FloatingUserIcon';
 
 const TableauDeBord = memo(() => {
-  const { currentUser, currentUserRole } = useAuth();
+  const { isAuthenticated, isAdmin, clientProfile } = usePermissions();
+  const currentUser = isAuthenticated ? clientProfile : null;
+  const currentUserRole = clientProfile?.role;
 
   // État pour l'annonce dynamique
   const [announcement, setAnnouncement] = useState<Announcement | null>(null);
@@ -29,7 +31,6 @@ const TableauDeBord = memo(() => {
         setIsLoadingAnnouncement(false);
       }
     };
-
     loadAnnouncement();
   }, []);
 
@@ -248,7 +249,7 @@ const TableauDeBord = memo(() => {
           </div>
         </div>
       </footer>
-      
+
       {/* FloatingUserIcon ajouté pour navigation universelle */}
       <FloatingUserIcon />
     </div>

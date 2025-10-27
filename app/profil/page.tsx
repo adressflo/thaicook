@@ -46,9 +46,9 @@ import ReactCrop, {
 } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import { FloatingUserIcon } from '@/components/FloatingUserIcon';
-import { useAuth } from '@/contexts/AuthContext';
-// Utilisation des hooks Supabase
-import { useCreateClient, useUpdateClient } from '@/hooks/useSupabaseData';
+import { useSession } from '@/lib/auth-client';
+import { updateUserProfile, getClientProfile, updateProfilePhoto as updateProfilePhotoAction, deleteProfilePhotoAction } from './actions';
+
 import type { ClientInputData } from '@/types/app';
 import {
   uploadProfilePhoto,
@@ -97,16 +97,38 @@ const initialFormData: FormDataState = {
 
 const Profil = memo(() => {
   const { toast } = useToast();
-  const {
-    currentUser,
-    isLoadingAuth,
-    currentUserProfile,
-    isLoadingUserRole,
-    refetchClient,
-  } = useAuth();
 
-  const createClientMutation = useCreateClient();
-  const updateClientMutation = useUpdateClient();
+  // Better Auth session
+  const { data: session, isPending: isLoadingAuth } = useSession();
+  const currentUser = session?.user;
+
+  // Client profile state
+  const [currentUserProfile, setCurrentUserProfile] = useState<any>(null);
+  const [isLoadingUserRole, setIsLoadingUserRole] = useState(true);
+
+  // Fonction pour charger/recharger le profil
+  const refetchClient = async () => {
+    if (!currentUser) {
+      setCurrentUserProfile(null);
+      setIsLoadingUserRole(false);
+      return;
+    }
+
+    setIsLoadingUserRole(true);
+    try {
+      const profile = await getClientProfile();
+      setCurrentUserProfile(profile);
+    } catch (error) {
+      console.error('Erreur lors du chargement du profil:', error);
+    } finally {
+      setIsLoadingUserRole(false);
+    }
+  };
+
+  // Charger le profil au montage et quand l'utilisateur change
+  useEffect(() => {
+    refetchClient();
+  }, [currentUser?.id]);
 
   // ✅ GESTION ERREURS DE VALIDATION ZOD
   const { validationError, setValidationError, clearValidationError, handleValidationError } = useValidationErrors();
@@ -309,15 +331,10 @@ const Profil = memo(() => {
 
       if (uploadResult.success && uploadResult.url) {
         // Mettre à jour le profil avec la nouvelle URL
-        const dataToUpdate: Partial<ClientInputData> = {
-          photo_client: uploadResult.url,
-        };
+        const result = await updateProfilePhotoAction(uploadResult.url);
 
-        if (currentUserProfile) {
-          await updateClientMutation.mutateAsync({
-            firebase_uid: currentUser.id,
-            data: dataToUpdate,
-          });
+        if (!result.success) {
+          throw new Error(result.error || 'Erreur lors de la mise à jour du profil');
         }
 
         setProfilePhotoPreview(uploadResult.url);
@@ -356,14 +373,11 @@ const Profil = memo(() => {
 
       if (deleteSuccess) {
         // Mettre à jour le profil en supprimant l'URL de la photo
-        const dataToUpdate: Partial<ClientInputData> = {
-          photo_client: null,
-        };
+        const result = await deleteProfilePhotoAction();
 
-        await updateClientMutation.mutateAsync({
-          firebase_uid: currentUser.id,
-          data: dataToUpdate,
-        });
+        if (!result.success) {
+          throw new Error(result.error || 'Erreur lors de la mise à jour du profil');
+        }
 
         setProfilePhotoPreview(defaultProfilePhoto);
 
@@ -397,10 +411,10 @@ const Profil = memo(() => {
 
   const handleSubmitProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!currentUser || !currentUser.email) return;
+    if (!currentUser?.email) return;
 
-    // Adaptation pour Supabase
-    const dataToSave: Partial<ClientInputData> = {
+    // On conserve toute la préparation de dataToSave
+    const dataToSave = {
       nom: formData.nom || null,
       prenom: formData.prenom || null,
       email: profileEmail || null,
@@ -411,24 +425,7 @@ const Profil = memo(() => {
         ? parseInt(formData.codePostal)
         : null,
       ville: formData.ville || null,
-      comment_avez_vous_connu: formData.commentConnuChanthana.length > 0 ?
-        formData.commentConnuChanthana.filter(item =>
-          [
-            'Bouche à oreille',
-            'Réseaux sociaux',
-            'Recherche Google',
-            'En passant devant',
-            "Recommandation d'un ami",
-            'Autre',
-          ].includes(item)
-        ) as (
-          | 'Bouche à oreille'
-          | 'Réseaux sociaux'
-          | 'Recherche Google'
-          | 'En passant devant'
-          | "Recommandation d'un ami"
-          | 'Autre'
-        )[] : null,
+      comment_avez_vous_connu: formData.commentConnuChanthana,
       souhaitez_vous_recevoir_actualites:
         formData.newsletterPreference === "Oui, j'accepte",
       date_de_naissance: birthDate && !isNaN(birthDate.getTime())
@@ -440,39 +437,34 @@ const Profil = memo(() => {
           : null,
     };
 
-    setIsLoadingProfile(true);
-    try {
-      if (currentUserProfile) {
-        if (!currentUser) return;
-        await updateClientMutation.mutateAsync({
-          firebase_uid: currentUser.id,
-          data: dataToSave,
-        });
-        toast({ title: 'Profil mis à jour !' });
-      } else {
-        // Créer un nouveau profil avec firebase_uid obligatoire
-        if (!currentUser) return;
-        const completeData = {
-          firebase_uid: currentUser.id,
-          email: profileEmail || currentUser.email || '',
-          nom: formData.nom || 'Temporaire',
-          prenom: formData.prenom || 'Temporaire',
-          role: 'client' as const,
-          ...dataToSave, // Ajouter les autres champs optionnels
-        };
-        await createClientMutation.mutateAsync(completeData);
-        toast({ title: 'Profil sauvegardé !' });
+    // On convertit l'objet en FormData pour la Server Action
+    const formDataForAction = new FormData();
+    Object.entries(dataToSave).forEach(([key, value]) => {
+      if (value !== null && value !== undefined) {
+        if (Array.isArray(value)) {
+          value.forEach(item => formDataForAction.append(key, item));
+        } else {
+          formDataForAction.append(key, String(value));
+        }
       }
+    });
+
+    setIsLoadingProfile(true);
+
+    // On appelle la Server Action avec le bon format
+    const result = await updateUserProfile(formDataForAction);
+
+    setIsLoadingProfile(false);
+
+    if (result.success) {
+      toast({ title: 'Profil mis à jour !' });
       refetchClient();
-    } catch (error: unknown) {
+    } else {
       toast({
         title: 'Erreur de sauvegarde',
-        description:
-          error instanceof Error ? error.message : 'Une erreur est survenue',
+        description: result.error,
         variant: 'destructive',
       });
-    } finally {
-      setIsLoadingProfile(false);
     }
   };
 
