@@ -13,14 +13,13 @@
  */
 
 import { prisma } from '@/lib/prisma'
-import type { client_db, plats_db, commande_db } from '@prisma/client'
 
 // ============================================
 // CONFIGURATION DES TESTS
 // ============================================
 
 const TEST_CONFIG = {
-  testClientFirebaseUid: `test-${Date.now()}@test.com`,
+  testClientAuthUserId: `test-${Date.now()}@test.com`,
   testPlatName: `Test Plat ${Date.now()}`,
   cleanupAfterTests: true,
 }
@@ -97,7 +96,7 @@ async function testClientOperations() {
     console.log('\n1️⃣ CREATE Client')
     const newClient = await prisma.client_db.create({
       data: {
-        firebase_uid: TEST_CONFIG.testClientFirebaseUid,
+        auth_user_id: TEST_CONFIG.testClientAuthUserId,
         email: 'test@example.com',
         nom: 'Test',
         prenom: 'User',
@@ -108,23 +107,23 @@ async function testClientOperations() {
     testIds.clientId = newClient.idclient
     assert(!!newClient.idclient, 'Client créé avec ID')
     assertEqual(typeof newClient.idclient, 'bigint', 'ID client est BigInt')
-    assertEqual(newClient.firebase_uid, TEST_CONFIG.testClientFirebaseUid, 'Firebase UID correct')
+    assertEqual(newClient.auth_user_id, TEST_CONFIG.testClientAuthUserId, 'Auth User ID correct')
     console.log(`  📊 Client créé: ID=${newClient.idclient} (BigInt)`)
 
-    // READ: Récupérer le client par Firebase UID
-    console.log('\n2️⃣ READ Client par Firebase UID')
+    // READ: Récupérer le client par Auth User ID
+    console.log('\n2️⃣ READ Client par Auth User ID')
     const foundClient = await prisma.client_db.findUnique({
-      where: { firebase_uid: TEST_CONFIG.testClientFirebaseUid },
+      where: { auth_user_id: TEST_CONFIG.testClientAuthUserId },
     })
 
-    assert(!!foundClient, 'Client trouvé par Firebase UID')
+    assert(!!foundClient, 'Client trouvé par Auth User ID')
     assertEqual(foundClient?.idclient, newClient.idclient, 'ID client identique')
     console.log(`  📊 Client trouvé: ${foundClient?.nom} ${foundClient?.prenom}`)
 
     // UPDATE: Mettre à jour le client
     console.log('\n3️⃣ UPDATE Client')
     const updatedClient = await prisma.client_db.update({
-      where: { firebase_uid: TEST_CONFIG.testClientFirebaseUid },
+      where: { auth_user_id: TEST_CONFIG.testClientAuthUserId },
       data: {
         ville: 'Paris',
         code_postal: 75001,
@@ -278,7 +277,7 @@ async function testCommandeOperations() {
     console.log('\n1️⃣ CREATE Commande avec détails')
     const newCommande = await prisma.commande_db.create({
       data: {
-        client_r: TEST_CONFIG.testClientFirebaseUid,
+        client_r: TEST_CONFIG.testClientAuthUserId,
         client_r_id: testIds.clientId,
         type_livraison: 'emporter',
         statut_commande: 'En_attente_de_confirmation',
@@ -322,7 +321,9 @@ async function testCommandeOperations() {
     })
 
     assert(!!foundCommande, 'Commande trouvée par ID')
-    assert(!!foundCommande?.client_db, 'Relation client chargée')
+    if (!foundCommande) throw new Error('Commande non trouvée')
+
+    assert(!!foundCommande.client_db, 'Relation client chargée')
     assert(foundCommande.details_commande_db.length > 0, 'Détails de commande chargés')
     assert(!!foundCommande.details_commande_db[0].plats_db, 'Relation plat chargée')
     console.log(`  📊 Commande trouvée avec:`)
@@ -373,6 +374,8 @@ async function testCommandeOperations() {
     })
 
     assert(!!relationTest, 'Client trouvé pour test relation')
+    if (!relationTest) throw new Error('Client non trouvé pour test relation')
+
     assert(relationTest.commande_db.length > 0, 'Relation client → commandes fonctionne')
     assertEqual(typeof relationTest.idclient, 'bigint', 'ID client est BigInt')
     console.log(`  📊 Relation BigInt validée: Client ${relationTest.idclient} → ${relationTest.commande_db.length} commandes`)
@@ -418,10 +421,10 @@ async function testPerformance() {
     if (clients.length > 0) {
       const startIndex = Date.now()
       const client = await prisma.client_db.findUnique({
-        where: { firebase_uid: clients[0].firebase_uid },
+        where: { auth_user_id: clients[0].auth_user_id },
       })
       const endIndex = Date.now()
-      console.log(`  📊 findUnique par firebase_uid (indexé): ${endIndex - startIndex}ms`)
+      console.log(`  📊 findUnique par auth_user_id (indexé): ${endIndex - startIndex}ms`)
     }
 
     console.log('\n✅ Tests de performance terminés!')

@@ -144,7 +144,7 @@ export function DateRuptureManager({ platId, platNom }: DateRuptureManagerProps)
   }
 
   const renderRuptureCard = (rupture: PlatRupture, status: 'active' | 'passee' | 'desactivee') => {
-    const typeConfig = getTypeRuptureConfig(rupture.type_rupture)
+    const typeConfig = getTypeRuptureConfig(rupture.type_rupture || 'autre')
     const dateRupture = new Date(rupture.date_rupture)
     const isToday = isSameDay(dateRupture, new Date())
 
@@ -198,9 +198,11 @@ export function DateRuptureManager({ platId, platNom }: DateRuptureManagerProps)
             </div>
           )}
 
-          <div className="text-xs text-gray-400">
-            Créé le {format(new Date(rupture.created_at), 'dd/MM/yyyy à HH:mm', { locale: fr })}
-          </div>
+          {rupture.created_at && (
+            <div className="text-xs text-gray-400">
+              Créé le {format(new Date(rupture.created_at), 'dd/MM/yyyy à HH:mm', { locale: fr })}
+            </div>
+          )}
         </div>
       </div>
     )
