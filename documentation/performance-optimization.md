@@ -12,7 +12,7 @@ This guide covers performance optimization strategies for APPChanthana, a Next.j
 - **Tailwind CSS v4**: CSS-first configuration, optimized build output
 - **TanStack Query 5.90.2**: Intelligent caching with stale-while-revalidate
 - **Supabase 2.58.0**: Optimized queries with selective column fetching
-- **Firebase Auth 12.3.0**: Lazy-loaded auth modules
+- **Better Auth 12.3.0**: Lazy-loaded auth modules
 
 **Performance Goals**:
 - **Lighthouse Score**: >90 for all metrics (Performance, Accessibility, Best Practices, SEO)

@@ -1,8 +1,9 @@
 # Database Schema - APPChanthana
 
-**Date**: 2025-10-06
-**Version**: 1.0.0
+**Date**: 2025-10-27
+**Version**: 2.0.0 (Post-Migration Better Auth + Prisma ORM)
 **Database**: Supabase PostgreSQL 15
+**ORM**: Prisma 6.17.1
 **Status**: ✅ Production
 
 ## Vue d'Ensemble
@@ -30,7 +31,7 @@ APPChanthana utilise **Supabase PostgreSQL** avec 6 tables principales pour gér
 │  (Profils)          │
 ├─────────────────────┤
 │ id (PK)             │
-│ firebase_uid (UQ)   │◄─┐ Lien Firebase Auth
+│ auth_user_id (UQ)   │◄─┐ Lien Better Auth User.id
 │ email               │  │
 │ nom                 │  │
 │ prenom              │  │
@@ -114,7 +115,7 @@ APPChanthana utilise **Supabase PostgreSQL** avec 6 tables principales pour gér
 ```sql
 CREATE TABLE client_db (
   id SERIAL PRIMARY KEY,
-  firebase_uid TEXT UNIQUE NOT NULL,  -- Lien Firebase Auth (UNIQUE)
+  auth_user_id TEXT UNIQUE NOT NULL,  -- Lien Better Auth User.id (UNIQUE)
   email TEXT NOT NULL,
   nom TEXT,
   prenom TEXT,
@@ -127,15 +128,15 @@ CREATE TABLE client_db (
 );
 
 -- Index pour performance
-CREATE INDEX idx_client_firebase_uid ON client_db(firebase_uid);
+CREATE INDEX idx_client_auth_user_id ON client_db(auth_user_id);
 CREATE INDEX idx_client_email ON client_db(email);
 CREATE INDEX idx_client_role ON client_db(role);
 ```
 
 **Colonnes clés**:
-- `firebase_uid`: **UNIQUE**, lien avec Firebase Authentication
+- `auth_user_id`: **UNIQUE**, lien avec Better Auth User.id (UUID)
 - `role`: Détermine accès admin vs client (détecté via pattern email)
-- `email`: Hérité de Firebase Auth lors de signup
+- `email`: Hérité de Better Auth User table lors de signup
 - `created_at`, `updated_at`: Timestamps auto
 
 **Relations**:
@@ -165,13 +166,6 @@ CREATE TABLE commande_db (
 CREATE INDEX idx_commande_client ON commande_db(contact_client_r);
 CREATE INDEX idx_commande_statut ON commande_db(statut);
 CREATE INDEX idx_commande_created_at ON commande_db(created_at DESC);
-
--- ⚠️ MANQUANT (Phase 4: à ajouter)
-ALTER TABLE commande_db ADD COLUMN firebase_uid TEXT;
-ALTER TABLE commande_db
-  ADD CONSTRAINT fk_commande_firebase_uid
-  FOREIGN KEY (firebase_uid)
-  REFERENCES client_db(firebase_uid);
 ```
 
 **Colonnes clés**:
@@ -432,80 +426,139 @@ ALTER TABLE evenements_db
 
 ---
 
-## RLS Policies (Row Level Security)
+## Sécurité & Contrôle d'Accès
 
-**Status actuel**: 🔴 **DÉSACTIVÉ** → Phase 4: réactivation avec `scripts/rls-policies.sql`
+**Architecture actuelle**: 🔐 **Sécurité Application-Level** (Better Auth + Prisma Server Actions)
+**RLS Status**: 🔴 **DÉSACTIVÉ** → Sécurité gérée côté application
 
-### Policies Clients
+### Architecture de Sécurité (Better Auth + Prisma)
+
+Avec la migration vers **Better Auth + Prisma ORM**, la sécurité n'est **plus gérée par Row Level Security (RLS)** Supabase, mais directement dans l'application via :
+
+1. **Better Auth** : Authentification + Sessions cookies
+2. **middleware.ts** : Protection routes Next.js
+3. **Server Actions** : Vérification session + rôles avant queries Prisma
+
+### Exemple Server Action Sécurisé
+
+```typescript
+// app/actions/commandes.ts
+'use server'
+import { auth } from '@/lib/auth'
+import { prisma } from '@/lib/prisma'
+import { headers } from 'next/headers'
+
+export async function getCommandes() {
+  // 1. Vérifier session Better Auth
+  const session = await auth.api.getSession({
+    headers: await headers()
+  })
+
+  if (!session?.user) {
+    throw new Error('Non authentifié')
+  }
+
+  // 2. Récupérer profil client
+  const client = await prisma.client_db.findUnique({
+    where: { auth_user_id: session.user.id }
+  })
+
+  if (!client) {
+    throw new Error('Profil client non trouvé')
+  }
+
+  // 3. Filtrer selon rôle (client vs admin)
+  if (client.role === 'admin') {
+    // Admin : toutes les commandes
+    return await prisma.commande_db.findMany({
+      include: { details: true }
+    })
+  } else {
+    // Client : seulement ses commandes
+    return await prisma.commande_db.findMany({
+      where: { contact_client_r: client.id_client },
+      include: { details: true }
+    })
+  }
+}
+```
+
+### Protection Routes (middleware.ts)
+
+```typescript
+// middleware.ts
+import { auth } from '@/lib/auth'
+import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
+
+export async function middleware(request: NextRequest) {
+  const session = await auth.api.getSession({
+    headers: request.headers
+  })
+
+  // Routes protégées
+  const protectedPaths = ['/admin', '/profil', '/commander']
+  const isProtectedPath = protectedPaths.some(path =>
+    request.nextUrl.pathname.startsWith(path)
+  )
+
+  if (isProtectedPath && !session) {
+    return NextResponse.redirect(new URL('/auth/login', request.url))
+  }
+
+  // Routes admin uniquement
+  if (request.nextUrl.pathname.startsWith('/admin')) {
+    const client = await prisma.client_db.findUnique({
+      where: { auth_user_id: session.user.id }
+    })
+
+    if (client?.role !== 'admin') {
+      return NextResponse.redirect(new URL('/', request.url))
+    }
+  }
+
+  return NextResponse.next()
+}
+```
+
+### Matrice de Contrôle d'Accès
+
+| Ressource | Client | Admin | Anonyme | Implémentation |
+|-----------|--------|-------|---------|----------------|
+| **Lecture Plats** | ✅ | ✅ | ✅ | Public (aucune restriction) |
+| **Lecture Extras** | ✅ | ✅ | ✅ | Public (aucune restriction) |
+| **Ses Commandes** | ✅ | ❌ | ❌ | Server Action : `where: { contact_client_r: client.id }` |
+| **Toutes Commandes** | ❌ | ✅ | ❌ | Server Action : `client.role === 'admin'` |
+| **Créer Commande** | ✅ | ❌ | ❌ | Server Action : vérifie session |
+| **Modifier Commande** | ✅ | ✅ | ❌ | Server Action : vérifie ownership ou admin |
+| **Gestion Plats** | ❌ | ✅ | ❌ | Server Action : `client.role === 'admin'` |
+| **Gestion Clients** | ❌ | ✅ | ❌ | Server Action : `client.role === 'admin'` |
+
+### Avantages Architecture Actuelle
+
+✅ **Type-Safety** : TypeScript end-to-end (Better Auth + Prisma)
+✅ **Flexibilité** : Logique métier complexe dans Server Actions
+✅ **Performance** : Prisma Connection Pooling optimisé
+✅ **Debugging** : Logs server-side explicites
+✅ **Maintenance** : Code centralisé dans `app/actions/*`
+
+### RLS Policies (Historique - OBSOLÈTE)
+
+Les anciennes RLS policies Supabase (Firebase Auth `auth.uid()`) sont **désactivées** et ne sont **plus utilisées**. Pour référence historique uniquement :
+
+<details>
+<summary>⚠️ Anciennes RLS Policies (Non utilisées - Firebase Auth)</summary>
 
 ```sql
--- Policy 1: Clients voient seulement leurs propres données
+-- ❌ OBSOLÈTE - Ne plus utiliser
 CREATE POLICY "clients_own_data" ON client_db
   FOR ALL USING (firebase_uid = auth.uid());
 
--- Policy 2: Clients voient seulement leurs commandes
-CREATE POLICY "clients_own_orders" ON commande_db
-  FOR ALL USING (
-    EXISTS (
-      SELECT 1 FROM client_db
-      WHERE client_db.id = commande_db.contact_client_r
-      AND client_db.firebase_uid = auth.uid()
-    )
-  );
-
--- Policy 3: Clients voient détails de leurs commandes
-CREATE POLICY "clients_own_order_details" ON details_commande_db
-  FOR ALL USING (
-    EXISTS (
-      SELECT 1 FROM commande_db
-      JOIN client_db ON client_db.id = commande_db.contact_client_r
-      WHERE commande_db.id = details_commande_db.commande_r
-      AND client_db.firebase_uid = auth.uid()
-    )
-  );
-
--- Policy 4: Lecture publique plats disponibles
-CREATE POLICY "public_read_plats" ON plats_db
-  FOR SELECT USING (disponible = TRUE);
-
--- Policy 5: Lecture publique extras disponibles
-CREATE POLICY "public_read_extras" ON extras_db
-  FOR SELECT USING (disponible = TRUE);
+-- Note: Ces policies utilisaient Firebase Auth auth.uid()
+-- qui n'existe plus avec Better Auth.
+-- La sécurité est maintenant gérée dans les Server Actions.
 ```
-
-### Policies Admin
-
-```sql
--- Policy 6: Admin accès total client_db
-CREATE POLICY "admin_full_access_clients" ON client_db
-  FOR ALL USING (
-    EXISTS (
-      SELECT 1 FROM client_db admin
-      WHERE admin.firebase_uid = auth.uid()
-      AND admin.role = 'admin'
-    )
-  );
-
--- Policy 7: Admin accès total commandes
-CREATE POLICY "admin_full_access_orders" ON commande_db
-  FOR ALL USING (
-    EXISTS (
-      SELECT 1 FROM client_db admin
-      WHERE admin.firebase_uid = auth.uid()
-      AND admin.role = 'admin'
-    )
-  );
-
--- Policy 8: Admin gestion plats
-CREATE POLICY "admin_manage_plats" ON plats_db
-  FOR ALL USING (
-    EXISTS (
-      SELECT 1 FROM client_db admin
-      WHERE admin.firebase_uid = auth.uid()
-      AND admin.role = 'admin'
-    )
-  );
-```
+</details>
 
 ---
 
@@ -522,16 +575,8 @@ VALUES ('plats', 'plats', TRUE);
 CREATE POLICY "public_read_plats_images" ON storage.objects
   FOR SELECT USING (bucket_id = 'plats');
 
--- RLS Policy bucket (admin upload)
-CREATE POLICY "admin_upload_plats_images" ON storage.objects
-  FOR INSERT USING (
-    bucket_id = 'plats'
-    AND EXISTS (
-      SELECT 1 FROM client_db
-      WHERE client_db.firebase_uid = auth.uid()
-      AND client_db.role = 'admin'
-    )
-  );
+-- ❌ RLS Policy obsolète (Firebase Auth)
+-- La sécurité upload est maintenant gérée via Server Actions Better Auth
 ```
 
 **URLs Images**:

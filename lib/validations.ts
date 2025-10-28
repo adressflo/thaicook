@@ -21,17 +21,17 @@ const dateSchema = z.string()
   .optional();
 
 // ============================================
-// VALIDATION PROFIL CLIENT
+// VALIDATION PROFIL CLIENT (Better Auth)
 // ============================================
 
 export const clientProfileSchema = z.object({
-  firebase_uid: z.string().min(1, "UID Firebase requis"),
+  auth_user_id: z.string().min(1, "UID utilisateur requis"),
   nom: z.string()
     .min(1, "Nom requis")
     .max(100, "Nom trop long (max 100 caractères)")
     .regex(/^[a-zA-ZÀ-ÿ\s'-]+$/, "Le nom ne peut contenir que des lettres, espaces, apostrophes et tirets"),
   prenom: z.string()
-    .min(1, "Prénom requis") 
+    .min(1, "Prénom requis")
     .max(100, "Prénom trop long (max 100 caractères)")
     .regex(/^[a-zA-ZÀ-ÿ\s'-]+$/, "Le prénom ne peut contenir que des lettres, espaces, apostrophes et tirets"),
   email: emailSchema,
@@ -45,12 +45,12 @@ export const clientProfileSchema = z.object({
 
 // Schéma pour mise à jour profil (tous champs optionnels sauf UID)
 export const clientUpdateSchema = clientProfileSchema.partial().extend({
-  firebase_uid: z.string().min(1, "UID Firebase requis"),
+  auth_user_id: z.string().min(1, "UID utilisateur requis"),
 });
 
 // Schéma spécial pour création automatique de profils avec placeholders temporaires
 export const clientAutoCreateSchema = z.object({
-  firebase_uid: z.string().min(1, "UID Firebase requis"),
+  auth_user_id: z.string().min(1, "UID utilisateur requis"),
   email: emailSchema,
   nom: z.string()
     .min(1, "Nom requis")
@@ -102,11 +102,11 @@ export const evenementSchema = z.object({
 export const evenementUpdateSchema = evenementSchema.partial();
 
 // ============================================
-// VALIDATION COMMANDES
+// VALIDATION COMMANDES (Better Auth)
 // ============================================
 
 export const commandeSchema = z.object({
-  client_firebase_uid: z.string().min(1, "Client requis"),
+  client_r_id: z.number().int().positive("ID client requis"),
   type_livraison: z.enum(['À emporter', 'Livraison', 'Sur place']).optional(),
   date_et_heure_de_retrait_souhaitees: z.string()
     .optional()

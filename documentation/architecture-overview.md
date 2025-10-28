@@ -1,490 +1,486 @@
 # Architecture Overview - APPChanthana
 
-**Date**: 2025-10-06
-**Version**: 1.0.0
-**Status**: ✅ Production
+**Date**: 2025-10-27
+**Version**: 2.0.0 (Post-Migration Better Auth + Prisma ORM)
+**Status**: ✅ Production Ready - 0 Erreurs TypeScript
 
-## Vue d'Ensemble
+---
 
-APPChanthana est une application de gestion de restaurant thaïlandais construite avec une architecture moderne **Next.js 15 App Router** et une **authentification hybride Firebase + Supabase**.
+## 📋 Vue d'Ensemble
 
-### Stack Technologique
+APPChanthana est une application de gestion de restaurant thaïlandais construite avec une architecture moderne **Next.js 15 App Router**, **Better Auth** pour l'authentification, et **Prisma ORM** pour les opérations de base de données.
+
+### Stack Technologique Complète
 
 | Technologie | Version | Rôle |
 |-------------|---------|------|
-| **Next.js** | 15.5.4 | Framework React avec App Router |
+| **Next.js** | 15.5.4 | Framework React avec App Router, SSR, Server Actions |
 | **React** | 19.1.1 | Bibliothèque UI avec Server Components |
-| **TypeScript** | 5.x | Typage statique strict |
-| **Supabase** | 2.58.0 | Base de données PostgreSQL + Real-time |
-| **Firebase** | 12.3.0 | Authentification primaire |
-| **TanStack Query** | 5.90.2 | Gestion d'état serveur + cache |
-| **Tailwind CSS** | 4.1.12 | Styling CSS-first avec thème Thai |
-| **shadcn/ui** | Latest | Composants UI accessibles (Radix) |
+| **TypeScript** | 5.x | Typage statique strict pour tout le codebase |
+| **Better Auth** | 1.3.28 | Authentification TypeScript-first avec Prisma adapter |
+| **Prisma ORM** | 6.17.1 | ORM type-safe pour PostgreSQL avec auto-génération types |
+| **Supabase** | 2.58.0 | PostgreSQL + Realtime + Storage |
+| **TanStack Query** | 5.90.2 | Gestion d'état serveur + cache client-side |
+| **Tailwind CSS** | 4.1.12 | Styling CSS-first avec thème Thai customisé |
+| **shadcn/ui** | Latest | Composants UI accessibles (Radix UI) |
 | **Playwright** | 1.55.0 | Tests E2E multi-navigateurs |
 
 ---
 
-## Architecture Globale
+## 🏗️ Architecture Système
+
+### Stack Complète - Diagramme
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                         UTILISATEURS                            │
-│  👤 Clients (commandes)  │  👨‍💼 Admin (gestion)                   │
-└────────────────┬────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│  Next.js 15.5.4 App Router (React 19.1.1 + TypeScript 5)   │
+├─────────────────────────────────────────────────────────────┤
+│  Authentication : Better Auth 1.3.28                        │
+│    ├── lib/auth.ts (serveur) + lib/auth-client.ts (client) │
+│    ├── Sessions : Cookies (better-auth.session_token)      │
+│    └── Protection : middleware.ts + PrivateRoute/AdminRoute │
+├─────────────────────────────────────────────────────────────┤
+│  Database ORM : Prisma 6.17.1                               │
+│    ├── CRUD : app/actions/*.ts (Server Actions)            │
+│    ├── Cache : hooks/usePrismaData.ts (44 hooks)           │
+│    └── Client-side : TanStack Query 5.90.2                 │
+├─────────────────────────────────────────────────────────────┤
+│  Supabase 2.58.0 (PostgreSQL + Fonctionnalités)            │
+│    ├── Realtime : hooks/useSupabaseData.ts (1 hook)        │
+│    ├── Storage : Images (plats, avatars, événements)       │
+│    └── Direct queries : Ruptures (4 hooks) + Shopping (3)  │
+├─────────────────────────────────────────────────────────────┤
+│  UI/UX : shadcn/ui + Radix UI + Tailwind CSS 4.1.12        │
+│  Tests : Playwright 1.55.0 (E2E)                            │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Architecture Globale - Flux Utilisateurs
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      UTILISATEURS                            │
+│  👤 Clients (commandes)  │  👨‍💼 Admin (gestion)                │
+└────────────────┬─────────────────────────────────────────────┘
                  │
                  ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                      NEXT.JS 15 APP ROUTER                      │
-│  ┌──────────────────┐  ┌──────────────────┐  ┌───────────────┐ │
-│  │ Server Components│  │ Client Components│  │  Middleware   │ │
-│  │  (données init)  │  │  (interactivité) │  │ (protection)  │ │
-│  └──────────────────┘  └──────────────────┘  └───────────────┘ │
-└────────────────┬────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│              NEXT.JS 15 APP ROUTER                           │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────┐  │
+│  │   Server     │  │   Client     │  │   Middleware     │  │
+│  │  Components  │  │  Components  │  │  (Protection)    │  │
+│  │  (SSR init)  │  │ (Interactive)│  │                  │  │
+│  └──────────────┘  └──────────────┘  └──────────────────┘  │
+└────────────────┬─────────────────────────────────────────────┘
                  │
-        ┌────────┴────────┐
-        ▼                 ▼
-┌──────────────┐  ┌──────────────────┐
-│   FIREBASE   │  │  TANSTACK QUERY  │
-│  Auth 12.3.0 │  │   Cache + State  │
-│              │  │                  │
-│ • Login/Logout│  │ • Query Keys     │
-│ • Tokens      │  │ • Invalidation   │
-│ • État auth   │  │ • Retry logic    │
-└──────┬───────┘  └─────────┬────────┘
-       │                    │
-       │   ┌────────────────┘
-       │   │
-       ▼   ▼
-┌─────────────────────────────────────┐
-│         SUPABASE 2.58.0             │
-│  ┌───────────┐  ┌─────────────────┐│
-│  │PostgreSQL │  │  Real-time      ││
-│  │ Database  │  │  Subscriptions  ││
-│  │           │  │                 ││
-│  │ • RLS     │  │ • Channels      ││
-│  │ • Types   │  │ • Broadcast     ││
-│  │ • Foreign │  │ • Presence      ││
-│  │   Keys    │  │                 ││
-│  └───────────┘  └─────────────────┘│
-└─────────────────────────────────────┘
+        ┌────────┴────────┬────────────────┐
+        ▼                 ▼                ▼
+┌──────────────┐  ┌──────────────┐  ┌──────────────┐
+│ BETTER AUTH  │  │ PRISMA ORM   │  │  TANSTACK    │
+│   1.3.28     │  │   6.17.1     │  │  QUERY 5.90  │
+│              │  │              │  │              │
+│ • Email/Pass │  │ • 5 Server   │  │ • Cache      │
+│ • Sessions   │  │   Actions    │  │ • Mutations  │
+│ • Cookies    │  │ • 44 Hooks   │  │ • Invalidate │
+│ • Middleware │  │ • Type-safe  │  │ • Optimistic │
+└──────┬───────┘  └──────┬───────┘  └──────────────┘
+       │                 │
+       │                 ▼
+       │        ┌──────────────────┐
+       │        │  SUPABASE 2.58   │
+       │        │  PostgreSQL DB   │
+       │        │                  │
+       │        │ • 26 Tables      │
+       └────────│ • Realtime Sync  │
+                │ • Storage Images │
+                └──────────────────┘
 ```
 
 ---
 
-## Flux de Données
+## 🔐 Architecture Authentification (Better Auth)
 
-### 1. Authentification (Firebase → Supabase)
+### Vue d'Ensemble
+
+**Migration complète** de Firebase Auth vers Better Auth (2025-10-27).
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    USER AUTHENTICATION FLOW                  │
+└─────────────────────────────────────────────────────────────┘
+
+1. USER → app/auth/login/page.tsx (Email/Password)
+         ↓
+2. Better Auth Client (lib/auth-client.ts)
+   - signIn.email({ email, password })
+         ↓
+3. Better Auth Server (lib/auth.ts)
+   - Vérifie credentials
+   - Crée session + cookie (better-auth.session_token)
+         ↓
+4. Server Action → createClientProfile(auth_user_id, data)
+   - Synchronise User → client_db
+   - Lien : User.id = client_db.auth_user_id
+         ↓
+5. middleware.ts
+   - Vérifie cookie session sur chaque requête
+   - Protège routes /admin, /profil, /commander
+         ↓
+6. Components (PrivateRoute, AdminRoute)
+   - useSession() → { user, session }
+   - Contrôle accès basé sur role (admin/client)
+```
+
+### Tables Better Auth (Prisma Schema)
+
+| Table | Rôle | Champs Clés |
+|-------|------|-------------|
+| **User** | Utilisateurs authentifiés | id, email, emailVerified, name, image, createdAt |
+| **Session** | Sessions actives | id, userId, expiresAt, token, ipAddress, userAgent |
+| **Account** | Providers OAuth (futur) | id, userId, providerId, accountId |
+| **Verification** | Tokens vérification | id, identifier, value, expiresAt |
+
+### Synchronisation User ↔ client_db
 
 ```typescript
-// 1. User login via Firebase
-Firebase Auth → onAuthStateChanged() → currentUser (UID)
-
-// 2. Auto-sync profil Supabase
-AuthContext.tsx → createUserProfile() → Supabase.client_db
-  - firebase_uid: currentUser.uid
-  - email: currentUser.email
-  - role: 'client' (default) ou 'admin' (via pattern email)
-
-// 3. Session management
-Firebase: Gère tokens JWT
-Supabase: RLS policies filtrent via firebase_uid
-```
-
-### 2. Récupération de Données (Server → Client)
-
-```typescript
-// Server Component (initial data)
-app/page.tsx → fetch() → Supabase → SSR HTML
-
-// Client Component (interactivité)
-useClients() → TanStack Query → Cache → UI
-  - Query Key: ['clients', filters]
-  - Stale Time: 5 minutes
-  - Retry: 3 fois avec backoff exponentiel
-
-// Real-time updates
-useCommandesRealtime() → Supabase Channel → invalidateQueries()
-  - INSERT → Cache update
-  - UPDATE → Cache update
-  - DELETE → Cache removal
-```
-
-### 3. Mutations (UI → Database)
-
-```typescript
-// 1. User action
-UI Component → handleSubmit()
-
-// 2. TanStack Query mutation
-useMutation({
-  mutationFn: createCommande,
-  onSuccess: () => {
-    queryClient.invalidateQueries(['commandes'])
-  }
-})
-
-// 3. Supabase write
-createCommande() → Supabase.from('commande_db').insert()
-
-// 4. Real-time broadcast
-Supabase Channel → All subscribed clients → Cache invalidation
-```
-
----
-
-## Structure des Dossiers
-
-```
-app/                      # Next.js 15 App Router
-├── (public)/            # Routes publiques (no auth required)
-│   ├── dashboard/       # Page d'accueil
-│   ├── commander/       # Système de commande
-│   └── evenements/      # Événements restaurant
-├── (protected)/         # Routes protégées (auth required)
-│   ├── historique/      # Historique commandes client
-│   ├── profil/          # Gestion profil utilisateur
-│   └── suivi-commande/  # Suivi commande en temps réel
-├── admin/               # Routes admin (role required)
-│   ├── clients/         # Gestion clients
-│   ├── commandes/       # Gestion commandes
-│   ├── plats/           # Gestion menu
-│   └── evenements/      # Gestion événements
-├── layout.tsx           # Root layout avec providers
-└── globals.css          # Tailwind CSS v4 config
-
-components/              # Composants React réutilisables
-├── ui/                  # shadcn/ui components (Radix UI)
-├── forms/               # Form components avec validation
-├── providers.tsx        # Provider hierarchy
-└── OptimizedImage.tsx   # Image avec lazy loading
-
-contexts/                # React Contexts (state global)
-├── AuthContext.tsx      # Hybrid Firebase + Supabase auth
-├── DataContext.tsx      # Global data state
-├── CartContext.tsx      # Shopping cart state
-└── NotificationContext.tsx # Toast notifications
-
-hooks/                   # Custom React hooks
-├── useSupabaseData.ts   # Type-safe CRUD operations (2,917 LOC)
-├── use-mobile.tsx       # Responsive breakpoints
-└── useAuth.ts           # Auth state management
-
-lib/                     # Utilities et configurations
-├── supabase.ts          # Supabase client config
-├── firebaseConfig.ts    # Firebase SDK initialization
-├── validations.ts       # Type validation functions
-└── utils.ts             # Helper functions
-
-types/                   # TypeScript type definitions
-├── supabase.ts          # Auto-generated Supabase types
-├── app.ts               # Application-specific types
-├── authTypes.ts         # Authentication types
-└── cartTypes.ts         # Shopping cart types
-
-services/                # External service integrations
-└── supabaseService.ts   # Business logic layer
-```
-
----
-
-## Patterns d'Architecture
-
-### Server Components First
-
-```typescript
-// ✅ GOOD: Server Component par défaut
-export default async function CommanderPage() {
-  const plats = await fetchPlats() // Server-side fetch
-  return <PlatsList plats={plats} />
+// Better Auth User table
+User {
+  id: string (UUID)              // Généré par Better Auth
+  email: string
+  name: string
 }
 
-// ❌ BAD: Client Component sans raison
+// Prisma client_db table
+client_db {
+  id_client: number (SERIAL)     // Auto-increment PostgreSQL
+  auth_user_id: string (UNIQUE)  // ← Lien vers User.id
+  email: string
+  nom: string
+  prenom: string
+  role: 'client' | 'admin'
+}
+```
+
+**Processus de synchronisation** :
+1. Inscription → Better Auth crée `User` (retourne `user.id`)
+2. Server Action `createClientProfile(user.id, data)`
+3. Prisma crée `client_db` avec `auth_user_id = user.id`
+4. Lien permanent : `client_db.auth_user_id → User.id`
+
+---
+
+## 💾 Architecture Base de Données (Prisma ORM)
+
+### Séparation des Responsabilités
+
+| Fonctionnalité | Technologie | Fichiers Clés | Statut |
+|----------------|-------------|---------------|---------|
+| **Authentication** | Better Auth | `lib/auth.ts`, `lib/auth-client.ts`, `middleware.ts` | ✅ 100% |
+| **User Profiles** | Prisma ORM | `app/actions/clients.ts`, `hooks/usePrismaData.ts` | ✅ 100% |
+| **CRUD Clients** | Prisma ORM | `app/actions/clients.ts` (7 Server Actions) | ✅ 100% |
+| **CRUD Plats** | Prisma ORM | `app/actions/plats.ts` (4 Server Actions) | ✅ 100% |
+| **CRUD Commandes** | Prisma ORM | `app/actions/commandes.ts` (15 Server Actions) | ✅ 100% |
+| **CRUD Extras** | Prisma ORM | `app/actions/extras.ts` (4 Server Actions) | ✅ 100% |
+| **CRUD Événements** | Prisma ORM | `app/actions/evenements.ts` (7 Server Actions) | ✅ 100% |
+| **Realtime Sync** | Supabase Realtime | `hooks/useSupabaseData.ts` (useCommandesRealtime) | ✅ 100% |
+| **Images Upload** | Supabase Storage | `lib/supabase.ts` → storage.upload() | ✅ 100% |
+| **Ruptures Plats** | Supabase Direct | `hooks/useSupabaseData.ts` (4 hooks) | ✅ 100% |
+| **Shopping Lists** | Supabase Direct | `hooks/useSupabaseData.ts` (3 hooks) | ✅ 100% |
+| **Client Cache** | TanStack Query | `hooks/usePrismaData.ts` + `hooks/useSupabaseData.ts` | ✅ 100% |
+
+### Modèles Prisma (26 Tables)
+
+**Tables principales :**
+- `User`, `Session`, `Account`, `Verification` (Better Auth)
+- `client_db` (Profils clients)
+- `plat_db` (Menu items)
+- `commande_db`, `details_commande_db` (Commandes)
+- `extra_db` (Suppléments)
+- `evenement_db`, `details_evenement_db` (Événements)
+- `plat_rupture_db` (Ruptures de stock)
+- `liste_courses_db`, `article_liste_courses_db` (Shopping)
+- + 15 tables additionnelles
+
+### Server Actions Architecture
+
+```
+app/actions/
+├── clients.ts        # 7 Server Actions CRUD clients
+├── plats.ts          # 4 Server Actions CRUD plats
+├── commandes.ts      # 15 Server Actions CRUD commandes
+├── extras.ts         # 4 Server Actions CRUD extras
+└── evenements.ts     # 7 Server Actions CRUD événements
+
+Total: 37 Server Actions
+```
+
+**Exemple Server Action** :
+```typescript
+// app/actions/clients.ts
+'use server'
+import { auth } from '@/lib/auth'
+import { prisma } from '@/lib/prisma'
+
+export async function getClientProfile() {
+  const session = await auth.api.getSession({ headers: await headers() })
+  if (!session?.user) throw new Error('Non authentifié')
+
+  return await prisma.client_db.findUnique({
+    where: { auth_user_id: session.user.id }
+  })
+}
+```
+
+---
+
+## 🔄 Flux de Données
+
+### 1. Création de Compte & Authentification
+
+```
+1. User → app/auth/signup/page.tsx
+   - Formulaire : email, password, nom, prenom, telephone
+
+2. Better Auth Client → signUp.email({ email, password, name })
+   - Better Auth crée User table
+   - Retourne user.id
+
+3. Server Action → createClientProfile(user.id, { nom, prenom, telephone })
+   - Prisma crée client_db avec auth_user_id = user.id
+   - Définit role: 'client' par défaut
+
+4. Better Auth → Crée Session + Cookie
+   - Cookie: better-auth.session_token
+   - Expire: 7 jours
+
+5. Redirect → /commander (client) ou /admin (admin)
+```
+
+### 2. Opérations CRUD (Exemple : Commandes)
+
+```
+1. Client Component → usePrismaCommandes() (TanStack Query)
+   - Hook React avec cache automatique
+
+2. Hook → Appelle Server Action
+   - import { getCommandes } from '@/app/actions/commandes'
+
+3. Server Action → Vérifie session
+   - const session = await auth.api.getSession()
+
+4. Server Action → Prisma Query
+   - await prisma.commande_db.findMany({ where: { ... } })
+
+5. Prisma Client → PostgreSQL
+   - Requête SQL type-safe auto-générée
+
+6. Response → Cache TanStack Query
+   - Stockage client-side avec staleTime/cacheTime
+
+7. UI Update → React re-render
+   - Affichage données mises à jour
+```
+
+### 3. Synchronisation Realtime (Admin ↔ Client)
+
+```
+1. Admin modifie commande
+   - app/admin/commandes → updateCommande(id, data)
+
+2. Server Action → Prisma ORM
+   - prisma.commande_db.update({ where: { id }, data })
+
+3. PostgreSQL → UPDATE commande_db SET statut = 'Prête'
+   - Changement détecté par Supabase Realtime
+
+4. Supabase Realtime Channel → Broadcast
+   - Canal: 'commandes-realtime-channel'
+   - Event: 'postgres_changes'
+
+5. Client Component → useCommandesRealtime()
+   - Écoute canal Supabase
+   - Callback: invalidateQueries('prisma-commandes')
+
+6. TanStack Query → Refetch automatique
+   - Détecte cache invalide
+   - Re-appelle Server Action
+
+7. UI Client → Mise à jour instantanée
+   - Affiche nouveau statut sans refresh
+```
+
+---
+
+## 📂 Structure du Projet
+
+### Organisation des Dossiers
+
+```
+APPChanthana/
+├── app/
+│   ├── actions/               # Server Actions (37 actions)
+│   │   ├── clients.ts
+│   │   ├── plats.ts
+│   │   ├── commandes.ts
+│   │   ├── extras.ts
+│   │   └── evenements.ts
+│   ├── auth/                  # Pages authentification Better Auth
+│   │   ├── login/
+│   │   ├── signup/
+│   │   └── reset-password/
+│   ├── admin/                 # Interface admin (protected)
+│   ├── profil/                # Profil utilisateur (protected)
+│   └── api/auth/[...all]/     # Better Auth API routes
+│
+├── components/
+│   ├── PrivateRoute.tsx       # Protection routes clients
+│   ├── AdminRoute.tsx         # Protection routes admin
+│   └── ui/                    # shadcn/ui components
+│
+├── hooks/
+│   ├── usePrismaData.ts       # 44 hooks TanStack Query (Prisma)
+│   ├── useSupabaseData.ts     # 8 hooks Realtime/Ruptures/Shopping
+│   └── use-mobile.tsx         # Breakpoints responsive
+│
+├── lib/
+│   ├── auth.ts                # Better Auth config serveur
+│   ├── auth-client.ts         # Better Auth config client
+│   ├── prisma.ts              # Prisma Client singleton
+│   └── supabase.ts            # Supabase Client (Realtime/Storage)
+│
+├── prisma/
+│   └── schema.prisma          # Schéma DB (26 modèles)
+│
+├── middleware.ts              # Better Auth session vérification
+└── types/
+    └── app.ts                 # Types TypeScript custom
+```
+
+---
+
+## 🎯 Patterns de Développement
+
+### Next.js 15 Patterns
+
+✅ **Server Components first** (default, meilleure performance)
+✅ **'use client' uniquement si nécessaire** (hooks, interactivité, browser APIs)
+✅ **Server Actions pour mutations** (type-safe, sécurisé)
+✅ **TypeScript strict** avec types auto-générés Prisma
+✅ **Path mapping** : `@/` = racine projet
+
+### Component Export Pattern
+
+```typescript
+// ✅ Good (named export - recommandé)
+export function ComponentName() {}
+
+// ❌ Bad (default export - éviter)
+export default function ComponentName() {}
+```
+
+### Database Operations Pattern
+
+```typescript
+// ✅ Pattern recommandé
 'use client'
-export default function CommanderPage() {
-  const [plats, setPlats] = useState([])
-  useEffect(() => { fetchPlats() }, [])
-  return <PlatsList plats={plats} />
+import { usePrismaCommandes } from '@/hooks/usePrismaData'
+
+export function CommandesPage() {
+  const { data, isLoading, error } = usePrismaCommandes()
+
+  if (isLoading) return <LoadingSpinner />
+  if (error) return <ErrorMessage error={error} />
+
+  return <CommandesList commandes={data} />
 }
 ```
 
-### Client Components (quand nécessaire)
+### Responsive Design Pattern
 
 ```typescript
-'use client' // Directive obligatoire
+import { useBreakpoints } from '@/hooks/use-mobile'
 
-export function InteractiveCart() {
-  // ✅ Hooks OK dans Client Components
-  const { cart, addItem } = useCart()
-  const [open, setOpen] = useState(false)
+export function ResponsiveComponent() {
+  const { isMobile, isTablet, isDesktop } = useBreakpoints()
+  // Mobile <768px | Tablet 768-1024px | Desktop >1024px
 
-  return <CartDialog open={open} />
-}
-```
-
-### Type-Safe Database Operations
-
-```typescript
-// hooks/useSupabaseData.ts
-export function useClients() {
-  return useQuery({
-    queryKey: ['clients'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('client_db')
-        .select('*')
-        .returns<Client[]>() // Type-safe
-
-      if (error) throw new SupabaseError(error)
-      return data
-    }
-  })
+  return (
+    <div className={cn(
+      isMobile && "flex-col gap-2",
+      isTablet && "flex-row gap-4",
+      isDesktop && "grid grid-cols-3 gap-6"
+    )}>
+      {/* Content */}
+    </div>
+  )
 }
 ```
 
 ---
 
-## Patterns de Cache
+## 📊 Métriques du Projet
 
-### TanStack Query Cache Keys
+### Codebase (Après Nettoyage - 2025-10-27)
 
-```typescript
-// Hierarchical structure pour invalidation ciblée
-['clients']                          // All clients
-['clients', 'active']                // Active clients only
-['clients', id]                      // Single client
-['commandes']                        // All orders
-['commandes', 'admin-global']        // Admin view
-['commandes', 'stats']               // Stats view
-['commandes', clientId]              // Client orders
-['plats']                            // All dishes
-['plats', 'with-extras']             // Dishes with extras
-```
+| Métrique | Valeur | Notes |
+|----------|--------|-------|
+| **Erreurs TypeScript** | 0 | ✅ Build production ready |
+| **Code obsolète supprimé** | -3200 lignes | 3 fichiers supprimés + 2 réécrits |
+| **hooks/useSupabaseData.ts** | 361 lignes | Était 2904 (-87%) |
+| **services/supabaseService.ts** | 12 lignes | Était 408 (-97%) |
+| **Server Actions Prisma** | 5 fichiers, 37 actions | 100% CRUD couvert |
+| **Hooks TanStack Query** | 44 hooks Prisma + 8 hooks Supabase | Séparation claire |
+| **Pages migrées** | 17 pages + 10 composants | 100% utilisent Prisma |
 
-### Cache Times (CACHE_TIMES constant)
+### Stack Versions (Production)
 
-```typescript
-export const CACHE_TIMES = {
-  plats: 15 * 60 * 1000,        // 15 minutes
-  clients: 5 * 60 * 1000,       // 5 minutes
-  commandes: 2 * 60 * 1000,     // 2 minutes
-  evenements: 10 * 60 * 1000,   // 10 minutes
-  extras: 15 * 60 * 1000,       // 15 minutes
-}
-```
+| Package | Version | Type |
+|---------|---------|------|
+| next | 15.5.4 | Framework |
+| react | 19.1.1 | UI Library |
+| better-auth | 1.3.28 | Auth |
+| @prisma/client | 6.17.1 | ORM |
+| @supabase/supabase-js | 2.58.0 | DB Client |
+| @tanstack/react-query | 5.90.2 | State |
+| tailwindcss | 4.1.12 | Styling |
+| @playwright/test | 1.55.0 | Testing |
 
 ---
 
-## Real-time Architecture
+## 🔗 Documentation Complémentaire
 
-### Supabase Channels
+### Architecture & Patterns
+- **`database-schema.md`** - Schéma complet PostgreSQL (26 tables)
+- **`state-management.md`** - TanStack Query patterns
+- **`component-patterns.md`** - React component guidelines
 
-```typescript
-// hooks/useCommandesRealtime.ts
-const channel = supabase
-  .channel('commandes-realtime')
-  .on('postgres_changes', {
-    event: '*',
-    schema: 'public',
-    table: 'commande_db'
-  }, (payload) => {
-    queryClient.invalidateQueries(['commandes'])
-  })
-  .subscribe()
-```
+### Development Guides
+- **`development-setup.md`** - Setup environnement local
+- **`coding-standards.md`** - Standards TypeScript/React
+- **`testing-guide.md`** - Tests Playwright E2E
+- **`performance-optimization.md`** - Performance tips
 
-### Pages avec Real-time
+### Database & Prisma
+- **`prismadoc.md`** - Documentation Prisma ORM
+- **`prisma-migration.md`** - Guide migration (historique)
+- **`real-time-subscriptions.md`** - Supabase Realtime setup
 
-- **app/historique/page.tsx**: Client order history
-- **app/suivi-commande/[id]/page.tsx**: Order tracking
-- **app/admin/commandes/page.tsx**: Admin order management
+### Configuration
+- **`email-configuration.md`** - React Email + Resend setup
+- **`miseajour.md`** - Recherches techniques Context7
 
 ---
 
-## Sécurité
+## 🚀 Prochaines Étapes Techniques
 
-### Row Level Security (RLS)
-
-**Status actuel**: 🔴 **DÉSACTIVÉ** (Phase 4: réactivation requise)
-
-```sql
--- Politique client: voir seulement ses propres données
-CREATE POLICY "clients_own_data" ON client_db
-  FOR ALL USING (firebase_uid = auth.uid());
-
--- Politique commandes: clients voient leurs commandes
-CREATE POLICY "commandes_own_orders" ON commande_db
-  FOR ALL USING (
-    EXISTS (
-      SELECT 1 FROM client_db
-      WHERE client_db.id = commande_db.contact_client_r
-      AND client_db.firebase_uid = auth.uid()
-    )
-  );
-
--- Politique admin: accès total
-CREATE POLICY "admin_full_access" ON commande_db
-  FOR ALL USING (
-    EXISTS (
-      SELECT 1 FROM client_db
-      WHERE client_db.firebase_uid = auth.uid()
-      AND client_db.role = 'admin'
-    )
-  );
-```
-
-### Environment Variables
-
-**Fichier**: `.env.local` (JAMAIS committé)
-
-```bash
-# Supabase
-NEXT_PUBLIC_SUPABASE_URL=https://lkaiwnkyoztebplqoifc.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGci... (public key - safe)
-SUPABASE_SERVICE_ROLE_KEY=sbp_...        (⚠️ JAMAIS exposer côté client)
-
-# Firebase
-NEXT_PUBLIC_FIREBASE_API_KEY=...
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=...
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=...
-```
+1. **Next Safe Action** : Migration Server Actions vers validation Zod
+2. **Tests E2E** : Compléter suites Playwright (4 tests critiques)
+3. **Upload Local** : Migrer Supabase Storage → Hetzner local storage
+4. **RLS Policies** : Réactiver Row Level Security Supabase (Phase 4)
+5. **Better Auth 2FA** : Configuration passkeys + 2FA (sécurité renforcée)
 
 ---
 
-## Performance
-
-### Bundle Optimization
-
-- **Server Components**: Réduisent JavaScript côté client de ~40%
-- **Code Splitting**: Dynamic imports pour admin routes
-- **Image Optimization**: Next.js Image + lazy loading
-- **CSS**: Tailwind v4 CSS-first = -30% CSS bundle
-
-### Core Web Vitals Targets
-
-| Metric | Target | Current | Status |
-|--------|--------|---------|--------|
-| **LCP** (Largest Contentful Paint) | <2.5s | ~2.1s | ✅ Good |
-| **FID** (First Input Delay) | <100ms | ~45ms | ✅ Good |
-| **CLS** (Cumulative Layout Shift) | <0.1 | ~0.08 | ✅ Good |
-| **TTFB** (Time to First Byte) | <800ms | ~650ms | ✅ Good |
-
----
-
-## Responsive Design
-
-### Breakpoints
-
-```typescript
-// hooks/use-mobile.tsx
-const BREAKPOINTS = {
-  mobile: 768,    // <768px
-  tablet: 1024,   // 768px-1024px
-  desktop: 1024,  // >1024px
-}
-
-export function useBreakpoints() {
-  return {
-    isMobile: width < 768,
-    isTablet: width >= 768 && width < 1024,
-    isDesktop: width >= 1024
-  }
-}
-```
-
-### Container System
-
-```css
-/* app/globals.css - Progressive containers */
-.container {
-  width: 100%;
-  margin: 0 auto;
-  padding: 1rem;
-}
-
-@media (min-width: 640px) {
-  .container { max-width: 640px; padding: 1.5rem; }
-}
-
-@media (min-width: 768px) {
-  .container { max-width: 768px; }
-}
-
-@media (min-width: 1024px) {
-  .container { max-width: 1024px; padding: 2rem; }
-}
-
-@media (min-width: 1280px) {
-  .container { max-width: 1280px; }
-}
-```
-
----
-
-## Testing Strategy
-
-### Test Pyramid
-
-```
-                    /\
-                   /  \
-                  / E2E \      1 test (3% coverage) ← Phase 4: +14h
-                 /------\
-                /        \
-               / Integration \ (0 tests) ← Future
-              /              \
-             /----------------\
-            /   Unit Tests     \  (0 tests) ← Future
-           /--------------------\
-```
-
-**Phase 4 Priority**: 4 tests E2E critiques (14 heures)
-1. Complete order flow (guest user)
-2. User authentication flow
-3. Admin order management
-4. Cart persistence and calculation
-
----
-
-## Déploiement
-
-### Build Process
-
-```bash
-# 1. Type checking
-npm run type-check  # tsc --noEmit
-
-# 2. Linting
-npm run lint       # next lint
-
-# 3. Build production
-npm run build      # next build
-
-# 4. E2E tests
-npm run test:e2e   # playwright test
-```
-
-### Environment Checklist
-
-- [ ] Variables d'environnement production configurées
-- [ ] RLS policies activées sur Supabase
-- [ ] Real-time subscriptions activées
-- [ ] Service role key JAMAIS exposée côté client
-- [ ] Firebase Auth production configuré
-- [ ] Next.js build optimisé (minification, compression)
-- [ ] Core Web Vitals validés
-- [ ] E2E tests passent sur 3 navigateurs
-
----
-
-## Références
-
-- **Next.js 15 Docs**: https://nextjs.org/docs
-- **Supabase Docs**: https://supabase.com/docs
-- **Firebase Auth Docs**: https://firebase.google.com/docs/auth
-- **TanStack Query Docs**: https://tanstack.com/query/latest
-- **Tailwind CSS v4**: https://tailwindcss.com/docs
-- **Playwright Docs**: https://playwright.dev/docs/intro
-
----
-
-**Prochaine lecture recommandée**: [Hybrid Auth Architecture](./hybrid-auth-architecture.md)
+**Dernière mise à jour** : 2025-10-27
+**Migration Better Auth + Prisma ORM** : ✅ Complète
+**Build Status** : ✅ 0 erreurs TypeScript

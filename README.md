@@ -4,11 +4,21 @@ Une application Next.js 15 moderne pour la gestion d'un restaurant thaïlandais,
 
 ## 🚀 Technologies
 
-- **Frontend**: Next.js 15 + React 18 + TypeScript
-- **UI**: shadcn/ui + Radix UI + Tailwind CSS v4
-- **Backend**: Supabase + Firebase Authentication
-- **État**: React Query + Context API
+- **Frontend**: Next.js 15.5.4 + React 19.1.1 + TypeScript 5
+- **UI**: shadcn/ui + Radix UI + Tailwind CSS 4.1.12
+- **Authentication**: Better Auth 1.3.28 (TypeScript-first auth)
+- **Database**: Supabase PostgreSQL 15 + Prisma ORM 6.17.1
+- **État**: TanStack Query 5.90.2 + Server Actions
+- **Testing**: Playwright 1.55.0 (E2E)
 - **Déploiement**: Vercel (recommandé)
+
+### ⚡ Migration Récente (2025-10-27)
+
+✅ **Firebase Auth → Better Auth** : Migration complète vers Better Auth avec Prisma adapter
+✅ **Supabase SDK → Prisma ORM** : 100% des opérations CRUD via Prisma Server Actions
+✅ **Architecture modernisée** : Sécurité application-level + types auto-générés
+
+📖 **Documentation complète** : Voir [`documentation/architecture-overview.md`](documentation/architecture-overview.md)
 
 ## 📋 Prérequis
 

@@ -13,7 +13,7 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 // Instance unique globale - Solution 2025 pour éviter multiple GoTrueClient
 let globalSupabaseInstance: SupabaseClient<Database> | null = null;
 
-// Factory pour instance unique Supabase compatible Firebase Auth
+// Factory pour instance unique Supabase pour Realtime + Storage
 const createSingletonSupabaseClient = (): SupabaseClient<Database> => {
   if (globalSupabaseInstance) {
     return globalSupabaseInstance;
@@ -23,10 +23,9 @@ const createSingletonSupabaseClient = (): SupabaseClient<Database> => {
 
   globalSupabaseInstance = createClient<Database>(supabaseUrl, supabaseAnonKey, {
     auth: {
-      // ✅ CORRECTION: Réactiver autoRefreshToken pour les mutations
-      // Même si Firebase Auth est primaire, Supabase a besoin de tokens valides
-      autoRefreshToken: true,
-      persistSession: false, // Pas de persistance car Firebase gère la session
+      // Auth désactivé - Better Auth gère l'authentification
+      autoRefreshToken: false,
+      persistSession: false,
       detectSessionInUrl: false,
       flowType: 'pkce',
     },
@@ -36,8 +35,8 @@ const createSingletonSupabaseClient = (): SupabaseClient<Database> => {
     global: {
       headers: {
         'x-application-name': 'chanthanathaicook',
-        'x-client-version': '2025.1.28',
-        'x-architecture': 'firebase-supabase-hybrid'
+        'x-client-version': '2025.10.27',
+        'x-architecture': 'better-auth-prisma-supabase'
       }
     },
     realtime: {
@@ -52,44 +51,10 @@ const createSingletonSupabaseClient = (): SupabaseClient<Database> => {
   return globalSupabaseInstance;
 };
 
-// Export de l'instance unique - Compatible avec l'architecture existante
+// Export de l'instance unique
+// Utilisé uniquement pour Supabase Realtime + Storage
+// Toutes les opérations CRUD utilisent Prisma ORM via Server Actions
 export const supabase = createSingletonSupabaseClient();
-
-// ============================================
-// CONTEXT ENRICHMENT POUR RLS BYPASS
-// ============================================
-
-// Enrichissement contextuel pour Firebase UID sans créer nouvelles instances
-export const enrichSupabaseContext = (firebaseUid: string | null) => {
-  if (!firebaseUid) return supabase;
-
-  // ⚠️ PROBLÈME IDENTIFIÉ : Le spread operator ne préserve pas les méthodes
-  // Pour l'instant, retourner directement l'instance singleton
-  // TODO: Implémenter enrichissement correct si nécessaire pour RLS
-  console.warn('🚧 enrichSupabaseContext temporairement désactivé - retour instance singleton');
-  return supabase;
-};
-
-// Méthode moderne pour opérations RLS-aware
-export const getContextualSupabaseClient = (firebaseUid?: string | null): SupabaseClient<Database> => {
-  return firebaseUid ? enrichSupabaseContext(firebaseUid) : supabase;
-};
-
-// ============================================
-// DEPRECATED - CONSERVATION POUR COMPATIBILITÉ
-// ============================================
-
-// @deprecated - Utiliser getContextualSupabaseClient à la place
-export const getAuthenticatedSupabaseClient = (firebaseUid: string) => {
-  console.warn('⚠️ getAuthenticatedSupabaseClient est deprecated. Utiliser getContextualSupabaseClient()');
-  return getContextualSupabaseClient(firebaseUid);
-};
-
-// @deprecated - Supprimer après migration complète
-export const createAuthenticatedClient = async (firebaseUid: string) => {
-  console.warn('⚠️ createAuthenticatedClient est deprecated. Utiliser getContextualSupabaseClient()');
-  return getContextualSupabaseClient(firebaseUid);
-};
 
 // Types d'erreur personnalisés
 export class SupabaseError extends Error {

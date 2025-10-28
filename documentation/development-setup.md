@@ -173,7 +173,7 @@ node scripts/seed-extras.js
 3. Enable Authentication > Email/Password provider
 4. Copy configuration to `.env.local`
 
-### Test Firebase Auth
+### Test Better Auth
 
 ```bash
 # Test signup flow
@@ -438,7 +438,7 @@ node scripts/get_db_data.js
 # - "RLS policy violation" → RLS disabled, should work
 ```
 
-### Issue: Firebase Auth Not Working
+### Issue: Better Auth Not Working
 
 **Check**:
 1. Firebase config in `.env.local`
@@ -589,7 +589,7 @@ Before deploying to production:
 - [Next.js 15 Docs](https://nextjs.org/docs)
 - [React 19 Docs](https://react.dev)
 - [Supabase Docs](https://supabase.com/docs)
-- [Firebase Auth Docs](https://firebase.google.com/docs/auth)
+- [Better Auth Docs](https://firebase.google.com/docs/auth)
 - [TanStack Query Docs](https://tanstack.com/query/latest)
 - [Tailwind CSS v4 Docs](https://tailwindcss.com/docs)
 - [Playwright Docs](https://playwright.dev/docs/intro)

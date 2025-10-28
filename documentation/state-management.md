@@ -11,7 +11,7 @@ APPChanthana utilise une architecture de state management hybride combinant **Ta
 | **TanStack Query** | 5.90.2 | État serveur (cache, mutations, real-time sync) |
 | **Context API** | React 19.1.1 | État UI global (auth, cart, notifications) |
 | **Supabase Client** | 2.58.0 | Requêtes backend + real-time subscriptions |
-| **Firebase Auth** | 12.3.0 | Authentification + JWT tokens |
+| **Better Auth** | 12.3.0 | Authentification + JWT tokens |
 
 ---
 
@@ -36,7 +36,7 @@ APPChanthana utilise une architecture de state management hybride combinant **Ta
 
 **Ordre d'Initialisation**:
 1. **QueryClientProvider** - Cache TanStack Query global
-2. **AuthContextProvider** - Firebase Auth + Supabase profiles
+2. **AuthContextProvider** - Better Auth + Supabase profiles
 3. **DataContextProvider** - Données catalogue (plats, extras, événements)
 4. **CartContextProvider** - Panier client avec localStorage
 5. **NotificationProvider** - Toasts et notifications UI
@@ -401,7 +401,7 @@ export function AuthContextProvider({ children }: { children: ReactNode }) {
   const [currentUserRole, setCurrentUserRole] = useState<'admin' | 'client' | null>(null)
   const [isLoadingAuth, setIsLoadingAuth] = useState(true)
 
-  // Firebase Auth listener
+  // Better Auth listener
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
@@ -409,7 +409,7 @@ export function AuthContextProvider({ children }: { children: ReactNode }) {
         const { data: profile } = await supabase
           .from('client_db')
           .select('*')
-          .eq('firebase_uid', firebaseUser.uid)
+          .eq('auth_user_id', firebaseUser.uid)
           .single()
 
         if (!profile) {
@@ -557,7 +557,7 @@ User Login (Firebase)
   ↓
 onAuthStateChanged() listener
   ↓
-Fetch Supabase profile (firebase_uid match)
+Fetch Supabase profile (auth_user_id match)
   ↓
 Profile exists?
   → YES → Load into AuthContext

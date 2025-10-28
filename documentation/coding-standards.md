@@ -63,7 +63,7 @@ This document defines the coding standards, conventions, and best practices for 
 // ✅ GOOD - Use interface for objects
 interface UserProfile {
   id: number
-  firebase_uid: string
+  auth_user_id: string
   nom: string
   prenom: string
   email: string
@@ -572,7 +572,7 @@ const result = calculateOrderTotal(
 const userData = await supabase
   .from('client_db')
   .select('*')
-  .eq('firebase_uid', uid)
+  .eq('auth_user_id', uid)
   .single()
 
 // ❌ AVOID - Very long lines
@@ -614,7 +614,7 @@ async function updateUserProfile(uid: string, data: Partial<UserProfile>) {
     const { data: updated, error } = await supabase
       .from('client_db')
       .update(data)
-      .eq('firebase_uid', uid)
+      .eq('auth_user_id', uid)
       .select()
       .single()
 
@@ -712,7 +712,7 @@ async function fetchUserData(uid: string) {
     const { data, error } = await supabase
       .from('client_db')
       .select('*')
-      .eq('firebase_uid', uid)
+      .eq('auth_user_id', uid)
       .single()
 
     if (error) throw error

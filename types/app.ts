@@ -83,7 +83,6 @@ export interface CommandeUI extends Omit<Commande, 'statut_commande' | 'statut_p
   type_livraison?: 'À emporter' | 'Livraison' | 'Sur place' | null // Pour compatibilité directe
   prix_total?: number // Calculé depuis les détails
   Total?: number // Alias pour prix_total
-  FirebaseUID?: string // Alias pour client_r
   createdTime?: string | undefined // Alias pour date_de_prise_de_commande
   created_at?: string | null // ISO string
   updated_at?: string | null // ISO string

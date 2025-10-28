@@ -454,13 +454,13 @@ export const testUsers = {
   admin: {
     email: 'admin@chanthana.com',
     password: 'Admin123!',
-    firebase_uid: 'test-admin-uid-001',
+    auth_user_id: 'test-admin-uid-001',
     role: 'admin' as const,
   },
   client: {
     email: 'client@example.com',
     password: 'Client123!',
-    firebase_uid: 'test-client-uid-001',
+    auth_user_id: 'test-client-uid-001',
     nom: 'Dupont',
     prenom: 'Jean',
     role: 'client' as const,
@@ -513,7 +513,7 @@ export async function seedTestData() {
   // Insert test users
   await supabase.from('client_db').insert([
     {
-      firebase_uid: testUsers.client.firebase_uid,
+      auth_user_id: testUsers.client.auth_user_id,
       email: testUsers.client.email,
       nom: testUsers.client.nom,
       prenom: testUsers.client.prenom,
