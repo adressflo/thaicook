@@ -124,7 +124,7 @@ Notre feuille de route pour faire évoluer l'expérience ChanthanaThaiCook. Ce d
 - [ ] Tests changement langue et SSR multilingue
 
 **8️⃣ react-pdf - Génération Documents PDF**
-- [ ] Installation react-pdf et configuration (NPM, gratuit)
+- [x] Installation react-pdf et configuration (NPM, gratuit)
 - [ ] Création template facture commande (design Thai)
 - [ ] Création template devis événement professionnel
 - [ ] Génération tickets de caisse pour impression
