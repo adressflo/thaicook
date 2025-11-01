@@ -57,7 +57,7 @@ export const DishDetailsModalComplex = React.memo<DishDetailsModalComplexProps>(
                     : (detail.plat?.photo_du_plat || '')
                 }
                 alt={platName}
-                className="w-full h-full object-cover transition-all duration-500 group-hover:scale-110 group-hover:rotate-1 filter group-hover:brightness-110"
+                className="w-full h-full object-contain transition-all duration-500 group-hover:scale-110 group-hover:rotate-1 filter group-hover:brightness-110"
                 title="Cliquer pour fermer"
                 onError={(e) => {
                   // Fallback pour les extras si l'image ne charge pas

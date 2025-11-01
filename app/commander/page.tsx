@@ -23,9 +23,10 @@ import {
   Trash2,
   X,
 } from 'lucide-react';
-import { memo, useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useEffect, useMemo, useRef, useState, Suspense } from 'react';
 import Link from 'next/link';
 import type { Route } from 'next';
+import { useQueryState, parseAsString } from 'nuqs';
 
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
@@ -104,7 +105,7 @@ const Commander = memo(() => {
     }
   }, [currentUser?.id]);
 
-  const clientFirebaseUID = clientProfile?.idclient;
+  const idclient = clientProfile?.idclient;
 
   const {
     panier,
@@ -133,12 +134,12 @@ const Commander = memo(() => {
     }
   };
 
-  const [jourSelectionne, setJourSelectionne] = useState<string>('');
+  const [jourSelectionne, setJourSelectionne] = useQueryState('jour', parseAsString.withDefault(''));
   const [dateRetrait, setDateRetrait] = useState<Date | undefined>();
   const [heureRetrait, setHeureRetrait] = useState<string>('');
   const [demandesSpeciales, setDemandesSpeciales] = useState<string>('');
   const [allowedDates, setAllowedDates] = useState<Date[]>([]);
-  const [recherche, setRecherche] = useState('');
+  const [recherche, setRecherche] = useQueryState('recherche', parseAsString.withDefault(''));
 
   const platsFiltres = useMemo(() => {
     if (!recherche) return [];
@@ -153,8 +154,8 @@ const Commander = memo(() => {
     if (!jourSelectionne || !plats) return [];
     const champDispoKey =
       `${jourSelectionne.toLowerCase()}_dispo` as keyof Plat;
-    return plats.filter(plat => 
-      plat[champDispoKey] === 'oui' && 
+    return plats.filter(plat =>
+      plat[champDispoKey] === 'oui' &&
       plat.idplats !== 0  // Exclure les anciens extras
     );
   }, [jourSelectionne, plats]);
@@ -244,14 +245,14 @@ const Commander = memo(() => {
   // Calculer la quantité actuelle d'un plat dans le panier
   const getCurrentQuantity = (platId: number): number => {
     if (!dateRetrait || !jourSelectionne) return 0;
-    
+
     const dateCompleteRetrait = new Date(dateRetrait);
     const [heures, minutes] = (heureRetrait || '18:00').split(':');
     dateCompleteRetrait.setHours(parseInt(heures), parseInt(minutes), 0, 0);
-    
+
     return panier
-      .filter(item => 
-        item.id === platId.toString() && 
+      .filter(item =>
+        item.id === platId.toString() &&
         item.dateRetrait?.getTime() === dateCompleteRetrait.getTime()
       )
       .reduce((total, item) => total + item.quantite, 0);
@@ -281,7 +282,7 @@ const Commander = memo(() => {
       ajouterAuPanier({
         id: plat.idplats.toString(),
         nom: plat.plat,
-        prix: plat.prix ?? 0,
+        prix: plat.prix || '0',
         quantite: 1,
         jourCommande: jourSelectionne,
         dateRetrait: dateCompleteRetrait,
@@ -302,7 +303,7 @@ const Commander = memo(() => {
 
 
   const validerCommande = async () => {
-    if (!currentUser || !clientFirebaseUID) {
+    if (!currentUser || !idclient) {
       toast({
         title: 'Profil incomplet',
         description: 'Veuillez vous connecter et compléter votre profil.',
@@ -333,7 +334,8 @@ const Commander = memo(() => {
         if (!dateKey) continue;
 
         await createCommande.mutateAsync({
-          client_r: clientFirebaseUID,
+          client_r: currentUser.id,
+          client_r_id: idclient,
           date_et_heure_de_retrait_souhaitees: dateKey,
           demande_special_pour_la_commande: demandesSpeciales,
           details: items.map(item => ({
@@ -346,7 +348,7 @@ const Commander = memo(() => {
       }
 
       const totalGeneral = panier.reduce(
-        (sum, item) => sum + item.prix * item.quantite,
+        (sum, item) => sum + parseFloat(item.prix || '0') * item.quantite,
         0
       );
 
@@ -363,7 +365,7 @@ const Commander = memo(() => {
       setDateRetrait(undefined);
       setHeureRetrait('');
       setDemandesSpeciales('');
-      setJourSelectionne('');
+      setJourSelectionne(null);
       setIsCartCollapsed(true);
     } catch (error: unknown) {
       console.error('Erreur validation commande:', error);
@@ -405,12 +407,15 @@ const Commander = memo(() => {
               panier.length > 0 && !isCartCollapsed ? 'md:col-span-1' : 'w-full'
             }
           >
-            {!currentUser || !clientFirebaseUID ? (
+            {!currentUser || !idclient ? (
               <Alert className="mb-6 border-blue-200 bg-blue-50 text-blue-800">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
                   <strong>Profil requis :</strong> Pour commander, veuillez vous{' '}
-                  <Link href={"/auth/login" as Route} className="underline font-medium">
+                  <Link
+                    href={'/auth/login' as Route}
+                    className="underline font-medium"
+                  >
                     connecter et compléter votre profil
                   </Link>
                   .
@@ -488,7 +493,7 @@ const Commander = memo(() => {
                                   className="cursor-pointer hover:bg-thai-orange/20 transition-all duration-200 hover:scale-105"
                                   onClick={() => {
                                     setJourSelectionne(jour.value);
-                                    setRecherche('');
+                                    setRecherche(null);
                                   }}
                                 >
                                   {jour.label}
@@ -673,16 +678,17 @@ const Commander = memo(() => {
                               </p>
                               <div className="flex items-center justify-between mt-auto pt-2">
                                 <Badge variant="secondary">
-                                  {formatPrix(plat.prix || 0)}
+                                  {formatPrix(parseFloat(plat.prix || '0'))}
                                 </Badge>
                                 <div className="flex items-center gap-2">
                                   {getCurrentQuantity(plat.idplats) > 0 && (
                                     <Badge className="bg-thai-orange text-white font-semibold">
-                                      {getCurrentQuantity(plat.idplats)} dans le panier
+                                      {getCurrentQuantity(plat.idplats)} dans le
+                                      panier
                                     </Badge>
                                   )}
                                   <Button
-                                    onClick={(e) => {
+                                    onClick={e => {
                                       e.stopPropagation();
                                       handleAjouterAuPanier(plat, 1);
                                     }}
@@ -752,15 +758,18 @@ const Commander = memo(() => {
 
                     <CardContent className="p-4">
                       {(() => {
-                        const groupedByDate = panier.reduce((groups, item) => {
-                          const dateKey =
-                            item.dateRetrait?.toDateString() || 'no-date';
-                          if (!groups[dateKey]) {
-                            groups[dateKey] = [];
-                          }
-                          groups[dateKey].push(item);
-                          return groups;
-                        }, {} as Record<string, PlatPanier[]>);
+                        const groupedByDate = panier.reduce(
+                          (groups, item) => {
+                            const dateKey =
+                              item.dateRetrait?.toDateString() || 'no-date';
+                            if (!groups[dateKey]) {
+                              groups[dateKey] = [];
+                            }
+                            groups[dateKey].push(item);
+                            return groups;
+                          },
+                          {} as Record<string, PlatPanier[]>
+                        );
 
                         return Object.entries(groupedByDate).map(
                           ([dateKey, items]) => {
@@ -819,7 +828,9 @@ const Commander = memo(() => {
                                         plat={platData}
                                         formatPrix={formatPrix}
                                         onAddToCart={handleAjouterAuPanier}
-                                        currentQuantity={getCurrentQuantity(platData.idplats)}
+                                        currentQuantity={getCurrentQuantity(
+                                          platData.idplats
+                                        )}
                                         dateRetrait={item.dateRetrait}
                                       >
                                         <div className="flex items-start gap-3 p-3 bg-white rounded-lg border border-gray-200 transition-all duration-300 hover:shadow-xl hover:bg-thai-cream/20 hover:border-thai-orange hover:ring-2 hover:ring-thai-orange/30 hover:scale-[1.02] transform cursor-pointer">
@@ -855,7 +866,9 @@ const Commander = memo(() => {
                                                   Prix unitaire:
                                                 </span>
                                                 <Badge variant="secondary">
-                                                  {formatPrix(item.prix)}
+                                                  {formatPrix(
+                                                    parseFloat(item.prix)
+                                                  )}
                                                 </Badge>
                                               </span>
                                             </div>
@@ -864,7 +877,8 @@ const Commander = memo(() => {
                                           <div className="text-right">
                                             <div className="text-lg font-bold text-thai-orange mb-3">
                                               {formatPrix(
-                                                item.prix * item.quantite
+                                                parseFloat(item.prix) *
+                                                  item.quantite
                                               )}
                                             </div>
                                             <div className="flex items-center gap-2">
@@ -872,7 +886,7 @@ const Commander = memo(() => {
                                                 size="sm"
                                                 variant="outline"
                                                 className="h-6 w-6 p-0 transition-all duration-200 hover:scale-110 hover:shadow-lg hover:border-thai-orange hover:ring-2 hover:ring-thai-orange/30"
-                                                onClick={(e) => {
+                                                onClick={e => {
                                                   e.stopPropagation();
                                                   modifierQuantite(
                                                     item.uniqueId!,
@@ -889,7 +903,7 @@ const Commander = memo(() => {
                                                 size="sm"
                                                 variant="outline"
                                                 className="h-6 w-6 p-0 transition-all duration-200 hover:scale-110 hover:shadow-lg hover:border-thai-orange hover:ring-2 hover:ring-thai-orange/30"
-                                                onClick={(e) => {
+                                                onClick={e => {
                                                   e.stopPropagation();
                                                   modifierQuantite(
                                                     item.uniqueId!,
@@ -902,7 +916,7 @@ const Commander = memo(() => {
                                               <Button
                                                 size="icon"
                                                 variant="ghost"
-                                                onClick={(e) => {
+                                                onClick={e => {
                                                   e.stopPropagation();
                                                   supprimerDuPanier(
                                                     item.uniqueId!
@@ -922,36 +936,43 @@ const Commander = memo(() => {
                                         </div>
                                       </DishDetailsModalInteractive>
                                     ) : (
-                                        <div className="flex items-start gap-3 p-3 bg-white rounded-lg border border-gray-200 opacity-50">
-                                          <div className="w-16 h-12 bg-gray-200 rounded-lg flex items-center justify-center">
-                                            <span className="text-gray-400 text-lg">🍽️</span>
-                                          </div>
-                                          <div className="flex-1">
-                                            <h4 className="font-medium text-gray-500 text-base mb-1">
-                                              {item.nom}
-                                            </h4>
-                                            <p className="text-sm text-gray-400">Plat supprimé</p>
-                                          </div>
-                                          <div className="text-right">
-                                            <div className="text-lg font-bold text-gray-400 mb-3">
-                                              {formatPrix(item.prix * item.quantite)}
-                                            </div>
-                                            <Button
-                                              size="icon"
-                                              variant="ghost"
-                                              onClick={() => {
-                                                supprimerDuPanier(item.uniqueId!);
-                                                toast({
-                                                  title: 'Article supprimé',
-                                                  description: `${item.nom} a été retiré de votre panier.`,
-                                                });
-                                              }}
-                                              className="h-6 w-6 text-gray-400 hover:text-red-500 hover:bg-red-50"
-                                            >
-                                              <Trash2 className="h-3 w-3" />
-                                            </Button>
-                                          </div>
+                                      <div className="flex items-start gap-3 p-3 bg-white rounded-lg border border-gray-200 opacity-50">
+                                        <div className="w-16 h-12 bg-gray-200 rounded-lg flex items-center justify-center">
+                                          <span className="text-gray-400 text-lg">
+                                            🍽️
+                                          </span>
                                         </div>
+                                        <div className="flex-1">
+                                          <h4 className="font-medium text-gray-500 text-base mb-1">
+                                            {item.nom}
+                                          </h4>
+                                          <p className="text-sm text-gray-400">
+                                            Plat supprimé
+                                          </p>
+                                        </div>
+                                        <div className="text-right">
+                                          <div className="text-lg font-bold text-gray-400 mb-3">
+                                            {formatPrix(
+                                              parseFloat(item.prix) *
+                                                item.quantite
+                                            )}
+                                          </div>
+                                          <Button
+                                            size="icon"
+                                            variant="ghost"
+                                            onClick={() => {
+                                              supprimerDuPanier(item.uniqueId!);
+                                              toast({
+                                                title: 'Article supprimé',
+                                                description: `${item.nom} a été retiré de votre panier.`,
+                                              });
+                                            }}
+                                            className="h-6 w-6 text-gray-400 hover:text-red-500 hover:bg-red-50"
+                                          >
+                                            <Trash2 className="h-3 w-3" />
+                                          </Button>
+                                        </div>
+                                      </div>
                                     );
                                   })}
                                 </div>
@@ -1028,9 +1049,7 @@ const Commander = memo(() => {
                       <Button
                         onClick={validerCommande}
                         disabled={
-                          createCommande.isPending ||
-                          !currentUser ||
-                          !clientFirebaseUID
+                          createCommande.isPending || !currentUser || !idclient
                         }
                         className="w-full bg-thai-orange text-lg py-6 transition-all duration-200 hover:scale-105"
                       >
@@ -1105,7 +1124,8 @@ const Commander = memo(() => {
                             ([dateKey, items]) => {
                               const dateRetrait = items[0]?.dateRetrait;
                               const totalGroupe = items.reduce(
-                                (sum, item) => sum + item.prix * item.quantite,
+                                (sum, item) =>
+                                  sum + parseFloat(item.prix) * item.quantite,
                                 0
                               );
 
@@ -1158,7 +1178,9 @@ const Commander = memo(() => {
                                           plat={platData}
                                           formatPrix={formatPrix}
                                           onAddToCart={handleAjouterAuPanier}
-                                          currentQuantity={getCurrentQuantity(platData.idplats)}
+                                          currentQuantity={getCurrentQuantity(
+                                            platData.idplats
+                                          )}
                                           dateRetrait={item.dateRetrait}
                                         >
                                           <div className="flex items-center gap-3 p-3 rounded bg-white/60 cursor-pointer hover:bg-white/80 transition-colors">
@@ -1177,7 +1199,8 @@ const Commander = memo(() => {
                                             )}
 
                                             <div className="flex-1">
-                                              <p className="text-thai-green font-bold cursor-pointer hover:text-thai-orange transition-colors text-base"
+                                              <p
+                                                className="text-thai-green font-bold cursor-pointer hover:text-thai-orange transition-colors text-base"
                                                 onMouseEnter={() =>
                                                   setHighlightedPlatId(item.id)
                                                 }
@@ -1189,7 +1212,8 @@ const Commander = memo(() => {
                                               </p>
                                               <p className="text-thai-orange font-medium text-sm">
                                                 {formatPrix(
-                                                  item.prix * item.quantite
+                                                  parseFloat(item.prix) *
+                                                    item.quantite
                                                 )}
                                               </p>
                                             </div>
@@ -1199,7 +1223,7 @@ const Commander = memo(() => {
                                                 size="sm"
                                                 variant="outline"
                                                 className="h-8 w-8 p-0"
-                                                onClick={(e) => {
+                                                onClick={e => {
                                                   e.stopPropagation();
                                                   modifierQuantite(
                                                     item.uniqueId!,
@@ -1216,7 +1240,7 @@ const Commander = memo(() => {
                                                 size="sm"
                                                 variant="outline"
                                                 className="h-8 w-8 p-0"
-                                                onClick={(e) => {
+                                                onClick={e => {
                                                   e.stopPropagation();
                                                   modifierQuantite(
                                                     item.uniqueId!,
@@ -1229,7 +1253,7 @@ const Commander = memo(() => {
                                               <Button
                                                 size="sm"
                                                 variant="ghost"
-                                                onClick={(e) => {
+                                                onClick={e => {
                                                   e.stopPropagation();
                                                   supprimerDuPanier(
                                                     item.uniqueId!
@@ -1247,31 +1271,35 @@ const Commander = memo(() => {
                                           </div>
                                         </DishDetailsModalInteractive>
                                       ) : (
-                                          <div className="flex items-center gap-3 p-3 rounded bg-white/60 opacity-50">
-                                            <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center">
-                                              <span className="text-gray-400">🍽️</span>
-                                            </div>
-                                            <div className="flex-1">
-                                              <p className="text-gray-500 font-bold text-base">
-                                                {item.nom}
-                                              </p>
-                                              <p className="text-gray-400 text-sm">Plat supprimé</p>
-                                            </div>
-                                            <Button
-                                              size="sm"
-                                              variant="ghost"
-                                              onClick={() => {
-                                                supprimerDuPanier(item.uniqueId!);
-                                                toast({
-                                                  title: 'Article supprimé',
-                                                  description: `${item.nom} retiré du panier.`,
-                                                });
-                                              }}
-                                              className="h-8 w-8 p-0 text-gray-400 hover:text-red-500"
-                                            >
-                                              <Trash2 className="h-4 w-4" />
-                                            </Button>
+                                        <div className="flex items-center gap-3 p-3 rounded bg-white/60 opacity-50">
+                                          <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center">
+                                            <span className="text-gray-400">
+                                              🍽️
+                                            </span>
                                           </div>
+                                          <div className="flex-1">
+                                            <p className="text-gray-500 font-bold text-base">
+                                              {item.nom}
+                                            </p>
+                                            <p className="text-gray-400 text-sm">
+                                              Plat supprimé
+                                            </p>
+                                          </div>
+                                          <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            onClick={() => {
+                                              supprimerDuPanier(item.uniqueId!);
+                                              toast({
+                                                title: 'Article supprimé',
+                                                description: `${item.nom} retiré du panier.`,
+                                              });
+                                            }}
+                                            className="h-8 w-8 p-0 text-gray-400 hover:text-red-500"
+                                          >
+                                            <Trash2 className="h-4 w-4" />
+                                          </Button>
+                                        </div>
                                       );
                                     })}
                                   </div>
@@ -1311,7 +1339,7 @@ const Commander = memo(() => {
                             disabled={
                               createCommande.isPending ||
                               !currentUser ||
-                              !clientFirebaseUID
+                              !idclient
                             }
                             className="w-full bg-thai-orange text-xl py-8"
                           >
@@ -1338,4 +1366,16 @@ const Commander = memo(() => {
 
 Commander.displayName = 'Commander';
 
-export default Commander;
+export default function CommanderPage() {
+  return (
+    <Suspense fallback={
+      <AppLayout>
+        <div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="w-8 h-8 animate-spin text-thai-orange" />
+        </div>
+      </AppLayout>
+    }>
+      <Commander />
+    </Suspense>
+  );
+}

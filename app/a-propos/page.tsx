@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Heart, Utensils, Calendar, Home, Star, Users, Award } from 'lucide-react';
 import { Metadata } from 'next';
+import AProposButtons from '@/components/AProposButtons';
 
 export const metadata: Metadata = {
   title: 'À Propos - ChanthanaThaiCook',
@@ -91,30 +92,7 @@ export default function AProposPage() {
             </p>
 
             {/* Social Media Buttons améliorés */}
-            <div className="flex justify-center space-x-4 mb-12">
-              <Button
-                variant="outline"
-                className="
-                  border-thai-orange text-thai-orange hover:bg-thai-orange hover:text-white
-                  transition-all duration-200 hover:scale-105 hover:shadow-md
-                  px-6 py-2 rounded-full
-                "
-                onClick={() => window.open('https://facebook.com/chanthanathaikok', '_blank')}
-              >
-                Facebook
-              </Button>
-              <Button
-                variant="outline"
-                className="
-                  border-thai-orange text-thai-orange hover:bg-thai-orange hover:text-white
-                  transition-all duration-200 hover:scale-105 hover:shadow-md
-                  px-6 py-2 rounded-full
-                "
-                onClick={() => window.open('https://instagram.com/chanthanathaikok', '_blank')}
-              >
-                Instagram
-              </Button>
-            </div>
+            <AProposButtons />
           </div>
 
           {/* Statistiques impressionnantes */}

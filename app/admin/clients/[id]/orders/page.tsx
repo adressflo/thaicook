@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { toSafeNumber } from '@/lib/serialization';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -60,6 +61,9 @@ import {
   usePrismaRemovePlatFromCommande,
   usePrismaAddPlatToCommande,
   usePrismaPlats,
+  usePrismaExtras,
+  usePrismaAddExtraToCommande,
+  usePrismaCreateExtra, // Added this line
 } from "@/hooks/usePrismaData";
 import { format, isToday, isPast, isFuture } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -69,9 +73,11 @@ import type { CommandeUI, CommandeUpdate } from '@/types/app';
 const QuickActionButtons = ({
   commande,
   onStatusChange,
+  toast,
 }: {
   commande: CommandeUI;
   onStatusChange: (id: number, status: string) => void;
+  toast: any;
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const currentStatus = commande.statut_commande;
@@ -104,9 +110,25 @@ const QuickActionButtons = ({
 
     setIsLoading(true);
     try {
-      // Convertir Terminée → Récupérée pour la base de données
-      const dbStatus = newStatus === 'Terminée' ? 'Récupérée' : newStatus;
-      await onStatusChange(commande.idcommande, dbStatus);
+      // Convertir le statut UI en statut DB
+      const reverseMapping: Record<string, string> = {
+        'En attente de confirmation': 'En_attente_de_confirmation',
+        'Confirmée': 'Confirm_e',
+        'En préparation': 'En_pr_paration',
+        'Prête à récupérer': 'Pr_te___r_cup_rer',
+        'Récupérée': 'R_cup_r_e',
+        'Annulée': 'Annul_e',
+        'Terminée': 'R_cup_r_e', // Cas spécial pour l'UI
+      };
+      const dbStatus = reverseMapping[newStatus];
+
+      console.log('--- DEBUG --- Sending dbStatus to server:', dbStatus);
+      if (dbStatus) {
+        await onStatusChange(commande.idcommande, dbStatus);
+      } else {
+        console.error('Statut UI non mappable:', newStatus);
+        toast({ title: "Erreur", description: "Statut invalide pour la mise à jour.", variant: "destructive" });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -405,7 +427,7 @@ const QuickActionsModal = ({
                 : 'N/A'}
             </p>
             <p>
-              <strong>Client ID:</strong> {commande.client_r}
+              <strong>Client ID:</strong> {commande.client_r_id}
             </p>
             {commande.demande_special_pour_la_commande && (
               <p>
@@ -458,11 +480,13 @@ const PlatCommandeCard = ({
   const [isModifying, setIsModifying] = useState(false);
 
   // Fonction formatPrix identique à celle du panier
-  const formatPrix = (prix: number): string => {
-    if (prix % 1 === 0) {
-      return `${prix.toFixed(0)}€`;
+  const formatPrix = (prix: any): string => {
+    // Conversion safe qui gère Prisma.Decimal, string, number, null, undefined
+    const numericPrix = toSafeNumber(prix, 0);
+    if (numericPrix % 1 === 0) {
+      return `${numericPrix.toFixed(0)}€`;
     } else {
-      return `${prix.toFixed(2).replace('.', ',')}€`;
+      return `${numericPrix.toFixed(2).replace('.', ',')}€`;
     }
   };
 
@@ -507,8 +531,8 @@ const PlatCommandeCard = ({
       {/* Image du plat ou extra */}
       {item.type === 'extra' ? (
         <img
-          src="https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png"
-          alt="Extra"
+          src={item.extra?.photo_url || "https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/extras/extra.png"}
+          alt={item.extra?.nom_extra || "Extra"}
           className="w-24 h-16 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity duration-200"
         />
       ) : item.plat?.photo_du_plat ? (
@@ -529,40 +553,40 @@ const PlatCommandeCard = ({
 
       {/* Informations du plat - exactement comme dans le panier */}
       <div className="flex-1">
-        <h4 className="font-medium text-thai-green text-lg mb-1 cursor-pointer hover:text-thai-orange transition-colors duration-200 hover:underline decoration-thai-orange/50">
-          {item.type === 'extra'
-            ? item.nom_plat
-            : item.plat?.plat}
-          {item.type === 'extra' && (
-            <span className="ml-2 text-xs bg-thai-orange/20 text-thai-orange px-2 py-1 rounded-full">
-              Extra
-            </span>
-          )}
-        </h4>
-        <div className="flex items-center gap-4 text-sm text-gray-600">
-          <span className="flex items-center gap-1">
-            <span className="font-medium">Quantité:</span>
-            <span className="bg-thai-orange/10 text-thai-orange px-2 py-1 rounded-full font-medium">
-              {item.quantite_plat_commande || 0}
-            </span>
-          </span>
-          <span className="flex items-center gap-1">
-            <span className="font-medium">Prix unitaire:</span>
-            <span className="text-thai-green font-semibold">
-              {formatPrix(item.prix_unitaire || item.plat?.prix || 0)}
-            </span>
-          </span>
-        </div>
-      </div>
+                  <h4 className="font-medium text-thai-green text-lg mb-1 cursor-pointer hover:text-thai-orange transition-colors duration-200 hover:underline decoration-thai-orange/50">
+                    {item.type === 'extra'
+                      ? item.extra?.nom_extra || 'Extra'
+                      : item.plat?.plat || 'Plat non trouvé'}
+                    {item.type === 'extra' && (
+                      <span className="ml-2 text-xs bg-thai-orange/20 text-thai-orange px-2 py-1 rounded-full">
+                        Extra
+                      </span>
+                    )}
+                  </h4>
+                  <div className="flex items-center gap-4 text-sm text-gray-600">
+                    <span className="flex items-center gap-1">
+                      <span className="font-medium">Quantité:</span>
+                      <span className="bg-thai-orange/10 text-thai-orange px-2 py-1 rounded-full font-medium">
+                        {item.quantite_plat_commande || 0}
+                      </span>
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <span className="font-medium">Prix unitaire:</span>
+                      <span className="text-thai-green font-semibold">
+                        {formatPrix(toSafeNumber(item.type === 'extra' ? (item.extra?.prix || item.prix_unitaire) : (item.plat?.prix || item.prix_unitaire)))}
+                      </span>
+                    </span>
+                  </div>
+                </div>
 
-      {/* Prix total et contrôles - exactement comme dans le panier */}
-      <div className="text-right">
-        <div className="text-2xl font-bold text-thai-orange mb-4">
-          {formatPrix(
-            (item.prix_unitaire ?? item.plat?.prix ?? 0) *
-              (item.quantite_plat_commande || 0)
-          )}
-        </div>
+                {/* Prix total et contrôles */}
+                <div className="text-right">
+                  <div className="text-lg font-bold text-thai-orange mb-3">
+                    {formatPrix(
+                      toSafeNumber(item.type === 'extra' ? (item.extra?.prix || item.prix_unitaire) : (item.plat?.prix || item.prix_unitaire)) *
+                        (item.quantite_plat_commande || 0)
+                    )}
+                  </div>
         <div className="flex items-center gap-2">
           <Button
             size="sm"
@@ -628,8 +652,9 @@ const AddComplementModal = ({
 }) => {
   const [nomComplement, setNomComplement] = useState('');
   const [prixComplement, setPrixComplement] = useState('');
-  const addPlatMutation = usePrismaAddPlatToCommande();
-  const isLoading = addPlatMutation.isPending;
+  const addExtraMutation = usePrismaAddExtraToCommande();
+  const createExtraMutation = usePrismaCreateExtra();
+  const isLoading = addExtraMutation.isPending || createExtraMutation.isPending;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -649,12 +674,20 @@ const AddComplementModal = ({
     }
 
     try {
-      // Utiliser le hook existant pour ajouter le complément comme un "plat" spécial
-      await addPlatMutation.mutateAsync({
+      // 1. Create the extra first
+      const newExtra = await createExtraMutation.mutateAsync({
+        nom_extra: nomComplement,
+        prix: prixComplement,
+        description: '', // Assuming no description for quick add
+        photo_url: 'https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/extras/extra.png' // Default image
+      });
+
+      // 2. Then add it to the order
+      await addExtraMutation.mutateAsync({
         commandeId: commandeId,
-        platId: 0, // ID temporaire pour Extra (à adapter avec hook dédié)
+        extraId: newExtra.idextra,
         quantite: 1,
-      } as any); // Type casting pour compatibilité temporaire
+      });
 
       toast({
         title: 'Succès',
@@ -762,11 +795,13 @@ const AddPlatModal = ({
   );
 
   // Fonction formatPrix identique à celle du panier
-  const formatPrix = (prix: number): string => {
-    if (prix % 1 === 0) {
-      return `${prix.toFixed(0)}€`;
+  const formatPrix = (prix: any): string => {
+    // Conversion safe qui gère Prisma.Decimal, string, number, null, undefined
+    const numericPrix = toSafeNumber(prix, 0);
+    if (numericPrix % 1 === 0) {
+      return `${numericPrix.toFixed(0)}€`;
     } else {
-      return `${prix.toFixed(2).replace('.', ',')}€`;
+      return `${numericPrix.toFixed(2).replace('.', ',')}€`;
     }
   };
 
@@ -858,7 +893,7 @@ const AddPlatModal = ({
                         <span className="flex items-center gap-1">
                           <span className="font-medium">Prix unitaire:</span>
                           <span className="text-thai-green font-semibold">
-                            {formatPrix(plat.prix || 0)}
+                            {formatPrix(plat.prix)}
                           </span>
                         </span>
                       </div>
@@ -868,7 +903,8 @@ const AddPlatModal = ({
                     <div className="text-right">
                       <div className="text-2xl font-bold text-thai-orange mb-4">
                         {formatPrix(
-                          (plat.prix || 0) * (selectedPlats[plat.idplats] || 0)
+                          toSafeNumber(plat.prix) *
+                            (selectedPlats[plat.idplats] || 0)
                         )}
                       </div>
                       <div className="flex items-center gap-2">
@@ -957,7 +993,7 @@ export default function ClientOrdersPage() {
   const params = useParams();
   const router = useRouter();
   const clientId = params.id as string;
-  
+
   const [searchTerm, setSearchTerm] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [selectedCommande, setSelectedCommande] = useState<CommandeUI | null>(
@@ -1744,12 +1780,10 @@ const CommandeCard = ({
     setNewTime('');
   };
 
-  // Calculer le prix total
   const calculateTotal = () => {
     if (!commande.details || !Array.isArray(commande.details)) return 0;
     return commande.details.reduce((sum, detail) => {
-      // Pour les compléments divers, utiliser prix_unitaire, sinon utiliser le prix du plat
-      const prix = Number(detail.prix_unitaire ?? detail.plat?.prix) ?? 0;
+      const prix = toSafeNumber(detail.type === 'extra' ? (detail.extra?.prix || detail.prix_unitaire) : (detail.plat?.prix || detail.prix_unitaire));
       const quantite = detail.quantite_plat_commande ?? 0;
       return sum + prix * quantite;
     }, 0);
@@ -1828,9 +1862,9 @@ const CommandeCard = ({
                 </span>
               </div>
 
-              
 
-              
+
+
 
               {/* Préférences client et demandes spéciales */}
               <div className="space-y-2">
@@ -1899,7 +1933,7 @@ const CommandeCard = ({
                       )}
                     </div>
                   </div>
-                  
+
                   {/* Commande passée le - Ajouté ici */}
                   {commande.date_de_prise_de_commande && (
                     <div className="text-xs text-white/80 text-center mt-2">
@@ -1984,6 +2018,7 @@ const CommandeCard = ({
               <QuickActionButtons
                 commande={commande}
                 onStatusChange={onStatusChange}
+                toast={toast}
               />
             </div>
           </div>
@@ -2179,7 +2214,7 @@ const ModalPlatCard = ({
       {/* Image du plat ou extra */}
       {(item.nom_plat && item.prix_unitaire && !item.plat) || item.type === 'extra' ? (
         <img
-          src="https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png"
+          src="https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/extras/extra.png"
           alt="Extra"
           className="w-24 h-16 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity duration-200"
         />
@@ -2216,10 +2251,9 @@ const ModalPlatCard = ({
           </span>
           <span className="flex items-center gap-1">
             <span className="font-medium">Prix unitaire:</span>
-            <span className="text-thai-green font-semibold">
-              {formatPrix(item.prix_unitaire || item.plat?.prix || 0)}
-            </span>
-          </span>
+                                  <span className="text-thai-green font-semibold">
+                                    {formatPrix(item.type === 'extra' ? (item.extra?.prix || item.prix_unitaire || 0) : (item.plat?.prix || item.prix_unitaire || 0))}
+                                  </span>          </span>
         </div>
       </div>
 
@@ -2227,7 +2261,7 @@ const ModalPlatCard = ({
       <div className="text-right">
         <div className="text-2xl font-bold text-thai-orange mb-4">
           {formatPrix(
-            (item.prix_unitaire ?? item.plat?.prix ?? 0) *
+            toSafeNumber(item.prix_unitaire ?? item.plat?.prix) *
               (item.quantite_plat_commande || 0)
           )}
         </div>
@@ -2306,17 +2340,20 @@ const CommandeDetailsModal = ({
   const [showAddComplementModal, setShowAddComplementModal] = useState(false);
   const [nomComplement, setNomComplement] = useState('');
   const [prixComplement, setPrixComplement] = useState('');
-  
+
   // États pour la modification d'heure
   const [isEditingTime, setIsEditingTime] = useState(false);
   const [newTime, setNewTime] = useState('');
   const [isLoadingTime, setIsLoadingTime] = useState(false);
-  
+
   // Hooks pour la gestion des plats
   const { data: plats } = usePrismaPlats();
+  const { data: extras } = usePrismaExtras();
   const addPlatMutation = usePrismaAddPlatToCommande();
+  const addExtraMutation = usePrismaAddExtraToCommande();
+  const createExtraMutation = usePrismaCreateExtra();
   const updateCommandeMutation = usePrismaUpdateCommande();
-  
+
   // Fonctions pour la modification d'heure
   const handleTimeEdit = () => {
     if (commande?.date_et_heure_de_retrait_souhaitees) {
@@ -2363,11 +2400,16 @@ const CommandeDetailsModal = ({
       setIsLoadingTime(false);
     }
   };
-  
+
+  const handleTimeCancel = () => {
+    setIsEditingTime(false);
+    setNewTime('');
+  };
+
   // Afficher un loading si les données ne sont pas encore chargées
   if (isLoading) {
     return (
-      <div 
+      <div
         className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
         onClick={(e) => {
           if (e.target === e.currentTarget) {
@@ -2384,11 +2426,11 @@ const CommandeDetailsModal = ({
       </div>
     );
   }
-  
+
   // Afficher une erreur si le chargement a échoué
   if (error || !commande) {
     return (
-      <div 
+      <div
         className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
         onClick={(e) => {
           if (e.target === e.currentTarget) {
@@ -2409,11 +2451,13 @@ const CommandeDetailsModal = ({
   }
 
   // Fonction formatPrix identique à celle de la page principale
-  const formatPrix = (prix: number): string => {
-    if (prix % 1 === 0) {
-      return `${prix.toFixed(0)}€`;
+  const formatPrix = (prix: any): string => {
+    // Conversion safe qui gère Prisma.Decimal, string, number, null, undefined
+    const numericPrix = toSafeNumber(prix, 0);
+    if (numericPrix % 1 === 0) {
+      return `${numericPrix.toFixed(0)}€`;
     } else {
-      return `${prix.toFixed(2).replace('.', ',')}€`;
+      return `${numericPrix.toFixed(2).replace('.', ',')}€`;
     }
   };
 
@@ -2422,7 +2466,7 @@ const CommandeDetailsModal = ({
     if (!commande.details || !Array.isArray(commande.details)) return 0;
     return commande.details.reduce((sum, detail) => {
       // Pour les compléments divers, utiliser prix_unitaire, sinon utiliser le prix du plat
-      const prix = Number(detail.prix_unitaire ?? detail.plat?.prix) ?? 0;
+      const prix = toSafeNumber(detail.prix_unitaire ?? detail.plat?.prix);
       const quantite = detail.quantite_plat_commande ?? 0;
       return sum + prix * quantite;
     }, 0);
@@ -2431,7 +2475,7 @@ const CommandeDetailsModal = ({
   // Gérer le changement de statut avec loading
   const handleStatusChange = async (newStatus: string) => {
     if (newStatus === commande.statut_commande) return;
-    
+
     setIsStatusLoading(true);
     try {
       await onStatusChange(commande.idcommande, newStatus);
@@ -2443,7 +2487,7 @@ const CommandeDetailsModal = ({
 
   const handleAddPlat = async () => {
     if (!selectedPlatToAdd || quantiteToAdd <= 0) return;
-    
+
     setIsAddingPlat(true);
     try {
       await addPlatMutation.mutateAsync({
@@ -2451,12 +2495,12 @@ const CommandeDetailsModal = ({
         platId: selectedPlatToAdd.idplats,
         quantite: quantiteToAdd
       });
-      
+
       toast({
         title: "✅ Plat ajouté",
         description: `${selectedPlatToAdd.plat} (x${quantiteToAdd}) a été ajouté à la commande`,
       });
-      
+
       // Réinitialiser le formulaire
       setSelectedPlatToAdd(null);
       setQuantiteToAdd(1);
@@ -2481,13 +2525,23 @@ const CommandeDetailsModal = ({
       });
       return;
     }
+    if (!commande?.idcommande) return; // Ensure commandeId is available
 
     try {
-      await addPlatMutation.mutateAsync({
+      // 1. Create the extra first
+      const newExtra = await createExtraMutation.mutateAsync({
+        nom_extra: nomComplement,
+        prix: prixComplement,
+        description: '', // Assuming no description for quick add
+        photo_url: 'https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/extras/extra.png' // Default image
+      });
+
+      // 2. Then add it to the order
+      await addExtraMutation.mutateAsync({
         commandeId: commande.idcommande,
-        platId: 0, // ID temporaire pour Extra
+        extraId: newExtra.idextra,
         quantite: 1,
-      } as any); // Type casting pour compatibilité temporaire
+      });
 
       toast({
         title: "✅ Extra ajouté",
@@ -2499,6 +2553,7 @@ const CommandeDetailsModal = ({
       setPrixComplement('');
       setShowAddComplementModal(false);
     } catch (error) {
+      console.error("Erreur lors de l'ajout du complément:", error);
       toast({
         title: "❌ Erreur",
         description: "Impossible d'ajouter l'extra",
@@ -2508,7 +2563,7 @@ const CommandeDetailsModal = ({
   };
 
   return (
-    <div 
+    <div
       className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
       onClick={(e) => {
         // Fermer le modal si on clique sur l'arrière-plan
@@ -2543,8 +2598,8 @@ const CommandeDetailsModal = ({
               <div className="flex gap-4 p-4 bg-gradient-to-r from-thai-orange/10 to-thai-gold/10 rounded-lg">
                 {/* Photo/Avatar */}
                 {commande.client?.photo_client ? (
-                  <img 
-                    src={commande.client.photo_client} 
+                  <img
+                    src={commande.client.photo_client}
                     alt={`${commande.client?.prenom || ''} ${commande.client?.nom || ''}`.trim()}
                     className="w-16 h-16 rounded-full object-cover border-2 border-thai-orange/20 flex-shrink-0"
                   />
@@ -2553,19 +2608,19 @@ const CommandeDetailsModal = ({
                     {commande.client?.prenom ? commande.client.prenom.charAt(0).toUpperCase() : 'C'}
                   </div>
                 )}
-                
+
                 {/* Informations principales */}
                 <div className="flex-1 space-y-2">
                   {/* 1. Nom Prénom */}
                   <div>
                     <h3 className="font-semibold text-lg text-gray-900 mb-1">
-                      {commande.client?.prenom && commande.client?.nom 
+                      {commande.client?.prenom && commande.client?.nom
                         ? `${commande.client.prenom} ${commande.client.nom}`
                         : commande.client?.nom || commande.client?.prenom || 'Client non défini'
                       }
                     </h3>
                   </div>
-                  
+
                   {/* 2. Adresse postale */}
                   {(commande.client?.adresse_numero_et_rue || commande.client?.code_postal || commande.client?.ville) && (
                     <div className="flex items-start gap-2">
@@ -2584,12 +2639,12 @@ const CommandeDetailsModal = ({
                       </div>
                     </div>
                   )}
-                  
+
                   {/* 3. Email */}
                   {commande.client?.email && (
                     <div className="flex items-center gap-2">
                       <MessageSquare className="w-4 h-4 text-thai-green flex-shrink-0" />
-                      <a 
+                      <a
                         href={`mailto:${commande.client.email}`}
                         className="text-thai-green hover:text-thai-green-dark text-sm font-medium hover:underline transition-colors"
                       >
@@ -2597,12 +2652,12 @@ const CommandeDetailsModal = ({
                       </a>
                     </div>
                   )}
-                  
+
                   {/* 4. Numéro de téléphone avec lien d'appel */}
                   {commande.client?.numero_de_telephone && (
                     <div className="flex items-center gap-2">
                       <Phone className="w-4 h-4 text-thai-orange flex-shrink-0" />
-                      <a 
+                      <a
                         href={`tel:${commande.client.numero_de_telephone}`}
                         className="text-thai-orange hover:text-thai-orange-dark text-sm font-medium hover:underline transition-colors flex items-center gap-1"
                       >
@@ -2619,9 +2674,9 @@ const CommandeDetailsModal = ({
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    const clientFirebaseUID = commande.client_r || commande.FirebaseUID || commande.client?.auth_user_id;
-                    if (clientFirebaseUID) {
-                      router.push(`/admin/clients/${clientFirebaseUID}/contact`);
+                    const clientId = commande.client?.idclient;
+                    if (clientId) {
+                      router.push(`/admin/clients/${clientId}/contact`);
                       onClose(); // Fermer le modal
                     } else {
                       toast({
@@ -2636,7 +2691,7 @@ const CommandeDetailsModal = ({
                   Contact
                 </Button>
               </div>
-              
+
               {/* Adresse si disponible */}
               {commande.adresse_specifique && (
                 <div className="flex items-start gap-2 p-3 bg-gray-50 rounded-lg">
@@ -2676,7 +2731,7 @@ const CommandeDetailsModal = ({
                       )}
                     </div>
                   </div>
-                  
+
                   {/* Commande passée le */}
                   {commande?.date_de_prise_de_commande && (
                     <div className="text-xs text-white/80 text-center mt-2">
@@ -2739,7 +2794,7 @@ const CommandeDetailsModal = ({
                   <ShoppingBasket className="w-5 h-5" />
                   Détails de la Commande
                 </CardTitle>
-                
+
                 <div className="flex items-center gap-3">
                   {/* Bouton modifier l'heure - Entre titre et statut */}
                   {commande?.date_et_heure_de_retrait_souhaitees && !isEditingTime && (
@@ -2753,7 +2808,7 @@ const CommandeDetailsModal = ({
                       Modifier l'heure
                     </Button>
                   )}
-                  
+
                   {/* Changement de Statut - Déplacé à droite */}
                 <Select
                   value={commande?.statut_commande === 'Récupérée' ? 'Terminée' : (commande?.statut_commande || 'En attente de confirmation')}
@@ -2942,7 +2997,7 @@ const CommandeDetailsModal = ({
 
       {/* Dialog d'ajout de plat */}
       {showAddPlatDialog && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4"
           onClick={(e) => {
             // Fermer le modal si on clique sur l'arrière-plan
@@ -2993,7 +3048,7 @@ const CommandeDetailsModal = ({
                           <div>
                             <div className="font-medium">{plat.plat}</div>
                             <div className="text-sm text-gray-500">
-                              {formatPrix(plat.prix || 0)}
+                              {formatPrix(toSafeNumber(plat.prix))}
                             </div>
                           </div>
                         </div>
@@ -3069,7 +3124,7 @@ const CommandeDetailsModal = ({
                   <div className="flex justify-between items-center">
                     <span className="font-medium">Total à ajouter:</span>
                     <span className="text-xl font-bold text-thai-green">
-                      {formatPrix(selectedPlatToAdd.prix * quantiteToAdd)}
+                      {formatPrix(toSafeNumber(selectedPlatToAdd.prix) * quantiteToAdd)}
                     </span>
                   </div>
                 </div>
@@ -3104,7 +3159,7 @@ const CommandeDetailsModal = ({
 
       {/* Modal Ajouter un Extra */}
       {showAddComplementModal && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[70] p-4"
           onClick={(e) => {
             // Fermer le modal si on clique sur l'arrière-plan
@@ -3119,8 +3174,8 @@ const CommandeDetailsModal = ({
             <div className="p-6 border-b">
               <div className="flex justify-between items-center">
                 <h3 className="text-xl font-bold text-thai-green">Ajouter un Extra</h3>
-                <Button 
-                  variant="ghost" 
+                <Button
+                  variant="ghost"
                   onClick={() => {
                     setShowAddComplementModal(false);
                     setNomComplement('');
@@ -3167,7 +3222,7 @@ const CommandeDetailsModal = ({
                   <div className="flex justify-between items-center">
                     <span className="font-medium">{nomComplement}</span>
                     <span className="text-lg font-bold text-thai-orange">
-                      {formatPrix(parseFloat(prixComplement) || 0)}
+                      {formatPrix(toSafeNumber(prixComplement))}
                     </span>
                   </div>
                 </div>
@@ -3175,8 +3230,8 @@ const CommandeDetailsModal = ({
             </div>
 
             <div className="p-6 border-t bg-gray-50 flex justify-end gap-2">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => {
                   setShowAddComplementModal(false);
                   setNomComplement('');

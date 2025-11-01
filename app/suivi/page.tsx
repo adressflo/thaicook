@@ -27,6 +27,7 @@ import { Loader2, Clock, Calendar, Utensils, Euro, BarChart3, Zap, PartyPopper, 
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import type { CommandeUI, DetailCommande, Plat } from '@/types/app';
 import { AppLayout } from '@/components/AppLayout';
+import { toSafeNumber } from '@/lib/serialization';
 
 // Composants optimisés
 import { StatusBadge } from '@/components/historique/StatusBadge';
@@ -74,10 +75,10 @@ const SuiviPage = memo(() => {
   }, []);
 
   const calculateTotal = useCallback((commande: CommandeAvecDetails): number => {
-    if (commande.prix_total != null) return commande.prix_total;
+    if (commande.prix_total != null) return toSafeNumber(commande.prix_total);
 
     return commande.details?.reduce((acc, detail) =>
-      acc + (Number(detail.plat?.prix) || 0) * (detail.quantite_plat_commande || 0), 0
+      acc + toSafeNumber(detail.plat?.prix) * (detail.quantite_plat_commande || 0), 0
     ) || 0;
   }, []);
 

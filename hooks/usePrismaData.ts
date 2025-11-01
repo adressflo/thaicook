@@ -45,10 +45,13 @@ import {
   getCommandesByClient,
   createCommande,
   updateCommande,
+  toggleEpingleCommande,
+  toggleOffertDetail,
   deleteCommande,
   addPlatToCommande,
   updatePlatQuantite,
   removePlatFromCommande,
+  addExtraToCommande,
 } from '@/app/actions/commandes'
 
 import {
@@ -106,7 +109,7 @@ export const usePrismaCreatePlat = () => {
     mutationFn: async (data: {
       nom_plat: string
       description?: string
-      prix: number
+      prix: string // <-- Changé en string
       photo_url?: string
       categorie?: string
       actif?: boolean
@@ -144,7 +147,20 @@ export const usePrismaUpdatePlat = () => {
   const { toast } = useToast()
 
   return useMutation({
-    mutationFn: async ({ id, data }: { id: number; data: any }) => {
+    mutationFn: async ({ id, data }: { id: number; data: Partial<{
+      plat?: string
+      description?: string
+      prix?: string // Changed to string
+      photo_du_plat?: string
+      est_epuise?: boolean
+      lundi_dispo?: any
+      mardi_dispo?: any
+      mercredi_dispo?: any
+      jeudi_dispo?: any
+      vendredi_dispo?: any
+      samedi_dispo?: any
+      dimanche_dispo?: any
+    }> }) => {
       return await updatePlat(id, data)
     },
     onSuccess: () => {
@@ -430,6 +446,72 @@ export const usePrismaUpdateCommande = () => {
 }
 
 /**
+ * Toggle le statut épinglé d'une commande
+ */
+export const usePrismaToggleEpingleCommande = () => {
+  const queryClient = useQueryClient()
+  const { toast } = useToast()
+
+  return useMutation({
+    mutationFn: async (id: number) => {
+      return await toggleEpingleCommande(id)
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['prisma-commandes'] })
+      queryClient.invalidateQueries({ queryKey: ['prisma-commande', data.idcommande] })
+      queryClient.invalidateQueries({ queryKey: ['prisma-commandes-client'] })
+      toast({
+        title: data.epingle ? 'Commande épinglée' : 'Commande désépinglée',
+        description: data.epingle
+          ? 'La commande restera en haut de la liste'
+          : 'La commande reprend sa position normale',
+      })
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Erreur',
+        description: error.message,
+        variant: 'destructive',
+      })
+    },
+  })
+}
+
+/**
+ * Toggle le statut offert d'un détail de commande
+ */
+export const usePrismaToggleOffertDetail = () => {
+  const queryClient = useQueryClient()
+  const { toast } = useToast()
+
+  return useMutation({
+    mutationFn: async ({ detailId, prixOriginal }: { detailId: number; prixOriginal?: string }) => {
+      return await toggleOffertDetail(detailId, prixOriginal)
+    },
+    onSuccess: (data) => {
+      // Invalider toutes les queries liées aux commandes
+      queryClient.invalidateQueries({ queryKey: ['prisma-commandes'] })
+      queryClient.invalidateQueries({ queryKey: ['prisma-commande'] })
+      queryClient.invalidateQueries({ queryKey: ['prisma-commandes-client'] })
+
+      toast({
+        title: data.est_offert ? 'Plat offert' : 'Offre annulée',
+        description: data.est_offert
+          ? 'Le plat a été marqué comme offert'
+          : 'Le prix original a été restauré',
+      })
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Erreur',
+        description: error.message,
+        variant: 'destructive',
+      })
+    },
+  })
+}
+
+/**
  * Supprime une commande
  */
 export const usePrismaDeleteCommande = () => {
@@ -482,6 +564,42 @@ export const usePrismaAddPlatToCommande = () => {
       toast({
         title: 'Plat ajouté',
         description: 'Le plat a été ajouté à la commande',
+      })
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Erreur',
+        description: error.message,
+        variant: 'destructive',
+      })
+    },
+  })
+}
+
+/**
+ * Ajoute un extra à une commande
+ */
+export const usePrismaAddExtraToCommande = () => {
+  const queryClient = useQueryClient()
+  const { toast } = useToast()
+
+  return useMutation({
+    mutationFn: async ({
+      commandeId,
+      extraId,
+      quantite,
+    }: {
+      commandeId: number
+      extraId: number
+      quantite?: number
+    }) => {
+      return await addExtraToCommande(commandeId, extraId, quantite)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['prisma-commande'] })
+      toast({
+        title: 'Extra ajouté',
+        description: 'L\'extra a été ajouté à la commande',
       })
     },
     onError: (error: Error) => {
@@ -585,8 +703,9 @@ export const usePrismaCreateExtra = () => {
     mutationFn: async (data: {
       nom_extra: string
       description?: string
-      prix: number
+      prix: string // <-- Changé en string
       photo_url?: string
+      actif?: boolean
     }) => {
       return await createExtra(data)
     },
@@ -615,7 +734,13 @@ export const usePrismaUpdateExtra = () => {
   const { toast } = useToast()
 
   return useMutation({
-    mutationFn: async ({ id, data }: { id: number; data: any }) => {
+    mutationFn: async ({ id, data }: { id: number; data: Partial<{
+      nom_extra?: string
+      description?: string
+      prix?: string // Changed to string
+      photo_url?: string
+      actif?: boolean
+    }> }) => {
       return await updateExtra(id, data)
     },
     onSuccess: () => {
@@ -736,7 +861,16 @@ export const usePrismaUpdateEvenement = () => {
   const { toast } = useToast()
 
   return useMutation({
-    mutationFn: async ({ id, data }: { id: number; data: any }) => {
+    mutationFn: async ({ id, data }: { id: number; data: Partial<{
+      date_evenement?: string
+      type_d_evenement?: string
+      nombre_de_personnes?: number
+      budget_client?: string // Changed to string
+      demandes_speciales_evenement?: string
+      statut_evenement?: string
+      plats_preselectionnes?: number[]
+      notes_internes_evenement?: string
+    }> }) => {
       return await updateEvenement(id, data)
     },
     onSuccess: () => {

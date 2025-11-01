@@ -7,6 +7,7 @@ import { Toaster as Sonner } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { FloatingUserIcon } from '../components/FloatingUserIcon';
 import ErrorBoundary from '../components/ErrorBoundary';
+import { NuqsAdapter } from 'nuqs/adapters/next/app'; // <-- AJOUT DE CETTE LIGNE
 
 
 const geistSans = Geist({
@@ -28,7 +29,7 @@ export const metadata: Metadata = {
   authors: [{ name: 'APPCHANTHANA' }],
   robots: 'index, follow',
   openGraph: {
-    title: 'APPCHANTHANA - Restaurant Thaï Authentique',
+    title: 'ChanthanaThaiCook - Restaurant Thaï Authentique', // <-- This line
     description:
       'Une expérience culinaire exceptionnelle qui vous transporte directement en Thaïlande',
     type: 'website',
@@ -56,7 +57,7 @@ export default function RootLayout({
             <TooltipProvider>
               <Toaster />
               <Sonner />
-              {children}
+              <NuqsAdapter>{children}</NuqsAdapter> {/* <-- MODIFICATION ICI */}
               <FloatingUserIcon />
             </TooltipProvider>
           </Providers>

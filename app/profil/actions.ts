@@ -24,7 +24,13 @@ export async function getClientProfile() {
       },
     });
 
-    return profile;
+    if (profile) {
+      return {
+        ...profile,
+        idclient: Number(profile.idclient), // Convertir BigInt en Number
+      };
+    }
+    return null;
   } catch (error) {
     console.error('Erreur lors de la récupération du profil:', error);
     return null;

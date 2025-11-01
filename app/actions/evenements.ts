@@ -12,7 +12,9 @@
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 import type { EvenementUI, CreateEvenementData } from '@/types/app'
+
 import type { evenements_db, client_db } from '@/generated/prisma/client'
+import { Decimal } from '@prisma/client/runtime/library'
 
 /**
  * Type pour événement avec relations incluses
@@ -31,16 +33,10 @@ function convertEvenementToUI(evenement: EvenementWithRelations): EvenementUI {
     contact_client_r_id: evenement.contact_client_r_id
       ? Number(evenement.contact_client_r_id)
       : null,
-    budget_client: evenement.budget_client
-      ? Number(evenement.budget_client)
-      : null,
-    prix_total_devise: evenement.prix_total_devise
-      ? Number(evenement.prix_total_devise)
-      : null,
-    acompte_demande: evenement.acompte_demande
-      ? Number(evenement.acompte_demande)
-      : null,
-    acompte_recu: evenement.acompte_recu ? Number(evenement.acompte_recu) : null,
+    budget_client: evenement.budget_client?.toString() || null,
+    prix_total_devise: evenement.prix_total_devise?.toString() || null,
+    acompte_demande: evenement.acompte_demande?.toString() || null,
+    acompte_recu: evenement.acompte_recu?.toString() || null,
     date_evenement: evenement.date_evenement?.toISOString() || null,
     date_acompte_recu: evenement.date_acompte_recu?.toISOString() || null,
     created_at: evenement.created_at?.toISOString() || null,
@@ -50,9 +46,7 @@ function convertEvenementToUI(evenement: EvenementWithRelations): EvenementUI {
       ? Number(evenement.contact_client_r_id)
       : null,
     type_evenement: evenement.type_d_evenement || null,
-    budget_estime: evenement.budget_client
-      ? Number(evenement.budget_client)
-      : null,
+    budget_estime: evenement.budget_client?.toString() || null,
     demandes_speciales: evenement.demandes_speciales_evenement || null,
     statut: evenement.statut_evenement || null,
     notes_internes: evenement.notes_internes_evenement || null,
@@ -123,7 +117,7 @@ export async function createEvenement(
         date_evenement: new Date(data.date_evenement),
         type_d_evenement: data.type_d_evenement as any,
         nombre_de_personnes: data.nombre_de_personnes,
-        budget_client: data.budget_client || null,
+        budget_client: data.budget_client || null, // Passer la string directement
         demandes_speciales_evenement: data.demandes_speciales_evenement || null,
         plats_preselectionnes: data.plats_preselectionnes || [],
         statut_evenement: 'Demande_initiale',
@@ -153,7 +147,7 @@ export async function updateEvenement(
     date_evenement: string
     type_d_evenement: string
     nombre_de_personnes: number
-    budget_client: number
+    budget_client: string // CHANGÉ : number -> string
     demandes_speciales_evenement: string
     statut_evenement: string
     plats_preselectionnes: number[]
@@ -169,7 +163,7 @@ export async function updateEvenement(
     if (data.nombre_de_personnes !== undefined)
       updateData.nombre_de_personnes = data.nombre_de_personnes
     if (data.budget_client !== undefined)
-      updateData.budget_client = data.budget_client
+      updateData.budget_client = data.budget_client ? new Decimal(data.budget_client) : null // CHANGÉ : conversion en Decimal
     if (data.demandes_speciales_evenement !== undefined)
       updateData.demandes_speciales_evenement = data.demandes_speciales_evenement
     if (data.statut_evenement) updateData.statut_evenement = data.statut_evenement

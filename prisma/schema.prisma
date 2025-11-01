@@ -135,6 +135,7 @@ model commande_db {
   adresse_specifique                  String?
   client_r_id                         BigInt?
   nom_evenement                       String?
+  epingle                             Boolean?                @default(false)
   activites_flux                      activites_flux[]
   client_db                           client_db?              @relation(fields: [client_r_id], references: [idclient], onDelete: NoAction, onUpdate: NoAction)
   details_commande_db                 details_commande_db[]
@@ -156,15 +157,16 @@ model commande_db {
 model details_commande_db {
   iddetails              Int         @id(map: "détails_commande_db_pkey") @default(autoincrement())
   commande_r             Int
-  plat_r                 Int
+  plat_r                 Int?
   quantite_plat_commande Int?        @default(1)
   nom_plat               String?
   prix_unitaire          Decimal?    @db.Decimal(10, 2)
   type                   String?
   extra_id               Int?
+  est_offert             Boolean?    @default(false)
   extras_db              extras_db?  @relation(fields: [extra_id], references: [idextra], onUpdate: NoAction)
   commande_db            commande_db @relation(fields: [commande_r], references: [idcommande], onDelete: Cascade, onUpdate: NoAction, map: "détails_commande_db_commande_r_fkey")
-  plats_db               plats_db    @relation(fields: [plat_r], references: [idplats], onDelete: Cascade, onUpdate: NoAction, map: "détails_commande_db_plat_r_fkey")
+  plats_db               plats_db?    @relation(fields: [plat_r], references: [idplats], onDelete: Cascade, onUpdate: NoAction, map: "détails_commande_db_plat_r_fkey")
 
   @@index([commande_r], map: "idx_details_commande")
   @@index([commande_r], map: "idx_details_commande_commande_r")
@@ -622,7 +624,7 @@ enum statut_paiement_final {
 
 enum type_evenement {
   Anniversaire
-  Repas_d_entreprise @map("Repas d'entreprise")
+  Repas_d_entreprise @map("Repas d entreprise")
   F_te_de_famille    @map("Fête de famille")
   Cocktail_d_natoire @map("Cocktail dînatoire")
   Buffet_traiteur    @map("Buffet traiteur")
@@ -651,6 +653,6 @@ enum source_connaissance {
   R_seaux_sociaux         @map("Réseaux sociaux")
   Recherche_Google        @map("Recherche Google")
   En_passant_devant       @map("En passant devant")
-  Recommandation_d_un_ami @map("Recommandation d'un ami")
+  Recommandation_d_un_ami @map("Recommandation d un ami")
   Autre
 }

@@ -195,9 +195,7 @@ const Evenements = memo(() => {
       date_evenement: dateEvenementISO,
       type_d_evenement: formData.typeEvenement,
       nombre_de_personnes: parseInt(formData.nombrePersonnes),
-      budget_client: formData.budgetClient
-        ? parseFloat(formData.budgetClient)
-        : undefined,
+      budget_client: formData.budgetClient || undefined,
       demandes_speciales_evenement: formData.demandesSpeciales,
       plats_preselectionnes: platsPreSelectionnes.map(id => parseInt(id)),
     };

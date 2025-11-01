@@ -115,7 +115,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
 
   // Calculs mémorisés pour la performance
   const totalArticles = panier.reduce((total, plat) => total + plat.quantite, 0);
-  const totalPrix = panier.reduce((total, plat) => total + (plat.prix * plat.quantite), 0);
+  const totalPrix = panier.reduce((total, plat) => total + (parseFloat(plat.prix) * plat.quantite), 0);
 
   // Valeur fournie par le contexte
   const value = {

@@ -11,6 +11,7 @@ import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 import type { ExtraUI } from '@/types/app'
 
+
 /**
  * Récupère tous les extras actifs
  */
@@ -26,7 +27,7 @@ export async function getExtras(): Promise<ExtraUI[]> {
       idextra: extra.idextra,
       nom_extra: extra.nom_extra,
       description: extra.description || null,
-      prix: Number(extra.prix),
+      prix: extra.prix?.toString() || '0', // Convertir Decimal en string
       photo_url: extra.photo_url || null,
       actif: extra.actif || null,
       est_disponible: extra.actif ?? true,
@@ -45,7 +46,7 @@ export async function getExtras(): Promise<ExtraUI[]> {
 export async function createExtra(data: {
   nom_extra: string
   description?: string
-  prix: number
+  prix: string
   photo_url?: string
   actif?: boolean
 }): Promise<ExtraUI> {
@@ -67,13 +68,13 @@ export async function createExtra(data: {
       idextra: extra.idextra,
       nom_extra: extra.nom_extra,
       description: extra.description,
-      prix: Number(extra.prix),
+      prix: extra.prix?.toString() || '0',
       photo_url: extra.photo_url,
       actif: extra.actif,
       est_disponible: extra.actif ?? true,
       created_at: extra.created_at?.toISOString() || null,
       updated_at: extra.updated_at?.toISOString() || null,
-    }
+    };
   } catch (error) {
     console.error('❌ Error in createExtra:', error)
     throw new Error('Impossible de créer l\'extra')
@@ -88,7 +89,7 @@ export async function updateExtra(
   data: Partial<{
     nom_extra: string
     description: string
-    prix: number
+    prix: string
     photo_url: string
     actif: boolean
   }>
@@ -96,7 +97,10 @@ export async function updateExtra(
   try {
     const extra = await prisma.extras_db.update({
       where: { idextra: id },
-      data,
+      data: {
+        ...data,
+        prix: data.prix ? data.prix : undefined, // Convert string to Decimal
+      },
     })
 
     revalidatePath('/admin/commandes')
@@ -106,13 +110,13 @@ export async function updateExtra(
       idextra: extra.idextra,
       nom_extra: extra.nom_extra,
       description: extra.description,
-      prix: Number(extra.prix),
+      prix: extra.prix?.toString() || '0',
       photo_url: extra.photo_url,
       actif: extra.actif,
       est_disponible: extra.actif ?? true,
       created_at: extra.created_at?.toISOString() || null,
       updated_at: extra.updated_at?.toISOString() || null,
-    }
+    };
   } catch (error) {
     console.error('❌ Error in updateExtra:', error)
     throw new Error('Impossible de mettre à jour l\'extra')

@@ -47,12 +47,37 @@ export const defaultAnnouncement: Announcement = {
 // Récupérer l'annonce active
 export const getActiveAnnouncement = async (): Promise<Announcement | null> => {
   try {
+    // Essayer d'abord avec la fonction RPC
     const { data, error } = await (supabase as any)
       .rpc('get_active_announcement');
 
     if (error) {
-      console.error('Erreur lors de la récupération de l\'annonce:', error);
-      return null;
+      // Logger l'erreur complète pour debug
+      console.log('Structure erreur Supabase RPC:', JSON.stringify(error, null, 2));
+
+      // Fallback: utiliser une requête normale (la RPC n'existe probablement pas)
+      const { data: fallbackData, error: fallbackError } = await (supabase as any)
+        .from('announcements')
+        .select('*')
+        .eq('is_active', true)
+        .order('priority', { ascending: false })
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (fallbackError) {
+        // Logger l'erreur complète pour debug
+        console.log('Structure erreur Supabase fallback:', JSON.stringify(fallbackError, null, 2));
+
+        // PGRST116 = aucune donnée trouvée (c'est normal, pas d'annonce active)
+        // PGRST204 = relation/table n'existe pas
+        if (fallbackError.code === 'PGRST116' || fallbackError.code === 'PGRST204') {
+          return null;
+        }
+        return null;
+      }
+
+      return fallbackData as Announcement;
     }
 
     if (!data || data.length === 0) {
@@ -61,7 +86,7 @@ export const getActiveAnnouncement = async (): Promise<Announcement | null> => {
 
     return data[0] as Announcement;
   } catch (error) {
-    console.error('Erreur lors de la récupération de l\'annonce:', error);
+    console.error('Erreur lors de la récupération de l\'annonce:', error instanceof Error ? error.message : String(error));
     return null;
   }
 };
@@ -132,13 +157,50 @@ export const activateSingleAnnouncement = async (id: number): Promise<boolean> =
       .rpc('activate_single_announcement', { announcement_id: id });
 
     if (error) {
-      console.error('Erreur lors de l\'activation de l\'annonce:', error);
-      return false;
+      // Ignorer silencieusement si la fonction RPC n'existe pas (c'est normal)
+      if (error.code !== '42883') {
+        console.error('Erreur RPC activate_single_announcement:', {
+          message: error.message,
+          code: error.code
+        });
+      }
+
+      // Fallback: faire les opérations manuellement
+
+      // 1. Désactiver toutes les annonces
+      const { error: deactivateError } = await (supabase as any)
+        .from('announcements')
+        .update({ is_active: false })
+        .neq('id', 0); // Update all
+
+      if (deactivateError) {
+        console.error('Erreur désactivation:', {
+          message: deactivateError.message,
+          code: deactivateError.code
+        });
+        return false;
+      }
+
+      // 2. Activer l'annonce spécifique
+      const { error: activateError } = await (supabase as any)
+        .from('announcements')
+        .update({ is_active: true })
+        .eq('id', id);
+
+      if (activateError) {
+        console.error('Erreur activation:', {
+          message: activateError.message,
+          code: activateError.code
+        });
+        return false;
+      }
+
+      return true;
     }
 
     return true;
   } catch (error) {
-    console.error('Erreur lors de l\'activation de l\'annonce:', error);
+    console.error('Erreur lors de l\'activation de l\'annonce:', error instanceof Error ? error.message : String(error));
     return false;
   }
 };

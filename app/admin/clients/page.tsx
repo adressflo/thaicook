@@ -541,7 +541,7 @@ const FicheClient = ({ client, commandes, onBack, router }: { client: ClientUI, 
                         </div>
                         <div className="text-right">
                           <div className="font-bold text-thai-orange">
-                            {(commande.prix_total || 0).toFixed(2)}€
+                            {commande.prix_total}€
                           </div>
                         </div>
                       </div>

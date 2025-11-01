@@ -20,11 +20,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from "@/hooks/use-toast";
-import { 
-  Plus, 
-  Edit2, 
-  Save, 
-  X, 
+import {
+  Plus,
+  Edit2,
+  Save,
+  X,
   Package,
   Euro,
   Image,
@@ -42,9 +42,9 @@ import { DateRuptureManager } from '@/components/admin/DateRuptureManager';
 
 // Fonction pour formater le prix à la française
 const formatPrice = (price: number): string => {
-  return price.toLocaleString('fr-FR', { 
-    minimumFractionDigits: 2, 
-    maximumFractionDigits: 2 
+  return price.toLocaleString('fr-FR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
   }) + '€';
 };
 
@@ -88,7 +88,7 @@ const NewExtraButton = () => {
       await createExtraMutation.mutateAsync({
         nom_extra: newExtraForm.nom_extra,
         description: newExtraForm.description,
-        prix: parseFloat(newExtraForm.prix),
+        prix: newExtraForm.prix,
         photo_url: newExtraForm.photo_url
       });
 
@@ -122,7 +122,7 @@ const NewExtraButton = () => {
 
   return (
     <>
-      <Button 
+      <Button
         onClick={() => setIsModalOpen(true)}
         className="bg-thai-green hover:bg-thai-green/90 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
       >
@@ -139,7 +139,7 @@ const NewExtraButton = () => {
             </DialogTitle>
           </DialogHeader>
           <div id="dialog-description" className="sr-only">Formulaire de création d'un nouvel extra pour le menu</div>
-          
+
           <div className="space-y-6 mt-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
@@ -154,7 +154,7 @@ const NewExtraButton = () => {
                   placeholder="Ex: Coca Cola, Thé Thaï..."
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label className="text-thai-green font-semibold flex items-center gap-2">
                   <Euro className="w-4 h-4 text-thai-orange" />
@@ -173,7 +173,7 @@ const NewExtraButton = () => {
 
             <div className="space-y-2">
               <Label className="text-thai-green font-semibold">Photo</Label>
-              
+
               {/* Aperçu de l&apos;image */}
               <div className="mb-3">
                 <img
@@ -314,13 +314,13 @@ const ExistingExtrasDisplay = ({ refetchPlats }: { refetchPlats?: () => void }) 
 
   const handleSaveEdit = async () => {
     if (!editingExtra) return;
-    
+
     try {
       await updateExtraMutation.mutateAsync({
         id: editingExtra,
         data: {
           nom_extra: editForm.nom_extra,
-          prix: parseFloat(editForm.prix),
+          prix: editForm.prix,
           description: editForm.description,
           photo_url: editForm.photo_url
         }
@@ -356,7 +356,7 @@ const ExistingExtrasDisplay = ({ refetchPlats }: { refetchPlats?: () => void }) 
       const platData = {
         nom_plat: extra.nom_extra,
         description: extra.description || `Plat créé depuis l'extra ${extra.nom_extra}`,
-        prix: extra.prix || 0,
+        prix: extra.prix,
         photo_url: extra.photo_url || 'https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png',
         actif: true
       };
@@ -435,10 +435,10 @@ const ExistingExtrasDisplay = ({ refetchPlats }: { refetchPlats?: () => void }) 
       <div className="grid gap-6">
         {extras.map((extra) => {
         const isEditing = editingExtra === extra.idextra;
-        
+
         return (
-          <Card 
-            key={extra.idextra} 
+          <Card
+            key={extra.idextra}
             className="group border-l-4 border-thai-orange hover:border-thai-green transition-all duration-500 hover:shadow-2xl hover:shadow-thai-orange/10 bg-gradient-to-r from-white via-thai-cream/10 to-thai-orange/5 hover:from-thai-cream/20 hover:to-thai-orange/10 transform hover:scale-[1.02] hover:-translate-y-1"
           >
             <CardContent className="p-6">
@@ -460,7 +460,7 @@ const ExistingExtrasDisplay = ({ refetchPlats }: { refetchPlats?: () => void }) 
                       Edition Thai
                     </Badge>
                   </div>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <Label className="text-thai-green font-semibold flex items-center gap-2">
@@ -474,7 +474,7 @@ const ExistingExtrasDisplay = ({ refetchPlats }: { refetchPlats?: () => void }) 
                         placeholder="Ex: Coca Cola, Thé Thaï..."
                       />
                     </div>
-                    
+
                     <div className="space-y-2">
                       <Label className="text-thai-green font-semibold flex items-center gap-2">
                         <Euro className="w-4 h-4 text-thai-orange" />
@@ -504,7 +504,7 @@ const ExistingExtrasDisplay = ({ refetchPlats }: { refetchPlats?: () => void }) 
 
                   <div className="space-y-2">
                     <Label className="text-thai-green font-semibold">Photo</Label>
-                    
+
                     {/* Aperçu de l&apos;image */}
                     <div className="mb-3">
                       <img
@@ -516,7 +516,7 @@ const ExistingExtrasDisplay = ({ refetchPlats }: { refetchPlats?: () => void }) 
                         }}
                       />
                     </div>
-                    
+
                     <div className="flex gap-2">
                       <Input
                         value={editForm.photo_url}
@@ -610,7 +610,7 @@ const ExistingExtrasDisplay = ({ refetchPlats }: { refetchPlats?: () => void }) 
                       <Edit2 className="w-3 h-3 text-white" />
                     </div>
                   </div>
-                  
+
                   <div className="flex-1 space-y-2">
                     <div className="flex items-center justify-between">
                       <h4 className="text-xl font-bold text-thai-green capitalize group-hover:text-thai-orange transition-colors duration-300">
@@ -618,11 +618,11 @@ const ExistingExtrasDisplay = ({ refetchPlats }: { refetchPlats?: () => void }) 
                       </h4>
                       <div className="flex items-center gap-3">
                         <Badge className="bg-gradient-to-r from-thai-orange to-thai-red text-white shadow-lg animate-pulse">
-                          {formatPrice(extra.prix)}
+                          {formatPrice(parseFloat(extra.prix))}
                         </Badge>
                       </div>
                     </div>
-                    
+
                     <p className="text-thai-green/70 italic">
                       {extra.description || "Extra Thai authentique"}
                     </p>
@@ -698,7 +698,7 @@ const ExistingExtrasDisplay = ({ refetchPlats }: { refetchPlats?: () => void }) 
 interface PlatForm {
   plat: string;
   description: string;
-  prix: number;
+  prix: string; // Changed to string
   photo_du_plat: string;
   lundi_dispo: 'oui' | 'non';
   mardi_dispo: 'oui' | 'non';
@@ -712,7 +712,7 @@ interface PlatForm {
 const initialForm: PlatForm = {
   plat: '',
   description: '',
-  prix: 0,
+  prix: '', // Initialiser avec une chaîne vide
   photo_du_plat: '',
   lundi_dispo: 'oui',
   mardi_dispo: 'oui',
@@ -731,7 +731,7 @@ export default function AdminGestionPlats() {
   const [activeTab, setActiveTab] = useState<'plats' | 'extras'>('plats');
   const [showRuptureManager, setShowRuptureManager] = useState<{platId: number; platNom: string} | null>(null);
   const [isEditingPlat, setIsEditingPlat] = useState<Plat | null>(null);
-  
+
   const { data: allPlats, refetch } = usePrismaPlats();
   const { data: extras } = usePrismaExtras(); // Récupérer les extras de la table extras_db
   const createPlatMutation = usePrismaCreatePlat();
@@ -823,7 +823,7 @@ export default function AdminGestionPlats() {
         await createPlatMutation.mutateAsync({
           nom_plat: form.plat,
           description: form.description,
-          prix: form.prix,
+          prix: form.prix, // Convertir en number pour l'API
           photo_url: form.photo_du_plat,
           categorie: activeTab === 'extras' ? 'extra' : 'plat_principal',
           actif: true
@@ -837,7 +837,10 @@ export default function AdminGestionPlats() {
       } else if (editingId) {
         await updatePlatMutation.mutateAsync({
           id: editingId,
-          data: form
+          data: {
+            ...form,
+            prix: form.prix// Convertir en number pour l'API
+          }
         });
         toast({
           title: "Succès",
@@ -846,7 +849,7 @@ export default function AdminGestionPlats() {
         setEditingId(null);
         setForm(initialForm);
       }
-      
+
       refetch();
     } catch (error) {
       toast({
@@ -861,7 +864,7 @@ export default function AdminGestionPlats() {
     setForm({
       plat: plat.plat,
       description: plat.description || '',
-      prix: plat.prix || 0,
+      prix: plat.prix || '0',
       photo_du_plat: plat.photo_du_plat || '',
       lundi_dispo: plat.lundi_dispo === 'oui' ? 'oui' : 'non',
       mardi_dispo: plat.mardi_dispo === 'oui' ? 'oui' : 'non',
@@ -953,13 +956,13 @@ export default function AdminGestionPlats() {
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6">
-          
+
 
           {/* Onglets avec design Thai */}
           <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'plats' | 'extras')} className="space-y-6">
             <TabsList className="grid w-full grid-cols-2 h-12 bg-thai-cream/30 border-2 border-thai-orange/20">
-              <TabsTrigger 
-                value="plats" 
+              <TabsTrigger
+                value="plats"
                 className="data-[state=active]:bg-thai-orange data-[state=active]:text-white transition-all duration-300 hover:bg-thai-orange/20 font-semibold"
               >
                 <Utensils className="w-4 h-4 mr-2" />
@@ -974,7 +977,7 @@ export default function AdminGestionPlats() {
               </TabsTrigger>
             </TabsList>
 
-            
+
 
             <TabsContent value="plats" className="space-y-4">
               {/* Filtres de disponibilité */}
@@ -1047,7 +1050,7 @@ export default function AdminGestionPlats() {
                           min="0"
                           step="0.01"
                           value={form.prix}
-                          onChange={(e) => setForm(prev => ({ ...prev, prix: parseFloat(e.target.value) || 0 }))}
+                          onChange={(e) => setForm(prev => ({ ...prev, prix: e.target.value }))} // Stocker la valeur comme string
                           className="border-thai-orange/20 focus:border-thai-orange"
                         />
                       </div>
@@ -1073,7 +1076,7 @@ export default function AdminGestionPlats() {
                         className="border-thai-orange/20 focus:border-thai-orange"
                       />
                     </div>
-                    
+
                     {/* Actions */}
                     <div className="flex gap-2 pt-4">
                       <Button
@@ -1124,7 +1127,7 @@ export default function AdminGestionPlats() {
                         step="0.01"
                         min="0"
                         value={form.prix}
-                        onChange={(e) => setForm(prev => ({ ...prev, prix: parseFloat(e.target.value) || 0 }))}
+                        onChange={(e) => setForm(prev => ({ ...prev, prix: e.target.value }))} // Stocker la valeur comme string
                         placeholder="Ex: 12.90"
                         className="mt-1"
                         required
@@ -1179,10 +1182,10 @@ export default function AdminGestionPlats() {
                 {itemsFiltered.map((plat) => {
                   const joursDispos = countJoursDisponibles(plat);
                   const isDisponible = joursDispos > 0;
-                  
+
                   return (
-                    <Card 
-                      key={plat.idplats} 
+                    <Card
+                      key={plat.idplats}
                       className={`border-l-4 ${isDisponible ? 'border-thai-green bg-green-50/30' : 'border-thai-red bg-red-50/30'} hover:shadow-xl hover:bg-thai-cream/20 hover:border-thai-orange hover:ring-2 hover:ring-thai-orange/30 hover:scale-[1.02] transform transition-all duration-300`}
                     >
                       <CardContent className="p-0">
@@ -1243,14 +1246,14 @@ export default function AdminGestionPlats() {
                                 }
                                 return true;
                               }}
-                              formatDisplay={(value) => formatPrice(value)}
+                              formatDisplay={(value) => formatPrice(parseFloat(value || '0'))}
                               className="text-thai-green font-medium"
                             />
                           </div>
 
-                          
 
-                          
+
+
                         </div>
                         </div>
                         </div>
@@ -1299,7 +1302,7 @@ export default function AdminGestionPlats() {
                               <Calendar className="w-3 h-3 mr-1" />
                               Ruptures
                             </Button>
-                            
+
                             {activeTab === 'plats' && (
                               isDisponible ? (
                                 <Button
@@ -1345,7 +1348,7 @@ export default function AdminGestionPlats() {
                 )}
               </div>
             </TabsContent>
-            
+
             <TabsContent value="extras" className="space-y-4">
               {/* Section Extras Thai (extras_db uniquement) */}
               <div className="mb-8 animate-fadeIn">

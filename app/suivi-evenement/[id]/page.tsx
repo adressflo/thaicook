@@ -75,7 +75,7 @@ const SuiviEvenement = memo(() => {
   // Fonction pour obtenir la couleur du statut
   const getStatutColor = (statut: string | null) => {
     if (!statut) return 'bg-gray-100 text-gray-800 border-gray-300';
-    
+
     if (statut === 'Confirmé / Acompte reçu' || statut === 'Payé intégralement' || statut === 'Réalisé') {
       return 'bg-green-100 text-green-800 border-green-300';
     } else if (statut === 'En préparation' || statut === 'Contact établi') {
@@ -90,7 +90,7 @@ const SuiviEvenement = memo(() => {
   // Fonction pour obtenir les plats présélectionnés
   const getPlatsPreselectionnes = () => {
     if (!evenement.plats_preselectionnes || !plats) return [];
-    return plats.filter(plat => 
+    return plats.filter(plat =>
       evenement.plats_preselectionnes?.includes(plat.idplats)
     );
   };
@@ -99,8 +99,8 @@ const SuiviEvenement = memo(() => {
 
   // Fonction pour formater les prix (ajout pour le modal)
   const formatPrix = (prix: number): string => {
-    return prix % 1 === 0 
-      ? `${prix}€` 
+    return prix % 1 === 0
+      ? `${prix}€`
       : `${prix.toFixed(2).replace('.', ',')}€`;
   };
 
@@ -130,11 +130,11 @@ const SuiviEvenement = memo(() => {
                   <span className="sm:hidden">Historique</span>
                 </Button>
               </Link>
-              
+
               {canEdit && (
                 <Link href={`/modifier-evenement/${evenement.idevenements}`} passHref>
-                  <Button 
-                    variant="default" 
+                  <Button
+                    variant="default"
                     size="sm"
                     className="
                       bg-gradient-to-r from-thai-green to-thai-orange
@@ -173,7 +173,7 @@ const SuiviEvenement = memo(() => {
                       </span>
                     </div>
                   </CardHeader>
-            
+
             <CardContent className="p-6 md:p-8 space-y-8">
               {/* Informations principales */}
               <div className="grid md:grid-cols-2 gap-6">
@@ -197,7 +197,7 @@ const SuiviEvenement = memo(() => {
                           <p className="text-sm font-medium text-gray-500">Date et heure prévues</p>
                           <p className="font-semibold text-lg flex items-center gap-2">
                             <Clock className="h-4 w-4 text-thai-orange" />
-                            {evenement.date_evenement ? 
+                            {evenement.date_evenement ?
                               format(new Date(evenement.date_evenement), 'eeee dd MMMM yyyy à HH:mm', { locale: fr })
                               : 'Date non définie'
                             }
@@ -291,15 +291,15 @@ const SuiviEvenement = memo(() => {
                             detail={detailForModal}
                             formatPrix={formatPrix}
                           >
-                            <Card 
+                            <Card
                               className="border-thai-orange/20 hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-105 hover:border-thai-orange hover:ring-2 hover:ring-thai-orange/30 animate-fadeIn"
                               style={{ animationDelay: `${index * 100}ms` }}
                             >
                               {plat.photo_du_plat && (
                                 <div className="aspect-video overflow-hidden rounded-t-lg">
-                                  <img 
-                                    src={plat.photo_du_plat} 
-                                    alt={plat.plat} 
+                                  <img
+                                    src={plat.photo_du_plat}
+                                    alt={plat.plat}
                                     className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
                                   />
                                 </div>
@@ -310,7 +310,7 @@ const SuiviEvenement = memo(() => {
                                 </h4>
                                 {plat.prix && (
                                   <p className="text-xs text-thai-orange font-medium mt-1">
-                                    {formatPrix(plat.prix)}
+                                    {formatPrix(parseFloat(plat.prix))}
                                   </p>
                                 )}
                               </CardContent>

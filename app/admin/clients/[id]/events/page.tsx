@@ -59,7 +59,7 @@ export default function ClientEventsPage() {
   const clientAuthId = params.id as string;
 
   const { data: clients } = usePrismaClients();
-  const client = clients?.find(c => c.auth_user_id === clientAuthId);
+  const client = clients?.find((c: ClientUI) => c.auth_user_id === clientAuthId);
   const { data: evenements } = usePrismaEvenementsByClient(client?.idclient);
   const createEvenementMutation = usePrismaCreateEvenement();
 
@@ -119,16 +119,16 @@ export default function ClientEventsPage() {
     if (!evenements) return { total: 0, totalBudget: 0, parStatut: {}, parType: {} };
 
     const total = evenements.length;
-    const totalBudget = evenements.reduce((sum, event) => sum + (event.budget_client || 0), 0);
+                const totalBudget = evenements.reduce((sum: number, event: EvenementUI) => sum + parseFloat(event.budget_client || '0'), 0);
     
-    const parStatut = evenements.reduce((acc, event) => {
+        const parStatut = evenements.reduce((acc: Record<string, number>, event: EvenementUI) => {
       // Utilisation du statut fictif pour la démo
       const status = formData.statut || 'Devis demandé';
       acc[status] = (acc[status] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
 
-    const parType = evenements.reduce((acc, event) => {
+        const parType = evenements.reduce((acc: Record<string, number>, event: EvenementUI) => {
       const type = event.type_d_evenement || 'Autre';
       acc[type] = (acc[type] || 0) + 1;
       return acc;
@@ -176,7 +176,7 @@ export default function ClientEventsPage() {
         date_evenement: formData.date_evenement || new Date().toISOString().split('T')[0],
         type_d_evenement: formData.type_d_evenement,
         nombre_de_personnes: formData.nombre_de_personnes ? parseInt(formData.nombre_de_personnes) : 1,
-        budget_client: formData.budget_client ? parseFloat(formData.budget_client) : undefined,
+                budget_client: formData.budget_client || undefined,
         demandes_speciales_evenement: formData.demandes_speciales_evenement || undefined
       };
 

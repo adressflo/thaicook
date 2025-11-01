@@ -59,9 +59,7 @@ export const FormattedPrice = React.memo<FormattedPriceProps>(({ prix, formatPri
                             {/* Miniature photo du plat ou extra */}
                             <img
                               src={
-                                isExtra
-                                  ? 'https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png'
-                                  : (detail.plat?.photo_du_plat || '')
+                                detail.extra?.photo_url || 'https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png'
                               }
                               alt={platName}
                               className="w-5 h-5 flex-shrink-0 rounded-full object-cover border border-thai-orange/60 shadow-sm"
@@ -252,16 +250,22 @@ export const DishList = React.memo<DishListProps>(({ details, formatPrix, extras
                   }
                 `}
               >
-                {isExtra ? (
-                  <div className="h-8 w-8 flex-shrink-0 rounded-full bg-gradient-to-br from-thai-gold to-thai-orange flex items-center justify-center border-2 border-thai-orange/60 shadow-md">
-                    <Sparkles className="h-5 w-5 text-white" />
-                  </div>
+                {detail.extra?.photo_url ? (
+                  <img
+                    src={detail.extra.photo_url}
+                    alt={platName}
+                    className="h-8 w-8 flex-shrink-0 rounded-full object-cover border-2 border-thai-orange/60 shadow-md"
+                  />
                 ) : detail.plat?.photo_du_plat && !isDeleted ? (
                   <img
                     src={detail.plat.photo_du_plat}
                     alt={platName}
                     className="h-8 w-8 flex-shrink-0 rounded-full object-cover border-2 border-thai-orange/60 shadow-md"
                   />
+                ) : isExtra ? (
+                  <div className="h-8 w-8 flex-shrink-0 rounded-full bg-gradient-to-br from-thai-gold to-thai-orange flex items-center justify-center border-2 border-thai-orange/60 shadow-md">
+                    <Sparkles className="h-5 w-5 text-white" />
+                  </div>
                 ) : (
                   <Utensils className={`h-5 w-5 flex-shrink-0 ${isDeleted ? 'text-gray-400' : 'text-thai-green'}`} />
                 )}
@@ -275,17 +279,25 @@ export const DishList = React.memo<DishListProps>(({ details, formatPrix, extras
                     x{quantite}
                   </span>
                 )}
-                {isExtra ? (
-                  <div className="h-8 w-8 flex-shrink-0 rounded-full bg-gradient-to-br from-thai-gold to-thai-orange flex items-center justify-center border-2 border-thai-orange/60 shadow-md">
-                    <Sparkles className="h-5 w-5 text-white" />
-                  </div>
+                {detail.extra?.photo_url ? (
+                  <img
+                    src={detail.extra.photo_url}
+                    alt={platName}
+                    className="h-8 w-8 flex-shrink-0 rounded-full object-cover border-2 border-thai-orange/60 shadow-md"
+                  />
                 ) : detail.plat?.photo_du_plat && !isDeleted ? (
                   <img
                     src={detail.plat.photo_du_plat}
                     alt={platName}
                     className="h-8 w-8 flex-shrink-0 rounded-full object-cover border-2 border-thai-orange/60 shadow-md"
                   />
-                ) : null}
+                ) : isExtra ? (
+                  <div className="h-8 w-8 flex-shrink-0 rounded-full bg-gradient-to-br from-thai-gold to-thai-orange flex items-center justify-center border-2 border-thai-orange/60 shadow-md">
+                    <Sparkles className="h-5 w-5 text-white" />
+                  </div>
+                ) : (
+                  <Utensils className={`h-5 w-5 flex-shrink-0 ${isDeleted ? 'text-gray-400' : 'text-thai-green'}`} />
+                )}
               </div>
               
               {/* Subtle hover glow effect */}

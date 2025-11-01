@@ -27,7 +27,7 @@ export const DishDetailsModal = React.memo<DishDetailsModalProps>(({ detail, chi
       <DialogTrigger asChild>
         {children}
       </DialogTrigger>
-      <DialogContent 
+      <DialogContent
         className="max-w-lg mx-auto bg-white rounded-xl shadow-2xl border-0 p-0 overflow-hidden animate-scaleIn transform transition-all duration-300 cursor-pointer [&>button]:hidden"
         onClick={handleModalClick}
       >
@@ -48,17 +48,17 @@ export const DishDetailsModal = React.memo<DishDetailsModalProps>(({ detail, chi
                 </div>
               </div>
             )}
-            
+
             {/* Overlay gradient plus subtil */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
-            
+
             {/* Badge statut */}
             <div className="absolute top-3 left-3">
-              <Badge 
+              <Badge
                 variant={isDeleted ? "destructive" : "default"}
                 className={`${
-                  isDeleted 
-                    ? 'bg-red-500 text-white' 
+                  isDeleted
+                    ? 'bg-red-500 text-white'
                     : 'bg-thai-green text-white shadow-md'
                 } font-semibold px-3 py-1`}
               >

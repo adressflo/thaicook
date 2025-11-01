@@ -380,7 +380,18 @@ Notre feuille de route pour faire évoluer l'expérience ChanthanaThaiCook. Ce d
 *Intégration n8n pour les Rappels*
 - [ ] Configurer n8n pour envoyer des rappels automatiques au client avant l'événement et un message de remerciement après.
 
-**👤 H. Page Profil (/profil)**
+**👤 H. Page Profil (/profil) & Inscription (/auth/signup)**
+*✅ Améliorations UI/UX Complétées (2025-11-01)*
+- [x] ✅ **Sélecteur de date de naissance amélioré** : Remplacé l'input HTML5 `type="date"` par un composant `DateBirthSelector` (3 selects: Jour/Mois/Année) pour une meilleure accessibilité.
+  - [x] Composant créé : `components/forms/DateBirthSelector.tsx` (réutilisable)
+  - [x] Implémenté dans `/profil` : Remplacement complet, réduction de ~150 lignes de code
+  - [x] Implémenté dans `/auth/signup` : Interface cohérente avec profil
+- [x] ✅ **Harmonisation formulaire signup avec profil** :
+  - [x] "Adresse (numéro et rue)" : Label identique entre signup et profil
+  - [x] "Vos Préférences" : Changé de `Input` → `Textarea` avec placeholder "Allergies, végan, plat préféré..."
+  - [x] "Comment avez-vous connu ChanthanaThaiCook ?" : Formulation et style identiques
+  - [x] "Newsletter" : Changé de `Checkbox` → `RadioGroup` ("Oui, j'accepte" / "Non") avec "Oui, j'accepte" par défaut
+
 *Intégration n8n pour la Communication*
 - [ ] Messages d'Anniversaire : Envoyer automatiquement un message de vœux le jour de l'anniversaire du client.
 - [ ] Actualités et Offres : Mettre en place un système d'envoi d'e-mails pour les actualités et les offres spéciales.
@@ -395,13 +406,16 @@ Notre feuille de route pour faire évoluer l'expérience ChanthanaThaiCook. Ce d
 ### 🛠️ III. Améliorations de l'Interface Administrateur
 **📋 Page Admin / Commandes (/admin/commandes)**
 - [ ] Factures (n8n) : Ajouter un bouton sur les commandes "Terminées" pour déclencher un workflow n8n qui génère et envoie la facture au client.
-- [ ] Pagination par date : Remplacer la pagination par défaut par une navigation par jour (ex: "Aujourd'hui", "Hier", ou un sélecteur de date).
+- [x] ✅ **Sélecteur de date amélioré** : Remplacé l'input HTML5 `type="date"` par un composant `DateSelector` (3 selects: Jour/Mois/Année) pour une meilleure expérience utilisateur. (2025-11-01)
+  - [x] Composant créé : `components/forms/DateSelector.tsx`
+  - [x] Type modifié : `selectedDate` de `string | null` → `Date | undefined`
+  - [x] Navigation par date fonctionnelle (Jour précédent, Jour suivant, Aujourd'hui)
 - [ ] Notification de retard via n8n : Ajouter un bouton permettant à l'administrateur d'envoyer une notification de retard prédéfinie au client (ex: "Votre commande aura 5 minutes de retard").
 - [ ] Automatisation des notifications de statut (n8n) : Déclencher automatiquement des notifications SMS/WhatsApp lorsque le statut d'une commande passe à "Prête à récupérer".
 - [ ] Impression automatique des tickets de caisse (n8n) : Mettre en place un workflow n8n pour imprimer les nouveaux tickets de caisse dès qu'une commande est "Confirmée".
 - [ ] Demande d'avis automatisée (n8n) : Envoyer automatiquement une demande d'avis par e-mail ou SMS une heure après qu'une commande soit "Récupérée".
-- [ ] "Mettre en avant" une commande : Ajouter un bouton pour épingler une commande en haut de la liste journalière.
-- [ ] Offrir un plat : Ajouter une fonctionnalité pour marquer un plat comme "offert" (prix à 0€) dans une commande existante.
+- [x] ✅ **"Mettre en avant" une commande** : Bouton épingler/désépingler ajouté avec tri automatique des commandes épinglées en haut. (2025-10-31)
+- [x] ✅ **Offrir un plat** : Fonctionnalité ajoutée pour marquer un plat comme "offert" (prix à 0€) dans une commande existante. (2025-10-31)
 
 **🍲 Page Admin / Plats (/admin/plats)**
 *Mise en place d'un système de gestion de stock par exception :*

@@ -22,6 +22,7 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useParams, useRouter } from 'next/navigation';
 import type { ClientUI, CommandeUI } from '@/types/app';
+import { toSafeNumber } from '@/lib/serialization';
 
 export default function ClientStatsPage() {
   const params = useParams();
@@ -84,7 +85,7 @@ export default function ClientStatsPage() {
 
     // Total événements
     const totalEvenements = evenements?.length || 0;
-    const budgetEvenements = evenements?.reduce((sum, evt) => sum + (evt.budget_client || 0), 0) || 0;
+    const budgetEvenements = evenements?.reduce((sum, evt) => sum + toSafeNumber(evt.budget_client), 0) || 0;
 
     return {
       totalCommandes,

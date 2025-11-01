@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -11,7 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Lock, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { authClient } from '@/lib/auth-client';
 
-export default function ResetPasswordConfirmPage() {
+function ResetPasswordForm() {
   const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -210,5 +210,17 @@ export default function ResetPasswordConfirmPage() {
         </Card>
       </div>
     </div>
+  );
+}
+
+export default function ResetPasswordConfirmPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-thai flex items-center justify-center p-4">
+        <Loader2 className="w-8 h-8 animate-spin text-thai-orange" />
+      </div>
+    }>
+      <ResetPasswordForm />
+    </Suspense>
   );
 }

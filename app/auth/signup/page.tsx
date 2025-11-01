@@ -10,11 +10,15 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Textarea } from '@/components/ui/textarea';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
 import { UserPlus, Loader2, AlertCircle, Home, Eye, EyeOff } from 'lucide-react';
 import { authClient } from '@/lib/auth-client';
 import { createClientProfile, type SignUpProfileInput } from '../actions';
 import { useRouter } from 'next/navigation';
+import { DateBirthSelector } from '@/components/forms/DateBirthSelector';
+import { format } from 'date-fns';
 
 // Schema Zod pour validation du formulaire
 const signupSchema = z.object({
@@ -57,21 +61,20 @@ export default function SignUpPage() {
   const [selectedSources, setSelectedSources] = useState<string[]>([]);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [birthDate, setBirthDate] = useState<Date | undefined>();
+  const [newsletterPreference, setNewsletterPreference] = useState<"Oui, j'accepte" | 'non'>("Oui, j'accepte");
 
   const {
     register,
     handleSubmit,
     formState: { errors },
     setValue,
-    watch
   } = useForm<SignupFormData>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
-      souhaitez_vous_recevoir_actualites: false,
+      souhaitez_vous_recevoir_actualites: true,
     }
   });
-
-  const newsletterValue = watch('souhaitez_vous_recevoir_actualites');
 
   const handleSourceToggle = (value: string) => {
     setSelectedSources(prev => {
@@ -171,7 +174,9 @@ export default function SignUpPage() {
                 className="w-14 h-14 rounded-full object-contain"
               />
             </div>
-            <CardTitle className="text-2xl font-bold text-thai-green">Créer un compte</CardTitle>
+            <CardTitle className="text-2xl font-bold text-thai-green">
+              Créer un compte
+            </CardTitle>
             <CardDescription className="text-sm text-thai-green/70 pt-2">
               Rejoignez-nous pour une expérience culinaire unique.
             </CardDescription>
@@ -187,7 +192,9 @@ export default function SignUpPage() {
 
               {/* Section Compte */}
               <div className="space-y-4 p-4 border rounded-lg bg-gray-50">
-                <h3 className="font-semibold text-lg text-thai-green">Informations de connexion</h3>
+                <h3 className="font-semibold text-lg text-thai-green">
+                  Informations de connexion
+                </h3>
 
                 <div className="space-y-2">
                   <Label htmlFor="email">Email *</Label>
@@ -199,7 +206,9 @@ export default function SignUpPage() {
                     disabled={isLoading}
                   />
                   {errors.email && (
-                    <p className="text-sm text-red-600">{errors.email.message}</p>
+                    <p className="text-sm text-red-600">
+                      {errors.email.message}
+                    </p>
                   )}
                 </div>
 
@@ -209,7 +218,7 @@ export default function SignUpPage() {
                     <div className="relative">
                       <Input
                         id="password"
-                        type={showPassword ? "text" : "password"}
+                        type={showPassword ? 'text' : 'password'}
                         {...register('password')}
                         placeholder="Min. 8 caractères"
                         disabled={isLoading}
@@ -228,18 +237,24 @@ export default function SignUpPage() {
                         )}
                       </button>
                     </div>
-                    <p className="text-xs text-gray-500">Minimum 8 caractères requis</p>
+                    <p className="text-xs text-gray-500">
+                      Minimum 8 caractères requis
+                    </p>
                     {errors.password && (
-                      <p className="text-sm text-red-600">{errors.password.message}</p>
+                      <p className="text-sm text-red-600">
+                        {errors.password.message}
+                      </p>
                     )}
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="confirmPassword">Confirmer le mot de passe *</Label>
+                    <Label htmlFor="confirmPassword">
+                      Confirmer le mot de passe *
+                    </Label>
                     <div className="relative">
                       <Input
                         id="confirmPassword"
-                        type={showConfirmPassword ? "text" : "password"}
+                        type={showConfirmPassword ? 'text' : 'password'}
                         {...register('confirmPassword')}
                         placeholder="Confirmer"
                         disabled={isLoading}
@@ -247,7 +262,9 @@ export default function SignUpPage() {
                       />
                       <button
                         type="button"
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        onClick={() =>
+                          setShowConfirmPassword(!showConfirmPassword)
+                        }
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
                         disabled={isLoading}
                       >
@@ -259,7 +276,9 @@ export default function SignUpPage() {
                       </button>
                     </div>
                     {errors.confirmPassword && (
-                      <p className="text-sm text-red-600">{errors.confirmPassword.message}</p>
+                      <p className="text-sm text-red-600">
+                        {errors.confirmPassword.message}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -267,7 +286,9 @@ export default function SignUpPage() {
 
               {/* Section Informations personnelles */}
               <div className="space-y-4 p-4 border rounded-lg bg-gray-50">
-                <h3 className="font-semibold text-lg text-thai-green">Informations personnelles</h3>
+                <h3 className="font-semibold text-lg text-thai-green">
+                  Informations personnelles
+                </h3>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -279,7 +300,9 @@ export default function SignUpPage() {
                       disabled={isLoading}
                     />
                     {errors.nom && (
-                      <p className="text-sm text-red-600">{errors.nom.message}</p>
+                      <p className="text-sm text-red-600">
+                        {errors.nom.message}
+                      </p>
                     )}
                   </div>
 
@@ -292,7 +315,9 @@ export default function SignUpPage() {
                       disabled={isLoading}
                     />
                     {errors.prenom && (
-                      <p className="text-sm text-red-600">{errors.prenom.message}</p>
+                      <p className="text-sm text-red-600">
+                        {errors.prenom.message}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -307,27 +332,18 @@ export default function SignUpPage() {
                     disabled={isLoading}
                   />
                   {errors.numero_de_telephone && (
-                    <p className="text-sm text-red-600">{errors.numero_de_telephone.message}</p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="date_de_naissance">Date de naissance (optionnel)</Label>
-                  <Input
-                    id="date_de_naissance"
-                    type="date"
-                    {...register('date_de_naissance')}
-                    disabled={isLoading}
-                  />
-                  {errors.date_de_naissance && (
-                    <p className="text-sm text-red-600">{errors.date_de_naissance.message}</p>
+                    <p className="text-sm text-red-600">
+                      {errors.numero_de_telephone.message}
+                    </p>
                   )}
                 </div>
               </div>
 
               {/* Section Adresse (optionnel) */}
               <div className="space-y-4 p-4 border rounded-lg">
-                <h3 className="font-semibold text-lg text-thai-green">Adresse (optionnel)</h3>
+                <h3 className="font-semibold text-lg text-thai-green">
+                  Adresse (optionnel)
+                </h3>
 
                 <div className="space-y-2">
                   <Label htmlFor="adresse_numero_et_rue">Numéro et rue</Label>
@@ -362,57 +378,107 @@ export default function SignUpPage() {
                 </div>
               </div>
 
+              {/* Section Date de naissance */}
+              <div className="space-y-4 p-4 border rounded-lg">
+                <DateBirthSelector
+                  value={birthDate}
+                  onChange={date => {
+                    setBirthDate(date);
+                    // Synchroniser avec react-hook-form
+                    if (date) {
+                      setValue('date_de_naissance', format(date, 'yyyy-MM-dd'));
+                    } else {
+                      setValue('date_de_naissance', undefined);
+                    }
+                  }}
+                  labelText="Date de naissance (optionnel)"
+                  showHelperText={true}
+                />
+                {errors.date_de_naissance && (
+                  <p className="text-sm text-red-600">
+                    {errors.date_de_naissance.message}
+                  </p>
+                )}
+              </div>
+
               {/* Section Préférences */}
               <div className="space-y-4 p-4 border rounded-lg">
-                <h3 className="font-semibold text-lg text-thai-green">Préférences (optionnel)</h3>
-
                 <div className="space-y-2">
-                  <Label htmlFor="preference_client">Préférences alimentaires</Label>
-                  <Input
+                  <Label htmlFor="preference_client">
+                    Vos Préférences (optionnel)
+                  </Label>
+                  <Textarea
                     id="preference_client"
                     {...register('preference_client')}
-                    placeholder="Ex: végétarien, sans gluten, épicé..."
+                    rows={3}
+                    placeholder="Allergies, végan, plat préféré..."
                     disabled={isLoading}
                   />
                 </div>
+              </div>
 
-                <div className="space-y-2">
-                  <Label>Comment avez-vous connu Chanthana Thai Cook ?</Label>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                    {sourceOptions.map((option) => (
-                      <div key={option.value} className="flex items-center space-x-2">
+              <div className="space-y-4 p-4 border rounded-lg">
+                <div className="space-y-3">
+                  <Label>
+                    Comment avez-vous connu ChanthanaThaiCook ? (optionnel)
+                  </Label>
+                  <div className="grid md:grid-cols-2 gap-3">
+                    {sourceOptions.map(option => (
+                      <div
+                        key={option.value}
+                        className="flex items-center space-x-2"
+                      >
                         <Checkbox
                           id={`source-${option.value}`}
                           checked={selectedSources.includes(option.value)}
-                          onCheckedChange={() => handleSourceToggle(option.value)}
+                          onCheckedChange={() =>
+                            handleSourceToggle(option.value)
+                          }
                           disabled={isLoading}
                         />
-                        <label
+                        <Label
                           htmlFor={`source-${option.value}`}
-                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                          className="text-sm font-normal"
                         >
                           {option.label}
-                        </label>
+                        </Label>
                       </div>
                     ))}
                   </div>
                 </div>
+              </div>
 
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="newsletter"
-                    checked={newsletterValue}
-                    onCheckedChange={(checked) =>
-                      setValue('souhaitez_vous_recevoir_actualites', checked as boolean)
-                    }
-                    disabled={isLoading}
-                  />
-                  <label
-                    htmlFor="newsletter"
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              <div className="space-y-4 p-4 border rounded-lg">
+                <div className="space-y-2">
+                  <Label>
+                    Souhaitez-vous recevoir les actualités et offres par e-mail
+                    ? *
+                  </Label>
+                  <RadioGroup
+                    value={newsletterPreference}
+                    onValueChange={(v: string) => {
+                      const value = v as "Oui, j'accepte" | 'non';
+                      setNewsletterPreference(value);
+                      setValue(
+                        'souhaitez_vous_recevoir_actualites',
+                        value === "Oui, j'accepte"
+                      );
+                    }}
+                    className="flex gap-4 pt-1"
                   >
-                    J'accepte de recevoir les actualités et offres spéciales
-                  </label>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="Oui, j'accepte" id="nl-oui" />
+                      <Label htmlFor="nl-oui" className="font-normal">
+                        Oui, j'accepte
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="non" id="nl-non" />
+                      <Label htmlFor="nl-non" className="font-normal">
+                        Non
+                      </Label>
+                    </div>
+                  </RadioGroup>
                 </div>
               </div>
 
@@ -432,8 +498,11 @@ export default function SignUpPage() {
 
             <div className="mt-6 text-center text-sm">
               <span className="text-gray-600">Vous avez déjà un compte ?</span>
-              <Link href={"/auth/login" as any}>
-                <Button variant="link" className="text-thai-orange hover:underline px-1">
+              <Link href={'/auth/login' as any}>
+                <Button
+                  variant="link"
+                  className="text-thai-orange hover:underline px-1"
+                >
                   Se connecter
                 </Button>
               </Link>

@@ -27,9 +27,16 @@ import {
 } from '@/components/ui/table';
 import { Loader2, Clock, History, Calendar, Utensils, Euro, BarChart3, Zap, PartyPopper, Users } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import type { CommandeUI, DetailCommande, Plat } from '@/types/app';
+import type {
+  CommandeUI,
+  DetailCommande,
+  Plat,
+  ExtraUI,
+  EvenementUI,
+} from '@/types/app';
 import { AppLayout } from '@/components/AppLayout';
 import { isWithinInterval, parseISO } from 'date-fns';
+import { toSafeNumber } from '@/lib/serialization';
 
 // Composants optimisés
 import { StatusBadge } from '@/components/historique/StatusBadge';
@@ -87,24 +94,27 @@ const HistoriquePage = memo(() => {
 
   // Fonctions optimisées avec memoization
   const formatPrix = useCallback((prix: number): string => {
-    return prix % 1 === 0 
-      ? `${prix}€` 
-      : `${prix.toFixed(2).replace('.', ',')}€`;
+    const numericPrix = toSafeNumber(prix);
+    return numericPrix % 1 === 0
+      ? `${numericPrix}€`
+      : `${numericPrix.toFixed(2).replace('.', ',')}€`;
   }, []);
 
   const calculateTotal = useCallback((commande: CommandeAvecDetails): number => {
-    if (commande.prix_total != null) return commande.prix_total;
+    if (commande.prix_total != null) return toSafeNumber(commande.prix_total);
 
     return commande.details?.reduce((acc, detail) => {
       const quantite = detail.quantite_plat_commande || 0;
 
       // Architecture hybride: pour les extras, essayer de récupérer le prix depuis extras_db
       let prixUnitaire = 0;
-      if (detail.type === 'extra' && detail.plat_r && extras) {
-        const extraData = extras.find((e: any) => e.idextra === detail.plat_r);
-        prixUnitaire = extraData?.prix || Number(detail.prix_unitaire) || 0;
-      } else {
-        prixUnitaire = Number(detail.prix_unitaire) || Number(detail.plat?.prix) || 0;
+            if (detail.type === 'extra' && detail.plat_r && extras) {
+              const extraData = extras.find((e: ExtraUI) => e.idextra === detail.plat_r);
+              // Correction ici : toSafeNumber pour convertir Decimal en number
+              prixUnitaire = toSafeNumber(extraData?.prix || detail.prix_unitaire);
+            } else {
+        // Correction ici : toSafeNumber pour convertir Decimal en number
+                prixUnitaire = toSafeNumber(detail.prix_unitaire || detail.plat?.prix);
       }
 
       return acc + prixUnitaire * quantite;
@@ -131,7 +141,7 @@ const HistoriquePage = memo(() => {
     if (!dateRange.from && !dateRange.to) return true;
     const itemDate = item.date_retrait || item.date_evenement;
     if (!itemDate) return false;
-    
+
     try {
       const date = typeof itemDate === 'string' ? parseISO(itemDate) : itemDate;
       if (dateRange.from && dateRange.to) {
@@ -191,40 +201,40 @@ const HistoriquePage = memo(() => {
     }
 
     // Appliquer les filtres sur les commandes
-    filteredCommandes = filteredCommandes.filter(c => 
-      filterBySearch(c) && 
-      filterByStatus(c) && 
-      filterByDate(c) && 
+        filteredCommandes = filteredCommandes.filter((c: CommandeUI) =>
+      filterBySearch(c) &&
+      filterByStatus(c) &&
+      filterByDate(c) &&
       filterByAmount(c)
     );
 
     // Appliquer les filtres sur les événements
-    filteredEvenements = filteredEvenements.filter(e => 
-      filterByStatus(e) && 
+        filteredEvenements = filteredEvenements.filter((e: EvenementUI) =>
+      filterByStatus(e) &&
       filterByDate(e)
     );
 
     // Séparer en cours/historique après filtrage
-    const commandesEnCours = filteredCommandes.filter(
-      c => c.statut_commande !== 'Annulée' && c.statut_commande !== 'Récupérée'
+        const commandesEnCours = filteredCommandes.filter(
+      (c: CommandeUI) => c.statut_commande !== 'Annulée' && c.statut_commande !== 'Récupérée'
     );
 
-    const commandesHistorique = filteredCommandes
-      .filter(c => c.statut_commande === 'Annulée' || c.statut_commande === 'Récupérée')
+        const commandesHistorique = filteredCommandes
+      .filter((c: CommandeUI) => c.statut_commande === 'Annulée' || c.statut_commande === 'Récupérée')
       .slice(0, 10);
 
-    const evenementsEnCours = filteredEvenements.filter(
-      e => (e.statut_evenement as any) !== 'Réalisé' && (e.statut_evenement as any) !== 'Annulé'
+        const evenementsEnCours = filteredEvenements.filter(
+      (e: EvenementUI) => (e.statut_evenement as any) !== 'Réalisé' && (e.statut_evenement as any) !== 'Annulé'
     );
 
-    const evenementsHistorique = filteredEvenements.filter(
-      e => (e.statut_evenement as any) === 'Réalisé' || (e.statut_evenement as any) === 'Annulé'
+        const evenementsHistorique = filteredEvenements.filter(
+      (e: EvenementUI) => (e.statut_evenement as any) === 'Réalisé' || (e.statut_evenement as any) === 'Annulé'
     );
 
-    return { 
-      commandesEnCours, 
-      commandesHistorique, 
-      evenementsEnCours, 
+    return {
+      commandesEnCours,
+      commandesHistorique,
+      evenementsEnCours,
       evenementsHistorique,
       commandesFiltered: filteredCommandes,
       evenementsFiltered: filteredEvenements
@@ -338,7 +348,7 @@ const HistoriquePage = memo(() => {
                     </div>
                   </div>
                   <div className="border border-thai-orange/20 rounded-lg p-3 bg-thai-cream/20 space-y-4">
-                  {commandesEnCours.map(c => {
+                  {commandesEnCours.map((c: CommandeUI) => {
                     const canEdit =
                       c.statut_commande !== 'Prête à récupérer' &&
                       c.statut_commande !== 'Récupérée';
@@ -420,7 +430,7 @@ const HistoriquePage = memo(() => {
                     </div>
                   </div>
                   <div className="border border-thai-orange/20 rounded-lg p-3 bg-thai-cream/20 space-y-4">
-                  {commandesHistorique.map(c => (
+                  {commandesHistorique.map((c: CommandeUI) => (
                     <div key={c.idcommande} className="flex items-start gap-3 p-3 bg-white rounded-lg border border-gray-200 transition-all duration-300 hover:shadow-xl hover:bg-thai-cream/20 hover:border-thai-orange hover:ring-2 hover:ring-thai-orange/30 hover:scale-[1.02] transform cursor-pointer">
                       <div className="flex-1 grid grid-cols-1 md:grid-cols-5 gap-3 items-center">
                         <div className="text-center">
@@ -505,7 +515,7 @@ const HistoriquePage = memo(() => {
                     </div>
                   </div>
                   <div className="border border-thai-green/20 rounded-lg p-3 bg-thai-cream/20 space-y-4">
-                  {evenementsEnCours.map(evt => {
+                  {evenementsEnCours.map((evt: EvenementUI) => {
                     const canEdit =
                       (evt.statut_evenement as any) !== 'Réalisé' &&
                       (evt.statut_evenement as any) !== 'Payé intégralement';
@@ -581,7 +591,7 @@ const HistoriquePage = memo(() => {
                     </div>
                   </div>
                   <div className="border border-thai-green/20 rounded-lg p-3 bg-thai-cream/20 space-y-4">
-                  {evenementsHistorique.map(evt => (
+                  {evenementsHistorique.map((evt: EvenementUI) => (
                     <div key={evt.idevenements} className="flex items-center gap-4 px-4 py-4 bg-white rounded-lg border border-gray-200 transition-all duration-300 hover:shadow-xl hover:bg-thai-cream/20 hover:border-thai-green hover:ring-2 hover:ring-thai-green/30 hover:scale-[1.02] transform cursor-pointer min-h-[4rem]">
                       <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-6 items-center">
                         <div className="text-center">

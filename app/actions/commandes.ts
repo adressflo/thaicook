@@ -11,7 +11,7 @@
 
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
-import type { CommandeUI, CreateCommandeData } from '@/types/app'
+import type { CommandeUI, CreateCommandeData, DetailCommande } from '@/types/app'
 import type { commande_db, details_commande_db, client_db, plats_db, extras_db } from '@/generated/prisma/client'
 
 /**
@@ -29,28 +29,50 @@ type CommandeWithRelations = commande_db & {
  * Mapper les statuts Prisma (underscores) vers UI (espaces)
  */
 function mapStatutCommande(statut: string | null): CommandeUI['statut_commande'] {
-  if (!statut) return null
+  if (!statut) return null;
   const mapping: Record<string, CommandeUI['statut_commande']> = {
     'En_attente_de_confirmation': 'En attente de confirmation',
-    'Confirmée': 'Confirmée',
-    'En_préparation': 'En préparation',
-    'Prête_à_récupérer': 'Prête à récupérer',
-    'Récupérée': 'Récupérée',
-    'Annulée': 'Annulée',
+    'Confirm_e': 'Confirmée',
+    'En_pr_paration': 'En préparation',
+    'Pr_te___r_cup_rer': 'Prête à récupérer',
+    'R_cup_r_e': 'Récupérée',
+    'Annul_e': 'Annulée',
+  };
+  if (Object.prototype.hasOwnProperty.call(mapping, statut)) {
+    return mapping[statut];
   }
-  return mapping[statut] || null
+  return null;
+}
+
+function mapStatutCommandeToDB(statutUI: CommandeUI['statut_commande']): string | null {
+  if (!statutUI) return null;
+  const reverseMapping: Record<string, string> = {
+    'En attente de confirmation': 'En_attente_de_confirmation',
+    'Confirmée': 'Confirm_e',
+    'En préparation': 'En_pr_paration',
+    'Prête à récupérer': 'Pr_te___r_cup_rer',
+    'Récupérée': 'R_cup_r_e',
+    'Annulée': 'Annul_e',
+  };
+  if (Object.prototype.hasOwnProperty.call(reverseMapping, statutUI)) {
+    return reverseMapping[statutUI];
+  }
+  return null;
 }
 
 function mapStatutPaiement(statut: string | null): CommandeUI['statut_paiement'] {
-  if (!statut) return null
+  if (!statut) return null;
   const mapping: Record<string, CommandeUI['statut_paiement']> = {
     'En_attente_sur_place': 'En attente sur place',
-    'Payé_sur_place': 'Payé sur place',
-    'Payé_en_ligne': 'Payé en ligne',
-    'Non_payé': 'Non payé',
-    'Payée': 'Payée',
+    'Pay__sur_place': 'Payé sur place',
+    'Pay__en_ligne': 'Payé en ligne',
+    'Non_pay_': 'Non payé',
+    'Pay_e': 'Payée',
+  };
+  if (Object.prototype.hasOwnProperty.call(mapping, statut)) {
+    return mapping[statut];
   }
-  return mapping[statut] || null
+  return null;
 }
 
 function mapTypeLivraison(type: string | null): CommandeUI['type_livraison'] {
@@ -68,9 +90,13 @@ function mapTypeLivraison(type: string | null): CommandeUI['type_livraison'] {
  */
 function convertCommandeToUI(commande: CommandeWithRelations): CommandeUI {
   // Calculer prix_total depuis les détails
-  const prix_total = commande.details_commande_db?.reduce((sum: number, detail) => {
-    return sum + (Number(detail.prix_unitaire) || 0) * (detail.quantite_plat_commande || 0)
-  }, 0) || 0
+  const prix_total = (commande.details_commande_db?.reduce((sum: number, detail) => {
+    return (
+      sum +
+      (parseFloat(detail.prix_unitaire?.toString() || '0') || 0) *
+        (detail.quantite_plat_commande || 0)
+    );
+  }, 0) || 0).toFixed(2); // Convertir le total en string avec 2 décimales
 
   return {
     id: commande.idcommande,
@@ -92,8 +118,10 @@ function convertCommandeToUI(commande: CommandeWithRelations): CommandeUI {
     client_r: commande.client_r || null,
     date_de_prise_de_commande: commande.date_de_prise_de_commande?.toISOString() || null,
     nom_evenement: commande.nom_evenement || null,
+    epingle: commande.epingle ?? false,
     client: commande.client_db
       ? {
+          idclient: Number(commande.client_db.idclient),
           nom: commande.client_db.nom || null,
           prenom: commande.client_db.prenom || null,
           email: commande.client_db.email || null,
@@ -106,11 +134,65 @@ function convertCommandeToUI(commande: CommandeWithRelations): CommandeUI {
           auth_user_id: commande.client_db.auth_user_id,
         }
       : null,
-    details: commande.details_commande_db?.map((detail) => ({
-      ...detail,
-      prix_unitaire: Number(detail.prix_unitaire),
-      plat: detail.plats_db || undefined,
-    })) as any, // Simplified pour éviter les erreurs de type complexes
+    details: commande.details_commande_db?.map((detail) => {
+      // Convertir prix_unitaire en string si c'est un Decimal
+      const prixUnitaireStr = detail.prix_unitaire
+        ? (typeof detail.prix_unitaire === 'object' && 'toString' in detail.prix_unitaire
+            ? detail.prix_unitaire.toString()
+            : String(detail.prix_unitaire))
+        : null;
+
+      return {
+        iddetails: detail.iddetails,
+        commande_r: detail.commande_r,
+        plat_r: detail.plat_r,
+        quantite_plat_commande: detail.quantite_plat_commande ?? 1,
+        nom_plat: detail.nom_plat ?? null,
+        prix_unitaire: prixUnitaireStr,
+        type: detail.type ?? 'plat',
+        extra_id: detail.extra_id ?? null,
+        est_offert: detail.est_offert ?? false,
+        plat: detail.plats_db
+          ? {
+              id: detail.plats_db.idplats,
+              idplats: detail.plats_db.idplats,
+              plat: detail.plats_db.plat,
+              description: detail.plats_db.description ?? null,
+              prix: detail.plats_db.prix
+                ? (typeof detail.plats_db.prix === 'object' && 'toString' in detail.plats_db.prix
+                    ? detail.plats_db.prix.toString()
+                    : String(detail.plats_db.prix))
+                : null,
+              lundi_dispo: detail.plats_db.lundi_dispo,
+              mardi_dispo: detail.plats_db.mardi_dispo,
+              mercredi_dispo: detail.plats_db.mercredi_dispo,
+              jeudi_dispo: detail.plats_db.jeudi_dispo,
+              vendredi_dispo: detail.plats_db.vendredi_dispo ?? null,
+              samedi_dispo: detail.plats_db.samedi_dispo ?? null,
+              dimanche_dispo: detail.plats_db.dimanche_dispo ?? null,
+              photo_du_plat: detail.plats_db.photo_du_plat ?? null,
+              est_epuise: detail.plats_db.est_epuise ?? null,
+              epuise_depuis: detail.plats_db.epuise_depuis?.toISOString() ?? null,
+              epuise_jusqu_a: detail.plats_db.epuise_jusqu_a?.toISOString() ?? null,
+              raison_epuisement: detail.plats_db.raison_epuisement ?? null,
+            }
+          : null,
+        extra: detail.extras_db
+          ? {
+              idextra: detail.extras_db.idextra,
+              nom_extra: detail.extras_db.nom_extra,
+              description: detail.extras_db.description ?? null,
+              prix: typeof detail.extras_db.prix === 'object' && 'toString' in detail.extras_db.prix
+                ? detail.extras_db.prix.toString()
+                : String(detail.extras_db.prix),
+              photo_url: detail.extras_db.photo_url ?? null,
+              actif: detail.extras_db.actif ?? null,
+              created_at: detail.extras_db.created_at?.toISOString() ?? null,
+              updated_at: detail.extras_db.updated_at?.toISOString() ?? null,
+            }
+          : null,
+      };
+    }),
   }
 }
 
@@ -240,6 +322,9 @@ export async function createCommande(
           ? (typeof item.plat_r === 'string' ? parseInt(item.plat_r) : item.plat_r)
           : item.plat_r_id
 
+        // Skip if platId is null (extras are handled separately)
+        if (platId === null || platId === undefined) continue
+
         const platData = await prisma.plats_db.findUnique({
           where: { idplats: platId },
         })
@@ -255,7 +340,7 @@ export async function createCommande(
             commande_r: commande.idcommande,
             plat_r: platId,
             quantite_plat_commande: quantite || 1,
-            prix_unitaire: platData.prix,
+            prix_unitaire: platData.prix?.toString() || null,
             nom_plat: platData.plat,
             type: 'plat',
           },
@@ -306,7 +391,13 @@ export async function updateCommande(
   try {
     const updateData: any = {}
 
-    if (data.statut_commande) updateData.statut_commande = data.statut_commande
+    if (data.statut_commande) {
+      console.log('--- SERVER ACTION --- Received status to update:', data.statut_commande);
+      const mappedStatus = mapStatutCommandeToDB(data.statut_commande as CommandeUI['statut_commande']);
+      if (mappedStatus) {
+        updateData.statut_commande = mappedStatus;
+      }
+    }
     if (data.statut_paiement) updateData.statut_paiement = data.statut_paiement
     if (data.notes_internes !== undefined)
       updateData.notes_internes = data.notes_internes
@@ -343,6 +434,154 @@ export async function updateCommande(
   } catch (error) {
     console.error('❌ Error in updateCommande:', error)
     throw new Error('Impossible de mettre à jour la commande')
+  }
+}
+
+/**
+ * Toggle le statut épinglé d'une commande
+ */
+export async function toggleEpingleCommande(id: number): Promise<CommandeUI> {
+  try {
+    // Récupérer l'état actuel
+    const currentCommande = await prisma.commande_db.findUnique({
+      where: { idcommande: id },
+      select: { epingle: true },
+    })
+
+    if (!currentCommande) {
+      throw new Error('Commande introuvable')
+    }
+
+    // Toggle l'état épinglé
+    const commande = await prisma.commande_db.update({
+      where: { idcommande: id },
+      data: { epingle: !currentCommande.epingle },
+      include: {
+        client_db: true,
+        details_commande_db: {
+          include: {
+            plats_db: true,
+            extras_db: true,
+          },
+        },
+      },
+    })
+
+    revalidatePath('/admin/commandes')
+    revalidatePath('/historique')
+
+    return convertCommandeToUI(commande)
+  } catch (error) {
+    console.error('❌ Error in toggleEpingleCommande:', error)
+    throw new Error('Impossible d\'épingler/désépingler la commande')
+  }
+}
+
+/**
+ * Bascule le statut "offert" d'un détail de commande
+ * Met prix_unitaire à 0 si offert, sinon restaure le prix original
+ */
+export async function toggleOffertDetail(
+  detailId: number,
+  prixOriginal?: string
+): Promise<DetailCommande> {
+  try {
+    // Récupérer le détail actuel
+    const currentDetail = await prisma.details_commande_db.findUnique({
+      where: { iddetails: detailId },
+      include: {
+        plats_db: true,
+        extras_db: true,
+      },
+    })
+
+    if (!currentDetail) {
+      throw new Error('Détail de commande introuvable')
+    }
+
+    const isCurrentlyOffert = currentDetail.est_offert ?? false
+
+    // Si on offre le plat, mettre prix à 0
+    // Si on annule l'offre, restaurer le prix original ou le prix du plat/extra
+    let newPrix: string | null = null
+    if (!isCurrentlyOffert) {
+      // Offrir le plat : prix = 0
+      newPrix = '0.00'
+    } else {
+      // Annuler l'offre : restaurer le prix
+      if (prixOriginal) {
+        newPrix = prixOriginal
+      } else if (currentDetail.plats_db) {
+        newPrix = currentDetail.plats_db.prix?.toString() || null
+      } else if (currentDetail.extras_db) {
+        newPrix = currentDetail.extras_db.prix.toString()
+      }
+    }
+
+    // Mettre à jour le détail
+    const updatedDetail = await prisma.details_commande_db.update({
+      where: { iddetails: detailId },
+      data: {
+        est_offert: !isCurrentlyOffert,
+        prix_unitaire: newPrix,
+      },
+      include: {
+        plats_db: true,
+        extras_db: true,
+      },
+    })
+
+    revalidatePath('/admin/commandes')
+    revalidatePath('/historique')
+
+    // Convertir en objet sérialisable (pas de Decimal)
+    return {
+      iddetails: updatedDetail.iddetails,
+      commande_r: updatedDetail.commande_r,
+      plat_r: updatedDetail.plat_r,
+      quantite_plat_commande: updatedDetail.quantite_plat_commande ?? 1,
+      nom_plat: updatedDetail.nom_plat ?? null,
+      prix_unitaire: updatedDetail.prix_unitaire?.toString() ?? null,
+      type: updatedDetail.type ?? 'plat',
+      extra_id: updatedDetail.extra_id ?? null,
+      est_offert: updatedDetail.est_offert ?? false,
+      plat: updatedDetail.plats_db
+        ? {
+            id: updatedDetail.plats_db.idplats,
+            idplats: updatedDetail.plats_db.idplats,
+            plat: updatedDetail.plats_db.plat,
+            description: updatedDetail.plats_db.description ?? null,
+            prix: updatedDetail.plats_db.prix ? updatedDetail.plats_db.prix.toString() : null,
+            lundi_dispo: updatedDetail.plats_db.lundi_dispo,
+            mardi_dispo: updatedDetail.plats_db.mardi_dispo,
+            mercredi_dispo: updatedDetail.plats_db.mercredi_dispo,
+            jeudi_dispo: updatedDetail.plats_db.jeudi_dispo,
+            vendredi_dispo: updatedDetail.plats_db.vendredi_dispo ?? null,
+            samedi_dispo: updatedDetail.plats_db.samedi_dispo ?? null,
+            dimanche_dispo: updatedDetail.plats_db.dimanche_dispo ?? null,
+            photo_du_plat: updatedDetail.plats_db.photo_du_plat ?? null,
+            est_epuise: updatedDetail.plats_db.est_epuise ?? null,
+            epuise_depuis: updatedDetail.plats_db.epuise_depuis?.toISOString() ?? null,
+            epuise_jusqu_a: updatedDetail.plats_db.epuise_jusqu_a?.toISOString() ?? null,
+            raison_epuisement: updatedDetail.plats_db.raison_epuisement ?? null,
+          }
+        : null,
+      extra: updatedDetail.extras_db
+        ? {
+            idextra: updatedDetail.extras_db.idextra,
+            nom_extra: updatedDetail.extras_db.nom_extra,
+            description: updatedDetail.extras_db.description ?? null,
+            prix: updatedDetail.extras_db.prix.toString(),
+            photo_url: updatedDetail.extras_db.photo_url ?? null,
+            actif: updatedDetail.extras_db.actif ?? null,
+            created_at: updatedDetail.extras_db.created_at?.toISOString() ?? null,
+            updated_at: updatedDetail.extras_db.updated_at?.toISOString() ?? null,
+          }
+        : null,
+    } as DetailCommande
+  } catch (error) {
+    console.error('❌ Error in toggleOffertDetail:', error)
+    throw new Error("Impossible de basculer le statut 'offert' du détail")
   }
 }
 
@@ -390,7 +629,7 @@ export async function addPlatToCommande(
         commande_r: commandeId,
         plat_r: platId,
         quantite_plat_commande: quantite,
-        prix_unitaire: plat.prix,
+        prix_unitaire: plat.prix?.toString() || null,
         nom_plat: plat.plat,
         type: 'plat',
       },
@@ -401,6 +640,41 @@ export async function addPlatToCommande(
   } catch (error) {
     console.error('❌ Error in addPlatToCommande:', error)
     throw new Error("Impossible d'ajouter le plat à la commande")
+  }
+}
+
+/**
+ * Ajoute un extra à une commande (version simplifiée après migration)
+ */
+export async function addExtraToCommande(
+  commandeId: number,
+  extraId: number,
+  quantite: number = 1
+): Promise<void> {
+  try {
+    const extra = await prisma.extras_db.findUnique({
+      where: { idextra: extraId },
+    })
+
+    if (!extra) throw new Error('Extra introuvable')
+
+    await prisma.details_commande_db.create({
+      data: {
+        commande_r: commandeId,
+        extra_id: extraId, // Lier directement à l'extra
+        plat_r: null, // Explicitement null car ce n'est pas un plat
+        quantite_plat_commande: quantite,
+        prix_unitaire: extra.prix.toString(), // Convertir Decimal en string pour la sérialisation
+        nom_plat: extra.nom_extra,
+        type: 'extra',
+      },
+    })
+
+    revalidatePath('/admin/commandes')
+    revalidatePath('/modifier-commande')
+  } catch (error) {
+    console.error('❌ Error in addExtraToCommande:', error)
+    throw new Error("Impossible d'ajouter l'extra à la commande")
   }
 }
 

@@ -48,7 +48,9 @@ import { useData } from '@/contexts/DataContext';
 import { usePrismaCommandeById, usePrismaCreateCommande, usePrismaDeleteCommande, usePrismaExtras } from "@/hooks/usePrismaData";
 import { extractRouteParam } from '@/lib/params-utils';
 import { supabase } from '@/lib/supabase';
-import type { PlatUI as Plat, PlatPanier, DetailCommande } from '@/types/app';
+import { toSafeNumber } from '@/lib/serialization';
+import type { PlatUI as Plat, PlatPanier, DetailCommande, ExtraUI } from '@/types/app';
+
 
 const dayNameToNumber: { [key: string]: Day } = {
   dimanche: 0,
@@ -108,12 +110,24 @@ const ModifierCommande = memo(() => {
     demandesOriginales: string;
   } | null>(null);
 
+  // Vérifier permissions
+  useEffect(() => {
+    // Autoriser si l'utilisateur est admin OU le propriétaire de la commande
+    if (commande && clientProfile && clientProfile.role !== 'admin' && clientProfile.idclient !== commande.client_r_id) {
+      toast({ title: "Accès non autorisé", description: "Vous n'êtes ni le propriétaire de cette commande, ni un administrateur.", variant: "destructive" });
+      router.push('/historique');
+    }
+  }, [commande, clientProfile, router, toast]);
+
+
+
   // Fonction pour formater les prix
-  const formatPrix = (prix: number): string => {
-    if (prix % 1 === 0) {
-      return `${prix.toFixed(0)}€`;
+  const formatPrix = (prix: any): string => {
+    const numericPrix = toSafeNumber(prix);
+    if (numericPrix % 1 === 0) {
+      return `${numericPrix.toFixed(0)}€`;
     } else {
-      return `${prix.toFixed(2).replace('.', ',')}€`;
+      return `${numericPrix.toFixed(2).replace('.', ',')}€`;
     }
   };
 
@@ -123,7 +137,7 @@ const ModifierCommande = memo(() => {
     if (item.type === 'extra' && extras) {
       // Extraire l'ID de l'extra depuis l'ID du panier (format: "extra-123")
       const extraId = parseInt(item.id.replace('extra-', '')) || 0;
-      const extraData = extras.find(extra => extra.idextra === extraId);
+      const extraData = extras.find((extra: ExtraUI) => extra.idextra === extraId);
       return extraData?.photo_url ?? 'https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png';
     }
     // Sinon, utiliser la photo du plat normal
@@ -136,28 +150,26 @@ const ModifierCommande = memo(() => {
     if (commande && plats && extras && commande.details && commande.details.length > 0) {
       const platsPanier: PlatPanier[] = [];
 
-      commande.details.forEach((detail, index) => {
+      commande.details.forEach((detail: DetailCommande, index: number) => {
         if (detail.quantite_plat_commande) {
           // Utiliser les données enrichies du hook usePrismaCommandesByClient
           // La logique d'enrichissement y est déjà appliquée
 
-          // Vérifier si c'est un extra (nouveau ou ancien système)
-          const isExtraNewSystem = !detail.plat && detail.plat_r && detail.plat_r > 0;
-          const isExtraOldSystem = detail.plat_r === 0 && detail.nom_plat && detail.plat?.plat === 'Extra (Complément divers)';
-          const isExtra = detail.type === 'extra' || isExtraNewSystem || isExtraOldSystem;
+          // Vérifier si c'est un extra (nouvelle architecture)
+          const isExtra = !!detail.extra;
 
           if (isExtra) {
             // Utiliser les données enrichies (extra, nom_plat, prix_unitaire)
-            const extraNom = detail.nom_plat || detail.extra?.nom_extra || 'Extra';
-            const extraPrix = Number(detail.prix_unitaire) || Number(detail.extra?.prix) || 0;
-            const extraId = detail.extra?.idextra || detail.plat_r || detail.iddetails || index;
+            const extraNom = detail.extra?.nom_extra || 'Extra';
+            const extraPrix = toSafeNumber(detail.extra?.prix);
+            const extraId = detail.extra?.idextra;
 
             console.log('Extra détecté:', { extraNom, extraPrix, extraId, detail });
 
             platsPanier.push({
               id: `extra-${extraId}`,
               nom: extraNom,
-              prix: extraPrix,
+              prix: extraPrix.toString(),
               quantite: detail.quantite_plat_commande,
               dateRetrait: commande.date_et_heure_de_retrait_souhaitees
                 ? new Date(commande.date_et_heure_de_retrait_souhaitees)
@@ -173,7 +185,7 @@ const ModifierCommande = memo(() => {
               platsPanier.push({
                 id: platData.idplats.toString(),
                 nom: platData.plat,
-                prix: Number(platData.prix) || 0,
+                prix: platData.prix?.toString() || '0', // Ensure it's a string
                 quantite: detail.quantite_plat_commande,
                 dateRetrait: commande.date_et_heure_de_retrait_souhaitees
                   ? new Date(commande.date_et_heure_de_retrait_souhaitees)
@@ -227,25 +239,23 @@ const ModifierCommande = memo(() => {
     if (!commande) return;
 
     const originalTotal =
-      commande.details?.reduce((total, detail) => {
+      commande.details?.reduce((total: number, detail: DetailCommande) => {
         const quantite = detail.quantite_plat_commande || 0;
         let prixUnitaire = 0;
-        
-        // Gérer les extras vs plats normaux (architecture hybride)
-        const platCorrespondant = plats?.find(p => p.idplats === detail.plat_r);
-        const isExtra = !platCorrespondant && detail.plat_r;
+
+        // Gérer les extras vs plats normaux (nouvelle architecture)
+        const isExtra = !!detail.extra;
         if (isExtra) {
-          const extraData = extras?.find(e => e.idextra === detail.plat_r);
-          prixUnitaire = extraData?.prix || Number(detail.prix_unitaire) || 0;
+          prixUnitaire = toSafeNumber(detail.extra?.prix || detail.prix_unitaire);
         } else {
-          prixUnitaire = Number(detail.plat?.prix) || 0;
+          prixUnitaire = toSafeNumber(detail.plat?.prix || detail.prix_unitaire);
         }
-        
+
         return total + prixUnitaire * quantite;
       }, 0) || 0;
 
     const newTotal = panierModification.reduce(
-      (total, item) => total + item.prix * item.quantite,
+      (total, item) => total + toSafeNumber(item.prix) * item.quantite,
       0
     );
 
@@ -367,7 +377,7 @@ const ModifierCommande = memo(() => {
     const newItem: PlatPanier = {
       id: plat.idplats.toString(),
       nom: plat.plat,
-      prix: plat.prix ?? 0,
+      prix: plat.prix ?? '0',
       quantite: 1,
       jourCommande: jourSelectionne,
       dateRetrait: dateCompleteRetrait,
@@ -407,7 +417,7 @@ const ModifierCommande = memo(() => {
     const newItem: PlatPanier = {
       id: `extra-${extra.idextra}`,
       nom: extra.nom_extra,
-      prix: extra.prix ?? 0,
+      prix: extra.prix?.toString() ?? '0',
       quantite: 1,
       jourCommande: jourSelectionne || '',
       dateRetrait: dateCompleteRetrait,
@@ -429,7 +439,7 @@ const ModifierCommande = memo(() => {
   };
 
   const totalPrixModification = useMemo(() => {
-    return panierModification.reduce((total, item) => total + item.prix * item.quantite, 0);
+    return panierModification.reduce((total, item) => total + toSafeNumber(item.prix) * item.quantite, 0);
   }, [panierModification]);
 
   // Loading states
@@ -456,14 +466,9 @@ const ModifierCommande = memo(() => {
     );
   }
 
-  // Vérifier permissions
-  if (clientProfile?.idclient !== commande.client_r) {
-    redirect('/historique');
-  }
-
   if (
     commande.statut_commande &&
-    !['En attente de confirmation', 'Confirmée'].includes(commande.statut_commande)
+    !['En attente de confirmation', 'Confirmée', 'Annulée'].includes(commande.statut_commande)
   ) {
     return (
       <div className='flex h-screen items-center justify-center bg-gradient-thai p-4'>
@@ -607,7 +612,7 @@ const ModifierCommande = memo(() => {
         if (!dateKey) continue;
 
         const nouvelleCommande = await createCommande.mutateAsync({
-          client_r: clientProfile.idclient,
+          client_r_id: clientProfile.idclient,
           date_et_heure_de_retrait_souhaitees: dateKey,
           demande_special_pour_la_commande: demandesSpeciales,
           details: items.map(item => {
@@ -615,7 +620,8 @@ const ModifierCommande = memo(() => {
             if (item.id.startsWith('extra-')) {
               const extraId = parseInt(item.id.replace('extra-', '')) || 0;
               return {
-                plat_r: extraId, // Architecture hybride: plat_r vers extras_db.idextra
+                plat_r: null, // Maintenant null car plat_r est optionnel
+                extra_id: extraId, // Utiliser le nouveau champ extra_id
                 quantite_plat_commande: item.quantite,
                 nom_plat: item.nom,
                 prix_unitaire: item.prix,
@@ -624,6 +630,7 @@ const ModifierCommande = memo(() => {
             } else {
               return {
                 plat_r: parseInt(item.id),
+                extra_id: null, // Null pour les plats normaux
                 quantite_plat_commande: item.quantite,
               };
             }
@@ -634,7 +641,7 @@ const ModifierCommande = memo(() => {
         derniereCommandeId = nouvelleCommande.idcommande;
       }
 
-      const totalGeneral = panierModification.reduce((sum, item) => sum + item.prix * item.quantite, 0);
+      const totalGeneral = panierModification.reduce((sum, item) => sum + toSafeNumber(item.prix) * item.quantite, 0);
 
       toast({
         title: 'Commande(s) modifiée(s) !',
@@ -762,7 +769,7 @@ const ModifierCommande = memo(() => {
                 <div>
                   <Label htmlFor='dateRetrait'>Date de retrait *</Label>
                   <Select
-                    onValueChange={value => setDateRetrait(new Date(value))}
+                    onValueChange={(value: string) => setDateRetrait(new Date(value))}
                     value={dateRetrait?.toISOString() || ''}
                   >
                     <SelectTrigger className={cn(!dateRetrait && 'text-muted-foreground')}>
@@ -872,36 +879,21 @@ const ModifierCommande = memo(() => {
                           <div className='space-y-3'>
                             {items.map(item => {
 
-                              // Pour les extras, pas de platData correspondant
-                              const platData = item.type === 'extra'
-                                ? null
-                                : plats?.find(p => p.id.toString() === item.id);
-
-                              // Prepare detail object for modal (matching the expected type)
-                              const itemId = item.type === 'extra'
-                                ? parseInt(item.id.replace('extra-', '')) || 0
-                                : parseInt(item.id);
-
-                              // Pour les extras, récupérer les vraies données depuis extras
-                              const extraData = item.type === 'extra' && extras
-                                ? extras.find(e => e.idextra === itemId)
-                                : null;
-
                               const detailForModal: any = {
                                 commande_r: commande?.idcommande || 0,
-                                iddetails: itemId,
-                                plat_r: itemId, // Architecture hybride: plat_r pointe vers plats_db ou extras_db
-                                extra_id: item.type === 'extra' ? itemId : null, // ID de l'extra si c'est un extra
+                                iddetails: parseInt(item.id.replace('extra-', '')) || parseInt(item.id), // Use item.id to derive iddetails
+                                plat_r: item.type === 'plat' ? (parseInt(item.id) || null) : null,
+                                extra_id: item.type === 'extra' ? (parseInt(item.id.replace('extra-', '')) || null) : null,
                                 quantite_plat_commande: item.quantite,
-                                prix_unitaire: extraData?.prix || item.prix,
-                                nom_plat: extraData?.nom_extra || item.nom,
-                                type: (item.type === 'extra' ? 'extra' : 'plat') as 'plat' | 'extra' | null,
-                                plat: item.type === 'extra' ? null : {
-                                  idplats: itemId,
+                                prix_unitaire: item.prix,
+                                nom_plat: item.nom,
+                                type: item.type as 'plat' | 'extra' | null,
+                                plat: item.type === 'plat' ? {
+                                  idplats: parseInt(item.id),
                                   plat: item.nom,
                                   prix: item.prix,
-                                  description: platData?.description || null,
-                                  photo_du_plat: platData?.photo_du_plat || null,
+                                  description: null, // Assuming description is not in PlatPanier
+                                  photo_du_plat: getItemPhotoUrl(item) || null,
                                   dimanche_dispo: null,
                                   lundi_dispo: null,
                                   mardi_dispo: null,
@@ -910,19 +902,18 @@ const ModifierCommande = memo(() => {
                                   vendredi_dispo: null,
                                   samedi_dispo: null,
                                   est_epuise: null,
-                                  epuise_depuis: null,
                                   epuise_jusqu_a: null,
                                   nom_plat: item.nom
-                                },
+                                } : null,
                                 extra: item.type === 'extra' ? {
-                                  idextra: itemId,
-                                  nom_extra: extraData?.nom_extra || item.nom,
-                                  prix: extraData?.prix || item.prix,
-                                  description: extraData?.description || null,
-                                  photo_url: extraData?.photo_url || getItemPhotoUrl(item) || null,
-                                  actif: extraData?.est_disponible ?? true,
-                                  created_at: extraData?.created_at || new Date().toISOString(),
-                                  updated_at: extraData?.updated_at || new Date().toISOString()
+                                  idextra: parseInt(item.id.replace('extra-', '')),
+                                  nom_extra: item.nom,
+                                  prix: item.prix,
+                                  description: null, // Assuming description is not in PlatPanier
+                                  photo_url: getItemPhotoUrl(item) || null,
+                                  actif: true, // Assuming active
+                                  created_at: new Date().toISOString(),
+                                  updated_at: new Date().toISOString()
                                 } : null
                               };
 
@@ -961,15 +952,14 @@ const ModifierCommande = memo(() => {
                                         <span className='flex items-center gap-1'>
                                           <span className='font-medium'>Prix unitaire:</span>
                                           <span className='text-thai-green font-semibold'>
-                                            {formatPrix(item.prix)}
-                                          </span>
-                                        </span>
-                                      </div>
-                                    </div>
-
+                                                                                    {formatPrix(item.prix)}
+                                                                                  </span>
+                                                                                </span>
+                                                                              </div>
+                                                                            </div>
                                     <div className='text-right'>
                                       <div className='text-lg font-bold text-thai-orange mb-3'>
-                                        {formatPrix(item.prix * item.quantite)}
+                                        {formatPrix(toSafeNumber(item.prix) * item.quantite)}
                                       </div>
                                       <div className='flex items-center gap-2' onClick={(e) => e.stopPropagation()}>
                                         <Button
@@ -1103,8 +1093,8 @@ const ModifierCommande = memo(() => {
                     <div className='flex items-center justify-center gap-2'>
                       <MapPin className='h-4 w-4 text-thai-orange' />
                       <span>Adresse de retrait : </span>
-                      <Link 
-                        href='/nous-trouver' 
+                      <Link
+                        href='/nous-trouver'
                         className='text-thai-orange hover:text-thai-orange/80 font-semibold underline decoration-thai-orange/50 hover:decoration-thai-orange transition-colors duration-200'
                       >
                         2 impasse de la poste 37120 Marigny Marmande
@@ -1235,7 +1225,7 @@ const ModifierCommande = memo(() => {
                                   const newItem: PlatPanier = {
                                     id: platToAdd.idplats.toString(),
                                     nom: platToAdd.plat,
-                                    prix: platToAdd.prix || 0,
+                                    prix: platToAdd.prix || '0',
                                     quantite: quantity,
                                     dateRetrait: new Date(dateRetrait.getTime()),
                                     jourCommande: jourSelectionne || ''
@@ -1288,7 +1278,7 @@ const ModifierCommande = memo(() => {
                                     </p>
                                     <div className='flex items-center justify-between' onClick={(e) => e.stopPropagation()}>
                                       <Badge variant='secondary' className='text-xs'>
-                                        {formatPrix(plat.prix || 0)}
+                                        {formatPrix(plat.prix)}
                                       </Badge>
                                       <Button
                                         onClick={(e) => {
@@ -1316,7 +1306,7 @@ const ModifierCommande = memo(() => {
                               Extras disponibles :
                             </h3>
                             <div className='grid grid-cols-2 gap-3'>
-                              {extrasDisponibles.map(extra => {
+                              {extrasDisponibles.map((extra: ExtraUI) => {
                                 // Calculer la quantité actuelle de cet extra dans le panier
                                 const currentQuantity = panierModification
                                   .filter(item => item.id === `extra-${extra.idextra}`)
@@ -1328,7 +1318,7 @@ const ModifierCommande = memo(() => {
                                     const newItem: PlatPanier = {
                                       id: `extra-${extraToAdd.idextra}`,
                                       nom: extraToAdd.nom_extra,
-                                      prix: extraToAdd.prix || 0,
+                                      prix: extraToAdd.prix || '0',
                                       quantite: quantity,
                                       dateRetrait: new Date(dateRetrait.getTime()),
                                       jourCommande: jourSelectionne || '',
@@ -1370,7 +1360,7 @@ const ModifierCommande = memo(() => {
                                             src={extra.photo_url}
                                             alt={extra.nom_extra}
                                             className='w-full h-full object-cover'
-                                            onError={(e) => {
+                                            onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
                                               e.currentTarget.src = 'https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png';
                                             }}
                                           />
@@ -1389,7 +1379,7 @@ const ModifierCommande = memo(() => {
                                       )}
                                       <div className='flex items-center justify-between' onClick={(e) => e.stopPropagation()}>
                                         <Badge variant='secondary' className='text-xs bg-thai-gold/20 text-thai-gold border-thai-gold/30'>
-                                          {formatPrix(extra.prix || 0)}
+                                          {formatPrix(extra.prix)}
                                         </Badge>
                                         <div className='flex items-center gap-2'>
                                           {currentQuantity > 0 && (

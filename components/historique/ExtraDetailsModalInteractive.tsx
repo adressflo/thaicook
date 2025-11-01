@@ -7,7 +7,7 @@ import { FileText, Plus, Minus, ShoppingCart, Sparkles } from 'lucide-react';
 interface ExtraData {
   idextra: number;
   nom_extra: string;
-  prix: number;
+  prix: string;
   description?: string | null;
   photo_url?: string | null;
   est_disponible: boolean;
@@ -32,7 +32,7 @@ export const ExtraDetailsModalInteractive = React.memo<ExtraDetailsModalInteract
 }) => {
   const [open, setOpen] = React.useState(false);
   const [quantity, setQuantity] = React.useState(1);
-  const prixUnitaire = extra.prix || 0;
+  const prixUnitaire = parseFloat(extra.prix || '0');
   const sousTotal = prixUnitaire * quantity;
 
   const handleModalClick = () => {
@@ -134,7 +134,7 @@ export const ExtraDetailsModalInteractive = React.memo<ExtraDetailsModalInteract
                     PRIX UNITAIRE
                   </div>
                   <div className="text-2xl font-bold text-thai-gold">
-                    {formatPrix(prixUnitaire)}
+                                        {formatPrix(parseFloat(extra.prix || '0'))}
                   </div>
                 </div>
               </div>

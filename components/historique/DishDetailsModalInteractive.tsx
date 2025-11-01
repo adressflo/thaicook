@@ -24,7 +24,7 @@ export const DishDetailsModalInteractive = React.memo<DishDetailsModalInteractiv
 }) => {
   const [open, setOpen] = React.useState(false);
   const [quantity, setQuantity] = React.useState(1);
-  const prixUnitaire = plat.prix || 0;
+  const prixUnitaire = parseFloat(plat.prix || '0');
   const sousTotal = prixUnitaire * quantity;
 
   const handleModalClick = () => {

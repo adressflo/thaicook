@@ -10,6 +10,19 @@
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 import type { PlatUI } from '@/types/app'
+import { Prisma } from '@prisma/client'
+import { Decimal } from '@prisma/client/runtime/library' // Add this import for Decimal type checking
+
+// Custom replacer function for JSON.stringify to handle Decimal and BigInt
+function jsonReplacer(key: string, value: any): any {
+  if (value instanceof Decimal) {
+    return value.toString();
+  }
+  if (typeof value === 'bigint') {
+    return value.toString();
+  }
+  return value;
+}
 
 /**
  * Récupère tous les plats actifs (non épuisés)
@@ -19,18 +32,35 @@ export async function getPlats(): Promise<PlatUI[]> {
     const plats = await prisma.plats_db.findMany({
       where: { est_epuise: false },
       orderBy: { plat: 'asc' },
-    })
+    });
 
-    return plats.map((p) => ({
-      ...p,
-      id: p.idplats, // Ajout du champ id pour l'UI
-      prix: p.prix ? Number(p.prix) : null,
-      epuise_depuis: p.epuise_depuis?.toISOString() || null,
-      epuise_jusqu_a: p.epuise_jusqu_a?.toISOString() || null,
-    }))
+    // Manually map each field to ensure no non-serializable objects are passed.
+    // This is a more explicit and safer way to prevent serialization errors.
+    return plats.map((plat) => {
+      const platData: PlatUI = {
+        id: plat.idplats,
+        idplats: plat.idplats,
+        plat: plat.plat,
+        description: plat.description ?? null,
+        prix: plat.prix ? plat.prix.toString() : null,
+        lundi_dispo: plat.lundi_dispo,
+        mardi_dispo: plat.mardi_dispo,
+        mercredi_dispo: plat.mercredi_dispo,
+        jeudi_dispo: plat.jeudi_dispo,
+        vendredi_dispo: plat.vendredi_dispo ?? null,
+        samedi_dispo: plat.samedi_dispo ?? null,
+        dimanche_dispo: plat.dimanche_dispo ?? null,
+        photo_du_plat: plat.photo_du_plat ?? null,
+        est_epuise: plat.est_epuise ?? null,
+        epuise_depuis: plat.epuise_depuis?.toISOString() ?? null,
+        epuise_jusqu_a: plat.epuise_jusqu_a?.toISOString() ?? null,
+        raison_epuisement: plat.raison_epuisement ?? null,
+      };
+      return platData;
+    });
   } catch (error) {
-    console.error('❌ Error in getPlats:', error)
-    throw new Error('Impossible de récupérer les plats')
+    console.error('❌ Error in getPlats:', error);
+    throw new Error('Impossible de récupérer les plats');
   }
 }
 
@@ -40,7 +70,7 @@ export async function getPlats(): Promise<PlatUI[]> {
 export async function createPlat(data: {
   plat: string
   description?: string
-  prix: number
+  prix: string
   photo_du_plat?: string
   lundi_dispo?: any
   mardi_dispo?: any
@@ -74,10 +104,10 @@ export async function createPlat(data: {
     return {
       ...plat,
       id: plat.idplats,
-      prix: plat.prix ? Number(plat.prix) : null,
+      prix: plat.prix?.toString() || null,
       epuise_depuis: plat.epuise_depuis?.toISOString() || null,
       epuise_jusqu_a: plat.epuise_jusqu_a?.toISOString() || null,
-    }
+    };
   } catch (error) {
     console.error('❌ Error in createPlat:', error)
     throw new Error('Impossible de créer le plat')
@@ -92,7 +122,7 @@ export async function updatePlat(
   data: Partial<{
     plat: string
     description: string
-    prix: number
+    prix: string
     photo_du_plat: string
     est_epuise: boolean
     lundi_dispo: any
@@ -107,7 +137,10 @@ export async function updatePlat(
   try {
     const plat = await prisma.plats_db.update({
       where: { idplats: id },
-      data,
+      data: {
+        ...data,
+        prix: data.prix ? data.prix : undefined, // Convert string to Decimal
+      },
     })
 
     revalidatePath('/admin/plats')
@@ -116,10 +149,10 @@ export async function updatePlat(
     return {
       ...plat,
       id: plat.idplats,
-      prix: plat.prix ? Number(plat.prix) : null,
+      prix: plat.prix?.toString() || null,
       epuise_depuis: plat.epuise_depuis?.toISOString() || null,
       epuise_jusqu_a: plat.epuise_jusqu_a?.toISOString() || null,
-    }
+    };
   } catch (error) {
     console.error('❌ Error in updatePlat:', error)
     throw new Error('Impossible de mettre à jour le plat')

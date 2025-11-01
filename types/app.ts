@@ -15,12 +15,13 @@ export type Plat = plats_db
 export type Commande = commande_db
 export type DetailCommande = details_commande_db & {
   // Extensions pour les extras et plats
-  prix_unitaire?: number | null // Prix custom pour les extras
-  nom_plat?: string | null // Nom custom pour les extras
-  type?: 'plat' | 'extra' | null // Type pour distinguer plats vs extras
-  extra?: Extra | null // Données de l'extra lié si applicable
-  plat?: Plat | null // Données du plat lié si applicable
-}
+  prix_unitaire?: string | null; // Prix custom pour les extras
+  nom_plat?: string | null; // Nom custom pour les extras
+  type?: 'plat' | 'extra' | null; // Type pour distinguer plats vs extras
+  est_offert?: boolean | null; // Indique si le plat est offert
+  extra?: Extra | null; // Données de l'extra lié si applicable
+  plat?: Plat | null; // Données du plat lié si applicable
+};
 export type Evenement = evenements_db
 export type Extra = extras_db
 
@@ -35,11 +36,12 @@ export type EvenementInputData = Database['public']['Tables']['evenements_db']['
 export type ExtraInputData = Database['public']['Tables']['extras_db']['Insert']
 
 // Type pour l'interface utilisateur des plats
-export interface PlatUI extends Omit<Plat, 'epuise_depuis' | 'epuise_jusqu_a' | 'prix'> {
+export interface PlatUI
+  extends Omit<Plat, 'epuise_depuis' | 'epuise_jusqu_a' | 'prix'> {
   id: number; // Mappage de idplats vers id pour l'UI
   idplats: number;
   plat: string;
-  prix: number | null; // Converti de Decimal vers number
+  prix: string | null; // Converti de Decimal vers string
   description: string | null;
   photo_du_plat: string | null;
   epuise_depuis: string | null; // Converti de Date vers ISO string
@@ -52,40 +54,77 @@ export interface PlatUI extends Omit<Plat, 'epuise_depuis' | 'epuise_jusqu_a' | 
 
 // Type pour un plat dans le panier
 export interface PlatPanier {
-  id: string
-  nom: string
-  prix: number
-  quantite: number
-  jourCommande?: string // Jour pour lequel le plat est commandé
-  dateRetrait?: Date // Date de retrait associée
-  uniqueId?: string // ID unique pour chaque article dans le panier
-  type?: 'plat' | 'extra' // Type de l'item (plat normal ou extra)
+  id: string;
+  nom: string;
+  prix: string;
+  quantite: number;
+  jourCommande?: string; // Jour pour lequel le plat est commandé
+  dateRetrait?: Date; // Date de retrait associée
+  uniqueId?: string; // ID unique pour chaque article dans le panier
+  type?: 'plat' | 'extra'; // Type de l'item (plat normal ou extra)
 }
 
 // Type pour l'interface utilisateur des commandes
-export interface CommandeUI extends Omit<Commande, 'statut_commande' | 'statut_paiement' | 'type_livraison' | 'client_r_id' | 'date_et_heure_de_retrait_souhaitees' | 'date_de_prise_de_commande'> {
-  id: number // Mappage de idcommande vers id pour l'UI
-  client_r: string | null // Assurer la compatibilité
-  client_r_id: number | null // Converti de bigint vers number
-  date_et_heure_de_retrait_souhaitees: string | null // Converti de Date vers ISO string
-  date_de_prise_de_commande: string | null // Converti de Date vers ISO string
-  client?: Pick<Client, 'nom' | 'prenom' | 'numero_de_telephone' | 'email' | 'preference_client' | 'photo_client' | 'auth_user_id' | 'adresse_numero_et_rue' | 'code_postal' | 'ville'> | null // Données du client jointes (partielles)
-  details?: Array<DetailCommande & {
-    plat?: Plat
-  }>
+export interface CommandeUI
+  extends Omit<
+    Commande,
+    | 'statut_commande'
+    | 'statut_paiement'
+    | 'type_livraison'
+    | 'client_r_id'
+    | 'date_et_heure_de_retrait_souhaitees'
+    | 'date_de_prise_de_commande'
+  > {
+  id: number; // Mappage de idcommande vers id pour l'UI
+  client_r: string | null; // Assurer la compatibilité
+  client_r_id: number | null; // Converti de bigint vers number
+  date_et_heure_de_retrait_souhaitees: string | null; // Converti de Date vers ISO string
+  date_de_prise_de_commande: string | null; // Converti de Date vers ISO string
+  client?: {
+    idclient: number;
+    nom: string | null;
+    prenom: string | null;
+    numero_de_telephone: string | null;
+    email: string | null;
+    preference_client: string | null;
+    photo_client: string | null;
+    auth_user_id: string;
+    adresse_numero_et_rue: string | null;
+    code_postal: number | null;
+    ville: string | null;
+  } | null;
+  details?: Array<
+    DetailCommande & {
+      plat?: Plat;
+    }
+  >;
   // Propriétés compatibles avec l'ancien système
-  'Numéro de Commande'?: string // Calculé depuis idcommande
-  'Date & Heure de retrait'?: string | undefined // Alias pour date_et_heure_de_retrait_souhaitees
-  'Statut Commande'?: string | undefined // Alias pour statut_commande
-  statut?: string | undefined // Alias pour statut_commande
-  statut_commande?: 'En attente de confirmation' | 'Confirmée' | 'En préparation' | 'Prête à récupérer' | 'Récupérée' | 'Annulée' | null // Pour compatibilité directe avec DB
-  statut_paiement?: 'En attente sur place' | 'Payé sur place' | 'Payé en ligne' | 'Non payé' | 'Payée' | null // Pour compatibilité directe
-  type_livraison?: 'À emporter' | 'Livraison' | 'Sur place' | null // Pour compatibilité directe
-  prix_total?: number // Calculé depuis les détails
-  Total?: number // Alias pour prix_total
-  createdTime?: string | undefined // Alias pour date_de_prise_de_commande
-  created_at?: string | null // ISO string
-  updated_at?: string | null // ISO string
+  'Numéro de Commande'?: string; // Calculé depuis idcommande
+  'Date & Heure de retrait'?: string | undefined; // Alias pour date_et_heure_de_retrait_souhaitees
+  'Statut Commande'?: string | undefined; // Alias pour statut_commande
+  statut?: string | undefined; // Alias pour statut_commande
+  statut_commande?:
+    | 'En attente de confirmation'
+    | 'Confirmée'
+    | 'En préparation'
+    | 'Prête à récupérer'
+    | 'Récupérée'
+    | 'Annulée'
+    | null; // Pour compatibilité directe avec DB
+  statut_paiement?:
+    | 'En attente sur place'
+    | 'Payé sur place'
+    | 'Payé en ligne'
+    | 'Non payé'
+    | 'Payée'
+    | null; // Pour compatibilité directe
+  type_livraison?: 'À emporter' | 'Livraison' | 'Sur place' | null; // Pour compatibilité directe
+  prix_total?: string; // Calculé depuis les détails
+  Total?: string; // Alias pour prix_total
+  createdTime?: string | undefined; // Alias pour date_de_prise_de_commande
+  created_at?: string | null; // ISO string
+  updated_at?: string | null; // ISO string
+  epingle: boolean | null; // Indique si la commande est épinglée en haut de la liste
 }
 
 // Type pour une commande avec ses détails (alias pour CommandeUI)
@@ -101,26 +140,41 @@ export interface CommandeAvecDetails extends Commande {
 }
 
 // Type pour l'interface utilisateur des événements
-export interface EvenementUI extends Omit<Evenement, 'contact_client_r_id' | 'budget_client' | 'prix_total_devise' | 'acompte_demande' | 'acompte_recu' | 'date_evenement' | 'date_acompte_recu' | 'created_at' | 'updated_at'> {
-  id: number // Mappage de idevenements vers id pour l'UI
-  contact_client_r_id: number | null // Converti de bigint vers number
-  budget_client: number | null // Converti de Decimal vers number
-  prix_total_devise: number | null // Converti de Decimal vers number
-  acompte_demande: number | null // Converti de Decimal vers number
-  acompte_recu: number | null // Converti de Decimal vers number
-  date_evenement: string | null // Converti de Date vers ISO string
-  date_acompte_recu: string | null // Converti de Date vers ISO string
-  created_at: string | null // Converti de Date vers ISO string
-  updated_at: string | null // Converti de Date vers ISO string
+export interface EvenementUI
+  extends Omit<
+    Evenement,
+    | 'contact_client_r_id'
+    | 'budget_client'
+    | 'prix_total_devise'
+    | 'acompte_demande'
+    | 'acompte_recu'
+    | 'date_evenement'
+    | 'date_acompte_recu'
+    | 'created_at'
+    | 'updated_at'
+  > {
+  id: number; // Mappage de idevenements vers id pour l'UI
+  contact_client_r_id: number | null; // Converti de bigint vers number
+  budget_client: string | null; // Converti de Decimal vers string
+  prix_total_devise: string | null; // Converti de Decimal vers string
+  acompte_demande: string | null; // Converti de Decimal vers string
+  acompte_recu: string | null; // Converti de Decimal vers string
+  date_evenement: string | null; // Converti de Date vers ISO string
+  date_acompte_recu: string | null; // Converti de Date vers ISO string
+  created_at: string | null; // Converti de Date vers ISO string
+  updated_at: string | null; // Converti de Date vers ISO string
   // Aliases pour compatibilité
-  client_r_id?: number | null
-  date_evenement_formatee?: string
-  budget_estime?: number | null
-  demandes_speciales?: string | null
-  statut?: string | null
-  notes_internes?: string | null
-  type_evenement?: string | null
-  client?: Pick<Client, 'nom' | 'prenom' | 'email' | 'numero_de_telephone'> | null
+  client_r_id?: number | null;
+  date_evenement_formatee?: string;
+  budget_estime?: number | null;
+  demandes_speciales?: string | null;
+  statut?: string | null;
+  notes_internes?: string | null;
+  type_evenement?: string | null;
+  client?: Pick<
+    Client,
+    'nom' | 'prenom' | 'email' | 'numero_de_telephone'
+  > | null;
 }
 
 // Type pour l'interface utilisateur des extras
@@ -128,7 +182,7 @@ export interface ExtraUI extends Omit<Extra, 'prix' | 'created_at' | 'updated_at
   id: number; // Mappage de idextra vers id pour l'UI
   idextra: number;
   nom_extra: string;
-  prix: number; // Converti de Decimal vers number
+  prix: string; // Converti de Decimal vers string
   description: string | null;
   photo_url: string | null;
   created_at: string | null; // Converti de Date vers ISO string
@@ -154,8 +208,12 @@ export interface CreateCommandeData {
   adresse_specifique?: string
   // Accepter les deux formats pour compatibilité
   details?: Array<{
-    plat_r: string | number // ancien format
+    plat_r: string | number | null // ancien format - null pour les extras
     quantite_plat_commande?: number
+    extra_id?: number | null // ID de l'extra si c'est un extra, null pour les plats
+    nom_plat?: string // Nom pour les extras
+    prix_unitaire?: string | number // Prix pour les extras
+    type?: string // 'plat' ou 'extra'
   }>
   plats?: Array<{
     plat_r_id: number // nouveau format
@@ -164,15 +222,15 @@ export interface CreateCommandeData {
 }
 
 export interface CreateEvenementData {
-  nom_evenement: string
-  contact_client_r?: string // auth_user_id (optionnel maintenant)
-  contact_client_r_id: number // idclient (obligatoire maintenant)
-  date_evenement: string
-  type_d_evenement: string
-  nombre_de_personnes: number
-  budget_client?: number
-  demandes_speciales_evenement?: string
-  plats_preselectionnes?: number[] // Array de idplats
+  nom_evenement: string;
+  contact_client_r?: string; // auth_user_id (optionnel maintenant)
+  contact_client_r_id: number; // idclient (obligatoire maintenant)
+  date_evenement: string;
+  type_d_evenement: string;
+  nombre_de_personnes: number;
+  budget_client?: string;
+  demandes_speciales_evenement?: string;
+  plats_preselectionnes?: number[]; // Array de idplats
 }
 
 // Type pour la réponse d'authentification
@@ -187,27 +245,27 @@ export interface AuthResponse {
 
 // Types pour les listes de courses - Correction des propriétés manquantes
 export interface ListeAvecArticles {
-  id: number
-  nom_liste: string
-  description: string | null
-  date_creation: string | null
-  date_derniere_modification: string | null
-  statut: string | null
-  created_by: string | null
-  total_estimatif: number | null
-  articles: ArticleListeCourse[]
-  articles_count?: number // Propriété calculée
+  id: number;
+  nom_liste: string;
+  description: string | null;
+  date_creation: string | null;
+  date_derniere_modification: string | null;
+  statut: string | null;
+  created_by: string | null;
+  total_estimatif: string | null;
+  articles: ArticleListeCourse[];
+  articles_count?: number; // Propriété calculée
 }
 
 // Type pour les recommandations IA
 export interface PlatRecommandation extends Omit<Plat, 'photo_du_plat'> {
-  photo_du_plat?: string | null // Permettre null comme dans Plat
-  note_moyenne?: number
-  nb_commandes?: number
-  score?: number
-  confidence?: number
-  reason?: string
-  disponible_aujourd_hui?: boolean
+  photo_du_plat?: string | null; // Permettre null comme dans Plat
+  note_moyenne?: string;
+  nb_commandes?: number;
+  score?: string;
+  confidence?: number;
+  reason?: string;
+  disponible_aujourd_hui?: boolean;
 }
 
 // Type pour les mises à jour de commande

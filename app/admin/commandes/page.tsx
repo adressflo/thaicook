@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { toSafeNumber } from '@/lib/serialization';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -16,6 +17,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { useSession } from '@/lib/auth-client';
 import { useRouter } from 'next/navigation';
+import { DateSelector } from '@/components/forms/DateSelector';
 import {
   Dialog,
   DialogContent,
@@ -52,10 +54,15 @@ import {
   ArrowLeft,
   MapPin,
   Phone,
+  Pin,
+  PinOff,
+  Gift,
 } from 'lucide-react';
 import {
   usePrismaCommandes,
   usePrismaUpdateCommande,
+  usePrismaToggleEpingleCommande,
+  usePrismaToggleOffertDetail,
   usePrismaUpdatePlatQuantite,
   usePrismaRemovePlatFromCommande,
   usePrismaAddPlatToCommande,
@@ -63,6 +70,7 @@ import {
   usePrismaCommandeById,
   usePrismaExtras,
   usePrismaCreateExtra,
+  usePrismaAddExtraToCommande,
 } from "@/hooks/usePrismaData";
 import { useCommandesRealtime } from "@/hooks/useSupabaseData";
 import { useImageUpload } from '@/hooks/useImageUpload';
@@ -453,21 +461,23 @@ const PlatCommandeCard = ({
   item,
   commandeId,
   toast,
+  toggleOffertDetailMutation,
 }: {
   item: any;
   commandeId: number;
   toast: any;
+  toggleOffertDetailMutation: any;
 }) => {
   const updateQuantiteMutation = usePrismaUpdatePlatQuantite();
   const removePlatMutation = usePrismaRemovePlatFromCommande();
   const [isModifying, setIsModifying] = useState(false);
-
   // Fonction formatPrix identique à celle du panier
-  const formatPrix = (prix: number): string => {
-    if (prix % 1 === 0) {
-      return `${prix.toFixed(0)}€`;
+  const formatPrix = (prix: any): string => {
+    const numericPrix = toSafeNumber(prix, 0);
+    if (numericPrix % 1 === 0) {
+      return `${numericPrix.toFixed(0)}€`;
     } else {
-      return `${prix.toFixed(2).replace('.', ',')}€`;
+      return `${numericPrix.toFixed(2).replace('.', ',')}€`;
     }
   };
 
@@ -662,7 +672,7 @@ const PlatCommandeCard = ({
           <span className="flex items-center gap-1">
             <span className="font-medium">Prix unitaire:</span>
             <span className="text-thai-green font-semibold">
-              {formatPrix(item.extra?.prix || item.plat?.prix || item.prix_unitaire || 0)}
+              {formatPrix(toSafeNumber(item.extra?.prix || item.plat?.prix || item.prix_unitaire))}
             </span>
           </span>
         </div>
@@ -672,7 +682,7 @@ const PlatCommandeCard = ({
       <div className="text-right">
         <div className="text-2xl font-bold text-thai-orange mb-4">
           {formatPrix(
-            (item.extra?.prix || item.plat?.prix || item.prix_unitaire || 0) *
+            toSafeNumber(item.extra?.prix || item.plat?.prix || item.prix_unitaire) *
               (item.quantite_plat_commande || 0)
           )}
         </div>
@@ -721,7 +731,37 @@ const PlatCommandeCard = ({
           >
             <Trash2 className="h-4 w-4" />
           </Button>
+          <Button
+            size="icon"
+            variant="ghost"
+            onClick={e => {
+              e.stopPropagation();
+              const prixOriginal = item.plat?.prix?.toString() || item.extra?.prix?.toString() || item.prix_unitaire?.toString();
+              toggleOffertDetailMutation.mutate({
+                detailId: item.iddetails,
+                prixOriginal,
+              });
+            }}
+            disabled={isModifying || !item.iddetails}
+            className={`h-8 w-8 ml-2 transition-all duration-200 hover:scale-110 hover:shadow-lg hover:ring-2 ${
+              item.est_offert
+                ? 'text-thai-green hover:text-thai-green/70 hover:bg-thai-green/10 hover:ring-thai-green/30'
+                : 'text-gray-400 hover:text-thai-gold hover:bg-thai-gold/10 hover:ring-thai-gold/30'
+            }`}
+            title={item.est_offert ? 'Annuler l\'offre' : 'Offrir ce plat'}
+            aria-label={item.est_offert ? 'Annuler l\'offre' : 'Offrir ce plat'}
+          >
+            <Gift className={`h-4 w-4 ${item.est_offert ? 'fill-current' : ''}`} />
+          </Button>
         </div>
+        {item.est_offert && (
+          <div className="mt-2">
+            <span className="inline-flex items-center gap-1 text-xs bg-thai-green/20 text-thai-green px-2 py-1 rounded-full font-medium">
+              <Gift className="w-3 h-3 fill-current" />
+              Offert
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -750,15 +790,15 @@ const AddComplementModal = ({
     nom_extra: '',
     prix: '',
     description: '',
-    photo_url: 'https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png'
+    photo_url: 'https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/extras/extra.png'
   });
   const createExtraMutation = usePrismaCreateExtra();
   const { uploadState, uploadFile, resetUpload } = useImageUpload(
     'extras',
-    'https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png'
+    'https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/extras/extra.png'
   );
 
-  const addPlatMutation = usePrismaAddPlatToCommande();
+  const addExtraMutation = usePrismaAddExtraToCommande();
 
   const handleImageUpload = async (file: File) => {
     await uploadFile(file, (url: string) => {
@@ -777,15 +817,15 @@ const AddComplementModal = ({
       const newExtra = await createExtraMutation.mutateAsync({
         nom_extra: newExtraForm.nom_extra,
         description: newExtraForm.description,
-        prix: parseFloat(newExtraForm.prix),
+        prix: newExtraForm.prix || '0',
         photo_url: newExtraForm.photo_url
       });
 
-      await addPlatMutation.mutateAsync({
+      await addExtraMutation.mutateAsync({
         commandeId: commandeId,
-        platId: newExtra.idextra,
+        extraId: newExtra.idextra,
         quantite: 1,
-      } as any); // Type casting pour compatibilité temporaire
+      });
 
       toast({ title: 'Succès', description: `Nouvel extra "${newExtra.nom_extra}" créé et ajouté à la commande.` });
       resetForm();
@@ -805,11 +845,11 @@ const AddComplementModal = ({
     try {
       const extra = extras?.find((e: any) => e.idextra === selectedExtraId);
 
-      await addPlatMutation.mutateAsync({
+      await addExtraMutation.mutateAsync({
         commandeId: commandeId,
-        platId: selectedExtraId,
+        extraId: selectedExtraId,
         quantite: 1,
-      } as any); // Type casting pour compatibilité temporaire
+      });
       toast({ title: 'Succès', description: `Extra "${extra?.nom_extra}" ajouté à la commande.` });
       resetForm();
       onClose();
@@ -825,7 +865,7 @@ const AddComplementModal = ({
       nom_extra: '',
       prix: '',
       description: '',
-      photo_url: 'https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png'
+      photo_url: 'https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/extras/extra.png'
     });
     resetUpload();
   };
@@ -864,7 +904,7 @@ const AddComplementModal = ({
                     }`}
                   >
                     <img
-                      src={extra.photo_url || 'https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png'}
+                      src={extra.photo_url || 'https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/extras/extra.png'}
                       alt={extra.nom_extra}
                       className="w-12 h-12 rounded-md object-cover"
                     />
@@ -872,7 +912,7 @@ const AddComplementModal = ({
                       <p className="font-medium">{extra.nom_extra}</p>
                       <p className="text-sm text-gray-500">{extra.description}</p>
                     </div>
-                    <p className="font-semibold">{extra.prix?.toFixed(2)}€</p>
+                    <p className="font-semibold">{toSafeNumber(extra.prix).toFixed(2)}€</p>
                   </div>
                 ))}
               </div>
@@ -909,10 +949,10 @@ const AddComplementModal = ({
           <Button
             type="button"
             onClick={activeTab === 'select' ? handleSelectAndAddExtra : handleCreateAndAddExtra}
-            disabled={addPlatMutation.isPending || createExtraMutation.isPending || (activeTab === 'select' && !selectedExtraId)}
+            disabled={addExtraMutation.isPending || createExtraMutation.isPending || (activeTab === 'select' && !selectedExtraId)}
             className="bg-thai-orange hover:bg-thai-orange/90 text-white"
           >
-            {addPlatMutation.isPending || createExtraMutation.isPending ? 'Ajout...' : 'Ajouter à la commande'}
+            {addExtraMutation.isPending || createExtraMutation.isPending ? 'Ajout...' : 'Ajouter à la commande'}
           </Button>
         </div>
       </DialogContent>
@@ -939,11 +979,12 @@ const AddPlatModal = ({
   );
 
   // Fonction formatPrix identique à celle du panier
-  const formatPrix = (prix: number): string => {
-    if (prix % 1 === 0) {
-      return `${prix.toFixed(0)}€`;
+  const formatPrix = (prix: any): string => {
+    const numericPrix = toSafeNumber(prix, 0);
+    if (numericPrix % 1 === 0) {
+      return `${numericPrix.toFixed(0)}€`;
     } else {
-      return `${prix.toFixed(2).replace('.', ',')}€`;
+      return `${numericPrix.toFixed(2).replace('.', ',')}€`;
     }
   };
 
@@ -1035,7 +1076,7 @@ const AddPlatModal = ({
                         <span className="flex items-center gap-1">
                           <span className="font-medium">Prix unitaire:</span>
                           <span className="text-thai-green font-semibold">
-                            {formatPrix(plat.prix || 0)}
+                            {formatPrix(toSafeNumber(plat?.prix))}
                           </span>
                         </span>
                       </div>
@@ -1045,7 +1086,7 @@ const AddPlatModal = ({
                     <div className="text-right">
                       <div className="text-2xl font-bold text-thai-orange mb-4">
                         {formatPrix(
-                          (plat.prix || 0) * (selectedPlats[plat.idplats] || 0)
+                          toSafeNumber(plat.prix) * (selectedPlats[plat.idplats] || 0)
                         )}
                       </div>
                       <div className="flex items-center gap-2">
@@ -1134,6 +1175,7 @@ export default function AdminCommandes() {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined); // undefined = toutes les dates
   const [selectedCommande, setSelectedCommande] = useState<CommandeUI | null>(
     null
   );
@@ -1162,12 +1204,48 @@ export default function AdminCommandes() {
 
   const { data: commandes, refetch } = usePrismaCommandes();
   const updateCommandeMutation = usePrismaUpdateCommande();
+  const toggleEpingleMutation = usePrismaToggleEpingleCommande();
+  const toggleOffertDetailMutation = usePrismaToggleOffertDetail();
   const { toast } = useToast();
 
-  // Filtrage par recherche et tri par date
+  // Fonctions de navigation par date
+  const goToPreviousDay = () => {
+    const currentDate = selectedDate ? new Date(selectedDate) : new Date();
+    currentDate.setDate(currentDate.getDate() - 1);
+    setSelectedDate(currentDate);
+  };
+
+  const goToNextDay = () => {
+    const currentDate = selectedDate ? new Date(selectedDate) : new Date();
+    currentDate.setDate(currentDate.getDate() + 1);
+    setSelectedDate(currentDate);
+  };
+
+  const goToToday = () => {
+    setSelectedDate(new Date());
+  };
+
+  const showAllDates = () => {
+    setSelectedDate(undefined);
+  };
+
+  // Filtrage par recherche, date sélectionnée et tri par date
   const filteredAndSortedCommandes =
     commandes
       ?.filter(commande => {
+        // Filtre par date sélectionnée
+        if (selectedDate) {
+          if (!commande.date_et_heure_de_retrait_souhaitees) return false;
+
+          const commandeDate = format(
+            new Date(commande.date_et_heure_de_retrait_souhaitees),
+            'yyyy-MM-dd'
+          );
+          const selectedDateStr = format(selectedDate, 'yyyy-MM-dd');
+          if (commandeDate !== selectedDateStr) return false;
+        }
+
+        // Filtre par recherche
         if (!searchTerm) return true;
 
         const searchLower = searchTerm.toLowerCase();
@@ -1189,6 +1267,11 @@ export default function AdminCommandes() {
         );
       })
       ?.sort((a, b) => {
+        // Prioriser les commandes épinglées
+        if (a.epingle && !b.epingle) return -1;
+        if (!a.epingle && b.epingle) return 1;
+
+        // Si même statut d'épinglage, trier par date
         const dateA = a.date_et_heure_de_retrait_souhaitees
           ? new Date(a.date_et_heure_de_retrait_souhaitees)
           : new Date(0);
@@ -1425,6 +1508,74 @@ export default function AdminCommandes() {
               Actualiser
             </Button>
           </div>
+
+          {/* Navigation par date */}
+          <div className="px-6 pb-4 border-b border-thai-orange/10">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-gradient-to-r from-thai-cream/30 to-thai-gold/10 p-4 rounded-lg">
+              <div className="flex items-center gap-2 flex-wrap justify-center">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={goToPreviousDay}
+                  className="border-thai-orange/30 hover:bg-thai-orange hover:text-white transition-all"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-1" />
+                  Jour précédent
+                </Button>
+
+                <Button
+                  variant={!selectedDate ? "default" : "outline"}
+                  size="sm"
+                  onClick={goToToday}
+                  className={!selectedDate ? "bg-thai-green hover:bg-thai-green/90 text-white" : "border-thai-green/30 hover:bg-thai-green hover:text-white transition-all"}
+                >
+                  <Calendar className="w-4 h-4 mr-1" />
+                  Aujourd'hui
+                </Button>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={goToNextDay}
+                  className="border-thai-orange/30 hover:bg-thai-orange hover:text-white transition-all"
+                >
+                  Jour suivant
+                  <ArrowLeft className="w-4 h-4 ml-1 rotate-180" />
+                </Button>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-md border border-thai-orange/20">
+                  <Calendar className="w-4 h-4 text-thai-orange" />
+                  <DateSelector
+                    value={selectedDate}
+                    onChange={setSelectedDate}
+                  />
+                </div>
+
+                {selectedDate && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={showAllDates}
+                    className="text-thai-red hover:bg-thai-red/10"
+                  >
+                    <X className="w-4 h-4 mr-1" />
+                    Toutes les dates
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            {selectedDate && (
+              <div className="mt-2 text-center">
+                <Badge variant="outline" className="border-thai-orange text-thai-green font-medium">
+                  {filteredAndSortedCommandes.length} commande(s) le{' '}
+                  {format(selectedDate, 'EEEE dd MMMM yyyy', { locale: fr })}
+                </Badge>
+              </div>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           {/* Onglets par statut et date */}
@@ -1483,6 +1634,8 @@ export default function AdminCommandes() {
                     onAddPlat={handleAddPlat}
                     onAddComplement={handleAddComplement}
                     updateCommandeMutation={updateCommandeMutation}
+                    toggleEpingleMutation={toggleEpingleMutation}
+                    toggleOffertDetailMutation={toggleOffertDetailMutation}
                     router={router}
                   />
                 ))}
@@ -1514,6 +1667,8 @@ export default function AdminCommandes() {
                     onAddPlat={handleAddPlat}
                     onAddComplement={handleAddComplement}
                     updateCommandeMutation={updateCommandeMutation}
+                    toggleEpingleMutation={toggleEpingleMutation}
+                    toggleOffertDetailMutation={toggleOffertDetailMutation}
                     router={router}
                   />
                 ))}
@@ -1549,6 +1704,8 @@ export default function AdminCommandes() {
                     onAddPlat={handleAddPlat}
                     onAddComplement={handleAddComplement}
                     updateCommandeMutation={updateCommandeMutation}
+                    toggleEpingleMutation={toggleEpingleMutation}
+                    toggleOffertDetailMutation={toggleOffertDetailMutation}
                     router={router}
                   />
                 ))}
@@ -1583,6 +1740,8 @@ export default function AdminCommandes() {
                     onAddPlat={handleAddPlat}
                     onAddComplement={handleAddComplement}
                     updateCommandeMutation={updateCommandeMutation}
+                    toggleEpingleMutation={toggleEpingleMutation}
+                    toggleOffertDetailMutation={toggleOffertDetailMutation}
                     router={router}
                   />
                 ))}
@@ -1619,6 +1778,8 @@ export default function AdminCommandes() {
                     onAddPlat={handleAddPlat}
                     onAddComplement={handleAddComplement}
                     updateCommandeMutation={updateCommandeMutation}
+                    toggleEpingleMutation={toggleEpingleMutation}
+                    toggleOffertDetailMutation={toggleOffertDetailMutation}
                     router={router}
                   />
                 ))}
@@ -1655,6 +1816,8 @@ export default function AdminCommandes() {
                     onAddPlat={handleAddPlat}
                     onAddComplement={handleAddComplement}
                     updateCommandeMutation={updateCommandeMutation}
+                    toggleEpingleMutation={toggleEpingleMutation}
+                    toggleOffertDetailMutation={toggleOffertDetailMutation}
                     router={router}
                   />
                 ))}
@@ -1691,6 +1854,8 @@ export default function AdminCommandes() {
                     onAddPlat={handleAddPlat}
                     onAddComplement={handleAddComplement}
                     updateCommandeMutation={updateCommandeMutation}
+                    toggleEpingleMutation={toggleEpingleMutation}
+                    toggleOffertDetailMutation={toggleOffertDetailMutation}
                     router={router}
                   />
                 ))}
@@ -1722,6 +1887,8 @@ export default function AdminCommandes() {
                     onAddPlat={handleAddPlat}
                     onAddComplement={handleAddComplement}
                     updateCommandeMutation={updateCommandeMutation}
+                    toggleEpingleMutation={toggleEpingleMutation}
+                    toggleOffertDetailMutation={toggleOffertDetailMutation}
                     router={router}
                   />
                 ))}
@@ -1778,6 +1945,8 @@ const CommandeCard = ({
   onAddPlat,
   onAddComplement,
   updateCommandeMutation,
+  toggleEpingleMutation,
+  toggleOffertDetailMutation,
   router,
 }: {
   commande: CommandeUI;
@@ -1790,6 +1959,8 @@ const CommandeCard = ({
   onAddPlat: (commandeId: number) => void;
   onAddComplement: (commandeId: number) => void;
   updateCommandeMutation: any;
+  toggleEpingleMutation: any;
+  toggleOffertDetailMutation: any;
   router: any;
 }) => {
   const [isEditingTime, setIsEditingTime] = useState(false);
@@ -1858,7 +2029,7 @@ const CommandeCard = ({
     if (!commande.details || !Array.isArray(commande.details)) return 0;
     return commande.details.reduce((sum, detail) => {
       // Pour les compléments divers, utiliser prix_unitaire, sinon utiliser le prix du plat
-      const prix = Number(detail.prix_unitaire ?? detail.plat?.prix) ?? 0;
+      const prix = toSafeNumber(detail.prix_unitaire ?? detail.plat?.prix);
       const quantite = detail.quantite_plat_commande ?? 0;
       return sum + prix * quantite;
     }, 0);
@@ -1967,6 +2138,30 @@ const CommandeCard = ({
                     </span>
                   </div>
                 )}
+              </div>
+
+              {/* Bouton épingler en haut à gauche */}
+              <div className="absolute top-2 left-2 z-20">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleEpingleMutation.mutate(commande.idcommande);
+                  }}
+                  className={`p-2 h-auto ${
+                    commande.epingle
+                      ? 'text-thai-orange hover:text-thai-orange/80'
+                      : 'text-gray-400 hover:text-thai-orange'
+                  }`}
+                  title={commande.epingle ? 'Désépingler la commande' : 'Épingler la commande'}
+                >
+                  {commande.epingle ? (
+                    <Pin className="w-5 h-5 fill-current" />
+                  ) : (
+                    <PinOff className="w-5 h-5" />
+                  )}
+                </Button>
               </div>
 
               {isUrgent && (
@@ -2106,20 +2301,20 @@ const CommandeCard = ({
               size="sm"
               variant="outline"
               className="border-thai-green text-thai-green hover:bg-thai-green hover:text-white"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                const clientFirebaseUID = commande.client_r || commande.FirebaseUID || commande.client?.auth_user_id;
-                if (clientFirebaseUID) {
-                  router.push(`/admin/clients/${clientFirebaseUID}/contact`);
-                } else {
-                  toast({
-                    title: '❌ Erreur',
-                    description: "Impossible de trouver l'ID du client",
-                  });
-                }
-              }}
-            >
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  const authUserId = commande.client?.auth_user_id;
+                                  if (authUserId) {
+                                    router.push(`/admin/clients/${authUserId}/contact`);
+                                  } else {
+                                    toast({
+                                      title: '❌ Erreur',
+                                      description: "Impossible de trouver l'ID du client",
+                                      variant: 'destructive',
+                                    });
+                                  }
+                                }}            >
               <MessageCircle className="w-4 h-4 mr-2" />
               <span className="hidden sm:inline">Contacter</span>
             </Button>
@@ -2204,6 +2399,7 @@ const CommandeCard = ({
                       item={item}
                       commandeId={commande.idcommande}
                       toast={toast}
+                      toggleOffertDetailMutation={toggleOffertDetailMutation}
                     />
                   ))}
 
@@ -2318,13 +2514,13 @@ const ModalPlatCard = ({
       {/* Image du plat ou extra */}
       {item.extra ? (
         <img
-          src={item.extra.photo_url || "https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png"}
+          src={item.extra.photo_url || "https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/extras/extra.png"}
           alt={item.extra.nom_extra || "Extra"}
           className="w-24 h-16 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity duration-200"
         />
       ) : (item.nom_plat && item.prix_unitaire && !item.plat) || item.type === 'complement_divers' ? (
         <img
-          src="https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png"
+          src="https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/extras/extra.png"
           alt="Extra"
           className="w-24 h-16 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity duration-200"
         />
@@ -2442,7 +2638,7 @@ const ModalPlatCard = ({
           <span className="flex items-center gap-1">
             <span className="font-medium">Prix unitaire:</span>
             <span className="text-thai-green font-semibold">
-              {formatPrix(item.prix_unitaire || item.plat?.prix || 0)}
+              {formatPrix(toSafeNumber(item.prix_unitaire || item.plat?.prix))}
             </span>
           </span>
         </div>
@@ -2452,7 +2648,7 @@ const ModalPlatCard = ({
       <div className="text-right">
         <div className="text-2xl font-bold text-thai-orange mb-4">
           {formatPrix(
-            (item.prix_unitaire ?? item.plat?.prix ?? 0) *
+            toSafeNumber(item.prix_unitaire ?? item.plat?.prix) *
               (item.quantite_plat_commande || 0)
           )}
         </div>
@@ -2640,11 +2836,12 @@ const CommandeDetailsModal = ({
   }
 
   // Fonction formatPrix identique à celle de la page principale
-  const formatPrix = (prix: number): string => {
-    if (prix % 1 === 0) {
-      return `${prix.toFixed(0)}€`;
+  const formatPrix = (prix: any): string => {
+    const numericPrix = toSafeNumber(prix, 0);
+    if (numericPrix % 1 === 0) {
+      return `${numericPrix.toFixed(0)}€`;
     } else {
-      return `${prix.toFixed(2).replace('.', ',')}€`;
+      return `${numericPrix.toFixed(2).replace('.', ',')}€`;
     }
   };
 
@@ -2653,7 +2850,7 @@ const CommandeDetailsModal = ({
     if (!commande.details || !Array.isArray(commande.details)) return 0;
     return commande.details.reduce((sum, detail) => {
       // Pour les compléments divers, utiliser prix_unitaire, sinon utiliser le prix du plat
-      const prix = Number(detail.prix_unitaire ?? detail.plat?.prix) ?? 0;
+      const prix = toSafeNumber(detail.prix_unitaire ?? detail.plat?.prix);
       const quantite = detail.quantite_plat_commande ?? 0;
       return sum + prix * quantite;
     }, 0);
@@ -2865,9 +3062,9 @@ const CommandeDetailsModal = ({
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    const clientFirebaseUID = commande.client_r || commande.FirebaseUID || commande.client?.auth_user_id;
-                    if (clientFirebaseUID) {
-                      router.push(`/admin/clients/${clientFirebaseUID}/contact`);
+                    const authUserId = commande.client?.auth_user_id;
+                    if (authUserId) {
+                      router.push(`/admin/clients/${authUserId}/contact`);
                       onClose(); // Fermer le modal
                     } else {
                       toast({
@@ -3239,7 +3436,7 @@ const CommandeDetailsModal = ({
                           <div>
                             <div className="font-medium">{plat.plat}</div>
                             <div className="text-sm text-gray-500">
-                              {formatPrix(plat.prix || 0)}
+                              {formatPrix(toSafeNumber(plat.prix))}
                             </div>
                           </div>
                         </div>
@@ -3315,7 +3512,7 @@ const CommandeDetailsModal = ({
                   <div className="flex justify-between items-center">
                     <span className="font-medium">Total à ajouter:</span>
                     <span className="text-xl font-bold text-thai-green">
-                      {formatPrix(selectedPlatToAdd.prix * quantiteToAdd)}
+                      {formatPrix(toSafeNumber(selectedPlatToAdd.prix) * quantiteToAdd)}
                     </span>
                   </div>
                 </div>
@@ -3428,7 +3625,7 @@ const CommandeDetailsModal = ({
                           <div className="flex justify-between items-center w-full">
                             <span>{extra.nom_extra}</span>
                             <span className="ml-4 text-thai-orange font-medium">
-                              {formatPrix(extra.prix)}
+                              {formatPrix(toSafeNumber(extra.prix))}
                             </span>
                           </div>
                         </SelectItem>
@@ -3481,7 +3678,7 @@ const CommandeDetailsModal = ({
                   <div className="flex justify-between items-center">
                     <span className="font-medium">Extra à ajouter:</span>
                     <span className="text-xl font-bold text-thai-orange">
-                      {formatPrix(parseFloat(prixComplement))}
+                      {formatPrix(toSafeNumber(prixComplement))}
                     </span>
                   </div>
                   <p className="text-sm text-gray-600 mt-1">{nomComplement}</p>

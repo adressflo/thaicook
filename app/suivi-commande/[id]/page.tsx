@@ -23,6 +23,7 @@ import { CalendarIcon } from '@/components/historique/CalendarIcon';
 import { DishDetailsModalComplex } from '@/components/historique/DishDetailsModalComplex';
 import { AppLayout } from '@/components/AppLayout';
 import { ProgressTimeline } from '@/components/suivi-commande/ProgressTimeline';
+import { toSafeNumber } from '@/lib/serialization';
 
 
 const SuiviCommande = memo(() => {
@@ -51,6 +52,14 @@ const SuiviCommande = memo(() => {
   const { plats, isLoading: platsLoading } = useData();
   const { data: extras, isLoading: extrasLoading } = usePrismaExtras();
 
+  // Vérifie que l'utilisateur connecté est bien le propriétaire de la commande
+  useEffect(() => {
+    // Autoriser si l'utilisateur est admin OU le propriétaire de la commande
+    if (commande && clientProfile && clientProfile.role !== 'admin' && clientProfile.idclient !== commande.client_r_id) {
+      redirect('/historique');
+    }
+  }, [commande, clientProfile]);
+
   if (isLoadingAuth || isLoadingCommande || platsLoading || extrasLoading) {
     return (
       <AppLayout>
@@ -71,26 +80,22 @@ const SuiviCommande = memo(() => {
             <AlertDescription>
               Impossible de charger les détails de cette commande. Elle n'existe peut-être pas ou a été supprimée.
             </AlertDescription>
-             <Button asChild variant="secondary" className="mt-4">
-               <Link href="/historique">Retour à l'historique</Link>
-             </Button>
+            <Button asChild variant="secondary" className="mt-4">
+              <Link href="/historique">Retour à l'historique</Link>
+            </Button>
           </Alert>
         </div>
       </AppLayout>
     );
   }
 
-  // Vérifie que l'utilisateur connecté est bien le propriétaire de la commande
-  if (currentUser?.id !== commande.client_r) {
-    redirect('/historique');
-  }
-
   // Fonction pour formater les prix
-  const formatPrix = (prix: number): string => {
-    if (prix % 1 === 0) {
-      return `${prix.toFixed(0)}€`;
+  const formatPrix = (prix: any): string => {
+    const numericPrix = toSafeNumber(prix);
+    if (numericPrix % 1 === 0) {
+      return `${numericPrix.toFixed(0)}€`;
     } else {
-      return `${prix.toFixed(2).replace('.', ',')}€`;
+      return `${numericPrix.toFixed(2).replace('.', ',')}€`;
     }
   };
 
@@ -98,11 +103,7 @@ const SuiviCommande = memo(() => {
   const calculateTotal = (): number => {
     if (!commande.details) return 0;
     return commande.details.reduce((total, detail) => {
-      // Un extra est un détail sans plat mais avec plat_r
-      const isExtra = !detail.plat && detail.plat_r;
-      const prix = isExtra
-        ? ((detail as any).extra?.prix || detail.prix_unitaire || 0)
-        : (detail.plat?.prix || 0);
+      const prix = toSafeNumber(detail.extra?.prix || detail.plat?.prix || detail.prix_unitaire);
       const quantite = detail.quantite_plat_commande || 0;
       return total + (prix * quantite);
     }, 0);
@@ -154,7 +155,7 @@ const SuiviCommande = memo(() => {
               Statut: {commande.statut_commande || 'En attente'}
             </CardDescription>
           </CardHeader>
-          
+
           <CardContent className="p-6 md:p-8 space-y-8">
             {/* Timeline de progression */}
             <Card className="border-thai-orange/20 bg-gradient-to-br from-thai-cream/20 to-white">
@@ -181,15 +182,9 @@ const SuiviCommande = memo(() => {
                 {commande.details && commande.details.length > 0 ? (
                   <div className="border border-thai-orange/20 rounded-lg p-3 bg-thai-cream/20 space-y-4">
                     {commande.details.map((detail, index) => {
-                      const platDetails = detail.plat_r ? getPlatDetails(detail.plat_r) : null;
-
-                      // Détection hybride plus robuste des extras
-                      const isExtraByPlat = platDetails?.plat?.includes('Extra') || platDetails?.plat?.includes('Complément');
-                      const isExtraByMissingPlat = !platDetails && detail.plat_r && detail.plat_r > 0;
-                      const isExtraByZeroId = detail.plat_r === 0 && detail.nom_plat; // Ancienne architecture: plat_r = 0 pour extras
-                      const isExtra = isExtraByPlat || isExtraByMissingPlat || isExtraByZeroId;
-
-                      const extraDetails = isExtra ? extras?.find((e: any) => e.idextra === detail.plat_r) : null;
+                      const isExtra = !!detail.extra;
+                      const platDetails = detail.plat;
+                      const extraDetails = detail.extra;
 
 
                       // Adapter les données pour DishDetailsModal
@@ -208,7 +203,7 @@ const SuiviCommande = memo(() => {
                           <div className="group relative animate-fadeIn hover:z-10 cursor-pointer"
                                style={{ animationDelay: `${index * 100}ms` }}>
                             <div className="flex items-start gap-3 p-3 bg-white rounded-lg border border-gray-200 transition-all duration-300 hover:shadow-xl hover:bg-thai-cream/20 hover:border-thai-orange hover:ring-2 hover:ring-thai-orange/30 hover:scale-[1.02] transform w-full">
-                              
+
                               {/* Image du plat/extra */}
                               <div className="w-16 h-16 md:w-20 md:h-20 rounded-md overflow-hidden flex-shrink-0">
                                 <img
@@ -238,92 +233,31 @@ const SuiviCommande = memo(() => {
                                   }}
                                 />
                               </div>
-                              
+
                               {/* Détails du plat */}
                               <div className="flex-1 min-w-0">
                                 <h4 className="font-medium text-thai-green text-lg mb-1 truncate">
-                                  {(() => {
-                                    if (isExtra) {
-                                      // Priorité 1: Extra trouvé via plat_r
-                                      if (extraDetails?.nom_extra) {
-                                        return extraDetails.nom_extra;
-                                      }
-                                      // Priorité 2: Nom direct depuis la commande (fallback)
-                                      if (detail.nom_plat && detail.nom_plat !== 'Extra (Complément divers)') {
-                                        return detail.nom_plat;
-                                      }
-                                      // Priorité 3: Recherche par nom dans la liste des extras
-                                      if (detail.nom_plat && extras) {
-                                        const extraByName = extras.find((e: any) =>
-                                          e.nom_extra.toLowerCase() === detail.nom_plat!.toLowerCase()
-                                        );
-                                        if (extraByName) return extraByName.nom_extra;
-                                      }
-                                      return 'Extra non trouvé';
-                                    } else {
-                                      return platDetails?.plat || 'Plat non trouvé';
-                                    }
-                                  })()}
+                                  {isExtra ? (extraDetails?.nom_extra || 'Extra') : (platDetails?.plat || 'Plat non trouvé')}
                                 </h4>
                                 <div className="flex items-center gap-4 text-sm text-gray-600">
                                   <span className="flex items-center gap-1">
-                                    <span className="font-medium">Quantité:</span> 
+                                    <span className="font-medium">Quantité:</span>
                                     <span className="bg-thai-orange/10 text-thai-orange px-2 py-1 rounded-full font-medium">
                                       {detail.quantite_plat_commande}
                                     </span>
                                   </span>
                                   <span className="flex items-center gap-1">
-                                    <span className="font-medium">Prix unitaire:</span> 
+                                    <span className="font-medium">Prix unitaire:</span>
                                     <span className="text-thai-green font-semibold">
-                                      {formatPrix((() => {
-                                        if (isExtra) {
-                                          // Priorité 1: Prix de l'extra trouvé via plat_r
-                                          if (extraDetails?.prix) return extraDetails.prix;
-                                          // Priorité 2: Prix stocké dans la commande
-                                          if (detail.prix_unitaire) return detail.prix_unitaire;
-                                          // Priorité 3: Recherche par nom dans la liste des extras
-                                          if (detail.nom_plat && extras) {
-                                            const extraByName = extras.find((e: any) =>
-                                              e.nom_extra.toLowerCase() === detail.nom_plat!.toLowerCase()
-                                            );
-                                            if (extraByName?.prix) return extraByName.prix;
-                                          }
-                                          return 0;
-                                        } else {
-                                          return platDetails?.prix || 0;
-                                        }
-                                      })())}
+                                      {formatPrix(parseFloat(isExtra ? (extraDetails?.prix?.toString() || '0') : (platDetails?.prix?.toString() || '0')))}
                                     </span>
                                   </span>
                                 </div>
                               </div>
-                              
                               {/* Prix total */}
                               <div className="text-right">
                                 <div className="text-xl md:text-2xl font-bold text-thai-orange">
-                                  {formatPrix((() => {
-                                    let prixUnitaire = 0;
-                                    if (isExtra) {
-                                      // Priorité 1: Prix de l'extra trouvé via plat_r
-                                      if (extraDetails?.prix) {
-                                        prixUnitaire = extraDetails.prix;
-                                      }
-                                      // Priorité 2: Prix stocké dans la commande
-                                      else if (detail.prix_unitaire) {
-                                        prixUnitaire = detail.prix_unitaire;
-                                      }
-                                      // Priorité 3: Recherche par nom dans la liste des extras
-                                      else if (detail.nom_plat && extras) {
-                                        const extraByName = extras.find((e: any) =>
-                                          e.nom_extra.toLowerCase() === detail.nom_plat!.toLowerCase()
-                                        );
-                                        if (extraByName?.prix) prixUnitaire = extraByName.prix;
-                                      }
-                                    } else {
-                                      prixUnitaire = platDetails?.prix || 0;
-                                    }
-                                    return prixUnitaire * (detail.quantite_plat_commande || 0);
-                                  })())}
+                                  {formatPrix(parseFloat(isExtra ? (extraDetails?.prix?.toString() || '0') : (platDetails?.prix?.toString() || '0')) * (detail.quantite_plat_commande || 0))}
                                 </div>
                               </div>
                             </div>
@@ -331,7 +265,7 @@ const SuiviCommande = memo(() => {
                         </DishDetailsModalComplex>
                       );
                     })}
-                    
+
                     {/* Total final */}
                     <div className="border-t border-thai-orange/20 pt-4 mt-6">
                       <div className="flex justify-between items-center bg-thai-cream/30 p-4 rounded-lg">
@@ -381,9 +315,9 @@ const SuiviCommande = memo(() => {
                         <div className="flex justify-center">
                           {commande.date_et_heure_de_retrait_souhaitees ? (
                             <div className="transform hover:scale-105 transition-all duration-300">
-                              <CalendarIcon 
-                                date={new Date(commande.date_et_heure_de_retrait_souhaitees)} 
-                                className="scale-150" 
+                              <CalendarIcon
+                                date={new Date(commande.date_et_heure_de_retrait_souhaitees)}
+                                className="scale-150"
                               />
                             </div>
                           ) : (
@@ -396,13 +330,13 @@ const SuiviCommande = memo(() => {
                           )}
                         </div>
                       </div>
-                      
+
                       {/* Adresse de retrait - Tout en bas */}
                       <div className="text-center mt-6 pt-4 border-t border-thai-cream/50">
                         <p className="text-sm font-medium text-gray-500 mb-1">Adresse de retrait</p>
                         <p className="text-thai-green font-medium mb-1">2 impasse de la poste 37120 Marigny Marmande</p>
-                        <Link 
-                          href="/nous-trouver" 
+                        <Link
+                          href="/nous-trouver"
                           className="inline-flex items-center gap-1 text-sm text-thai-orange hover:text-thai-green transition-colors duration-200 underline hover:no-underline"
                         >
                           <MapPin className="h-4 w-4" />
@@ -420,7 +354,7 @@ const SuiviCommande = memo(() => {
                       <CreditCard className="h-5 w-5 text-thai-orange" />
                       <h3 className="font-semibold text-thai-green">Récapitulatif</h3>
                     </div>
-                    
+
                     {/* Informations de base */}
                     <div className="space-y-4">
                       <div className="bg-white p-3 rounded-lg border border-gray-200 shadow-sm text-center">
@@ -428,14 +362,14 @@ const SuiviCommande = memo(() => {
                         <div className="flex items-center justify-center gap-2 bg-thai-cream/40 px-3 py-2 rounded-lg">
                           <Clock className="h-4 w-4 text-thai-green" />
                           <span className="text-sm font-semibold text-thai-green">
-                            {commande.date_de_prise_de_commande ? 
-                              format(new Date(commande.date_de_prise_de_commande), "dd MMMM yyyy 'à' HH:mm", { locale: fr }) 
+                            {commande.date_de_prise_de_commande ?
+                              format(new Date(commande.date_de_prise_de_commande), "dd MMMM yyyy 'à' HH:mm", { locale: fr })
                               : 'Date inconnue'
                             }
                           </span>
                         </div>
                       </div>
-                      
+
                       <div className="bg-white p-3 rounded-lg border border-gray-200 shadow-sm text-center">
                         <p className="text-sm font-medium text-gray-600 mb-2">Numéro de commande</p>
                         <div className="flex items-center justify-center gap-2 bg-thai-cream/40 px-3 py-2 rounded-lg">
@@ -448,16 +382,16 @@ const SuiviCommande = memo(() => {
                         </div>
                       </div>
                     </div>
-                    
+
                     {/* Statut */}
                     <div className="text-center py-3">
                       <p className="text-sm font-medium text-gray-500 mb-3">Statut actuel</p>
-                      <StatusBadge 
-                        statut={commande.statut_commande} 
-                        type="commande" 
+                      <StatusBadge
+                        statut={commande.statut_commande}
+                        type="commande"
                       />
                     </div>
-                    
+
                     {/* Total - En évidence */}
                     <div className="bg-white p-4 rounded-lg border-2 border-thai-orange text-center shadow-md">
                       <p className="text-sm font-medium text-gray-600 mb-2">Total à payer</p>
