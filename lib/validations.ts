@@ -20,6 +20,106 @@ const dateSchema = z.string()
   }, "Date invalide")
   .optional();
 
+// Schéma de base pour les mots de passe avec force validation
+const passwordSchema = z.string()
+  .min(8, "Le mot de passe doit contenir au moins 8 caractères")
+  .max(100, "Le mot de passe est trop long (max 100 caractères)")
+  .regex(/[A-Z]/, "Le mot de passe doit contenir au moins une majuscule")
+  .regex(/[a-z]/, "Le mot de passe doit contenir au moins une minuscule")
+  .regex(/[0-9]/, "Le mot de passe doit contenir au moins un chiffre")
+  .regex(/[^A-Za-z0-9]/, "Le mot de passe doit contenir au moins un caractère spécial (!@#$%^&* etc.)");
+
+// ============================================
+// AUTHENTICATION SCHEMAS (Better Auth)
+// ============================================
+
+// Schema pour inscription (Signup)
+export const signupSchema = z.object({
+  // Credentials
+  email: emailSchema,
+  password: passwordSchema,
+  confirmPassword: z.string(),
+
+  // Profil obligatoire
+  nom: z.string()
+    .min(1, "Le nom est requis")
+    .max(100, "Nom trop long (max 100 caractères)")
+    .regex(/^[a-zA-ZÀ-ÿ\s'-]+$/, "Le nom ne peut contenir que des lettres, espaces, apostrophes et tirets"),
+  prenom: z.string()
+    .min(1, "Le prénom est requis")
+    .max(100, "Prénom trop long (max 100 caractères)")
+    .regex(/^[a-zA-ZÀ-ÿ\s'-]+$/, "Le prénom ne peut contenir que des lettres, espaces, apostrophes et tirets"),
+  numero_de_telephone: z.string()
+    .min(10, "Le numéro de téléphone doit contenir au moins 10 caractères")
+    .regex(/^(?:\+33|0)[1-9](?:[0-9]{8})$/, "Numéro de téléphone français invalide"),
+
+  // Profil optionnel
+  date_de_naissance: z.string().optional(),
+  adresse_numero_et_rue: z.string().max(500, "Adresse trop longue").optional(),
+  code_postal: z.string().regex(/^\d{5}$/, "Code postal invalide (5 chiffres)").optional(),
+  ville: z.string().max(200, "Ville trop longue").optional(),
+  preference_client: z.string().max(1000, "Préférences trop longues").optional(),
+  souhaitez_vous_recevoir_actualites: z.boolean().default(false),
+  comment_avez_vous_connu: z.array(z.enum([
+    "BoucheAOreille",
+    "ReseauxSociaux",
+    "RechercheGoogle",
+    "EnPassantDevant",
+    "RecommandationAmi",
+    "Autre"
+  ])).optional(),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Les mots de passe ne correspondent pas",
+  path: ["confirmPassword"],
+});
+
+// Schema pour connexion (Login)
+export const loginSchema = z.object({
+  email: emailSchema,
+  password: z.string().min(1, "Mot de passe requis"),
+  rememberMe: z.boolean().optional().default(false),
+});
+
+// Schema pour demande de réinitialisation de mot de passe
+export const requestPasswordResetSchema = z.object({
+  email: emailSchema,
+});
+
+// Schema pour réinitialisation de mot de passe avec token
+export const resetPasswordSchema = z.object({
+  token: z.string().min(1, "Token de réinitialisation requis"),
+  password: passwordSchema,
+  confirmPassword: z.string(),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Les mots de passe ne correspondent pas",
+  path: ["confirmPassword"],
+});
+
+// Schema pour vérification d'email
+export const verifyEmailSchema = z.object({
+  token: z.string().min(1, "Token de vérification requis"),
+});
+
+// Schema pour changement d'email
+export const changeEmailSchema = z.object({
+  currentPassword: z.string().min(1, "Mot de passe actuel requis pour changer l'email"),
+  newEmail: emailSchema,
+  confirmNewEmail: emailSchema,
+}).refine((data) => data.newEmail === data.confirmNewEmail, {
+  message: "Les emails ne correspondent pas",
+  path: ["confirmNewEmail"],
+});
+
+// Schema pour suppression de compte (GDPR)
+export const deleteAccountSchema = z.object({
+  password: z.string().min(1, "Mot de passe requis pour supprimer le compte"),
+  confirmation: z.string()
+    .refine(
+      (val) => val === "SUPPRIMER MON COMPTE",
+      "Veuillez taper exactement 'SUPPRIMER MON COMPTE' pour confirmer"
+    ),
+});
+
 // ============================================
 // VALIDATION PROFIL CLIENT (Better Auth)
 // ============================================
@@ -121,9 +221,12 @@ export const commandeSchema = z.object({
   adresse_specifique: z.string()
     .max(500, "Adresse trop longue (max 500 caractères)")
     .optional(),
+  notes_internes: z.string()
+    .max(2000, "Notes trop longues (max 2000 caractères)")
+    .optional(),
   statut_commande: z.enum([
     'En attente de confirmation',
-    'Confirmée', 
+    'Confirmée',
     'En préparation',
     'Prête à récupérer',
     'Récupérée',
@@ -162,25 +265,147 @@ export const platSchema = z.object({
   plat: z.string()
     .min(2, "Nom plat trop court (min 2 caractères)")
     .max(200, "Nom plat trop long (max 200 caractères)"),
-  prix: z.number()
-    .min(0, "Prix ne peut être négatif")
-    .max(500, "Prix maximum 500€"),
+  prix: z.string()
+    .regex(/^\d+(\.\d{1,2})?$/, "Prix invalide (format: 12.99)")
+    .refine((val) => parseFloat(val) >= 0, "Prix ne peut être négatif")
+    .refine((val) => parseFloat(val) <= 500, "Prix maximum 500€"),
   description: z.string()
     .max(1000, "Description trop longue (max 1000 caractères)")
     .optional(),
   photo_du_plat: z.string().url("URL photo invalide").optional(),
   est_epuise: z.boolean().default(false),
-  temps_preparation_minutes: z.number()
-    .int("Temps doit être un entier")
-    .min(1, "Temps minimum 1 minute")
-    .max(300, "Temps maximum 5 heures")
+  lundi_dispo: z.any().optional(),
+  mardi_dispo: z.any().optional(),
+  mercredi_dispo: z.any().optional(),
+  jeudi_dispo: z.any().optional(),
+  vendredi_dispo: z.any().optional(),
+  samedi_dispo: z.any().optional(),
+  dimanche_dispo: z.any().optional(),
+});
+
+// Schéma pour mise à jour plat
+export const platUpdateSchema = z.object({
+  plat: z.string()
+    .min(2, "Nom plat trop court")
+    .max(200, "Nom plat trop long")
     .optional(),
+  prix: z.string()
+    .regex(/^\d+(\.\d{1,2})?$/, "Prix invalide")
+    .optional(),
+  description: z.string()
+    .max(1000, "Description trop longue")
+    .optional(),
+  photo_du_plat: z.string().url("URL photo invalide").optional(),
+  est_epuise: z.boolean().optional(),
+  lundi_dispo: z.any().optional(),
+  mardi_dispo: z.any().optional(),
+  mercredi_dispo: z.any().optional(),
+  jeudi_dispo: z.any().optional(),
+  vendredi_dispo: z.any().optional(),
+  samedi_dispo: z.any().optional(),
+  dimanche_dispo: z.any().optional(),
+});
+
+// ============================================
+// VALIDATION EXTRAS
+// ============================================
+
+export const extraSchema = z.object({
+  nom_extra: z.string()
+    .min(2, "Nom extra trop court (min 2 caractères)")
+    .max(200, "Nom extra trop long (max 200 caractères)"),
+  description: z.string()
+    .max(1000, "Description trop longue (max 1000 caractères)")
+    .optional(),
+  prix: z.string()
+    .regex(/^\d+(\.\d{1,2})?$/, "Prix invalide (format: 12.99)")
+    .refine((val) => parseFloat(val) >= 0, "Prix ne peut être négatif")
+    .refine((val) => parseFloat(val) <= 500, "Prix maximum 500€"),
+  photo_url: z.string().url("URL photo invalide").optional(),
+  actif: z.boolean().default(true),
+});
+
+// Schéma pour mise à jour extra
+export const extraUpdateSchema = z.object({
+  nom_extra: z.string()
+    .min(2, "Nom extra trop court")
+    .max(200, "Nom extra trop long")
+    .optional(),
+  description: z.string()
+    .max(1000, "Description trop longue")
+    .optional(),
+  prix: z.string()
+    .regex(/^\d+(\.\d{1,2})?$/, "Prix invalide")
+    .optional(),
+  photo_url: z.string().url("URL photo invalide").optional(),
+  actif: z.boolean().optional(),
+});
+
+// ============================================
+// VALIDATION ACTIONS SPÉCIFIQUES
+// ============================================
+
+// Recherche clients
+export const searchClientsSchema = z.object({
+  searchTerm: z.string()
+    .min(1, "Terme de recherche requis")
+    .max(200, "Terme trop long"),
+});
+
+// Toggle épingle commande
+export const toggleEpingleSchema = z.object({
+  id: z.number().int().positive("ID commande invalide"),
+});
+
+// Toggle offert detail
+export const toggleOffertSchema = z.object({
+  detailId: z.number().int().positive("ID détail invalide"),
+  prixOriginal: z.string().optional(),
+});
+
+// Add plat to commande
+export const addPlatToCommandeSchema = z.object({
+  commandeId: z.number().int().positive("ID commande invalide"),
+  platId: z.number().int().positive("ID plat invalide"),
+  quantite: z.number().int().min(1, "Quantité minimum 1").default(1),
+});
+
+// Add extra to commande
+export const addExtraToCommandeSchema = z.object({
+  commandeId: z.number().int().positive("ID commande invalide"),
+  extraId: z.number().int().positive("ID extra invalide"),
+  quantite: z.number().int().min(1, "Quantité minimum 1").default(1),
+});
+
+// Update plat quantite
+export const updatePlatQuantiteSchema = z.object({
+  detailId: z.number().int().positive("ID détail invalide"),
+  quantite: z.number().int().min(1, "Quantité minimum 1").max(50, "Quantité maximum 50"),
+});
+
+// Get by ID schemas
+export const getByIdSchema = z.object({
+  id: z.number().int().positive("ID invalide"),
+});
+
+export const getByAuthUserIdSchema = z.object({
+  authUserId: z.string().min(1, "Auth User ID requis"),
 });
 
 // ============================================
 // TYPES TYPESCRIPT INFÉRÉS
 // ============================================
 
+// Types Authentication
+export type SignupInput = z.infer<typeof signupSchema>;
+export type LoginInput = z.infer<typeof loginSchema>;
+export type RequestPasswordResetInput = z.infer<typeof requestPasswordResetSchema>;
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
+export type VerifyEmailInput = z.infer<typeof verifyEmailSchema>;
+export type ChangeEmailInput = z.infer<typeof changeEmailSchema>;
+export type DeleteAccountInput = z.infer<typeof deleteAccountSchema>;
+
+// Types CRUD
 export type ClientProfileInput = z.infer<typeof clientProfileSchema>;
 export type ClientUpdateInput = z.infer<typeof clientUpdateSchema>;
 export type ClientAutoCreateInput = z.infer<typeof clientAutoCreateSchema>;
@@ -190,6 +415,9 @@ export type CommandeInput = z.infer<typeof commandeSchema>;
 export type CommandeUpdateInput = z.infer<typeof commandeUpdateSchema>;
 export type DetailCommandeInput = z.infer<typeof detailCommandeSchema>;
 export type PlatInput = z.infer<typeof platSchema>;
+export type PlatUpdateInput = z.infer<typeof platUpdateSchema>;
+export type ExtraInput = z.infer<typeof extraSchema>;
+export type ExtraUpdateInput = z.infer<typeof extraUpdateSchema>;
 
 // ============================================
 // UTILITAIRES DE VALIDATION

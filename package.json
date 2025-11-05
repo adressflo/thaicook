@@ -17,7 +17,7 @@
     "prisma:validate": "prisma validate",
     "prisma:format": "prisma format",
     "prisma:test": "tsx tests/prisma-crud.test.ts",
-    "email:dev": "email dev",
+    "email:dev": "email dev -d ./emails",
     "db:check": "node -e \"import('./lib/prisma').then(m => m.checkDatabaseConnection()).then(r => console.log('✅ Connection:', r))\""
   },
   "dependencies": {

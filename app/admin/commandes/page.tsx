@@ -1382,8 +1382,10 @@ export default function AdminCommandes() {
   };
 
   const handleStatusChange = async (commandeId: number, newStatus: string) => {
+    console.log('🟢 handleStatusChange appelé:', { commandeId, newStatus });
     try {
-      await updateCommandeMutation.mutateAsync({
+      console.log('🟢 Avant mutateAsync');
+      const result = await updateCommandeMutation.mutateAsync({
         id: commandeId,
         data: {
           statut_commande: newStatus as
@@ -1395,6 +1397,7 @@ export default function AdminCommandes() {
             | 'Annulée',
         },
       });
+      console.log('🟢 Après mutateAsync, result:', result);
 
       toast({
         title: '✅ Succès',
@@ -1403,9 +1406,11 @@ export default function AdminCommandes() {
 
       refetch();
     } catch (error) {
+      console.error('Erreur complète mise à jour statut:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Impossible de mettre à jour le statut';
       toast({
         title: 'Erreur',
-        description: 'Impossible de mettre à jour le statut',
+        description: errorMessage,
         variant: 'destructive',
       });
     }

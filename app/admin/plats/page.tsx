@@ -186,46 +186,61 @@ const NewExtraButton = () => {
                 />
               </div>
 
-              <div className="flex gap-2">
-                <Input
-                  value={newExtraForm.photo_url}
-                  onChange={(e) => setNewExtraForm(prev => ({ ...prev, photo_url: e.target.value }))}
-                  className="border-thai-orange/30 focus:border-thai-orange focus:ring-thai-orange/20 bg-thai-cream/20 flex-1"
-                  placeholder="https://..."
-                  disabled={uploadState.isUploading}
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="border-thai-orange text-thai-orange hover:bg-thai-orange hover:text-white disabled:opacity-50"
-                  disabled={uploadState.isUploading}
-                  onClick={() => {
-                    const input = document.createElement('input');
-                    input.type = 'file';
-                    input.accept = 'image/jpeg,image/jpg,image/png,image/webp,image/gif';
-                    input.onchange = (e) => {
-                      const file = (e.target as HTMLInputElement).files?.[0];
-                      if (file) {
-                        handleImageUpload(file);
-                      }
-                    };
-                    input.click();
-                  }}
-                >
-                  {uploadState.isUploading ? (
-                    <div className="animate-spin w-4 h-4 border-2 border-current border-t-transparent rounded-full" />
-                  ) : (
-                    <Image className="w-4 h-4" />
-                  )}
-                </Button>
+              {/* Zone de drag & drop */}
+              <div
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  e.currentTarget.classList.add('border-thai-orange', 'bg-thai-orange/10');
+                }}
+                onDragLeave={(e) => {
+                  e.currentTarget.classList.remove('border-thai-orange', 'bg-thai-orange/10');
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  e.currentTarget.classList.remove('border-thai-orange', 'bg-thai-orange/10');
+                  const file = e.dataTransfer.files?.[0];
+                  if (file && file.type.startsWith('image/')) {
+                    handleImageUpload(file);
+                  }
+                }}
+                className="border-2 border-dashed border-thai-orange/30 rounded-lg p-4 text-center cursor-pointer hover:bg-thai-orange/5 transition-all"
+                onClick={() => {
+                  const input = document.createElement('input');
+                  input.type = 'file';
+                  input.accept = 'image/jpeg,image/jpg,image/png,image/webp,image/gif';
+                  input.onchange = (e) => {
+                    const file = (e.target as HTMLInputElement).files?.[0];
+                    if (file) {
+                      handleImageUpload(file);
+                    }
+                  };
+                  input.click();
+                }}
+              >
+                {uploadState.isUploading ? (
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="animate-spin w-8 h-8 border-2 border-thai-orange border-t-transparent rounded-full" />
+                    <p className="text-sm text-thai-orange">Upload en cours...</p>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-2">
+                    <Image className="w-8 h-8 text-thai-orange/50" />
+                    <p className="text-sm text-thai-green/70">Glissez une image ici ou cliquez pour sélectionner</p>
+                    <p className="text-xs text-thai-green/50">JPEG, PNG, WebP, GIF (max 5MB)</p>
+                  </div>
+                )}
               </div>
 
+              {/* URL manuelle optionnelle */}
+              <Input
+                value={newExtraForm.photo_url}
+                onChange={(e) => setNewExtraForm(prev => ({ ...prev, photo_url: e.target.value }))}
+                className="border-thai-orange/30 focus:border-thai-orange focus:ring-thai-orange/20 bg-thai-cream/20 text-xs"
+                placeholder="Ou collez une URL https://..."
+                disabled={uploadState.isUploading}
+              />
+
               {/* État de l&apos;upload */}
-              {uploadState.isUploading && (
-                <p className="text-sm text-thai-orange animate-pulse">
-                  Upload en cours...
-                </p>
-              )}
               {uploadState.error && (
                 <p className="text-sm text-red-500">
                   {uploadState.error}
@@ -517,46 +532,61 @@ const ExistingExtrasDisplay = ({ refetchPlats }: { refetchPlats?: () => void }) 
                       />
                     </div>
 
-                    <div className="flex gap-2">
-                      <Input
-                        value={editForm.photo_url}
-                        onChange={(e) => setEditForm(prev => ({ ...prev, photo_url: e.target.value }))}
-                        className="border-thai-orange/30 focus:border-thai-orange focus:ring-thai-orange/20 bg-thai-cream/20 flex-1"
-                        placeholder="https://..."
-                        disabled={editUploadState.isUploading}
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="border-thai-orange text-thai-orange hover:bg-thai-orange hover:text-white disabled:opacity-50"
-                        disabled={editUploadState.isUploading}
-                        onClick={() => {
-                          const input = document.createElement('input');
-                          input.type = 'file';
-                          input.accept = 'image/jpeg,image/jpg,image/png,image/webp,image/gif';
-                          input.onchange = (e) => {
-                            const file = (e.target as HTMLInputElement).files?.[0];
-                            if (file) {
-                              handleEditImageUpload(file);
-                            }
-                          };
-                          input.click();
-                        }}
-                      >
-                        {editUploadState.isUploading ? (
-                          <div className="animate-spin w-4 h-4 border-2 border-current border-t-transparent rounded-full" />
-                        ) : (
-                          <Image className="w-4 h-4" />
-                        )}
-                      </Button>
+                    {/* Zone de drag & drop */}
+                    <div
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        e.currentTarget.classList.add('border-thai-orange', 'bg-thai-orange/10');
+                      }}
+                      onDragLeave={(e) => {
+                        e.currentTarget.classList.remove('border-thai-orange', 'bg-thai-orange/10');
+                      }}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        e.currentTarget.classList.remove('border-thai-orange', 'bg-thai-orange/10');
+                        const file = e.dataTransfer.files?.[0];
+                        if (file && file.type.startsWith('image/')) {
+                          handleEditImageUpload(file);
+                        }
+                      }}
+                      className="border-2 border-dashed border-thai-orange/30 rounded-lg p-4 text-center cursor-pointer hover:bg-thai-orange/5 transition-all"
+                      onClick={() => {
+                        const input = document.createElement('input');
+                        input.type = 'file';
+                        input.accept = 'image/jpeg,image/jpg,image/png,image/webp,image/gif';
+                        input.onchange = (e) => {
+                          const file = (e.target as HTMLInputElement).files?.[0];
+                          if (file) {
+                            handleEditImageUpload(file);
+                          }
+                        };
+                        input.click();
+                      }}
+                    >
+                      {editUploadState.isUploading ? (
+                        <div className="flex flex-col items-center gap-2">
+                          <div className="animate-spin w-8 h-8 border-2 border-thai-orange border-t-transparent rounded-full" />
+                          <p className="text-sm text-thai-orange">Upload en cours...</p>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center gap-2">
+                          <Image className="w-8 h-8 text-thai-orange/50" />
+                          <p className="text-sm text-thai-green/70">Glissez une image ici ou cliquez pour sélectionner</p>
+                          <p className="text-xs text-thai-green/50">JPEG, PNG, WebP, GIF (max 5MB)</p>
+                        </div>
+                      )}
                     </div>
 
+                    {/* URL manuelle optionnelle */}
+                    <Input
+                      value={editForm.photo_url}
+                      onChange={(e) => setEditForm(prev => ({ ...prev, photo_url: e.target.value }))}
+                      className="border-thai-orange/30 focus:border-thai-orange focus:ring-thai-orange/20 bg-thai-cream/20 text-xs"
+                      placeholder="Ou collez une URL https://..."
+                      disabled={editUploadState.isUploading}
+                    />
+
                     {/* État de l&apos;upload */}
-                    {editUploadState.isUploading && (
-                      <p className="text-sm text-thai-orange animate-pulse">
-                        Upload en cours...
-                      </p>
-                    )}
                     {editUploadState.error && (
                       <p className="text-sm text-red-500">
                         {editUploadState.error}

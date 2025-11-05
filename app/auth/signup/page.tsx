@@ -385,8 +385,13 @@ export default function SignUpPage() {
                   onChange={date => {
                     setBirthDate(date);
                     // Synchroniser avec react-hook-form
-                    if (date) {
-                      setValue('date_de_naissance', format(date, 'yyyy-MM-dd'));
+                    if (date && date instanceof Date && !isNaN(date.getTime())) {
+                      try {
+                        setValue('date_de_naissance', format(date, 'yyyy-MM-dd'));
+                      } catch (error) {
+                        console.error('Error formatting date:', error, 'Date object:', date);
+                        setValue('date_de_naissance', undefined);
+                      }
                     } else {
                       setValue('date_de_naissance', undefined);
                     }

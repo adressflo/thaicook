@@ -3,13 +3,22 @@
 /**
  * SERVER ACTIONS - EXTRAS
  *
- * Actions serveur pour la gestion des extras.
+ * Actions serveur pour la gestion des extras avec next-safe-action.
  * Utilisées par les hooks TanStack Query côté client.
+ *
+ * ✅ Migré vers next-safe-action + Zod validation
  */
 
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 import type { ExtraUI } from '@/types/app'
+import { action } from '@/lib/safe-action'
+import {
+  extraSchema,
+  extraUpdateSchema,
+  getByIdSchema
+} from '@/lib/validations'
+import { z } from 'zod'
 
 
 /**
@@ -42,100 +51,99 @@ export async function getExtras(): Promise<ExtraUI[]> {
 
 /**
  * Crée un nouvel extra
+ * ✅ Migré vers next-safe-action
  */
-export async function createExtra(data: {
-  nom_extra: string
-  description?: string
-  prix: string
-  photo_url?: string
-  actif?: boolean
-}): Promise<ExtraUI> {
-  try {
-    const extra = await prisma.extras_db.create({
-      data: {
-        nom_extra: data.nom_extra,
-        description: data.description || null,
-        prix: data.prix,
-        photo_url: data.photo_url || null,
-        actif: data.actif ?? true,
-      },
-    })
+export const createExtra = action
+  .schema(extraSchema)
+  .action(async ({ parsedInput }) => {
+    try {
+      const extra = await prisma.extras_db.create({
+        data: {
+          nom_extra: parsedInput.nom_extra,
+          description: parsedInput.description || null,
+          prix: parsedInput.prix,
+          photo_url: parsedInput.photo_url || null,
+          actif: parsedInput.actif ?? true,
+        },
+      })
 
-    revalidatePath('/admin/commandes')
+      revalidatePath('/admin/commandes')
 
-    return {
-      id: extra.idextra,
-      idextra: extra.idextra,
-      nom_extra: extra.nom_extra,
-      description: extra.description,
-      prix: extra.prix?.toString() || '0',
-      photo_url: extra.photo_url,
-      actif: extra.actif,
-      est_disponible: extra.actif ?? true,
-      created_at: extra.created_at?.toISOString() || null,
-      updated_at: extra.updated_at?.toISOString() || null,
-    };
-  } catch (error) {
-    console.error('❌ Error in createExtra:', error)
-    throw new Error('Impossible de créer l\'extra')
-  }
-}
+      return {
+        id: extra.idextra,
+        idextra: extra.idextra,
+        nom_extra: extra.nom_extra,
+        description: extra.description,
+        prix: extra.prix?.toString() || '0',
+        photo_url: extra.photo_url,
+        actif: extra.actif,
+        est_disponible: extra.actif ?? true,
+        created_at: extra.created_at?.toISOString() || null,
+        updated_at: extra.updated_at?.toISOString() || null,
+      } as ExtraUI;
+    } catch (error) {
+      console.error('❌ Error in createExtra:', error)
+      throw new Error('Impossible de créer l\'extra')
+    }
+  });
 
 /**
  * Met à jour un extra existant
+ * ✅ Migré vers next-safe-action
  */
-export async function updateExtra(
-  id: number,
-  data: Partial<{
-    nom_extra: string
-    description: string
-    prix: string
-    photo_url: string
-    actif: boolean
-  }>
-): Promise<ExtraUI> {
-  try {
-    const extra = await prisma.extras_db.update({
-      where: { idextra: id },
-      data: {
-        ...data,
-        prix: data.prix ? data.prix : undefined, // Convert string to Decimal
-      },
-    })
+export const updateExtra = action
+  .schema(z.object({
+    id: z.number().int().positive("ID extra invalide"),
+    data: extraUpdateSchema
+  }))
+  .action(async ({ parsedInput }) => {
+    try {
+      const extra = await prisma.extras_db.update({
+        where: { idextra: parsedInput.id },
+        data: {
+          ...parsedInput.data,
+          prix: parsedInput.data.prix ? parsedInput.data.prix : undefined,
+        },
+      })
 
-    revalidatePath('/admin/commandes')
+      revalidatePath('/admin/commandes')
 
-    return {
-      id: extra.idextra,
-      idextra: extra.idextra,
-      nom_extra: extra.nom_extra,
-      description: extra.description,
-      prix: extra.prix?.toString() || '0',
-      photo_url: extra.photo_url,
-      actif: extra.actif,
-      est_disponible: extra.actif ?? true,
-      created_at: extra.created_at?.toISOString() || null,
-      updated_at: extra.updated_at?.toISOString() || null,
-    };
-  } catch (error) {
-    console.error('❌ Error in updateExtra:', error)
-    throw new Error('Impossible de mettre à jour l\'extra')
-  }
-}
+      return {
+        id: extra.idextra,
+        idextra: extra.idextra,
+        nom_extra: extra.nom_extra,
+        description: extra.description,
+        prix: extra.prix?.toString() || '0',
+        photo_url: extra.photo_url,
+        actif: extra.actif,
+        est_disponible: extra.actif ?? true,
+        created_at: extra.created_at?.toISOString() || null,
+        updated_at: extra.updated_at?.toISOString() || null,
+      } as ExtraUI;
+    } catch (error) {
+      console.error('❌ Error in updateExtra:', error)
+      throw new Error('Impossible de mettre à jour l\'extra')
+    }
+  });
 
 /**
  * Supprime un extra (soft delete - met actif à false)
+ * ✅ Migré vers next-safe-action
  */
-export async function deleteExtra(id: number): Promise<void> {
-  try {
-    await prisma.extras_db.update({
-      where: { idextra: id },
-      data: { actif: false },
-    })
+export const deleteExtra = action
+  .schema(getByIdSchema)
+  .action(async ({ parsedInput }) => {
+    try {
+      await prisma.extras_db.update({
+        where: { idextra: parsedInput.id },
+        data: { actif: false },
+      })
 
-    revalidatePath('/admin/commandes')
-  } catch (error) {
-    console.error('❌ Error in deleteExtra:', error)
-    throw new Error('Impossible de supprimer l\'extra')
-  }
-}
+      revalidatePath('/admin/commandes')
+
+      return { success: true };
+    } catch (error) {
+      console.error('❌ Error in deleteExtra:', error)
+      throw new Error('Impossible de supprimer l\'extra')
+    }
+  });

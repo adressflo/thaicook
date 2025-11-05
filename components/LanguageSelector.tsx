@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,7 +9,14 @@ import { Button } from '@/components/ui/button';
 import { Languages } from 'lucide-react';
 
 const LanguageSelector = () => {
-  const [currentLanguage, setCurrentLanguage] = React.useState('fr');
+  const [currentLanguage, setCurrentLanguage] = useState('fr');
+
+  useEffect(() => {
+    const storedLanguage = localStorage.getItem('language');
+    if (storedLanguage && ['fr', 'en', 'th'].includes(storedLanguage)) {
+      setCurrentLanguage(storedLanguage);
+    }
+  }, []);
 
   const languages = [
     { code: 'fr', name: 'Français', flag: '🇫🇷' },
@@ -19,7 +26,9 @@ const LanguageSelector = () => {
 
   const handleLanguageChange = (languageCode: string) => {
     setCurrentLanguage(languageCode);
-    localStorage.setItem('language', languageCode);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('language', languageCode);
+    }
   };
 
   const currentLang = languages.find(lang => lang.code === currentLanguage) || languages[0];

@@ -17,15 +17,15 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     minPasswordLength: 8,
+    requireEmailVerification: false, // ⚠️ TEMPORAIRE : Désactivé pour tests - À réactiver en production
     sendResetPassword: sendPasswordResetEmail,
   },
 
-  // emailVerification: {
-  //   // Désactivé temporairement pour les tests locaux
-  //   sendOnSignUp: false,
-  //   autoSignInAfterVerification: true,
-  //   sendVerificationEmail: sendVerificationEmail,
-  // },
+  emailVerification: {
+    sendOnSignUp: true, // Envoi automatique email vérification à l'inscription
+    autoSignInAfterVerification: true, // Connexion automatique après vérification
+    sendVerificationEmail: sendVerificationEmail,
+  },
 
   // Next.js cookies plugin (MUST be last in the array)
   plugins: [

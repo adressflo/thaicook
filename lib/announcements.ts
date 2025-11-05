@@ -45,7 +45,12 @@ export const defaultAnnouncement: Announcement = {
 // =====================================
 
 // Récupérer l'annonce active
+// ⚠️ TEMPORAIRE : Désactivé pour éviter les crashes dus à la fonction RPC manquante
 export const getActiveAnnouncement = async (): Promise<Announcement | null> => {
+  // Retourne null directement - À réactiver après création de la fonction RPC Supabase
+  return null;
+
+  /* CODE ORIGINAL - À RÉACTIVER EN PRODUCTION
   try {
     // Essayer d'abord avec la fonction RPC
     const { data, error } = await (supabase as any)
@@ -89,6 +94,7 @@ export const getActiveAnnouncement = async (): Promise<Announcement | null> => {
     console.error('Erreur lors de la récupération de l\'annonce:', error instanceof Error ? error.message : String(error));
     return null;
   }
+  */
 };
 
 // Récupérer toutes les annonces

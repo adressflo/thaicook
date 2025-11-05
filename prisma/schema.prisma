@@ -104,6 +104,7 @@ model client_db {
   souhaitez_vous_recevoir_actualites Boolean?                   @default(false)
   date_de_naissance                  DateTime?                  @db.Date
   photo_client                       String?
+  deleted_at                         DateTime?
   idclient                           BigInt                     @id @unique @default(autoincrement())
   auth_user_id                       String                     @unique
   activites_flux                     activites_flux[]

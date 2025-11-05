@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect, ChangeEvent, useRef, memo } from 'react';
+import type { Route } from 'next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -26,6 +27,8 @@ import {
   Trash2,
   Home,
   AlertCircle,
+  Lock,
+  ArrowLeft,
 } from 'lucide-react';
 import { format, parse, isValid as isValidDate, startOfDay } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -133,7 +136,6 @@ const Profil = memo(() => {
 
   // États du profil
   const [profileEmail, setProfileEmail] = useState('');
-  const [isEditingEmail, setIsEditingEmail] = useState(false);
   const [isLoadingProfile, setIsLoadingProfile] = useState(false);
   const [birthDate, setBirthDate] = useState<Date | undefined>();
   const [formData, setFormData] = useState<FormDataState>(initialFormData);
@@ -237,9 +239,6 @@ const Profil = memo(() => {
     }
   };
 
-  const handleUpdateEmail = async () => {
-    // TODO: Implémenter la mise à jour d'email si nécessaire
-  };
   const handleFormInputChange = (
     field: keyof FormDataState,
     value: string | boolean | Date | string[]
@@ -773,56 +772,16 @@ const Profil = memo(() => {
                       <Label htmlFor="profile-email">
                         Email de votre compte
                       </Label>
-                      <div className="flex items-center gap-2">
-                        <Input
-                          id="profile-email"
-                          type="email"
-                          value={profileEmail}
-                          onChange={e => setProfileEmail(e.target.value)}
-                          readOnly={!isEditingEmail}
-                          className={cn(!isEditingEmail && 'bg-gray-100/50')}
-                        />
-                        {!isEditingEmail ? (
-                          <Button
-                            type="button"
-                            variant="outline"
-                            className="h-12"
-                            onClick={() => setIsEditingEmail(true)}
-                          >
-                            <Edit3 className="mr-1 h-3 w-3" />
-                            Modifier
-                          </Button>
-                        ) : (
-                          <div className="flex gap-1">
-                            <Button
-                              type="button"
-                              size="sm"
-                              onClick={handleUpdateEmail}
-                              disabled={isLoadingAuth}
-                              variant="secondary"
-                            >
-                              OK
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => {
-                                setIsEditingEmail(false);
-                                if (currentUser?.email)
-                                  setProfileEmail(currentUser.email);
-                              }}
-                            >
-                              X
-                            </Button>
-                          </div>
-                        )}
-                      </div>
-                      {isEditingEmail && (
-                        <p className="text-xs text-gray-500">
-                          Sauvegardez. Une reconnexion peut être nécessaire.
-                        </p>
-                      )}
+                      <Input
+                        id="profile-email"
+                        type="email"
+                        value={profileEmail}
+                        readOnly
+                        className="bg-gray-100/50"
+                      />
+                      <p className="text-xs text-gray-500">
+                        Pour modifier votre email, utilisez la section "Sécurité et confidentialité" ci-dessous.
+                      </p>
                     </div>
                     <div>
                       <Label htmlFor="adresseNumeroRue">
@@ -964,6 +923,86 @@ const Profil = memo(() => {
             )}
           </CardContent>
         </Card>
+
+        {/* Account Management Section - Only shown when logged in */}
+        {currentUser && (
+          <Card className="shadow-xl mt-6 border-2 border-gray-100">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-center mb-4">
+                <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center mr-3">
+                  <Lock className="w-4 h-4 text-gray-600" />
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900">
+                  Sécurité et confidentialité
+                </h3>
+              </div>
+
+              <div className="space-y-3">
+                {/* Change Email */}
+                <Link href={"/profil/change-email" as Route} className="block">
+                  <div className="p-4 border border-gray-200 rounded-lg hover:border-amber-300 hover:bg-amber-50/50 transition-all duration-200 group">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-amber-100 rounded-lg group-hover:bg-amber-200 transition-colors">
+                          <AlertCircle className="h-5 w-5 text-amber-700" />
+                        </div>
+                        <div>
+                          <h4 className="font-medium text-gray-900">Changer mon adresse email</h4>
+                          <p className="text-sm text-gray-600">Modifier l'email associé à votre compte</p>
+                        </div>
+                      </div>
+                      <ArrowLeft className="h-5 w-5 text-gray-400 rotate-180 group-hover:text-amber-600 transition-colors" />
+                    </div>
+                  </div>
+                </Link>
+
+                {/* Change Password */}
+                <Link href={"/profil/change-password" as Route} className="block">
+                  <div className="p-4 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50/50 transition-all duration-200 group">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
+                          <Lock className="h-5 w-5 text-blue-700" />
+                        </div>
+                        <div>
+                          <h4 className="font-medium text-gray-900">Changer mon mot de passe</h4>
+                          <p className="text-sm text-gray-600">Sécurisez votre compte avec un nouveau mot de passe</p>
+                        </div>
+                      </div>
+                      <ArrowLeft className="h-5 w-5 text-gray-400 rotate-180 group-hover:text-blue-600 transition-colors" />
+                    </div>
+                  </div>
+                </Link>
+
+                {/* Delete Account */}
+                <Link href={"/profil/delete-account" as Route} className="block">
+                  <div className="p-4 border border-gray-200 rounded-lg hover:border-red-300 hover:bg-red-50/50 transition-all duration-200 group">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-red-100 rounded-lg group-hover:bg-red-200 transition-colors">
+                          <Trash2 className="h-5 w-5 text-red-700" />
+                        </div>
+                        <div>
+                          <h4 className="font-medium text-gray-900">Supprimer mon compte</h4>
+                          <p className="text-sm text-gray-600">Suppression définitive de votre compte et de vos données</p>
+                        </div>
+                      </div>
+                      <ArrowLeft className="h-5 w-5 text-gray-400 rotate-180 group-hover:text-red-600 transition-colors" />
+                    </div>
+                  </div>
+                </Link>
+              </div>
+
+              {/* Privacy Notice */}
+              <div className="mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                <p className="text-xs text-gray-600">
+                  <strong className="text-gray-700">🔒 Vos données sont protégées.</strong> Nous respectons votre vie privée
+                  et sécurisons vos informations selon le RGPD.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* FloatingUserIcon ajouté pour navigation universelle */}
         <FloatingUserIcon />

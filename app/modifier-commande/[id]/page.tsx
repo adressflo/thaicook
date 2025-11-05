@@ -45,9 +45,8 @@ import { fr } from 'date-fns/locale';
 import { useSession } from '@/lib/auth-client';
 import { getClientProfile } from '@/app/profil/actions';
 import { useData } from '@/contexts/DataContext';
-import { usePrismaCommandeById, usePrismaCreateCommande, usePrismaDeleteCommande, usePrismaExtras } from "@/hooks/usePrismaData";
+import { usePrismaCommandeById, usePrismaCreateCommande, usePrismaDeleteCommande, usePrismaUpdateCommande, usePrismaExtras } from "@/hooks/usePrismaData";
 import { extractRouteParam } from '@/lib/params-utils';
-import { supabase } from '@/lib/supabase';
 import { toSafeNumber } from '@/lib/serialization';
 import type { PlatUI as Plat, PlatPanier, DetailCommande, ExtraUI } from '@/types/app';
 
@@ -87,6 +86,7 @@ const ModifierCommande = memo(() => {
   } = usePrismaCommandeById(id ? Number(id) : undefined);
   const createCommande = usePrismaCreateCommande();
   const deleteCommande = usePrismaDeleteCommande();
+  const updateCommande = usePrismaUpdateCommande();
   const { data: extras } = usePrismaExtras();
   const isMobile = useIsMobile();
   const platsSectionRef = useRef<HTMLDivElement>(null);
@@ -529,19 +529,14 @@ const ModifierCommande = memo(() => {
       try {
         console.log("Tentative d'annulation de la commande:", commande.idcommande);
 
-        // Mettre à jour le statut de la commande à "Annulée"
-        const { error: updateError } = await supabase
-          .from('commande_db')
-          .update({
-            statut_commande: 'Annulée' as any,
+        // Mettre à jour le statut de la commande à "Annulée" via Prisma
+        await updateCommande.mutateAsync({
+          id: commande.idcommande,
+          data: {
+            statut_commande: 'Annulée',
             notes_internes: 'Commande annulée - panier vidé par le client',
-          })
-          .eq('idcommande', commande.idcommande);
-
-        if (updateError) {
-          console.error('Erreur mise à jour statut:', updateError);
-          throw updateError;
-        }
+          }
+        });
 
         console.log('Annulation réussie');
         toast({
@@ -578,18 +573,14 @@ const ModifierCommande = memo(() => {
       // Annuler l'ancienne commande d'abord
       console.log("Annulation de l'ancienne commande avant création:", commande.idcommande);
 
-      const { error: updateError } = await supabase
-        .from('commande_db')
-        .update({
-          statut_commande: 'Annulée' as any,
+      // Mettre à jour le statut de la commande à "Annulée" via Prisma
+      await updateCommande.mutateAsync({
+        id: commande.idcommande,
+        data: {
+          statut_commande: 'Annulée',
           notes_internes: 'Commande annulée - modifiée par le client',
-        })
-        .eq('idcommande', commande.idcommande);
-
-      if (updateError) {
-        console.error('Erreur mise à jour statut:', updateError);
-        throw updateError;
-      }
+        }
+      });
 
       // Attendre un peu pour que la mise à jour soit effective
       await new Promise(resolve => setTimeout(resolve, 300));

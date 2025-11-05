@@ -22,6 +22,38 @@
 import { useToast } from '@/hooks/use-toast'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
+/**
+ * Helper pour extraire data des SafeActionResult de next-safe-action
+ * Gère les erreurs de validation et serveur automatiquement
+ */
+async function unwrapSafeAction<T>(actionPromise: Promise<any>): Promise<T> {
+  const result = await actionPromise
+
+  // Si l'action a retourné directement les données (anciennes actions)
+  if (result && !('data' in result)) {
+    return result as T
+  }
+
+  // next-safe-action format: { data, serverError, validationErrors }
+  if (result.serverError) {
+    console.error('❌ Server error dans unwrapSafeAction:', result.serverError);
+    throw new Error(result.serverError)
+  }
+
+  if (result.validationErrors) {
+    console.error('❌ Validation errors dans unwrapSafeAction:', result.validationErrors);
+    const firstError = Object.values(result.validationErrors)[0]
+    throw new Error(Array.isArray(firstError) ? firstError[0] : String(firstError))
+  }
+
+  if (!result.data) {
+    console.error('❌ Pas de données dans unwrapSafeAction, result:', result);
+    throw new Error('Action échouée sans données')
+  }
+
+  return result.data as T
+}
+
 // Import Server Actions
 import {
   getPlats,
@@ -115,12 +147,12 @@ export const usePrismaCreatePlat = () => {
       actif?: boolean
     }) => {
       // Mapper les noms de propriétés pour l'API
-      return await createPlat({
+      return await unwrapSafeAction<PlatUI>(createPlat({
         plat: data.nom_plat,
         description: data.description,
         prix: data.prix,
         photo_du_plat: data.photo_url,
-      })
+      }))
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['prisma-plats'] })
@@ -161,7 +193,8 @@ export const usePrismaUpdatePlat = () => {
       samedi_dispo?: any
       dimanche_dispo?: any
     }> }) => {
-      return await updatePlat(id, data)
+      // next-safe-action attend un seul objet
+      return await unwrapSafeAction<PlatUI>(updatePlat({ id, ...data }))
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['prisma-plats'] })
@@ -189,7 +222,8 @@ export const usePrismaDeletePlat = () => {
 
   return useMutation({
     mutationFn: async (id: number) => {
-      return await deletePlat(id)
+      // next-safe-action attend un seul objet
+      return await unwrapSafeAction<{ success: boolean; id: number }>(deletePlat({ id }))
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['prisma-plats'] })
@@ -273,7 +307,7 @@ export const usePrismaCreateClient = () => {
       prenom?: string
       numero_de_telephone?: string
     }) => {
-      return await createClient(data)
+      return await unwrapSafeAction<ClientUI>(createClient(data))
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['prisma-clients'] })
@@ -300,8 +334,9 @@ export const usePrismaUpdateClient = () => {
   const { toast } = useToast()
 
   return useMutation({
-    mutationFn: async ({ authUserId, data }: { authUserId: string; data: any }) => {
-      return await updateClient(authUserId, data)
+    mutationFn: async ({ data }: { data: any }) => {
+      // next-safe-action attend seulement data (authUserId vient du ctx)
+      return await unwrapSafeAction<ClientUI>(updateClient(data))
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['prisma-clients'] })
@@ -329,7 +364,8 @@ export const usePrismaSearchClients = (searchTerm?: string) => {
     queryKey: ['prisma-search-clients', searchTerm],
     queryFn: async (): Promise<ClientUI[]> => {
       if (!searchTerm || searchTerm.length < 2) return []
-      return await searchClients(searchTerm)
+      // next-safe-action attend un seul objet
+      return await unwrapSafeAction<ClientUI[]>(searchClients({ searchTerm }))
     },
     enabled: !!searchTerm && searchTerm.length >= 2,
     staleTime: 1000 * 60 * 2,
@@ -395,7 +431,7 @@ export const usePrismaCreateCommande = () => {
 
   return useMutation({
     mutationFn: async (data: CreateCommandeData) => {
-      return await createCommande(data)
+      return await unwrapSafeAction<CommandeUI>(createCommande(data))
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['prisma-commandes'] })
@@ -424,7 +460,11 @@ export const usePrismaUpdateCommande = () => {
 
   return useMutation({
     mutationFn: async ({ id, data }: { id: number; data: any }) => {
-      return await updateCommande(id, data)
+      console.log('🔵 CLIENT usePrismaUpdateCommande - Avant appel:', { id, data });
+      // next-safe-action attend un seul objet
+      const payload = { id, ...data };
+      console.log('🔵 CLIENT - Payload final envoyé:', payload);
+      return await unwrapSafeAction<CommandeUI>(updateCommande(payload))
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['prisma-commandes'] })
@@ -454,7 +494,8 @@ export const usePrismaToggleEpingleCommande = () => {
 
   return useMutation({
     mutationFn: async (id: number) => {
-      return await toggleEpingleCommande(id)
+      // next-safe-action attend un seul objet
+      return await unwrapSafeAction<CommandeUI>(toggleEpingleCommande({ id }))
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['prisma-commandes'] })
@@ -486,7 +527,8 @@ export const usePrismaToggleOffertDetail = () => {
 
   return useMutation({
     mutationFn: async ({ detailId, prixOriginal }: { detailId: number; prixOriginal?: string }) => {
-      return await toggleOffertDetail(detailId, prixOriginal)
+      // next-safe-action attend un seul objet
+      return await unwrapSafeAction<DetailCommande>(toggleOffertDetail({ detailId, prixOriginal }))
     },
     onSuccess: (data) => {
       // Invalider toutes les queries liées aux commandes
@@ -520,7 +562,8 @@ export const usePrismaDeleteCommande = () => {
 
   return useMutation({
     mutationFn: async (id: number) => {
-      return await deleteCommande(id)
+      // next-safe-action attend un seul objet
+      return await unwrapSafeAction<{ success: boolean; id: number }>(deleteCommande({ id }))
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['prisma-commandes'] })
@@ -551,13 +594,14 @@ export const usePrismaAddPlatToCommande = () => {
     mutationFn: async ({
       commandeId,
       platId,
-      quantite,
+      quantite = 1,
     }: {
       commandeId: number
       platId: number
       quantite?: number
     }) => {
-      return await addPlatToCommande(commandeId, platId, quantite)
+      // next-safe-action attend un seul objet
+      return await unwrapSafeAction<{ success: boolean }>(addPlatToCommande({ commandeId, platId, quantite }))
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['prisma-commande'] })
@@ -587,13 +631,14 @@ export const usePrismaAddExtraToCommande = () => {
     mutationFn: async ({
       commandeId,
       extraId,
-      quantite,
+      quantite = 1,
     }: {
       commandeId: number
       extraId: number
       quantite?: number
     }) => {
-      return await addExtraToCommande(commandeId, extraId, quantite)
+      // next-safe-action attend un seul objet
+      return await unwrapSafeAction<{ success: boolean }>(addExtraToCommande({ commandeId, extraId, quantite }))
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['prisma-commande'] })
@@ -627,7 +672,8 @@ export const usePrismaUpdatePlatQuantite = () => {
       detailId: number
       quantite: number
     }) => {
-      return await updatePlatQuantite(detailId, quantite)
+      // next-safe-action attend un seul objet
+      return await unwrapSafeAction<{ success: boolean }>(updatePlatQuantite({ detailId, quantite }))
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['prisma-commande'] })
@@ -655,7 +701,8 @@ export const usePrismaRemovePlatFromCommande = () => {
 
   return useMutation({
     mutationFn: async (detailId: number) => {
-      return await removePlatFromCommande(detailId)
+      // next-safe-action attend un seul objet avec 'id'
+      return await unwrapSafeAction<{ success: boolean; detailId: number }>(removePlatFromCommande({ id: detailId }))
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['prisma-commande'] })
@@ -707,7 +754,7 @@ export const usePrismaCreateExtra = () => {
       photo_url?: string
       actif?: boolean
     }) => {
-      return await createExtra(data)
+      return await unwrapSafeAction<ExtraUI>(createExtra(data))
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['prisma-extras'] })
@@ -741,7 +788,8 @@ export const usePrismaUpdateExtra = () => {
       photo_url?: string
       actif?: boolean
     }> }) => {
-      return await updateExtra(id, data)
+      // next-safe-action attend un seul objet
+      return await unwrapSafeAction<ExtraUI>(updateExtra({ id, data }))
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['prisma-extras'] })
@@ -769,7 +817,8 @@ export const usePrismaDeleteExtra = () => {
 
   return useMutation({
     mutationFn: async (id: number) => {
-      return await deleteExtra(id)
+      // next-safe-action attend un seul objet
+      return await unwrapSafeAction<{ success: boolean }>(deleteExtra({ id }))
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['prisma-extras'] })
@@ -833,7 +882,7 @@ export const usePrismaCreateEvenement = () => {
 
   return useMutation({
     mutationFn: async (data: CreateEvenementData) => {
-      return await createEvenement(data)
+      return await unwrapSafeAction<EvenementUI>(createEvenement(data))
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['prisma-evenements'] })
@@ -871,7 +920,8 @@ export const usePrismaUpdateEvenement = () => {
       plats_preselectionnes?: number[]
       notes_internes_evenement?: string
     }> }) => {
-      return await updateEvenement(id, data)
+      // next-safe-action attend un seul objet
+      return await unwrapSafeAction<EvenementUI>(updateEvenement({ id, ...data }))
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['prisma-evenements'] })
@@ -901,7 +951,8 @@ export const usePrismaDeleteEvenement = () => {
 
   return useMutation({
     mutationFn: async (id: number) => {
-      return await deleteEvenement(id)
+      // next-safe-action attend un seul objet
+      return await unwrapSafeAction<{ success: boolean; id: number }>(deleteEvenement({ id }))
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['prisma-evenements'] })

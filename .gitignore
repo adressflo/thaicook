@@ -93,3 +93,6 @@ GEMINI.md
 .github\instructions\codacy.instructions.md
 
 /generated/
+
+# React Email local storage
+.email-storage.json

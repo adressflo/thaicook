@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   typedRoutes: true,
+  outputFileTracingRoot: __dirname, // Moved from experimental in Next.js 16
   experimental: {
     typedEnv: true,
   },

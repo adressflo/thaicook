@@ -26,6 +26,16 @@ interface DateBirthSelectorProps {
 }
 
 /**
+ * Validation stricte de date pour empêcher les dates impossibles (ex: 31 février)
+ */
+const isValidDate = (year: number, month: number, day: number): boolean => {
+  const date = new Date(year, month, day);
+  return date.getFullYear() === year &&
+         date.getMonth() === month &&
+         date.getDate() === day;
+};
+
+/**
  * Composant réutilisable pour sélectionner une date de naissance
  * avec 3 selects : Jour, Mois, Année
  */
@@ -38,41 +48,65 @@ export function DateBirthSelector({
   helperText = 'Sélectionnez votre jour, mois et année de naissance dans les menus déroulants ci-dessus.',
 }: DateBirthSelectorProps) {
   const handleDayChange = (day: string) => {
+    const dayNum = parseInt(day);
+    if (isNaN(dayNum)) return;
+
     if (value) {
-      const newDate = new Date(value);
-      newDate.setDate(parseInt(day));
-      // Vérifier si la date est valide après modification
-      if (!isNaN(newDate.getTime())) {
-        onChange(newDate);
+      const year = value.getFullYear();
+      const month = value.getMonth();
+
+      // Vérifier si la nouvelle date est valide
+      if (isValidDate(year, month, dayNum)) {
+        onChange(new Date(year, month, dayNum));
+      } else {
+        // Date invalide - ne pas mettre à jour
+        console.warn(`Date invalide: ${dayNum}/${month + 1}/${year}`);
       }
     } else {
-      onChange(new Date(1990, 0, parseInt(day)));
+      // Initialiser avec une date par défaut
+      onChange(new Date(1990, 0, dayNum));
     }
   };
 
   const handleMonthChange = (month: string) => {
+    const monthNum = parseInt(month) - 1; // Les mois sont 0-indexed
+    if (isNaN(monthNum)) return;
+
     if (value) {
-      const newDate = new Date(value);
-      newDate.setMonth(parseInt(month) - 1);
-      // Vérifier si la date est valide après modification
-      if (!isNaN(newDate.getTime())) {
-        onChange(newDate);
+      const year = value.getFullYear();
+      const day = value.getDate();
+
+      // Vérifier si la nouvelle date est valide
+      if (isValidDate(year, monthNum, day)) {
+        onChange(new Date(year, monthNum, day));
+      } else {
+        // Si le jour est invalide pour ce mois, utiliser le dernier jour du mois
+        const lastDayOfMonth = new Date(year, monthNum + 1, 0).getDate();
+        onChange(new Date(year, monthNum, Math.min(day, lastDayOfMonth)));
       }
     } else {
-      onChange(new Date(1990, parseInt(month) - 1, 1));
+      onChange(new Date(1990, monthNum, 1));
     }
   };
 
   const handleYearChange = (year: string) => {
+    const yearNum = parseInt(year);
+    if (isNaN(yearNum)) return;
+
     if (value) {
-      const newDate = new Date(value);
-      newDate.setFullYear(parseInt(year));
-      // Vérifier si la date est valide après modification
-      if (!isNaN(newDate.getTime())) {
-        onChange(newDate);
+      const month = value.getMonth();
+      const day = value.getDate();
+
+      // Vérifier si la nouvelle date est valide (important pour les années bissextiles)
+      if (isValidDate(yearNum, month, day)) {
+        onChange(new Date(yearNum, month, day));
+      } else {
+        // Si le jour est invalide (ex: 29 fév dans année non-bissextile), ajuster
+        const lastDayOfMonth = new Date(yearNum, month + 1, 0).getDate();
+        onChange(new Date(yearNum, month, Math.min(day, lastDayOfMonth)));
       }
     } else {
-      onChange(new Date(parseInt(year), 0, 1));
+      onChange(new Date(yearNum, 0, 1));
     }
   };
 

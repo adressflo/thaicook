@@ -2,15 +2,16 @@
 import { supabase } from './supabase';
 
 // Configuration pour l'upload d'images
-// IMPORTANT: Les extras utilisent le bucket 'platphoto' en base
+// IMPORTANT: Les extras utilisent maintenant le bucket 'extras' dédié
 export const STORAGE_CONFIG = {
-  BUCKET_NAME: 'platphoto',
+  BUCKET_NAME_PLATS: 'platphoto',
+  BUCKET_NAME_EXTRAS: 'extras',
   MAX_FILE_SIZE: 5 * 1024 * 1024, // 5MB
   ALLOWED_TYPES: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'],
   QUALITY: 0.8,
   MAX_WIDTH: 800,
   MAX_HEIGHT: 600,
-  DEFAULT_EXTRA_IMAGE: 'extra.png'
+  DEFAULT_EXTRA_IMAGE: 'https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/extras/extra.png'
 } as const;
 
 // Fonction pour récupérer l'URL de l'image par défaut des extras
@@ -132,9 +133,14 @@ export const uploadImageToStorage = async (file: File, folder: string = 'extras'
     const fileName = generateUniqueFileName(processedFile.name);
     const filePath = `${folder}/${fileName}`;
 
-    // 4. Uploader vers Supabase Storage avec contournement RLS
+    // 4. Déterminer le bucket selon le dossier
+    const bucketName = folder === 'extras'
+      ? STORAGE_CONFIG.BUCKET_NAME_EXTRAS
+      : STORAGE_CONFIG.BUCKET_NAME_PLATS;
+
+    // 5. Uploader vers Supabase Storage avec contournement RLS
     const { error: uploadError } = await supabase.storage
-      .from(STORAGE_CONFIG.BUCKET_NAME)
+      .from(bucketName)
       .upload(filePath, processedFile, {
         cacheControl: '3600', // Cache pendant 1 heure
         upsert: false, // Ne pas écraser les fichiers existants
@@ -150,9 +156,9 @@ export const uploadImageToStorage = async (file: File, folder: string = 'extras'
       };
     }
 
-    // 5. Obtenir l'URL publique
+    // 6. Obtenir l'URL publique
     const { data: urlData } = supabase.storage
-      .from(STORAGE_CONFIG.BUCKET_NAME)
+      .from(bucketName)
       .getPublicUrl(filePath);
 
     if (!urlData?.publicUrl) {
@@ -207,8 +213,14 @@ export const deleteImageFromStorage = async (filePath: string): Promise<{ succes
 // Fonction utilitaire pour extraire le chemin d'une URL Supabase
 export const extractPathFromSupabaseUrl = (url: string): string | null => {
   try {
-    const match = url.match(/\/storage\/v1\/object\/public\/platphoto\/(.+)/);
-    return match ? match[1] : null;
+    // Gérer les deux buckets
+    const matchPlats = url.match(/\/storage\/v1\/object\/public\/platphoto\/(.+)/);
+    if (matchPlats) return matchPlats[1];
+
+    const matchExtras = url.match(/\/storage\/v1\/object\/public\/extras\/(.+)/);
+    if (matchExtras) return matchExtras[1];
+
+    return null;
   } catch {
     return null;
   }

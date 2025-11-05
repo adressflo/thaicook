@@ -9,9 +9,10 @@ import ResetPasswordEmail from '@/emails/ResetPasswordEmail';
 export async function sendVerificationEmail({ user, url }: { user: { email: string }; url: string }) {
   try {
     await resend.emails.send({
-      from: 'Chanthana Thai Cook <noreply@chanthana.com>',
+      // Domaine vérifié sur Resend : cthaicook.com
+      from: 'ChanthanaThaiCook <noreply@cthaicook.com>',
       to: user.email,
-      subject: 'Vérifiez votre email - Chanthana Thai Cook',
+      subject: 'Vérifiez votre email - ChanthanaThaiCook',
       react: VerificationEmail({ email: user.email, url })
     });
   } catch (error) {
@@ -27,10 +28,11 @@ export async function sendVerificationEmail({ user, url }: { user: { email: stri
 export async function sendPasswordResetEmail({ user, url }: { user: { email: string }; url: string }) {
   try {
     await resend.emails.send({
-      from: 'Chanthana Thai Cook <noreply@chanthana.com>',
+      // Domaine vérifié sur Resend : cthaicook.com
+      from: 'ChanthanaThaiCook <noreply@cthaicook.com>',
       to: user.email,
-      subject: 'Réinitialisation de mot de passe - Chanthana Thai Cook',
-      react: ResetPasswordEmail({ resetUrl: url, userEmail: user.email })
+      subject: 'Réinitialisation de mot de passe - ChanthanaThaiCook',
+      react: ResetPasswordEmail({ resetUrl: url, email: user.email })
     });
   } catch (error) {
     console.error('Error sending password reset email:', error);

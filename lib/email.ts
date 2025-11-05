@@ -43,7 +43,7 @@ export async function sendResetPasswordEmail(email: string, resetUrl: string) {
       subject: 'Réinitialisez votre mot de passe - Chanthana Thai Cook',
       react: ResetPasswordEmail({
         resetUrl,
-        userEmail: email,
+        email,
       }),
     });
 

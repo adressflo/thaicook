@@ -71,28 +71,27 @@ export const useImageUpload = (
     }));
 
     try {
-      // 3. Convertir l'image en base64 pour persistence
-      const reader = new FileReader();
+      // 3. Upload vers Supabase Storage
+      const result = await uploadImageToStorage(file, folder);
 
-      reader.onload = (e) => {
-        const base64Url = e.target?.result as string;
+      if (!result.success || !result.data) {
+        throw new Error(result.error || 'Erreur lors de l\'upload');
+      }
 
-        setUploadState(prev => ({
-          ...prev,
-          isUploading: false,
-          url: base64Url
-        }));
+      // 4. Mise à jour de l'état avec l'URL Supabase
+      setUploadState(prev => ({
+        ...prev,
+        isUploading: false,
+        url: result.data!.url
+      }));
 
-        onSuccess(base64Url);
+      onSuccess(result.data.url);
 
-        toast({
-          title: "Image chargée",
-          description: "Image sélectionnée avec succès",
-          variant: "default"
-        });
-      };
-
-      reader.readAsDataURL(file);
+      toast({
+        title: "Image uploadée",
+        description: "L'image a été uploadée avec succès sur Supabase",
+        variant: "default"
+      });
 
     } catch (error) {
       console.error('Erreur upload:', error);
@@ -100,7 +99,7 @@ export const useImageUpload = (
       setUploadState(prev => ({
         ...prev,
         isUploading: false,
-        error: 'Erreur lors de l\'upload'
+        error: error instanceof Error ? error.message : 'Erreur lors de l\'upload'
       }));
 
       if (defaultImageUrl) {
@@ -109,7 +108,7 @@ export const useImageUpload = (
 
       toast({
         title: "Erreur",
-        description: "Erreur lors de la sélection d'image",
+        description: error instanceof Error ? error.message : "Erreur lors de l'upload d'image",
         variant: "destructive"
       });
 
