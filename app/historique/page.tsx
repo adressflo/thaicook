@@ -25,8 +25,11 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Loader2, Clock, History, Calendar, Utensils, Euro, BarChart3, Zap, PartyPopper, Users } from 'lucide-react';
+import { Loader2, Clock, History, Calendar, Utensils, Euro, BarChart3, Zap, PartyPopper, Users, WifiOff } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useOnlineStatus } from '@/hooks/useOnlineStatus';
+import { OfflineBannerCompact } from '@/components/OfflineBanner';
+import { Badge } from '@/components/ui/badge';
 import type {
   CommandeUI,
   DetailCommande,
@@ -54,6 +57,7 @@ const HistoriquePage = memo(() => {
   // Better Auth session
   const { data: session } = useSession();
   const currentUser = session?.user;
+  const isOnline = useOnlineStatus();
 
   // Client profile (pour obtenir idclient)
   const [clientProfile, setClientProfile] = useState<any>(null);
@@ -263,6 +267,9 @@ const HistoriquePage = memo(() => {
     <AppLayout>
       <div className="min-h-screen bg-gradient-thai py-8 px-4">
         <div className="container mx-auto max-w-7xl space-y-8 animate-fadeIn">
+          {/* Bannière offline */}
+          <OfflineBannerCompact />
+
           {/* Barre de recherche et filtres */}
           <FilterSearchBar
             searchTerm={searchTerm}

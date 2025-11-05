@@ -9,6 +9,11 @@ export const auth = betterAuth({
   baseURL: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000", // URL de base de votre application
   secret: process.env.BETTER_AUTH_SECRET!, // Clé secrète pour la sécurité
 
+  // Autoriser plusieurs origines pour multi-instance en développement
+  trustedOrigins: process.env.NODE_ENV === 'development'
+    ? ["http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "http://localhost:3003"]
+    : undefined,
+
   database: prismaAdapter(prisma, {
     provider: "postgresql", // Ou le type de votre base de données si différent
     usePlural: false,

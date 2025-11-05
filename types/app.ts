@@ -6,24 +6,61 @@ import type {
   commande_db,
   details_commande_db,
   evenements_db,
-  extras_db
+  extras_db,
+  jour_dispo
 } from '../generated/prisma/client';
 
 // Types de base depuis Prisma (auth_user_id remplace firebase_uid)
 export type Client = client_db
 export type Plat = plats_db
 export type Commande = commande_db
-export type DetailCommande = details_commande_db & {
+export type Evenement = evenements_db
+export type Extra = extras_db
+
+// Type pour l'interface utilisateur des extras
+export interface ExtraUI {
+  idextra: number;
+  nom_extra: string;
+  description: string | null;
+  prix: string; // Converti de Decimal vers string
+  photo_url: string | null;
+  actif: boolean | null;
+  created_at: string | null; // Converti de DateTime vers ISO string
+  updated_at: string | null; // Converti de DateTime vers ISO string
+  est_disponible?: boolean; // Alias pour actif
+}
+
+// Type simplifié pour Plat dans DetailCommande (évite conflit Decimal)
+export interface PlatSimpleUI {
+  id: number;
+  idplats: number;
+  plat: string;
+  description: string | null;
+  prix: string | null; // Converti de Decimal
+  lundi_dispo: jour_dispo;
+  mardi_dispo: jour_dispo;
+  mercredi_dispo: jour_dispo;
+  jeudi_dispo: jour_dispo;
+  vendredi_dispo: jour_dispo | null;
+  samedi_dispo: jour_dispo | null;
+  dimanche_dispo: jour_dispo | null;
+  photo_du_plat: string | null;
+  est_epuise: boolean | null;
+  epuise_depuis: string | null; // Converti de DateTime
+  epuise_jusqu_a: string | null; // Converti de DateTime
+  raison_epuisement: string | null;
+}
+
+// Type pour les détails de commande avec types UI
+export type DetailCommande = Omit<details_commande_db, 'prix_unitaire'> & {
   // Extensions pour les extras et plats
-  prix_unitaire?: string | null; // Prix custom pour les extras
+  prix_unitaire?: string | null; // Prix custom pour les extras (converti de Decimal)
   nom_plat?: string | null; // Nom custom pour les extras
   type?: 'plat' | 'extra' | null; // Type pour distinguer plats vs extras
   est_offert?: boolean | null; // Indique si le plat est offert
-  extra?: Extra | null; // Données de l'extra lié si applicable
-  plat?: Plat | null; // Données du plat lié si applicable
+  extra?: ExtraUI | null; // Données de l'extra lié si applicable (type UI)
+  plat?: PlatSimpleUI | null; // Données du plat lié si applicable (type UI)
 };
-export type Evenement = evenements_db
-export type Extra = extras_db
 
 // Types d'approvisionnement
 export type ListeCourse = Database['public']['Tables']['listes_courses']['Row']
@@ -93,11 +130,7 @@ export interface CommandeUI
     code_postal: number | null;
     ville: string | null;
   } | null;
-  details?: Array<
-    DetailCommande & {
-      plat?: Plat;
-    }
-  >;
+  details?: DetailCommande[];
   // Propriétés compatibles avec l'ancien système
   'Numéro de Commande'?: string; // Calculé depuis idcommande
   'Date & Heure de retrait'?: string | undefined; // Alias pour date_et_heure_de_retrait_souhaitees
@@ -177,19 +210,6 @@ export interface EvenementUI
   > | null;
 }
 
-// Type pour l'interface utilisateur des extras
-export interface ExtraUI extends Omit<Extra, 'prix' | 'created_at' | 'updated_at'> {
-  id: number; // Mappage de idextra vers id pour l'UI
-  idextra: number;
-  nom_extra: string;
-  prix: string; // Converti de Decimal vers string
-  description: string | null;
-  photo_url: string | null;
-  created_at: string | null; // Converti de Date vers ISO string
-  updated_at: string | null; // Converti de Date vers ISO string
-  est_disponible?: boolean; // Alias pour actif pour compatibilité avec les composants
-}
-
 // Type pour l'interface utilisateur des clients, directement basé sur le type Prisma
 export interface ClientUI extends Omit<Client, 'idclient'> {
   id: string; // Utiliser auth_user_id comme id pour compatibilité
@@ -223,14 +243,16 @@ export interface CreateCommandeData {
 
 export interface CreateEvenementData {
   nom_evenement: string;
-  contact_client_r?: string; // auth_user_id (optionnel maintenant)
-  contact_client_r_id: number; // idclient (obligatoire maintenant)
+  contact_client_r: string; // auth_user_id (obligatoire selon schema)
+  contact_client_r_id: number; // idclient (pour extend du schema)
   date_evenement: string;
-  type_d_evenement: string;
-  nombre_de_personnes: number;
-  budget_client?: string;
-  demandes_speciales_evenement?: string;
-  plats_preselectionnes?: number[]; // Array de idplats
+  nombre_personnes: number; // Nom correct selon schema
+  lieu_evenement: string; // Obligatoire selon schema
+  budget_approximatif?: number; // Number optionnel selon schema
+  description_evenement?: string; // String optionnel selon schema
+  is_public?: boolean; // Boolean optionnel selon schema
+  statut?: 'En attente' | 'Confirmé' | 'Annulé'; // Enum optionnel selon schema
+  plats_preselectionnes?: number[]; // Array de idplats (custom field)
 }
 
 // Type pour la réponse d'authentification
@@ -281,6 +303,6 @@ export interface CommandeUpdate {
 
 // Type pour les détails de plat modifiables
 export interface ModifiablePlatDetail extends DetailCommande {
-  plat?: Plat | undefined
+  plat?: PlatSimpleUI | undefined
   quantite_plat_commande: number // Requis et jamais null
 }

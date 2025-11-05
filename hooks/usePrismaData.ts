@@ -106,6 +106,7 @@ import type {
   ClientUI,
   CommandeUI,
   CreateCommandeData,
+  DetailCommande,
   PlatUI,
   ExtraUI,
   EvenementUI,
@@ -307,7 +308,12 @@ export const usePrismaCreateClient = () => {
       prenom?: string
       numero_de_telephone?: string
     }) => {
-      return await unwrapSafeAction<ClientUI>(createClient(data))
+      const clientData = {
+        ...data,
+        nom: data.nom || '',
+        prenom: data.prenom || '',
+      };
+      return await unwrapSafeAction<ClientUI>(createClient(clientData))
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['prisma-clients'] })
@@ -431,7 +437,20 @@ export const usePrismaCreateCommande = () => {
 
   return useMutation({
     mutationFn: async (data: CreateCommandeData) => {
-      return await unwrapSafeAction<CommandeUI>(createCommande(data))
+      // Filter out details with null plat_r and ensure required fields
+      const cleanedData = {
+        ...data,
+        details: data.details?.filter(d => d.plat_r !== null).map(d => ({
+          ...d,
+          plat_r: d.plat_r!,
+          quantite_plat_commande: d.quantite_plat_commande ?? 1,
+        })),
+        plats: data.plats?.map(p => ({
+          ...p,
+          quantite: p.quantite ?? 1,
+        })),
+      };
+      return await unwrapSafeAction<CommandeUI>(createCommande(cleanedData))
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['prisma-commandes'] })

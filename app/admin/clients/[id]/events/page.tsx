@@ -76,6 +76,7 @@ export default function ClientEventsPage() {
     date_evenement: '',
     type_d_evenement: 'Autre' as any,
     nombre_de_personnes: '',
+    lieu_evenement: '',
     budget_client: '',
     demandes_speciales_evenement: '',
     statut: 'Devis demandé'
@@ -174,10 +175,10 @@ export default function ClientEventsPage() {
         contact_client_r: clientAuthId,
         contact_client_r_id: client?.idclient || 0,
         date_evenement: formData.date_evenement || new Date().toISOString().split('T')[0],
-        type_d_evenement: formData.type_d_evenement,
-        nombre_de_personnes: formData.nombre_de_personnes ? parseInt(formData.nombre_de_personnes) : 1,
-                budget_client: formData.budget_client || undefined,
-        demandes_speciales_evenement: formData.demandes_speciales_evenement || undefined
+        nombre_personnes: formData.nombre_de_personnes ? parseInt(formData.nombre_de_personnes) : 1,
+        lieu_evenement: formData.lieu_evenement || 'À définir',
+        budget_approximatif: formData.budget_client ? parseFloat(formData.budget_client) : undefined,
+        description_evenement: formData.demandes_speciales_evenement || undefined
       };
 
       await createEvenementMutation.mutateAsync(eventData);
@@ -193,6 +194,7 @@ export default function ClientEventsPage() {
         date_evenement: '',
         type_d_evenement: 'Autre',
         nombre_de_personnes: '',
+        lieu_evenement: '',
         budget_client: '',
         demandes_speciales_evenement: '',
         statut: 'Devis demandé'

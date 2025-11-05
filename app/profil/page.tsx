@@ -44,6 +44,8 @@ import { FloatingUserIcon } from '@/components/FloatingUserIcon';
 import { useSession } from '@/lib/auth-client';
 import { updateUserProfile, getClientProfile, updateProfilePhoto as updateProfilePhotoAction, deleteProfilePhotoAction } from './actions';
 import { DateBirthSelector } from '@/components/forms/DateBirthSelector';
+import { requestNotificationPermission } from '@/lib/fcm';
+import { saveNotificationToken } from '@/app/actions/notifications';
 
 import type { ClientInputData } from '@/types/app';
 import {
@@ -125,6 +127,27 @@ const Profil = memo(() => {
   useEffect(() => {
     refetchClient();
   }, [currentUser?.id]);
+
+  // Demander automatiquement la permission FCM et sauvegarder le token
+  useEffect(() => {
+    if (!currentUser) return;
+
+    // Demander permission et obtenir token FCM
+    requestNotificationPermission().then(token => {
+      if (token) {
+        // Sauvegarder token dans la base de données
+        saveNotificationToken(token, 'web').then(result => {
+          if (result.success) {
+            console.log('✅ Token FCM sauvegardé automatiquement');
+          } else {
+            console.warn('⚠️ Erreur sauvegarde token FCM:', result.error);
+          }
+        });
+      } else {
+        console.log('ℹ️ Permission notifications refusée ou non supportée');
+      }
+    });
+  }, [currentUser]);
 
   // ✅ GESTION ERREURS DE VALIDATION ZOD
   const { validationError, setValidationError, clearValidationError, handleValidationError } = useValidationErrors();

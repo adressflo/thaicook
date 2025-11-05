@@ -176,7 +176,7 @@ function convertCommandeToUI(commande: CommandeWithRelations): CommandeUI {
         quantite_plat_commande: detail.quantite_plat_commande ?? 1,
         nom_plat: detail.nom_plat ?? null,
         prix_unitaire: prixUnitaireStr,
-        type: detail.type ?? 'plat',
+        type: (detail.type ?? 'plat') as 'plat' | 'extra' | null,
         extra_id: detail.extra_id ?? null,
         est_offert: detail.est_offert ?? false,
         plat:
@@ -228,7 +228,7 @@ function convertCommandeToUI(commande: CommandeWithRelations): CommandeUI {
               }
             : null,
       }
-    }),
+    }) as import('@/types/app').DetailCommande[] | undefined,
   }
 }
 
@@ -481,6 +481,59 @@ export const updateCommande = authAction
       revalidatePath('/admin/commandes')
       revalidatePath('/historique')
       revalidatePath('/suivi')
+
+      // Envoyer notification push si le statut commande a changé
+      if (data.statut_commande && commande.client_db) {
+        try {
+          const statutUI = mapStatutCommande(commande.statut_commande);
+          let notificationTitle = 'Mise à jour de votre commande';
+          let notificationBody = `Votre commande #${commande.idcommande} a été mise à jour.`;
+
+          // Messages personnalisés selon le statut
+          if (statutUI === 'Confirmée') {
+            notificationTitle = '✅ Commande confirmée !';
+            notificationBody = `Votre commande #${commande.idcommande} a été confirmée et est en cours de préparation.`;
+          } else if (statutUI === 'En préparation') {
+            notificationTitle = '👨‍🍳 Commande en préparation';
+            notificationBody = `Votre commande #${commande.idcommande} est en cours de préparation par nos cuisiniers.`;
+          } else if (statutUI === 'Prête à récupérer') {
+            notificationTitle = '🎉 Commande prête !';
+            notificationBody = `Votre commande #${commande.idcommande} est prête à être récupérée. Bon appétit !`;
+          } else if (statutUI === 'Récupérée') {
+            notificationTitle = '✅ Commande récupérée';
+            notificationBody = `Merci d'avoir récupéré votre commande #${commande.idcommande}. Bon appétit !`;
+          } else if (statutUI === 'Annulée') {
+            notificationTitle = '❌ Commande annulée';
+            notificationBody = `Votre commande #${commande.idcommande} a été annulée.`;
+          }
+
+          // Appel API pour envoyer la notification
+          await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/notifications/send`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              clientId: commande.client_db.idclient,
+              notification: {
+                title: notificationTitle,
+                body: notificationBody,
+                icon: '/icons/icon-192x192.png',
+                data: {
+                  type: 'order',
+                  orderId: commande.idcommande.toString(),
+                  url: `/suivi-commande/${commande.idcommande}`,
+                },
+              },
+            }),
+          });
+
+          console.log('📬 Notification push envoyée pour commande:', commande.idcommande);
+        } catch (notifError) {
+          // Ne pas faire échouer la mise à jour si la notification échoue
+          console.warn('⚠️ Erreur envoi notification (non bloquant):', notifError);
+        }
+      }
 
       return convertCommandeToUI(commande)
     } catch (error) {

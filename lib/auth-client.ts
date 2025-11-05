@@ -5,7 +5,10 @@ import { createAuthClient } from "better-auth/react";
 // import { organizationClient, twoFactorClient, passkeyClient } from "better-auth/client/plugins";
 
 export const authClient = createAuthClient({
-  baseURL: process.env.NEXT_PUBLIC_APP_URL,
+  // Détection automatique de l'URL pour supporter multi-instance (différents ports)
+  baseURL: typeof window !== 'undefined'
+    ? window.location.origin
+    : process.env.NEXT_PUBLIC_APP_URL,
 
   fetchOptions: {
     onError(error) {

@@ -9,6 +9,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useToast } from '@/hooks/use-toast';
+import { useOnlineStatus } from '@/hooks/useOnlineStatus';
+import { OfflineBannerCompact } from '@/components/OfflineBanner';
 import {
   AlertCircle,
   Calendar as CalendarIconLucide,
@@ -87,6 +89,7 @@ const getAvailableDays = (plat: Plat): { value: string; label: string }[] => {
 
 const Commander = memo(() => {
   const { toast } = useToast();
+  const isOnline = useOnlineStatus();
   const { plats, isLoading: dataIsLoading, error: dataError } = useData();
   const createCommande = usePrismaCreateCommande();
 
@@ -407,6 +410,9 @@ const Commander = memo(() => {
               panier.length > 0 && !isCartCollapsed ? 'md:col-span-1' : 'w-full'
             }
           >
+            {/* Bannière offline compacte */}
+            <OfflineBannerCompact className="mb-4" />
+
             {!currentUser || !idclient ? (
               <Alert className="mb-6 border-blue-200 bg-blue-50 text-blue-800">
                 <AlertCircle className="h-4 w-4" />
@@ -1049,7 +1055,7 @@ const Commander = memo(() => {
                       <Button
                         onClick={validerCommande}
                         disabled={
-                          createCommande.isPending || !currentUser || !idclient
+                          createCommande.isPending || !currentUser || !idclient || !isOnline
                         }
                         className="w-full bg-thai-orange text-lg py-6 transition-all duration-200 hover:scale-105"
                       >
@@ -1339,7 +1345,8 @@ const Commander = memo(() => {
                             disabled={
                               createCommande.isPending ||
                               !currentUser ||
-                              !idclient
+                              !idclient ||
+                              !isOnline
                             }
                             className="w-full bg-thai-orange text-xl py-8"
                           >

@@ -2,13 +2,12 @@
 
 import React from 'react';
 import { PDFDownloadLink } from '@react-pdf/renderer';
-import FactureCommandePDF from '@/components/pdf/FactureCommandePDF';
+import FactureCommandePDF, { type CommandeAvecDetailsPDF } from '@/components/pdf/FactureCommandePDF';
 import { Button } from '@/components/ui/button';
 import { Download, Loader2 } from 'lucide-react';
-import type { CommandeAvecDetails } from '@/components/pdf/FactureCommandePDF';
 
 interface BoutonTelechargerFactureProps {
-  commande: CommandeAvecDetails;
+  commande: CommandeAvecDetailsPDF;
   // On ajoute une prop pour le style, pour pouvoir le mettre à côté de l'autre bouton
   className?: string;
 }

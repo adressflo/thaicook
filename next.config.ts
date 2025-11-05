@@ -15,6 +15,16 @@ const nextConfig = {
       },
     ],
   },
+  // Turbopack config (Next.js 16 default)
+  turbopack: {},
+  webpack: (config: any) => {
+    // Exclure firebase-messaging-sw.js du bundling
+    config.module.rules.push({
+      test: /firebase-messaging-sw\.js$/,
+      use: 'null-loader',
+    });
+    return config;
+  },
 };
 
 export default nextConfig;

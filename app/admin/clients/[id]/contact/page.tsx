@@ -112,7 +112,6 @@ export default function ClientContactPage() {
       };
 
       await updateClientMutation.mutateAsync({
-        authUserId: client.auth_user_id,
         data: dataToUpdate,
       });
 

@@ -54,6 +54,8 @@ export const createPlat = action
         data: {
           ...parsedInput,
           est_epuise: false, // Valeur par défaut à la création
+          // Valeurs par défaut pour jours obligatoires si non fournis
+          mardi_dispo: parsedInput.mardi_dispo ?? 'non',
         },
       })
 

@@ -26,19 +26,49 @@ export default defineConfig({
 
   /* Configure projects for major browsers */
   projects: [
+    // Setup authentication state (runs first)
+    {
+      name: 'setup',
+      testMatch: /.*\.setup\.ts/,
+    },
+
+    // Chromium without auth (default for offline tests)
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
+      dependencies: ['setup'],
+    },
+
+    // Chromium with client auth (for protected pages)
+    {
+      name: 'chromium-client',
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: 'tests/.auth/client.json',
+      },
+      dependencies: ['setup'],
+    },
+
+    // Chromium with admin auth (for admin pages)
+    {
+      name: 'chromium-admin',
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: 'tests/.auth/admin.json',
+      },
+      dependencies: ['setup'],
     },
 
     {
       name: 'firefox',
       use: { ...devices['Desktop Firefox'] },
+      dependencies: ['setup'],
     },
 
     {
       name: 'webkit',
       use: { ...devices['Desktop Safari'] },
+      dependencies: ['setup'],
     },
   ],
 

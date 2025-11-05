@@ -5,7 +5,7 @@ import type { commande_db, details_commande_db, client_db } from '@/generated/pr
 
 // On définit un type qui correspond à la structure de données attendue :
 // une commande, avec un tableau de détails, et les informations du client.
-type CommandeAvecDetails = commande_db & {
+export type CommandeAvecDetailsPDF = commande_db & {
   details: details_commande_db[];
   client_db: client_db | null;
 };
@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
 });
 
 interface FacturePDFProps {
-  commande: CommandeAvecDetails;
+  commande: CommandeAvecDetailsPDF;
 }
 
 const FacturePDF: React.FC<FacturePDFProps> = ({ commande }) => (

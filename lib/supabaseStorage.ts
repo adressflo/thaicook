@@ -186,10 +186,13 @@ export const uploadImageToStorage = async (file: File, folder: string = 'extras'
 };
 
 // Fonction pour supprimer une image du storage
-export const deleteImageFromStorage = async (filePath: string): Promise<{ success: boolean; error?: string }> => {
+export const deleteImageFromStorage = async (
+  filePath: string,
+  bucketName: string = STORAGE_CONFIG.BUCKET_NAME_PLATS
+): Promise<{ success: boolean; error?: string }> => {
   try {
     const { error } = await supabase.storage
-      .from(STORAGE_CONFIG.BUCKET_NAME)
+      .from(bucketName)
       .remove([filePath]);
 
     if (error) {

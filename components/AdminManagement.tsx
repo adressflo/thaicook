@@ -43,7 +43,6 @@ export const AdminManagement = () => {
 
       // Mettre à jour le rôle via Prisma
       await updateClientMutation.mutateAsync({
-        authUserId: client.auth_user_id,
         data: { role: 'admin' }
       });
 
@@ -83,7 +82,6 @@ export const AdminManagement = () => {
 
       // Mettre à jour le rôle via Prisma
       await updateClientMutation.mutateAsync({
-        authUserId: client.auth_user_id,
         data: { role: 'client' }
       });
 

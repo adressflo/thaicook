@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import { Providers } from '../components/providers';
 import './globals.css'; // This is a side-effect import
@@ -7,7 +7,10 @@ import { Toaster as Sonner } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { FloatingUserIcon } from '../components/FloatingUserIcon';
 import ErrorBoundary from '../components/ErrorBoundary';
-import { NuqsAdapter } from 'nuqs/adapters/next/app'; // <-- AJOUT DE CETTE LIGNE
+import { NuqsAdapter } from 'nuqs/adapters/next/app';
+import { PWARegister } from '@/components/PWARegister';
+import { OfflineBanner } from '@/components/OfflineBanner';
+import { OfflineIndicator } from '@/components/OfflineIndicator';
 
 
 const geistSans = Geist({
@@ -28,8 +31,14 @@ export const metadata: Metadata = {
     'restaurant thaï, cuisine thaïlandaise, plats authentiques, ChanthanaThaiCook',
   authors: [{ name: 'APPCHANTHANA' }],
   robots: 'index, follow',
+  applicationName: 'Chanthana Thai Cook',
+  appleWebApp: {
+    capable: true,
+    title: 'Chanthana',
+    statusBarStyle: 'black-translucent',
+  },
   openGraph: {
-    title: 'ChanthanaThaiCook - Restaurant Thaï Authentique', // <-- This line
+    title: 'ChanthanaThaiCook - Restaurant Thaï Authentique',
     description:
       'Une expérience culinaire exceptionnelle qui vous transporte directement en Thaïlande',
     type: 'website',
@@ -37,9 +46,10 @@ export const metadata: Metadata = {
   },
 };
 
-export const viewport = {
+export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
+  themeColor: '#D97706',
 };
 
 export default function RootLayout({
@@ -48,17 +58,20 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="fr" className="h-full">
+    <html lang="fr" className="h-full" data-scroll-behavior="smooth">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-background text-foreground font-sans`}
       >
+        <PWARegister />
         <ErrorBoundary>
           <Providers>
             <TooltipProvider>
+              <OfflineBanner dismissible showLastSync />
               <Toaster />
               <Sonner />
-              <NuqsAdapter>{children}</NuqsAdapter> {/* <-- MODIFICATION ICI */}
+              <NuqsAdapter>{children}</NuqsAdapter>
               <FloatingUserIcon />
+              <OfflineIndicator position="bottom-right" />
             </TooltipProvider>
           </Providers>
         </ErrorBoundary>

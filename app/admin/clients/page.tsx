@@ -97,7 +97,6 @@ const FicheClient = ({ client, commandes, onBack, router }: { client: ClientUI, 
       };
 
       await updateClientMutation.mutateAsync({
-        authUserId: client.auth_user_id,
         data: dataToUpdate,
       });
 
@@ -142,7 +141,6 @@ const FicheClient = ({ client, commandes, onBack, router }: { client: ClientUI, 
       };
 
       await updateClientMutation.mutateAsync({
-        authUserId: client.auth_user_id,
         data: dataToUpdate,
       });
 

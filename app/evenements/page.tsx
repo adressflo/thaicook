@@ -193,10 +193,10 @@ const Evenements = memo(() => {
       contact_client_r: currentUser.id, // UID Firebase pour le lien utilisateur
       contact_client_r_id: currentUserProfile!.idclient,
       date_evenement: dateEvenementISO,
-      type_d_evenement: formData.typeEvenement,
-      nombre_de_personnes: parseInt(formData.nombrePersonnes),
-      budget_client: formData.budgetClient || undefined,
-      demandes_speciales_evenement: formData.demandesSpeciales,
+      nombre_personnes: parseInt(formData.nombrePersonnes),
+      lieu_evenement: 'À définir',
+      budget_approximatif: formData.budgetClient ? parseFloat(formData.budgetClient) : undefined,
+      description_evenement: formData.demandesSpeciales || undefined,
       plats_preselectionnes: platsPreSelectionnes.map(id => parseInt(id)),
     };
 

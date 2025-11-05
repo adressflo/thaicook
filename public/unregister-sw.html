@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Désenregistrer Service Worker</title>
+</head>
+<body>
+  <h1>Désenregistrement du Service Worker...</h1>
+  <p id="status">En cours...</p>
+
+  <script>
+    (async () => {
+      const statusEl = document.getElementById('status');
+
+      if ('serviceWorker' in navigator) {
+        try {
+          const registrations = await navigator.serviceWorker.getRegistrations();
+
+          if (registrations.length === 0) {
+            statusEl.textContent = '✅ Aucun Service Worker enregistré';
+            statusEl.style.color = 'green';
+            return;
+          }
+
+          for (const registration of registrations) {
+            await registration.unregister();
+            console.log('✅ Service Worker désenregistré:', registration.scope);
+          }
+
+          // Clear all caches
+          const cacheNames = await caches.keys();
+          for (const cacheName of cacheNames) {
+            await caches.delete(cacheName);
+            console.log('🗑️ Cache supprimé:', cacheName);
+          }
+
+          statusEl.textContent = `✅ ${registrations.length} Service Worker(s) désenregistré(s) + caches nettoyés`;
+          statusEl.style.color = 'green';
+
+          setTimeout(() => {
+            window.location.href = '/';
+          }, 2000);
+
+        } catch (error) {
+          statusEl.textContent = '❌ Erreur: ' + error.message;
+          statusEl.style.color = 'red';
+        }
+      } else {
+        statusEl.textContent = '❌ Service Workers non supportés';
+        statusEl.style.color = 'red';
+      }
+    })();
+  </script>
+</body>
+</html>
