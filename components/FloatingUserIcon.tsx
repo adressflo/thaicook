@@ -257,7 +257,7 @@ const FloatingUserIcon = memo(() => {
                       className="w-full text-thai-orange hover:bg-thai-orange/10"
                       onClick={() => {
                         setShowNotifications(false);
-                        router.push('/notifications');
+                        router.push('/notifications' as any);
                       }}
                     >
                       Voir toutes les notifications

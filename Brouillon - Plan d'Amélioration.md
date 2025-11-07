@@ -604,14 +604,142 @@ Priorité 2: Canal préféré client (WhatsApp/SMS/Telegram via n8n)
 **Dépend de : Server Actions stables ⏳ | Schemas Zod ⏳**
 
 ### 🏠 A. Page d'Accueil (/)
+
+#### 🎬 Hero Section Dynamique
+- [ ] 🔥🔥🔥 **Carousel média administratif** : Images + vidéos courtes (5-8s)
+  - Upload depuis interface admin (/admin/hero-media)
+  - Support image (JPG, PNG, WebP) + vidéo (MP4, WebM)
+  - Drag & drop pour réorganiser l'ordre
+  - Transition fade douce entre médias
+  - Indicateurs navigation discrets
+  - Responsive : Aspect ratio adaptatif mobile/desktop
+
+- [ ] 🔥🔥 **Overlay texte sur hero** : Titre + baseline + CTA
+  - "ChanthanaThaiCook - Cuisine Thaïlandaise Authentique"
+  - "Faite Maison avec Passion"
+  - Boutons : [Commander] [Découvrir]
+  - Fond overlay subtil pour lisibilité
+
+#### 🧭 Navigation Contextuelle
+
+- [ ] 🔥🔥🔥 **Cartes navigation adaptatives selon auth** :
+  - **Visiteur non connecté** : 4 cartes
+    - Pour Commander
+    - Nous Trouver
+    - Pour vos Événements
+    - À propos de nous
+  - **Utilisateur connecté** : 6 cartes (+ Mon Profil + Suivi & Historique)
+
+#### 💡 Section "Pourquoi Créer un Compte" (Non-connectés uniquement)
+
+- [ ] 🔥🔥 **Bénéfices pratiques (pas marketing)** :
+  - 📱 Suivi en temps réel : Notifications quand commande prête
+  - 📋 Historique : Retrouver facilement plats préférés
+  - 🎉 Gestion événements : Suivre demandes devis et réservations
+  - Design : Fond crème thaï, icônes minimalistes, ton informatif
+  - Boutons : [Créer mon compte] [Se connecter]
+
+#### 📱 Section PWA Intelligente
+
+- [ ] 🔥🔥🔥 **Hook `usePWAInstalled`** : Détecter si app installée
+  - Vérifier `display-mode: standalone`
+  - Écouter `beforeinstallprompt` event
+  - Stocker état dans localStorage
+
+- [ ] 🔥🔥 **Affichage conditionnel** :
+  - **Si non installée** : "Installez notre application"
+    - Mockup téléphone avec screenshot app
+    - Bénéfices : Commander + rapidement, Notifications, Hors ligne
+    - Bouton : [Installer l'application →]
+  - **Si installée** : "Application installée ✅"
+    - Message : "Accédez rapidement à votre espace"
+    - Bouton : [Ouvrir l'application →] (deep link)
+
+#### 🚫 Suppressions
+
+- [ ] 🔥 **Supprimer page `/suivi`** : Redondante avec `/historique`
+  - Fichier : `app/suivi/page.tsx` (suppression)
+  - Redirection 308 Permanent : `/suivi` → `/historique`
+- [ ] 🔥 **Renommer card navigation** : "Suivi & Historique" → "Suivi"
+  - Description : "Suivez vos commandes et consultez l'historique" (conservée)
+  - Icon : History (conservée)
+- [ ] 🔥 **Supprimer section témoignages** : Pas adapté restaurant familial
+- [ ] 🔥 **Supprimer promotions/offres/fidélité** : Pas la politique maison
+
+#### 🔧 Spécifications Techniques Détaillées
+
+**Hero Carousel :**
+- [ ] **Bibliothèque** : Embla Carousel (shadcn/ui intégré)
+- [ ] **Auto-play** : Ajustable par admin (default 7s par média)
+- [ ] **Pause au hover** : Activée automatiquement
+- [ ] **Prefers-reduced-motion** : Auto-détecté (désactive auto-play si actif)
+- [ ] **Contrôles navigation** : Dots discrets uniquement (pas de flèches)
+- [ ] **Transitions** : Fade 800ms cubic-bezier(0.4, 0, 0.2, 1)
+
+**Overlay Hero :**
+- [ ] **Position** : Tiers inférieur (70% image visible, 30% overlay)
+- [ ] **Fond** : Gradient `linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.7) 100%)`
+- [ ] **Backdrop blur** : 8px sur zone texte uniquement
+- [ ] **Boutons CTA** :
+  - [Commander] : Solid bg-thai-orange
+  - [Découvrir] : Outline blanc + smooth scroll vers section navigation
+
+**Navigation Cards (6 cartes) :**
+- [ ] **Visiteur non connecté** : 6 cartes affichées
+  - Pour Commander (actif)
+  - Nous Trouver (actif)
+  - Pour vos Événements (actif)
+  - À propos de nous (actif)
+  - Découvertes (actif) ← NOUVELLE CARTE
+  - Mon Profil (désactivé/grisé)
+- [ ] **Utilisateur connecté** : 6 cartes actives
+  - Ajouter : Mon Profil (actif) + Suivi (actif)
+  - Badge "Nouveau !" sur Mon Profil si `photo_client` récente (<7 jours)
+- [ ] **Nouvelle carte "Découvertes"** :
+  - Route : `/actualites`
+  - Icon : Sparkles ✨
+  - Description : "Nouveautés, plats du moment et suivez nos coulisses sur les réseaux sociaux"
+  - Image : Photo plat saisonnier ou collage Instagram
+- [ ] **Grid responsive** :
+  - Desktop (≥1024px) : 3 colonnes
+  - Tablet (768-1023px) : 2 colonnes
+  - Mobile (<768px) : 1 colonne
+- [ ] **Animations** : Stagger 150ms top to bottom (framer-motion)
+
+**Médias Hero - Spécifications :**
+- [ ] **Images** :
+  - Format prioritaire : WebP 1920x1080
+  - Fallback : JPEG
+  - Ratio : 16:9 (standard)
+  - Taille max : 10MB
+- [ ] **Vidéos** :
+  - Durée max : 10-15 secondes
+  - Codecs : MP4 H.264 + WebM VP9 (compatibilité)
+  - Audio : Muted forcé
+  - Sous-titres : Non nécessaires
+  - Taille max : 10MB
+
+**Fallbacks & Error Handling :**
+- [ ] **Cascade fallback médias** :
+  1. Essayer vidéo
+  2. Si erreur → Image associée
+  3. Si pas d'image → `/hero-default.jpg`
+  4. Pendant chargement → Blur-up placeholder (LQIP)
+- [ ] **Aucun média actif** : Afficher image par défaut
+
+**Bonus Implémentés :**
+- [ ] **Badge "Nouveau !" card Mon Profil** : Si `photo_client` uploadée < 7 jours
+- [ ] **Smooth scroll CTA "Découvrir"** : Scroll vers section navigation cards
+- [ ] **Photo client dans card Mon Profil** : Depuis `client_db.photo_client`
+
+#### 🎨 Polish & Accessibilité
+
 - [ ] 🔥🔥 **Sélecteur de langue** : Permettre changement langue (fr/th/en)
   - Dépend de : next-intl configuration ⏳
-- [ ] 🔥 **Pied de page amélioré** :
-  - Jours et horaires d'ouverture
-  - Icônes cliquables réseaux sociaux (Facebook, Instagram)
-- [ ] 🔥 **Simplification navigation** :
-  - Supprimer page `/suivi` (redondante avec `/historique`)
-  - Mettre à jour lien "Suivi & historique" → `/historique`
+- [ ] 🔥 **Footer enrichi** : Horaires détaillés + jours fermeture hebdomadaire
+- [ ] 🔥 **Animations entrance** : Hero fade-in, cards stagger animation
+- [ ] 🔥 **Tests accessibilité** : Keyboard navigation, screen readers, focus states
+- [ ] 🔥 **Tests E2E Playwright** : Parcours visiteur vs connecté
 
 ### 🛒 B. Page Commander (/commander)
 - [x] 🔥🔥 **nuqs - Filtres menu** : URL state pour catégorie ✅ (line 29: useQueryState)
@@ -757,6 +885,35 @@ Priorité 2: Canal préféré client (WhatsApp/SMS/Telegram via n8n)
   - Étape 4 : Récapitulatif + validation
 - [ ] **Validation** : Schemas Zod (dépend de : Schemas Zod ⏳)
 - [ ] **Enregistrement** : Server Action création commande complète
+
+### 🎬 E. Page Admin / Hero Media (/admin/hero-media)
+**🔥🔥 Gestion Carousel Page d'Accueil**
+
+#### Table Base de Données
+- [ ] **Créer table `hero_media`** :
+  - Colonnes : id, type (image/video), url, titre, description, ordre, active, created_at, updated_at
+  - Migration Prisma + génération types TypeScript
+
+#### Interface Admin
+- [ ] **Page CRUD complète** :
+  - Liste médias avec preview miniature
+  - Drag & drop pour réordonner (bibliothèque dnd-kit)
+  - Upload fichiers : Max 10MB, validation MIME
+  - Toggle actif/inactif (masquer sans supprimer)
+  - Édition titre + description
+  - Suppression avec confirmation
+  - Preview temps réel du carousel
+
+#### Server Actions
+- [ ] **uploadHeroMedia()** : Upload + validation + stockage
+- [ ] **updateHeroMediaOrder()** : Réorganiser ordre affichage
+- [ ] **toggleHeroMediaActive()** : Activer/désactiver média
+- [ ] **deleteHeroMedia()** : Suppression définitive
+
+#### Tests
+- [ ] **Tests upload** : Fichiers valides/invalides, taille max
+- [ ] **Tests permissions** : Seul admin peut modifier
+- [ ] **Tests performance** : Lazy loading, optimisation vidéos
 
 ---
 

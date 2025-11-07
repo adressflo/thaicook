@@ -134,7 +134,7 @@ export default function LoginPage() {
                   <Checkbox
                     id="rememberMe"
                     checked={rememberMe}
-                    onCheckedChange={checked => setRememberMe(checked === true)}
+                    onCheckedChange={(checked: boolean | "indeterminate") => setRememberMe(checked === true)}
                     disabled={isLoading}
                   />
                   <Label

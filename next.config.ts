@@ -15,6 +15,16 @@ const nextConfig = {
       },
     ],
   },
+  // Redirections
+  async redirects() {
+    return [
+      {
+        source: '/suivi',
+        destination: '/historique',
+        permanent: true, // 308 Permanent Redirect
+      },
+    ]
+  },
   // Turbopack config (Next.js 16 default)
   turbopack: {},
   webpack: (config: any) => {

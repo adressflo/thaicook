@@ -104,9 +104,9 @@ model client_db {
   souhaitez_vous_recevoir_actualites Boolean?                   @default(false)
   date_de_naissance                  DateTime?                  @db.Date
   photo_client                       String?
-  deleted_at                         DateTime?
   idclient                           BigInt                     @id @unique @default(autoincrement())
   auth_user_id                       String                     @unique
+  deleted_at                         DateTime?
   activites_flux                     activites_flux[]
   commande_db                        commande_db[]
   evenements_db                      evenements_db[]
@@ -167,7 +167,7 @@ model details_commande_db {
   est_offert             Boolean?    @default(false)
   extras_db              extras_db?  @relation(fields: [extra_id], references: [idextra], onUpdate: NoAction)
   commande_db            commande_db @relation(fields: [commande_r], references: [idcommande], onDelete: Cascade, onUpdate: NoAction, map: "détails_commande_db_commande_r_fkey")
-  plats_db               plats_db?    @relation(fields: [plat_r], references: [idplats], onDelete: Cascade, onUpdate: NoAction, map: "détails_commande_db_plat_r_fkey")
+  plats_db               plats_db?   @relation(fields: [plat_r], references: [idplats], onDelete: Cascade, onUpdate: NoAction, map: "détails_commande_db_plat_r_fkey")
 
   @@index([commande_r], map: "idx_details_commande")
   @@index([commande_r], map: "idx_details_commande_commande_r")
@@ -555,6 +555,21 @@ model Verification {
 
   @@unique([identifier, value])
   @@map("verification")
+}
+
+model hero_media {
+  id          String   @id @default(cuid())
+  type        String   // 'image' | 'video'
+  url         String
+  titre       String?
+  description String?
+  ordre       Int      @default(0)
+  active      Boolean  @default(true)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  @@index([ordre, active], map: "idx_hero_media_ordre_active")
+  @@map("hero_media")
 }
 
 enum categorie_ingredient {
