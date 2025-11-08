@@ -25,19 +25,27 @@ if (!getApps().length) {
  */
 export function getMessagingInstance(): Messaging | null {
   if (typeof window === 'undefined') {
-    console.warn('getMessagingInstance appelé côté serveur');
+    return null;
+  }
+
+  // CRITIQUE: Vérifier VAPID key AVANT d'initialiser Messaging (évite 401 FCM)
+  const vapidKey = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY;
+  if (!vapidKey || vapidKey === 'YOUR_VAPID_KEY_HERE' || vapidKey.trim() === '') {
+    // FCM non configuré - retour silencieux (feature optionnelle)
     return null;
   }
 
   if (!('Notification' in window)) {
-    console.warn('Notifications non supportées par ce navigateur');
     return null;
   }
 
   try {
     return getMessaging(firebaseApp);
   } catch (error) {
-    console.error('Erreur initialisation Firebase Messaging:', error);
+    // Log uniquement en développement
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('Firebase Messaging non disponible (non-critique):', error);
+    }
     return null;
   }
 }
@@ -69,28 +77,27 @@ export async function requestNotificationPermission(): Promise<string | null> {
 
     const messaging = getMessagingInstance();
     if (!messaging) {
-      console.error('Impossible d\'obtenir l\'instance Messaging');
+      // Retour silencieux - messaging non disponible (VAPID manquante ou navigateur incompatible)
       return null;
     }
 
-    // Obtenir token FCM
-    const vapidKey = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY;
-    if (!vapidKey) {
-      console.error('Clé VAPID manquante dans .env');
-      return null;
-    }
-
+    // Obtenir token FCM (VAPID key déjà validée dans getMessagingInstance)
+    const vapidKey = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY!;
     const token = await getToken(messaging, { vapidKey });
 
     if (token) {
-      console.log('✅ Token FCM obtenu:', token.substring(0, 20) + '...');
+      if (process.env.NODE_ENV === 'development') {
+        console.log('✅ Token FCM obtenu:', token.substring(0, 20) + '...');
+      }
       return token;
     } else {
-      console.warn('Aucun token FCM obtenu');
       return null;
     }
   } catch (error) {
-    console.error('Erreur obtention token FCM:', error);
+    // Log uniquement en développement
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('FCM token request failed (non-critique):', error);
+    }
     return null;
   }
 }
@@ -120,7 +127,7 @@ export function onMessageListener(
 
   const messaging = getMessagingInstance();
   if (!messaging) {
-    console.error('Messaging non disponible');
+    // Retour silencieux - messaging non disponible
     return null;
   }
 
@@ -132,7 +139,9 @@ export function onMessageListener(
 
     return unsubscribe;
   } catch (error) {
-    console.error('Erreur onMessage:', error);
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('Erreur onMessage (non-critique):', error);
+    }
     return null;
   }
 }
@@ -149,16 +158,20 @@ export async function revokeFCMToken(): Promise<boolean> {
 
   const messaging = getMessagingInstance();
   if (!messaging) {
-    console.error('Messaging non disponible');
+    // Retour silencieux - messaging non disponible
     return false;
   }
 
   try {
     await deleteToken(messaging);
-    console.log('✅ Token FCM révoqué');
+    if (process.env.NODE_ENV === 'development') {
+      console.log('✅ Token FCM révoqué');
+    }
     return true;
   } catch (error) {
-    console.error('Erreur révocation token FCM:', error);
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('Erreur révocation token FCM (non-critique):', error);
+    }
     return false;
   }
 }
@@ -182,7 +195,9 @@ export async function isServiceWorkerRegistered(): Promise<boolean> {
     const registrations = await navigator.serviceWorker.getRegistrations();
     return registrations.length > 0;
   } catch (error) {
-    console.error('Erreur vérification Service Worker:', error);
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('Erreur vérification Service Worker (non-critique):', error);
+    }
     return false;
   }
 }

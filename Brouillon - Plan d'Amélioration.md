@@ -439,6 +439,21 @@ Tests       15 passed (15)
 
 ### 🔥 9️⃣ Outils Techniques Supplémentaires [PHASE 2-3]
 
+#### ✅ framer-motion - Animations React Déclaratives [INSTALLÉ + UTILISÉ]
+**Statut : Installation complète, utilisé dans HeroCarousel** ✅ (2025-11-08)
+
+- [x] **Installation de la bibliothèque framer-motion** (NPM v12.23.24, MIT License)
+- [x] **Animations scroll Hero Section** ✅ UTILISÉ
+  - [x] Hook `useScroll` : Track scroll progress (offset: 'start start' → 'end start')
+  - [x] Hook `useTransform` : Mapping scroll → CSS transforms
+  - [x] Rotation 3D : rotateX 20° → 0° (perspective 1000px)
+  - [x] Scale responsive : mobile 0.7→0.9, desktop 1.05→1
+  - [x] Translation parallax : translateY 0 → -100px
+  - [x] Composant `motion.div` avec style dynamique
+  - [x] Animation initiale : opacity 0, x -100 → opacity 1, x 0
+  - [x] Respect prefers-reduced-motion (désactive animations si actif)
+- [ ] **Extensions futures** : Stagger animations, spring physics, gestures
+
 #### ✅ nuqs - URL State Management Type-Safe [INSTALLÉ + UTILISÉ]
 **Statut : Installation complète, utilisé dans /commander**
 
@@ -596,6 +611,34 @@ Priorité 2: Canal préféré client (WhatsApp/SMS/Telegram via n8n)
   - ✅ Tests mode offline : badge, bannière, contenu en cache
   - ✅ Tests retour online : notification, synchronisation
 
+### ⚠️ Tests E2E - Configuration Ajustée [EN COURS 2025-11-07]
+
+**Problème identifié :** `webServer` auto-start Playwright crée processus zombie (ports 3000/3001 occupés)
+- Bug connu Playwright Windows (Issues #19049, #24101, #34190)
+- PID 127692 zombie résolu le 2025-11-07
+- Configuration `reuseExistingServer` ne fonctionne pas sur Node 18+
+
+**Actions appliquées :**
+- [x] Désactivation `webServer` en développement local
+- [x] Activation uniquement en CI via `process.env.CI`
+- [x] Scripts `kill-port-3000.js` conservés pour edge cases
+
+**Workflow développement actuel :**
+```bash
+# Terminal 1: Serveur manuel
+npm run dev
+
+# Terminal 2: Tests E2E (si nécessaire)
+npm run test:e2e
+```
+
+**TODO avant production (2-4 semaines avant mise en ligne) :**
+- [ ] Vérifier tous tests passent (35 tests actuels)
+- [ ] Corriger 3 tests SKIP dans `tests/offline.spec.ts` (auth requis)
+- [ ] Ajouter tests workflow commande complète (panier → paiement → confirmation)
+- [ ] Configurer GitHub Actions CI/CD
+- [ ] Réactiver tests obligatoires en CI avant deploy
+
 ---
 
 ## 🎨 Phase 2 : Améliorations UX par Page (🔥🔥 MOYENNE)
@@ -606,29 +649,47 @@ Priorité 2: Canal préféré client (WhatsApp/SMS/Telegram via n8n)
 ### 🏠 A. Page d'Accueil (/)
 
 #### 🎬 Hero Section Dynamique
-- [ ] 🔥🔥🔥 **Carousel média administratif** : Images + vidéos courtes (5-8s)
-  - Upload depuis interface admin (/admin/hero-media)
-  - Support image (JPG, PNG, WebP) + vidéo (MP4, WebM)
-  - Drag & drop pour réorganiser l'ordre
-  - Transition fade douce entre médias
-  - Indicateurs navigation discrets
-  - Responsive : Aspect ratio adaptatif mobile/desktop
+- [x] 🔥🔥🔥 **Carousel média administratif** : Images + vidéos courtes (5-8s) ✅ (2025-11-08)
+  - [ ] Upload depuis interface admin (/admin/hero-media) ⚠️ À faire
+  - [x] Support image (JPG, PNG, WebP) + vidéo (MP4, WebM)
+  - [ ] Drag & drop pour réorganiser l'ordre
+  - [x] Transition fade douce entre médias (Embla Carousel + Autoplay + Fade)
+  - [x] Indicateurs navigation discrets (dots en bas centre)
+  - [x] Responsive : Aspect ratio adaptatif mobile/desktop
+  - [x] Hauteur carousel : 80vh min-h-[650px]
+  - [x] 2 vidéos actives dans hero_media (Supabase)
+  - [x] Autoplay 7s configurable + pause au hover
+  - [x] Respect prefers-reduced-motion
 
-- [ ] 🔥🔥 **Overlay texte sur hero** : Titre + baseline + CTA
-  - "ChanthanaThaiCook - Cuisine Thaïlandaise Authentique"
-  - "Faite Maison avec Passion"
-  - Boutons : [Commander] [Découvrir]
-  - Fond overlay subtil pour lisibilité
+- [x] 🔥🔥 **Card navigation en haut à gauche** : ✅ (2025-11-08)
+  - [x] Logo + ChanthanaThaiCook
+  - [x] Bouton Commander (gradient orange)
+  - [x] Bouton Nous Trouver (outline blanc)
+  - [x] Design glassmorphism (backdrop-blur-xl)
+  - [x] Animations hover (scale, shadow, shine sweep)
+  - [x] Animations scroll Framer Motion :
+    - Rotation 3D (20° → 0°)
+    - Scale responsive (mobile: 0.7→0.9, desktop: 1.05→1)
+    - Translation parallax (0 → -100px)
+    - Perspective 1000px pour effet 3D
+  - [x] Slide-in animation au chargement
+  - [x] Position : top-20 left-12
 
 #### 🧭 Navigation Contextuelle
 
-- [ ] 🔥🔥🔥 **Cartes navigation adaptatives selon auth** :
-  - **Visiteur non connecté** : 4 cartes
-    - Pour Commander
-    - Nous Trouver
-    - Pour vos Événements
-    - À propos de nous
-  - **Utilisateur connecté** : 6 cartes (+ Mon Profil + Suivi & Historique)
+- [x] 🔥🔥🔥 **Cartes navigation adaptatives selon auth** : ✅ (2025-11-08)
+  - [x] **Visiteur non connecté** : 6 cartes (4 actives + 2 désactivées)
+    - Pour Commander ✓
+    - Nous Trouver ✓
+    - Pour vos Événements ✓
+    - À propos de nous ✓
+    - Découvertes (Actualités) ✓
+    - Installer l'Application ✓
+  - [x] **Utilisateur connecté** : 8 cartes actives
+    - Les 6 ci-dessus + Mon Profil + Suivi & Historique
+  - [x] Grid responsive : lg:grid-cols-4 (4 colonnes desktop)
+  - [x] Full-width layout avec px-8
+  - [x] Image PWA card : /installapp.svg
 
 #### 💡 Section "Pourquoi Créer un Compte" (Non-connectés uniquement)
 
@@ -734,10 +795,28 @@ Priorité 2: Canal préféré client (WhatsApp/SMS/Telegram via n8n)
 
 #### 🎨 Polish & Accessibilité
 
-- [ ] 🔥🔥 **Sélecteur de langue** : Permettre changement langue (fr/th/en)
-  - Dépend de : next-intl configuration ⏳
+- [x] 🔥🔥 **Sélecteur de langue** : Permettre changement langue (fr/th/en) ✅ (2025-11-08)
+  - [x] DropdownMenu avec drapeaux waving WebP (fr.webp, th.webp, gb.webp, nl.webp)
+  - [x] Position : bottom-4 left-4 (bas gauche)
+  - [x] État local : useState selectedLang (fr/th/en/nl)
+  - [x] Hover scale 110% + transition smooth
+  - [ ] ⚠️ Intégration next-intl routing (Phase 6 - futur)
+- [x] 🔥🔥 **Header navigation simplifié** : ✅ (2025-11-08)
+  - [x] Centré avec gap-8
+  - [x] Liens : Événements, À Propos, Actualités
+  - [x] Liens auth conditionnels : Mon Profil, Suivi (si isAuthenticated)
+  - [x] Couleurs : text-white/90 hover:text-thai-orange
+  - [x] Backdrop blur minimal : from-black/5 backdrop-blur-[2px]
+  - [x] Smooth scroll vers sections navigation cards
+- [x] 🔥🔥 **Bouton Installer l'App** : ✅ (2025-11-08)
+  - [x] Position : bottom-4 right-4 (bas droite)
+  - [x] Design : bg-white/10 backdrop-blur-sm border-2 border-white
+  - [x] Hook usePWAInstalled pour détecter installation
+  - [x] Texte conditionnel : "Application Installée" vs "Installer l'App"
 - [ ] 🔥 **Footer enrichi** : Horaires détaillés + jours fermeture hebdomadaire
-- [ ] 🔥 **Animations entrance** : Hero fade-in, cards stagger animation
+- [x] 🔥 **Animations entrance** : Hero fade-in, cards stagger animation ✅
+  - [x] Card navigation : Framer Motion scroll animations + slide-in
+  - [x] Navigation cards : Stagger 150ms (via animationDelay CSS)
 - [ ] 🔥 **Tests accessibilité** : Keyboard navigation, screen readers, focus states
 - [ ] 🔥 **Tests E2E Playwright** : Parcours visiteur vs connecté
 
@@ -1159,5 +1238,4 @@ Phase 4-7 (Optimisations) → Continu, non bloquant
 
 ---
 
-**📅 Dernière mise à jour :** 2025-11-05 (PWA + Tests Playwright E2E + Auth setup complétés)
-
+**📅 Dernière mise à jour :** 2025-11-08 (Hero Section complétée : Carousel vidéos + Card navigation glassmorphism + Animations Framer Motion + Sélecteur langue + Header simplifié + Navigation Cards 4 colonnes)

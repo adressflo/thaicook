@@ -11,6 +11,7 @@ import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import { PWARegister } from '@/components/PWARegister';
 import { OfflineBanner } from '@/components/OfflineBanner';
 import { OfflineIndicator } from '@/components/OfflineIndicator';
+import { ChunkErrorBoundary } from '@/components/ChunkErrorBoundary';
 
 
 const geistSans = Geist({
@@ -62,19 +63,21 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-background text-foreground font-sans`}
       >
-        <PWARegister />
-        <ErrorBoundary>
-          <Providers>
-            <TooltipProvider>
-              <OfflineBanner dismissible showLastSync />
-              <Toaster />
-              <Sonner />
-              <NuqsAdapter>{children}</NuqsAdapter>
-              <FloatingUserIcon />
-              <OfflineIndicator position="bottom-right" />
-            </TooltipProvider>
-          </Providers>
-        </ErrorBoundary>
+        <ChunkErrorBoundary>
+          <PWARegister />
+          <ErrorBoundary>
+            <Providers>
+              <TooltipProvider>
+                <OfflineBanner dismissible showLastSync />
+                <Toaster />
+                <Sonner />
+                <NuqsAdapter>{children}</NuqsAdapter>
+                <FloatingUserIcon />
+                <OfflineIndicator position="bottom-right" />
+              </TooltipProvider>
+            </Providers>
+          </ErrorBoundary>
+        </ChunkErrorBoundary>
       </body>
     </html>
   );

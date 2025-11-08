@@ -1,13 +1,23 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState, useRef } from 'react'
 import useEmblaCarousel from 'embla-carousel-react'
 import Autoplay from 'embla-carousel-autoplay'
 import Fade from 'embla-carousel-fade'
 import Image from 'next/image'
+import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { ArrowRight, Sparkles } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { usePWAInstalled } from '@/hooks/usePWAInstalled'
+import { motion, useScroll, useTransform } from 'framer-motion'
+import { useBreakpoints } from '@/hooks/use-mobile'
 
 export interface HeroMedia {
   id: string
@@ -22,10 +32,38 @@ export interface HeroMedia {
 interface HeroCarouselProps {
   medias: HeroMedia[]
   autoPlayDuration?: number
+  isAuthenticated?: boolean
 }
 
-export function HeroCarousel({ medias, autoPlayDuration = 7000 }: HeroCarouselProps) {
+export function HeroCarousel({ medias, autoPlayDuration = 7000, isAuthenticated = false }: HeroCarouselProps) {
+  const { isInstalled, canInstall, install } = usePWAInstalled()
+  const { isMobile } = useBreakpoints()
   const [selectedIndex, setSelectedIndex] = useState(0)
+  const [selectedLang, setSelectedLang] = useState<'fr' | 'th' | 'en' | 'nl'>('fr')
+
+  // Configuration des langues avec drapeaux waving WebP
+  const languages = [
+    { code: 'fr' as const, flag: '/flags/fr.webp', label: 'Français' },
+    { code: 'th' as const, flag: '/flags/th.webp', label: 'ไทย' },
+    { code: 'en' as const, flag: '/flags/gb.webp', label: 'English' },
+    { code: 'nl' as const, flag: '/flags/nl.webp', label: 'Nederlands' },
+  ]
+
+  // Scroll animations for navigation card
+  const containerRef = useRef<HTMLDivElement>(null)
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ['start start', 'end start'],
+  })
+
+  // Transform scroll progress into animation values
+  const rotateX = useTransform(scrollYProgress, [0, 1], [20, 0])
+  const scale = useTransform(
+    scrollYProgress,
+    [0, 1],
+    isMobile ? [0.7, 0.9] : [1.05, 1]
+  )
+  const translateY = useTransform(scrollYProgress, [0, 1], [0, -100])
 
   // Détecter prefers-reduced-motion
   const prefersReducedMotion =
@@ -120,7 +158,176 @@ export function HeroCarousel({ medias, autoPlayDuration = 7000 }: HeroCarouselPr
   }
 
   return (
-    <div className="relative h-[60vh] min-h-[500px] w-full overflow-hidden">
+    <div ref={containerRef} className="relative h-[80vh] min-h-[650px] w-full overflow-hidden" style={{ perspective: '1000px' }}>
+      {/* Card navigation en haut à gauche - Avec scroll animations */}
+      <motion.div
+        className="absolute top-6 left-12 z-30"
+        style={
+          prefersReducedMotion
+            ? {}
+            : {
+                rotateX,
+                scale,
+                translateY,
+              }
+        }
+        initial={{ opacity: 0, x: -100 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.7, ease: 'easeOut' }}
+      >
+        <div className="relative bg-gradient-to-br from-white/15 via-white/10 to-white/5 backdrop-blur-xl rounded-2xl p-6 shadow-2xl border border-white/20 hover:border-white/40 transition-all duration-500 hover:scale-[1.02] hover:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.5)]">
+          {/* Effet de brillance */}
+          <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent rounded-2xl opacity-0 hover:opacity-100 transition-opacity duration-500" />
+
+          <div className="relative flex flex-col items-center gap-4">
+            {/* Logo + Nom */}
+            <Link href="/" className="flex items-center gap-3 group">
+              <div className="relative w-14 h-14 flex-shrink-0">
+                <div className="absolute inset-0 bg-thai-orange/20 rounded-full blur-xl group-hover:bg-thai-orange/40 transition-all duration-500" />
+                <Image
+                  src="/logo.svg"
+                  alt="Logo ChanthanaThaiCook"
+                  fill
+                  className="object-contain transition-all duration-500 group-hover:scale-110 group-hover:rotate-6 relative z-10"
+                />
+              </div>
+              <span className="text-white font-bold text-2xl whitespace-nowrap drop-shadow-2xl group-hover:text-thai-orange transition-colors duration-300">
+                ChanthanaThaiCook
+              </span>
+            </Link>
+
+            {/* Séparateur décoratif */}
+            <div className="w-full h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
+
+            {/* Bouton Commander */}
+            <Link href="/commander" className="w-full group/btn">
+              <Button
+                size="lg"
+                className="w-full bg-gradient-to-r from-thai-orange to-thai-orange/90 hover:from-thai-orange/90 hover:to-thai-orange text-white font-bold text-lg shadow-xl hover:shadow-thai-orange/50 transition-all duration-300 hover:scale-105 hover:-translate-y-1 relative overflow-hidden"
+              >
+                <span className="relative z-10">Commander</span>
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700" />
+              </Button>
+            </Link>
+
+            {/* Bouton Nous Trouver */}
+            <Link href="/nous-trouver" className="w-full group/btn">
+              <Button
+                size="lg"
+                variant="outline"
+                className="w-full bg-white/10 backdrop-blur-sm border-2 border-white/50 text-white font-bold text-lg hover:bg-white hover:text-thai-green hover:border-white transition-all duration-300 hover:scale-105 hover:-translate-y-1 relative overflow-hidden"
+              >
+                <span className="relative z-10">Nous Trouver</span>
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700" />
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Sélecteur de langue - Position absolue coin bas-gauche */}
+      <div className="absolute bottom-4 left-4 z-30">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              className="flex items-center transition-transform duration-200 hover:scale-110"
+              aria-label="Changer de langue"
+            >
+              <div className="relative w-12 h-9 flex-shrink-0">
+                <Image
+                  src={languages.find(l => l.code === selectedLang)?.flag || '/flags/fr.webp'}
+                  alt={`Flag ${selectedLang}`}
+                  fill
+                  className="object-cover rounded-sm"
+                  sizes="48px"
+                />
+              </div>
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="bg-white/95 backdrop-blur-sm">
+            {languages.map((lang) => (
+              <DropdownMenuItem
+                key={lang.code}
+                onClick={() => setSelectedLang(lang.code)}
+                className="cursor-pointer flex items-center gap-2"
+              >
+                <div className="relative w-6 h-5 flex-shrink-0">
+                  <Image
+                    src={lang.flag}
+                    alt={`Flag ${lang.code}`}
+                    fill
+                    className="object-cover rounded-sm"
+                    sizes="24px"
+                  />
+                </div>
+                {lang.label}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+
+      {/* Header Navigation - Centré */}
+      <header className="absolute top-0 left-0 right-0 z-20 bg-gradient-to-b from-black/5 to-transparent backdrop-blur-[2px] py-6 px-4">
+        <nav className="flex items-center justify-center gap-8">
+          <a
+            href="#navigation-cards"
+            onClick={(e) => {
+              e.preventDefault()
+              document.querySelector('[href="/evenements"]')?.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center',
+              })
+            }}
+            className="text-white/90 hover:text-thai-orange text-xl md:text-2xl font-bold transition-colors duration-200 drop-shadow-lg"
+          >
+            Événements
+          </a>
+          <a
+            href="#navigation-cards"
+            onClick={(e) => {
+              e.preventDefault()
+              document.querySelector('[href="/a-propos"]')?.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center',
+              })
+            }}
+            className="text-white/90 hover:text-thai-orange text-xl md:text-2xl font-bold transition-colors duration-200 drop-shadow-lg"
+          >
+            À Propos
+          </a>
+          <a
+            href="#navigation-cards"
+            onClick={(e) => {
+              e.preventDefault()
+              document.querySelector('[href="/actualites"]')?.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center',
+              })
+            }}
+            className="text-white/90 hover:text-thai-orange text-xl md:text-2xl font-bold transition-colors duration-200 drop-shadow-lg"
+          >
+            Actualités
+          </a>
+          {isAuthenticated && (
+            <>
+              <Link
+                href="/profil"
+                className="text-white/90 hover:text-thai-orange text-xl md:text-2xl font-bold transition-colors duration-200 drop-shadow-lg"
+              >
+                Mon Profil
+              </Link>
+              <Link
+                href="/historique"
+                className="text-white/90 hover:text-thai-orange text-xl md:text-2xl font-bold transition-colors duration-200 drop-shadow-lg"
+              >
+                Suivi
+              </Link>
+            </>
+          )}
+        </nav>
+      </header>
+
       {/* Embla Carousel */}
       <div className="h-full" ref={emblaRef}>
         <div className="flex h-full">
@@ -161,40 +368,20 @@ export function HeroCarousel({ medias, autoPlayDuration = 7000 }: HeroCarouselPr
         }}
       />
 
-      {/* Contenu overlay (texte + CTA) */}
-      <div className="absolute inset-x-0 bottom-0 pb-16 px-4 md:px-8 lg:px-12">
-        <div
-          className="max-w-4xl mx-auto text-center space-y-6"
-          style={{ backdropFilter: 'blur(8px)' }}
+      {/* Bouton CTA Installer l'Application - Bas droite */}
+      <div className="absolute bottom-4 right-4 z-30">
+        <Button
+          size="lg"
+          variant="outline"
+          onClick={async () => {
+            if (!isInstalled && canInstall) {
+              await install()
+            }
+          }}
+          className="bg-white/10 backdrop-blur-sm border-2 border-white text-white font-bold hover:bg-white hover:text-thai-green transition-all duration-300 hover:scale-105"
         >
-          <h1 className="text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-white drop-shadow-2xl">
-            ChanthanaThaiCook
-          </h1>
-          <p className="text-lg md:text-xl lg:text-2xl text-white/95 drop-shadow-lg max-w-2xl mx-auto">
-            Cuisine Thaïlandaise Authentique
-            <br />
-            Faite Maison avec Passion
-          </p>
-
-          {/* Boutons CTA */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-            <Button
-              size="lg"
-              className="bg-thai-orange hover:bg-thai-orange/90 text-white shadow-xl"
-              asChild
-            >
-              <a href="/commander">Commander</a>
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              className="border-2 border-white text-white hover:bg-white/20 shadow-xl backdrop-blur-sm"
-              onClick={handleDiscoverClick}
-            >
-              Découvrir <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-          </div>
-        </div>
+          {isInstalled ? 'Application Installée' : 'Installer l\'App'}
+        </Button>
       </div>
 
       {/* Dots navigation (discrets) */}

@@ -10,7 +10,6 @@ import { getActiveAnnouncement, announcementTypeConfig, type Announcement } from
 import { FloatingUserIcon } from '@/components/FloatingUserIcon';
 import { HeroCarousel, type HeroMedia } from '@/components/HeroCarousel';
 import { NavigationCards } from '@/components/NavigationCards';
-import { SectionPWA } from '@/components/SectionPWA';
 import { SectionPourquoiCompte } from '@/components/SectionPourquoiCompte';
 import { supabase } from '@/lib/supabase';
 
@@ -81,7 +80,7 @@ const TableauDeBord = memo(() => {
   return (
     <div className="min-h-screen bg-gradient-thai flex flex-col">
       {/* Hero Carousel avec médias dynamiques */}
-      {!isLoadingHeroMedias && <HeroCarousel medias={heroMedias} />}
+      {!isLoadingHeroMedias && <HeroCarousel medias={heroMedias} isAuthenticated={isAuthenticated} />}
 
       {/* Annonce dynamique */}
       {!isLoadingAnnouncement && announcement?.is_active && announcement?.message && (
@@ -107,23 +106,6 @@ const TableauDeBord = memo(() => {
 
       {/* Section "Pourquoi créer un compte" - Visible uniquement pour visiteurs non connectés */}
       <SectionPourquoiCompte isAuthenticated={isAuthenticated} />
-
-      {/* Section PWA - Installation ou ouverture */}
-      <SectionPWA />
-
-      {/* Bouton Accès Administrateur - Visible uniquement pour les administrateurs */}
-      {currentUserRole === 'admin' && (
-        <section className="py-8 px-4">
-          <div className="container mx-auto text-center">
-            <Link href="/admin">
-              <Button className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
-                <Shield className="w-5 h-5 mr-2" />
-                Accès Administrateur
-              </Button>
-            </Link>
-          </div>
-        </section>
-      )}
 
       {/* Footer compact et discret */}
       <footer className="bg-thai-green/90 text-white mt-auto">

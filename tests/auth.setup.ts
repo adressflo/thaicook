@@ -34,7 +34,7 @@ setup('authenticate as client', async ({ page }) => {
   console.log('🔐 [CLIENT] Login en cours...');
 
   // Naviguer vers la page de login
-  await page.goto('http://localhost:3001/auth/login');
+  await page.goto('http://localhost:3000/auth/login');
   await page.waitForLoadState('networkidle');
 
   // Remplir le formulaire de connexion
@@ -87,7 +87,7 @@ setup('authenticate as admin', async ({ page }) => {
   console.log('🔐 [ADMIN] Login en cours...');
 
   // Naviguer vers la page de login
-  await page.goto('http://localhost:3001/auth/login');
+  await page.goto('http://localhost:3000/auth/login');
   await page.waitForLoadState('networkidle');
 
   // Remplir le formulaire de connexion

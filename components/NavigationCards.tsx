@@ -13,9 +13,11 @@ import {
   Users,
   History,
   Sparkles,
+  Smartphone,
   LucideIcon,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { usePWAInstalled } from '@/hooks/usePWAInstalled'
 
 export interface NavigationCardData {
   title: string
@@ -27,6 +29,7 @@ export interface NavigationCardData {
   disabled?: boolean
   badge?: string
   userPhoto?: string | null
+  onClick?: () => void | Promise<void>
 }
 
 interface NavigationCardsProps {
@@ -40,7 +43,9 @@ export function NavigationCards({
   userPhoto,
   photoUploadedRecently = false,
 }: NavigationCardsProps) {
-  // Définition des 6 cartes
+  const { isInstalled, canInstall, install } = usePWAInstalled()
+
+  // Définition des cartes
   const cards: NavigationCardData[] = [
     {
       title: 'Pour Commander',
@@ -83,6 +88,24 @@ export function NavigationCards({
       icon: Sparkles,
     },
     {
+      title: isInstalled ? 'Application Installée' : 'Installer l\'Application',
+      buttonTitle: isInstalled ? 'Ouvrir' : 'Installer',
+      description: isInstalled
+        ? 'Accédez rapidement depuis votre écran d\'accueil'
+        : 'Commander plus rapidement, notifications et mode hors ligne',
+      image: '/installapp.svg',
+      link: '#',
+      icon: Smartphone,
+      badge: !isInstalled && canInstall ? 'Recommandé' : undefined,
+      onClick: async () => {
+        if (!isInstalled && canInstall) {
+          await install()
+        } else if (isInstalled) {
+          window.location.href = '/'
+        }
+      },
+    },
+    {
       title: 'Mon Profil',
       buttonTitle: 'Mon Profil',
       description: 'Gérez vos informations personnelles et préférences',
@@ -104,14 +127,19 @@ export function NavigationCards({
     },
   ]
 
+  // Filtrer les cards : masquer celles qui nécessitent une connexion si non connecté
+  const visibleCards = isAuthenticated
+    ? cards // Tout afficher si connecté
+    : cards.filter((card) => !card.disabled) // Masquer les cards disabled si non connecté
+
   return (
-    <section className="flex-1 py-16 px-4" id="navigation-cards">
-      <div className="container mx-auto">
+    <section className="flex-1 py-16" id="navigation-cards">
+      <div className="w-full px-8">
         <div
-          className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto"
+          className="grid md:grid-cols-2 lg:grid-cols-4 gap-8"
           style={{ gridAutoRows: '1fr' }}
         >
-          {cards.map((card, index) => (
+          {visibleCards.map((card, index) => (
             <Card
               key={card.title}
               className={cn(
@@ -127,7 +155,14 @@ export function NavigationCards({
               <Link
                 href={(card.disabled ? '#' : card.link) as any}
                 className="h-full flex flex-col"
-                onClick={(e) => card.disabled && e.preventDefault()}
+                onClick={(e) => {
+                  if (card.disabled) {
+                    e.preventDefault()
+                  } else if (card.onClick) {
+                    e.preventDefault()
+                    card.onClick()
+                  }
+                }}
               >
                 {/* Image avec badge optionnel */}
                 <div className="aspect-video overflow-hidden relative flex-shrink-0">
@@ -148,6 +183,7 @@ export function NavigationCards({
                       alt={card.title}
                       className={cn(
                         'w-full h-full object-cover transition-all duration-700',
+                        card.image === '/installapp.svg' && 'object',
                         !card.disabled && 'group-hover:scale-110 group-hover:brightness-110'
                       )}
                       loading="lazy"

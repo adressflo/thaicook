@@ -132,19 +132,22 @@ const Profil = memo(() => {
   useEffect(() => {
     if (!currentUser) return;
 
+    // Vérifier si FCM est configuré avant de demander les permissions
+    const vapidKey = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY;
+    if (!vapidKey || vapidKey === 'YOUR_VAPID_KEY_HERE') {
+      // FCM non configuré - feature optionnelle, retour silencieux
+      return;
+    }
+
     // Demander permission et obtenir token FCM
     requestNotificationPermission().then(token => {
       if (token) {
         // Sauvegarder token dans la base de données
         saveNotificationToken(token, 'web').then(result => {
-          if (result.success) {
+          if (result.success && process.env.NODE_ENV === 'development') {
             console.log('✅ Token FCM sauvegardé automatiquement');
-          } else {
-            console.warn('⚠️ Erreur sauvegarde token FCM:', result.error);
           }
         });
-      } else {
-        console.log('ℹ️ Permission notifications refusée ou non supportée');
       }
     });
   }, [currentUser]);

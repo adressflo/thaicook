@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "node scripts/dev-no-lock.js",
+    "dev:clean": "node scripts/kill-port-3000.js && npm run dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -12,6 +13,7 @@
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
     "test:e2e": "playwright test",
+    "test:e2e:clean": "node scripts/kill-port-3000.js && playwright test",
     "docker:status": "docker ps",
     "docker:clean:supalocal": "docker-compose --file \"C:\\Users\\USER\\mcp\\supabase-migration\\docker-compose.yml\" down",
     "prisma:generate": "prisma generate",
@@ -78,6 +80,7 @@
     "embla-carousel-react": "^8.6.0",
     "firebase": "^12.5.0",
     "firebase-admin": "^13.5.0",
+    "framer-motion": "^12.23.24",
     "idb-keyval": "^6.2.2",
     "input-otp": "^1.4.2",
     "lucide-react": "^0.548.0",
