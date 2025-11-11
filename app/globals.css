@@ -275,6 +275,24 @@ html {
   }
 }
 
+@keyframes glow-pulse {
+  0%, 100% {
+    box-shadow:
+      0 0 20px rgba(255, 123, 84, 0.6),
+      0 0 40px rgba(255, 123, 84, 0.4),
+      0 0 60px rgba(255, 123, 84, 0.2),
+      0 10px 30px rgba(255, 123, 84, 0.3);
+  }
+  50% {
+    box-shadow:
+      0 0 30px rgba(45, 80, 22, 0.8),
+      0 0 60px rgba(45, 80, 22, 0.6),
+      0 0 90px rgba(74, 124, 35, 0.4),
+      0 15px 40px rgba(45, 80, 22, 0.5),
+      0 0 120px rgba(74, 124, 35, 0.3);
+  }
+}
+
 .animate-fade-in {
   animation: fade-in 0.6s ease-out;
 }
@@ -305,6 +323,10 @@ html {
 
 .animate-bounce-subtle {
   animation: bounce-subtle 1.2s ease-in-out;
+}
+
+.animate-glow-pulse {
+  animation: glow-pulse 1.5s ease-in-out infinite;
 }
 
 /* Calendar hover effects - Multiple selectors for better coverage */
@@ -459,16 +481,16 @@ button.rdp-day_today,
   }
 
   /* Styles de focus par défaut - Orange au lieu de vert */
-  *:focus-visible:not(.floating-user-icon *) {
+  *:focus-visible:not(.floating-user-icon *, .quick-nav *) {
     outline: 2px solid var(--color-thai-orange) !important;
     outline-offset: 2px;
   }
 
   /* Styles pour les éléments interactifs */
-  input:focus:not(.floating-user-icon *),
-  textarea:focus:not(.floating-user-icon *),
-  select:focus:not(.floating-user-icon *),
-  button:focus:not(.floating-user-icon *) {
+  input:focus:not(.floating-user-icon *, .quick-nav *),
+  textarea:focus:not(.floating-user-icon *, .quick-nav *),
+  select:focus:not(.floating-user-icon *, .quick-nav *),
+  button:focus:not(.floating-user-icon *, .quick-nav *) {
     border-color: var(--color-thai-orange) !important;
     box-shadow: 0 0 0 3px rgba(255, 123, 84, 0.2) !important;
   }
@@ -477,6 +499,18 @@ button.rdp-day_today,
   .floating-user-icon *:focus,
   .floating-user-icon *:focus-visible,
   .floating-user-icon *:active {
+    outline: none !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  /* Suppression complète des styles de focus pour QuickNav */
+  .quick-nav *:focus,
+  .quick-nav *:focus-visible,
+  .quick-nav *:active,
+  .quick-nav button:focus,
+  .quick-nav button:focus-visible,
+  .quick-nav button:active {
     outline: none !important;
     border: none !important;
     box-shadow: none !important;

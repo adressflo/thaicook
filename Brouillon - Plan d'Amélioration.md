@@ -382,7 +382,28 @@ Tests       15 passed (15)
 
 ---
 
-### ⚠️ 7️⃣ n8n - Infrastructure TypeScript Complète [50% COMPLÉTÉ]
+### ✅ 7️⃣ Configuration Email Domaine Personnalisé [COMPLÉTÉ]
+**Statut : Email contact@cthaicook.com configuré avec ImprovMX gratuit**
+
+- [x] **Email professionnel configuré** : `contact@cthaicook.com`
+- [x] **Service gratuit ImprovMX** : Forwarding vers email personnel
+- [ ] **Configuration DNS** : Records MX à ajouter chez iwantmyname
+  - MX 10 mx1.improvmx.com
+  - MX 20 mx2.improvmx.com
+- [x] **Intégration Footer** : Icône Email avec mailto: link
+- [ ] **Tests envoi/réception** : Vérifier forwarding opérationnel
+
+**Configuration ImprovMX** :
+- Alias : contact@cthaicook.com
+- Forward to : [email personnel utilisateur]
+- Free tier : Illimité forwards (gratuit à vie)
+- Dashboard : https://improvmx.com
+
+💡 **Note** : Alternative gratuite = Cloudflare Email Routing (si DNS chez Cloudflare)
+
+---
+
+### ⚠️ 8️⃣ n8n - Infrastructure TypeScript Complète [50% COMPLÉTÉ]
 **Note : Infrastructure prête, workflows serveur à créer en Phase 3**
 
 ✅ **Infrastructure TypeScript Complète**
@@ -408,7 +429,7 @@ Tests       15 passed (15)
 
 ---
 
-### 🔥 8️⃣ Stack Monitoring - PLG + GlitchTip + UptimeRobot [PHASE 4 - FUTUR]
+### 🔥 9️⃣ Stack Monitoring - PLG + GlitchTip + UptimeRobot [PHASE 4 - FUTUR]
 
 #### PLG Stack (Prometheus + Loki + Grafana)
 - [ ] Installation Prometheus via image pré-configurée Hetzner Cloud
@@ -437,7 +458,7 @@ Tests       15 passed (15)
 
 ---
 
-### 🔥 9️⃣ Outils Techniques Supplémentaires [PHASE 2-3]
+### 🔥 🔟 Outils Techniques Supplémentaires [PHASE 2-3]
 
 #### ✅ framer-motion - Animations React Déclaratives [INSTALLÉ + UTILISÉ]
 **Statut : Installation complète, utilisé dans HeroCarousel** ✅ (2025-11-08)
@@ -746,26 +767,31 @@ npm run test:e2e
   - [Découvrir] : Outline blanc + smooth scroll vers section navigation
 
 **Navigation Cards (6 cartes) :**
-- [ ] **Visiteur non connecté** : 6 cartes affichées
+- [x] **Visiteur non connecté** : 6 cartes affichées ✅ (2025-11-11)
   - Pour Commander (actif)
   - Nous Trouver (actif)
   - Pour vos Événements (actif)
   - À propos de nous (actif)
   - Découvertes (actif) ← NOUVELLE CARTE
   - Mon Profil (désactivé/grisé)
-- [ ] **Utilisateur connecté** : 6 cartes actives
+- [x] **Utilisateur connecté** : 6 cartes actives ✅ (2025-11-11)
   - Ajouter : Mon Profil (actif) + Suivi (actif)
   - Badge "Nouveau !" sur Mon Profil si `photo_client` récente (<7 jours)
-- [ ] **Nouvelle carte "Découvertes"** :
+- [x] **Nouvelle carte "Découvertes"** : ✅ (2025-11-11)
   - Route : `/actualites`
   - Icon : Sparkles ✨
   - Description : "Nouveautés, plats du moment et suivez nos coulisses sur les réseaux sociaux"
   - Image : Photo plat saisonnier ou collage Instagram
-- [ ] **Grid responsive** :
-  - Desktop (≥1024px) : 3 colonnes
-  - Tablet (768-1023px) : 2 colonnes
-  - Mobile (<768px) : 1 colonne
-- [ ] **Animations** : Stagger 150ms top to bottom (framer-motion)
+- [x] **Grid responsive** : ✅ (2025-11-11)
+  - Desktop (≥1024px) : 4 colonnes (lg:grid-cols-4)
+  - Tablet (768-1023px) : 2 colonnes (md:grid-cols-2)
+  - Mobile (<768px) : 1 colonne (grid)
+- [x] **Animations** : Stagger 150ms top to bottom (framer-motion) ✅ (2025-11-11)
+- [x] **Rotation Polaroid** : Straight par défaut, tilt -2deg au hover ✅ (2025-11-11)
+- [x] **Photo profil par défaut** : `/image avatar/profildefaut.svg` ✅ (2025-11-11)
+- [x] **Card highlighting au clic** : Rotation + scale + élévation + glow 3s ✅ (2025-11-11)
+  - Glow pulsant : Dégradé orange thaï (#ff7b54) → vert thaï (#2d5016)
+  - Scroll automatique smooth vers card ciblée (scrollIntoView)
 
 **Médias Hero - Spécifications :**
 - [ ] **Images** :
@@ -789,9 +815,9 @@ npm run test:e2e
 - [ ] **Aucun média actif** : Afficher image par défaut
 
 **Bonus Implémentés :**
-- [ ] **Badge "Nouveau !" card Mon Profil** : Si `photo_client` uploadée < 7 jours
-- [ ] **Smooth scroll CTA "Découvrir"** : Scroll vers section navigation cards
-- [ ] **Photo client dans card Mon Profil** : Depuis `client_db.photo_client`
+- [ ] **Badge "Nouveau !" card Mon Profil** : Si `photo_client` uploadée < 7 jours (logique calcul date à implémenter)
+- [x] **Smooth scroll CTA "Découvrir"** : Scroll vers section navigation cards ✅ (2025-11-11)
+- [x] **Photo client dans card Mon Profil** : Depuis `client_db.photo_client` ✅ (2025-11-11)
 
 #### 🎨 Polish & Accessibilité
 
@@ -813,10 +839,80 @@ npm run test:e2e
   - [x] Design : bg-white/10 backdrop-blur-sm border-2 border-white
   - [x] Hook usePWAInstalled pour détecter installation
   - [x] Texte conditionnel : "Application Installée" vs "Installer l'App"
-- [ ] 🔥 **Footer enrichi** : Horaires détaillés + jours fermeture hebdomadaire
+- [x] 🔥 **Footer enrichi** : ✅ (2025-11-09 - Mise à jour complète)
+  - [x] **10 icônes réseaux sociaux avec effet dock magnification** (macOS style)
+    - Facebook, Instagram, WhatsApp, TikTok, YouTube, Google Maps, Email, Phone, Messenger, X
+    - Framer Motion : useSpring physics (mass 0.1, stiffness 150, damping 12)
+    - Magnification : 40px → 60px based on mouse distance (150px range)
+    - GPU-accelerated transforms (will-change: width)
+  - [x] **Email professionnel** : contact@cthaicook.com (ImprovMX gratuit)
+  - [x] **Layout centré** : Navigation en haut + icônes dock en dessous (justify-center)
+  - [x] **Suppression logo et texte "ChanthanaThaiCook"** du footer (20 lignes supprimées)
+  - [x] Composant RestaurantFooter créé (components/Footer/)
+  - [x] Horaires d'ouverture détaillés avec jour de fermeture
+  - [x] Contact : téléphone, email, adresse avec liens directs
+  - [x] Navigation complète (3 sections : Navigation, Légal, Support)
+  - [x] Moyens de paiement affichés
+  - [x] CTA sticky mobile (Appeler + Localiser)
+  - [x] Design cohérent avec palette thaï (vert, orange)
+  - [x] Intégré dans app/layout.tsx
+  - ⚠️ **À personnaliser** : Téléphone, adresse, horaires réels, URLs réseaux sociaux (TikTok, YouTube, X en placeholder)
 - [x] 🔥 **Animations entrance** : Hero fade-in, cards stagger animation ✅
   - [x] Card navigation : Framer Motion scroll animations + slide-in
   - [x] Navigation cards : Stagger 150ms (via animationDelay CSS)
+- [x] 🔥🔥 **QuickNav - Navigation rapide entre Hero et Cards** : ✅ (2025-11-11)
+  - [x] Composant `QuickNav.tsx` créé (145 lignes)
+  - [x] Position : sticky top-0 z-30 entre HeroCarousel et NavigationCards
+  - [x] **Animation vague séquentielle automatique** :
+    - Animation continue toutes les 800ms (chaque lien vert → orange → vert)
+    - Pause automatique au survol de la navigation
+    - Reprise automatique quand la souris quitte
+  - [x] **Interaction clic** :
+    - Vague s'arrête, seul le lien cliqué reste orange 3 secondes
+    - Appel global `window.highlightCard()` pour déclencher effet sur card
+    - Reprise animation vague après 3 secondes
+  - [x] **Liens dynamiques** : NAV_LINKS_GUEST vs NAV_LINKS_AUTH
+    - Visiteur : Commander, Installer App, Événements, Nous trouver, Découvertes, À propos (6 liens)
+    - Authentifié : + Mon Profil, Suivi (8 liens)
+  - [x] **Liens vers cards** : Anchors `#card-*` avec scroll smooth + highlight
+  - [x] **Couleurs thaï** : Vert #2d5016 par défaut, Orange #ff7b54 au hover/actif
+  - [x] **Framer Motion** : Transitions color 0.6s ease-in-out
+  - [x] **Focus styles supprimés** : .quick-nav exclusions dans globals.css
+  - [x] **États gérés** : isPaused, isClicked, clickedIndex, activeWaveIndex
+
+#### 🎨 Icônes Réseaux Sociaux Personnalisées [COMPLÉTÉ 2025-11-09]
+**Statut : 10 composants SVG avec couleurs officielles des marques**
+
+- [x] **`components/icons/FacebookIcon.tsx`** : Circle blue #1877F2
+- [x] **`components/icons/InstagramIcon.tsx`** : Gradient radial (yellow → red → purple → blue)
+- [x] **`components/icons/WhatsAppIcon.tsx`** : Circle green #25D366
+- [x] **`components/icons/TikTokIcon.tsx`** : Black with gradient overlay (#00F2EA → #FF0050)
+- [x] **`components/icons/YouTubeIcon.tsx`** : Red #FF0000 with play button
+- [x] **`components/icons/GoogleMapsIcon.tsx`** : Multicolor pin (red #EA4335, yellow #FBBC05, green #34A853, blue #4285F4)
+- [x] **`components/icons/EmailIcon.tsx`** : Orange gradient (#FF6B35 → #F7931E) with envelope
+- [x] **`components/icons/PhoneIcon.tsx`** : Blue #34B7F1 with phone handset
+- [x] **`components/icons/MessengerIcon.tsx`** : Blue gradient (#00B2FF → #006AFF)
+- [x] **`components/icons/XIcon.tsx`** : Black with white X logo
+
+**Design patterns** :
+- [x] ViewBox 24x24 uniforme pour cohérence taille
+- [x] aria-label sur chaque SVG pour accessibilité
+- [x] className prop pour size control (size-full dans Dock)
+- [x] Couleurs officielles des marques respectées (brand guidelines)
+- [x] Support hover via DockIcon parent (scale + shadow)
+
+**URLs configurées** :
+- ✅ Facebook : https://facebook.com/chanthanathaicook
+- ✅ Instagram : https://instagram.com/chanthanathaicook
+- ✅ WhatsApp : https://wa.me/33749283707
+- ✅ Google Maps : Adresse complète restaurant
+- ✅ Email : mailto:contact@cthaicook.com
+- ✅ Téléphone : tel:+33749283707
+- ✅ Messenger : https://m.me/chanthanathaicook
+- ⚠️ TikTok : Placeholder `#` (à créer compte)
+- ⚠️ YouTube : Placeholder `#` (à créer chaîne)
+- ⚠️ X (Twitter) : Placeholder `#` (à créer compte)
+
 - [ ] 🔥 **Tests accessibilité** : Keyboard navigation, screen readers, focus states
 - [ ] 🔥 **Tests E2E Playwright** : Parcours visiteur vs connecté
 
@@ -1238,4 +1334,4 @@ Phase 4-7 (Optimisations) → Continu, non bloquant
 
 ---
 
-**📅 Dernière mise à jour :** 2025-11-08 (Hero Section complétée : Carousel vidéos + Card navigation glassmorphism + Animations Framer Motion + Sélecteur langue + Header simplifié + Navigation Cards 4 colonnes)
+**📅 Dernière mise à jour :** 2025-11-11 (QuickNav créé : Navigation rapide entre Hero et Cards avec animation vague séquentielle (800ms) + Highlight cards au clic avec glow orange-vert pulsant (3s) + Rotation Polaroid inversée (hover tilt) + Photo profil par défaut + Fix Supabase images hostname + Suppression focus outlines QuickNav)

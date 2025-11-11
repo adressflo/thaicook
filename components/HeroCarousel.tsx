@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState, useRef } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import useEmblaCarousel from 'embla-carousel-react'
 import Autoplay from 'embla-carousel-autoplay'
 import Fade from 'embla-carousel-fade'
@@ -13,6 +13,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { ArrowRight, Sparkles } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { usePWAInstalled } from '@/hooks/usePWAInstalled'
@@ -40,6 +50,7 @@ export function HeroCarousel({ medias, autoPlayDuration = 7000, isAuthenticated 
   const { isMobile } = useBreakpoints()
   const [selectedIndex, setSelectedIndex] = useState(0)
   const [selectedLang, setSelectedLang] = useState<'fr' | 'th' | 'en' | 'nl'>('fr')
+  const [showInstallDialog, setShowInstallDialog] = useState(false)
 
   // Configuration des langues avec drapeaux waving WebP
   const languages = [
@@ -50,9 +61,7 @@ export function HeroCarousel({ medias, autoPlayDuration = 7000, isAuthenticated 
   ]
 
   // Scroll animations for navigation card
-  const containerRef = useRef<HTMLDivElement>(null)
   const { scrollYProgress } = useScroll({
-    target: containerRef,
     offset: ['start start', 'end start'],
   })
 
@@ -158,7 +167,7 @@ export function HeroCarousel({ medias, autoPlayDuration = 7000, isAuthenticated 
   }
 
   return (
-    <div ref={containerRef} className="relative h-[80vh] min-h-[650px] w-full overflow-hidden" style={{ perspective: '1000px' }}>
+    <div className="relative h-[80vh] min-h-[650px] w-full overflow-hidden" style={{ perspective: '1000px' }}>
       {/* Card navigation en haut à gauche - Avec scroll animations */}
       <motion.div
         className="absolute top-6 left-12 z-30"
@@ -373,9 +382,9 @@ export function HeroCarousel({ medias, autoPlayDuration = 7000, isAuthenticated 
         <Button
           size="lg"
           variant="outline"
-          onClick={async () => {
+          onClick={() => {
             if (!isInstalled && canInstall) {
-              await install()
+              setShowInstallDialog(true)
             }
           }}
           className="bg-white/10 backdrop-blur-sm border-2 border-white text-white font-bold hover:bg-white hover:text-thai-green transition-all duration-300 hover:scale-105"
@@ -383,6 +392,42 @@ export function HeroCarousel({ medias, autoPlayDuration = 7000, isAuthenticated 
           {isInstalled ? 'Application Installée' : 'Installer l\'App'}
         </Button>
       </div>
+
+      {/* Dialog de confirmation installation PWA */}
+      <AlertDialog open={showInstallDialog} onOpenChange={setShowInstallDialog}>
+        <AlertDialogContent className="bg-white">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-2xl font-bold text-thai-green">
+              Installer ChanthanaThaiCook
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-base space-y-3 pt-2">
+              <p>
+                Installez notre application pour une expérience optimale :
+              </p>
+              <ul className="list-disc list-inside space-y-2 text-gray-700">
+                <li>Accès rapide depuis votre écran d'accueil</li>
+                <li>Notifications en temps réel pour vos commandes</li>
+                <li>Consultation du menu hors ligne</li>
+                <li>Interface plus fluide et rapide</li>
+              </ul>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-gray-100 hover:bg-gray-200">
+              Annuler
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async () => {
+                await install()
+                setShowInstallDialog(false)
+              }}
+              className="bg-thai-orange hover:bg-thai-orange/90 text-white"
+            >
+              Installer l'application
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Dots navigation (discrets) */}
       {medias.length > 1 && (

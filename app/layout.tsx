@@ -12,6 +12,7 @@ import { PWARegister } from '@/components/PWARegister';
 import { OfflineBanner } from '@/components/OfflineBanner';
 import { OfflineIndicator } from '@/components/OfflineIndicator';
 import { ChunkErrorBoundary } from '@/components/ChunkErrorBoundary';
+import { RestaurantFooter } from '@/components/Footer';
 
 
 const geistSans = Geist({
@@ -71,7 +72,10 @@ export default function RootLayout({
                 <OfflineBanner dismissible showLastSync />
                 <Toaster />
                 <Sonner />
-                <NuqsAdapter>{children}</NuqsAdapter>
+                <NuqsAdapter>
+                  {children}
+                  <RestaurantFooter />
+                </NuqsAdapter>
                 <FloatingUserIcon />
                 <OfflineIndicator position="bottom-right" />
               </TooltipProvider>

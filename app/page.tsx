@@ -3,12 +3,13 @@
 
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Info, Phone, Clock, AlertTriangle, CheckCircle, XCircle, Shield, MapPin } from 'lucide-react';
+import { Info, AlertTriangle, CheckCircle, XCircle } from 'lucide-react';
 import { memo, useState, useEffect } from 'react';
 import { usePermissions } from '@/hooks/usePermissions';
 import { getActiveAnnouncement, announcementTypeConfig, type Announcement } from '@/lib/announcements';
 import { FloatingUserIcon } from '@/components/FloatingUserIcon';
 import { HeroCarousel, type HeroMedia } from '@/components/HeroCarousel';
+import { QuickNav } from '@/components/QuickNav';
 import { NavigationCards } from '@/components/NavigationCards';
 import { SectionPourquoiCompte } from '@/components/SectionPourquoiCompte';
 import { supabase } from '@/lib/supabase';
@@ -97,6 +98,9 @@ const TableauDeBord = memo(() => {
         </div>
       )}
 
+      {/* Navigation rapide avec effet cascade */}
+      <QuickNav isAuthenticated={isAuthenticated} />
+
       {/* Navigation Cards (6 cartes) */}
       <NavigationCards
         isAuthenticated={isAuthenticated}
@@ -106,49 +110,6 @@ const TableauDeBord = memo(() => {
 
       {/* Section "Pourquoi créer un compte" - Visible uniquement pour visiteurs non connectés */}
       <SectionPourquoiCompte isAuthenticated={isAuthenticated} />
-
-      {/* Footer compact et discret */}
-      <footer className="bg-thai-green/90 text-white mt-auto">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm">
-            {/* Logo et nom */}
-            <div className="flex items-center gap-2">
-              <img
-                src="/logo.svg"
-                alt="ChanthanaThaiCook Logo"
-                className="w-8 h-8 rounded-full object-contain"
-              />
-              <span className="font-semibold">ChanthanaThaiCook</span>
-            </div>
-
-            {/* Informations essentielles */}
-            <div className="flex flex-col md:flex-row items-center gap-4 text-xs">
-              <div className="flex items-center gap-1">
-                <Phone className="w-3 h-3" />
-                <a
-                  href="tel:+33749283707"
-                  className="hover:text-thai-gold transition-colors"
-                >
-                  07 49 28 37 07
-                </a>
-              </div>
-              <div className="flex items-center gap-1">
-                <MapPin className="w-3 h-3" />
-                <span>Marigny-Marmande</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <Clock className="w-3 h-3" />
-                <span>18h00 - 20h30</span>
-              </div>
-            </div>
-
-            {/* Copyright */}
-            <div className="text-xs text-white/80">
-              © {new Date().getFullYear()} Tous droits réservés
-            </div>
-          </div>
-        </div>
-      </footer>
 
       {/* FloatingUserIcon ajouté pour navigation universelle */}
       <FloatingUserIcon />
