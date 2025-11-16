@@ -37,7 +37,7 @@ export const InfiniteTextMarquee: React.FC<InfiniteTextMarqueeProps> = ({
           },
         }}
       >
-        <Link href={link} className="inline-block">
+        <Link href={link as any} className="inline-block">
           <span
             className={`cursor-pointer font-bold tracking-tight py-4 m-0 transition-colors ${
               textColor ? '' : 'text-thai-green dark:text-thai-orange'

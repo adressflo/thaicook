@@ -274,6 +274,14 @@ export const platSchema = z.object({
     .optional(),
   photo_du_plat: z.string().url("URL photo invalide").optional(),
   est_epuise: z.boolean().default(false),
+  est_vegetarien: z.boolean().default(false).optional(),
+  niveau_epice: z.number()
+    .int("Niveau épicé doit être un entier")
+    .min(0, "Niveau minimum 0")
+    .max(3, "Niveau maximum 3")
+    .default(0)
+    .optional(),
+  categorie: z.enum(['Entrées', 'Plats', 'Desserts', 'Boissons', 'Extras']).optional(),
   lundi_dispo: z.any().optional(),
   mardi_dispo: z.any().optional(),
   mercredi_dispo: z.any().optional(),
@@ -297,6 +305,13 @@ export const platUpdateSchema = z.object({
     .optional(),
   photo_du_plat: z.string().url("URL photo invalide").optional(),
   est_epuise: z.boolean().optional(),
+  est_vegetarien: z.boolean().optional(),
+  niveau_epice: z.number()
+    .int("Niveau épicé doit être un entier")
+    .min(0, "Niveau minimum 0")
+    .max(3, "Niveau maximum 3")
+    .optional(),
+  categorie: z.enum(['Entrées', 'Plats', 'Desserts', 'Boissons', 'Extras']).optional(),
   lundi_dispo: z.any().optional(),
   mardi_dispo: z.any().optional(),
   mercredi_dispo: z.any().optional(),
@@ -342,6 +357,24 @@ export const extraUpdateSchema = z.object({
 });
 
 // ============================================
+// VALIDATION PLAT VEDETTE (Restaurant Settings)
+// ============================================
+
+export const platVedetteSchema = z.object({
+  plat_id: z.number()
+    .int("ID plat invalide")
+    .positive("ID plat doit être positif")
+    .nullable(),
+});
+
+export const restaurantSettingSchema = z.object({
+  setting_key: z.string().min(1, "Clé de paramètre requise"),
+  setting_value: z.string(),
+  setting_type: z.enum(['text', 'number', 'boolean', 'json']).default('text'),
+  description: z.string().optional(),
+});
+
+// ============================================
 // VALIDATION ACTIONS SPÉCIFIQUES
 // ============================================
 
@@ -381,6 +414,12 @@ export const addExtraToCommandeSchema = z.object({
 export const updatePlatQuantiteSchema = z.object({
   detailId: z.number().int().positive("ID détail invalide"),
   quantite: z.number().int().min(1, "Quantité minimum 1").max(50, "Quantité maximum 50"),
+});
+
+// Update spice level
+export const updateSpiceLevelSchema = z.object({
+  detailId: z.number().int().positive("ID détail invalide"),
+  spiceLevel: z.number().int().min(0, "Niveau minimum 0").max(3, "Niveau maximum 3"),
 });
 
 // Get by ID schemas

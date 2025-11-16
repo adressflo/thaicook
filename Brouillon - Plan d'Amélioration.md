@@ -12,6 +12,129 @@ Notre feuille de route pour faire évoluer l'expérience ChanthanaThaiCook. Ce d
 
 ---
 
+## 📝 Changelog Récent
+
+### Session : Icônes Lucide & UX Panier Amélioré ✅
+
+**Remplacement emojis par icônes Lucide** :
+- ✅ Badge "🔥 Peut être épicé" → icône Flame avec cercle gradient
+- ✅ SpiceLevelSelector : emojis → Lucide Flame/Leaf dans cercles avec gradients
+- ✅ SpiceDistributionSelector : déjà avec icônes Lucide (maintenu)
+- ✅ Helper `getSpiceLevelText()` : utilise `flameCount` pour générer texte
+
+**SpiceDistributionDisplay** (nouveau composant) :
+- ✅ [SpiceDistributionDisplay.tsx](components/commander/SpiceDistributionDisplay.tsx) (97 lignes)
+- ✅ Parse le texte distribution et affiche icônes visuelles dans panier
+- ✅ Cercles gradient (vert = feuille, jaune/orange/rouge = flammes)
+- ✅ Remplace affichage texte `1 épicé 🔥🔥` par icônes Lucide
+- ✅ Intégré dans Mon Panier (desktop + mobile)
+
+**Panier sticky (always visible)** :
+- ✅ `sticky top-8 max-h-[calc(100vh-4rem)]` sur wrapper carte
+- ✅ Structure flex avec `overflow-hidden` pour scroll interne
+- ✅ CardContent avec `flex-1 overflow-y-auto`
+- ✅ Panier reste visible lors du scroll des plats
+
+**Fichiers modifiés** :
+- [page.tsx](app/commander/page.tsx) - Import SpiceDistributionDisplay, sticky cart, Flame icon badge
+- [SpiceLevelSelector.tsx](components/commander/SpiceLevelSelector.tsx) - Lucide icons avec gradients
+- [SpiceDistributionSelector.tsx](components/commander/SpiceDistributionSelector.tsx) - Structure maintenue
+- [SpiceDistributionDisplay.tsx](components/commander/SpiceDistributionDisplay.tsx) - Nouveau composant
+
+---
+
+### 2025-11-11 : Section B - Page Commander (/commander) ✅
+**9/11 tâches complétées** - Améliorations majeures UX et fonctionnalités
+
+**Infrastructure** :
+- ✅ Migration DB `20251111183339_add_plat_features` (3 champs + 3 indexes)
+- ✅ Server Actions `restaurant-settings.ts` (241 lignes - plat vedette)
+- ✅ Zod schemas étendus (platSchema, platVedetteSchema, restaurantSettingSchema)
+- ✅ Types étendus (PlatPanier.demandeSpeciale)
+
+**Composants créés** :
+- ✅ [FeaturedDishSection.tsx](components/commander/FeaturedDishSection.tsx) (172 lignes) - Section plat vedette avec vidéo Chanthana
+- ✅ [SpiceLevelSelector.tsx](components/commander/SpiceLevelSelector.tsx) (161 lignes) - Sélecteur niveau épicé 0-3 piments
+- ✅ [PolaroidThankYouModal.tsx](components/commander/PolaroidThankYouModal.tsx) (146 lignes) - Modal remerciement Polaroid
+
+**Features implémentées** :
+- ✅ Badges spéciaux (🌱 végétarien, 🔥 épicé) sur cards plats
+- ✅ Sélecteur niveau épicé dans modal plat (0-3 avec gradient couleurs)
+- ✅ Section "Cette semaine au menu" (vidéo + Polaroid plat vedette)
+- ✅ Bouton admin "⭐ Vedette" pour définir plat de la semaine
+- ✅ Modal Polaroid après validation commande (remplace toast)
+- ✅ API route `/api/featured-dish` (force-dynamic)
+
+**Assets** :
+- ✅ Vidéo [platsemaine.mp4](public/videohero/platsemaine.mp4) (1.81 MB, 720x720, 1:1, 3s)
+- ✅ Prompt générateur vidéo mis à jour (format 1:1 square)
+
+**⚙️ Configuration requise** :
+- Définir `est_vegetarien` et `niveau_epice` dans Prisma Studio
+- Cliquer bouton "⭐ Vedette" sur un plat dans admin
+- Redémarrer serveur après modifications
+
+**🔄 Tâches restantes** (2/11) :
+- 🔄 Icône panier avec badge numérique (IN PROGRESS)
+- ⏳ Mobile UX navigation bottom bar (PENDING)
+
+**🐛 Bugs connus** :
+- ❌ **Scroll auto panier ne fonctionne pas** - Lors de la sélection date+heure, le scroll vers "Plats disponibles" ne se déclenche pas
+  - Tenté : `flushSync` + double `requestAnimationFrame` (lignes 256-274)
+  - Problème : Transition CSS 500ms du grid layout interfère avec scroll timing
+  - TODO : Investiguer solution alternative (IntersectionObserver, scroll events, ou augmenter délai)
+  - Fichiers concernés : `app/commander/page.tsx` (useEffect lignes 256-274, handleOpenCart lignes 276-296)
+
+---
+
+### Session : Système de Préférences Épicées & Admin Amélioré ✅
+
+**Admin /admin/plats** :
+- ✅ Bouton ⭐ "Vedette" pour définir le plat de la semaine
+- ✅ Boutons 🌱 Végétarien et 🔥 Épicé directement sur les cards
+- ✅ Chargement/toggle plat vedette avec Server Actions
+- ✅ État `featuredDishId` synchronisé avec DB
+
+**Page /commander** :
+- ✅ Intégration FeaturedDishSection (vidéo + Polaroid)
+- ✅ PolaroidThankYouModal après validation commande
+- ✅ API `/api/featured-dish` pour récupérer plat vedette
+- ✅ Double `requestAnimationFrame` + `flushSync` pour scroll fiable
+- ✅ Scroll vers section jours depuis plat vedette
+- ✅ `handleOpenCart()` avec expansion automatique
+
+**SpiceDistributionSelector** (nouveau composant) :
+- ✅ Répartition multi-portions (ex: 3 portions = 1 non épicé + 1 épicé + 1 très épicé)
+- ✅ Default "Non épicé" (bouton Ajouter immédiat)
+- ✅ Clic sur carte = +1 avec transfert automatique
+- ✅ Animation dock framer-motion (whileHover scale: 1.08, y: -4)
+- ✅ Badge quantité en haut à droite
+- ✅ Icônes Lucide Flame/Leaf avec gradient circulaire
+- ✅ Helper `getDistributionText()` pour panier
+- ✅ Reset distribution lors changement quantité
+
+**DishDetailsModalInteractive** :
+- ✅ Max-height 90vh avec scroll interne
+- ✅ Bouton sticky "Ajouter au panier" en bas
+- ✅ Intégration SpiceDistributionSelector (si plat épicé)
+- ✅ Sous-total dynamique + badge "Dans le panier"
+
+**CartContext** :
+- ✅ Gestion préférences épicées différentes = items séparés dans panier
+- ✅ Comparaison `demandeSpeciale` dans `ajouterAuPanier()`
+
+**UI Components** :
+- ✅ Placeholder color : `text-muted-foreground/60` → `text-thai-green/60`
+- ✅ Input, Select, Textarea : meilleure lisibilité placeholders
+- ✅ `--muted-foreground` : 120 20% 50% → 120 40% 20% (plus foncé)
+
+**Infrastructure** :
+- ✅ `lib/spice-helpers.ts` - Helper `spiceTextToLevel()` pour conversion DB
+- ✅ Server Action `restaurant-settings.ts` avec Decimal serialization
+- ✅ `preference_epice_niveau` dans détails commande
+
+---
+
 ## 📋 Phase 0 : Infrastructure Critique (🔥🔥🔥🔥)
 **Objectif : Sécurité, validation robuste, et fondations techniques avant toutes les features**
 
@@ -917,11 +1040,127 @@ npm run test:e2e
 - [ ] 🔥 **Tests E2E Playwright** : Parcours visiteur vs connecté
 
 ### 🛒 B. Page Commander (/commander)
+
+**Migration** : `20251111183339_add_plat_features`
+- [x] ✅ Ajout champs `plats_db` :
+  - `est_vegetarien` (Boolean, default: false) + index
+  - `niveau_epice` (Int 0-3, default: 0) + index
+  - `categorie` (String VARCHAR(100)) + index
+- [x] ✅ Table `restaurant_settings` : Gestion configuration restaurant
+  - `plat_vedette_id` : ID du plat mis en avant cette semaine
+
+**Server Actions** : `app/actions/restaurant-settings.ts` (241 lignes)
+- [x] ✅ `setFeaturedDish(plat_id)` : Définir/retirer plat vedette + validation jours disponibles
+- [x] ✅ `getFeaturedDish()` : Récupération plat vedette avec jours disponibles calculés
+- [x] ✅ `isFeaturedDish(platId)` : Vérifier si plat est vedette actuel
+
+**Zod Schemas** : `lib/validations.ts`
+- [x] ✅ `platSchema` étendu : `est_vegetarien`, `niveau_epice` (0-3), `categorie` (enum)
+- [x] ✅ `platVedetteSchema` : Validation plat_id nullable
+- [x] ✅ `restaurantSettingSchema` : Validation settings key-value
+
+**Types** : `types/app.ts`
+- [x] ✅ `PlatPanier` étendu : Champ `demandeSpeciale` pour préférences épices
+
+#### 🔥🔥 Améliorations Complétées
+
 - [x] 🔥🔥 **nuqs - Filtres menu** : URL state pour catégorie ✅ (line 29: useQueryState)
   - Extension: Ajouter recherche, épicé, végétarien (Phase 2)
-- [ ] 🔥🔥 **Badges spéciaux plats** : Icônes végétarien, épicé, populaire
+
+- [x] ✅ **Badges spéciaux plats** : Icônes végétarien, épicé
+  - Implémentation : `app/commander/page.tsx` lignes 683-697
+  - Badge végétarien : 🌱 vert si `est_vegetarien = true`
+  - Badge épicé : 🔥 rouge répété selon `niveau_epice` (1-3)
+  - Style : `Badge variant="outline"` avec couleurs custom
+  - ⚠️ **Configuration requise** : Définir valeurs dans Prisma Studio pour affichage
+
+- [x] ✅ **Sélecteur Niveau Épicé** : Choix 0-3 piments dans modal plat
+  - Composant : `components/commander/SpiceLevelSelector.tsx` (161 lignes)
+  - Design : shadcn/ui `ToggleGroup` + Lucide `Flame` icons
+  - Niveaux : 🍃 Non épicé | 🌶️ Léger | 🌶️🌶️ Moyen | 🌶️🌶️🌶️ Très épicé
+  - Gradient couleurs : vert → jaune → orange → rouge
+  - Intégration : `DishDetailsModalInteractive` lignes 176-185
+  - Helper function : `getSpiceLevelText(level)` génère texte formaté
+  - Storage : Append à `PlatPanier.demandeSpeciale` via paramètre `onAddToCart`
+  - Affichage conditionnel : Seulement si `plat.niveau_epice > 0`
+  - ⚠️ **Configuration requise** : Définir `niveau_epice` dans Prisma Studio (1-3)
+
+- [x] ✅ **Section "Cette semaine au menu"** : Plat vedette avec Chanthana + Polaroid
+  - Composant : `components/commander/FeaturedDishSection.tsx` (172 lignes)
+  - API Route : `app/api/featured-dish/route.ts` (force-dynamic)
+  - Position : Entre header et filtres menu (ligne 463 commander/page.tsx)
+  - Layout responsive :
+    - Vidéo Chanthana : `platsemaine.mp4` (1.81 MB, 720x720, 1:1, 3s loop)
+    - Bulle dialogue animée : "Cette semaine au menu !" (bounce animation)
+    - Polaroid plat : Style cards actuelles + étoile ⭐ gold top-left
+  - Badges jours : Highlight gold sur jours où plat vedette disponible
+  - Comportement clic : Scroll smooth vers section jours via `handleScrollToDays()`
+  - Admin : Bouton "⭐ Vedette" dans `/admin/plats` lignes 1389-1403
+  - Bouton toggle : Gold rempli si vedette, outline sinon
+  - Asset vidéo : Prompt générateur dans `public/videogif/promptvideoVEO.md`
+  - ⚠️ **Configuration requise** : Cliquer bouton "⭐ Vedette" sur un plat dans admin
+
+- [x] ✅ **Modal Remerciement Polaroid** : Après validation commande
+  - Composant : `components/commander/PolaroidThankYouModal.tsx` (146 lignes)
+  - Style : Photo Polaroid avec bordure blanche 8px + rotation hover
+  - Illustration : Chanthana chef 👩‍🍳 + sawadee 🙏 avec animations
+  - Message : "Khop khun kha ! 🙏 Merci pour votre commande"
+  - Éléments décoratifs : Cœurs animés + sparkles ✨
+  - Progress bar : Barre animée gradient orange-gold
+  - Auto-fermeture : 5s (configurable via `autoCloseDelay`)
+  - Redirect : `/historique` (configurable via `redirectTo`)
+  - Accessibilité : aria-describedby + sr-only title/description
+  - Intégration : `commander/page.tsx` ligne 358 (remplace toast)
+  - Props : `isOpen`, `onClose`, `autoCloseDelay?`, `redirectTo?`
+  - Animations : zoom-in-95, pulse, bounce, ping (Tailwind)
+
+#### 🔥 Tâches Restantes
+
 - [ ] 🔥🔥 **Icône panier avec badge** : ⚠️ Text "X dans le panier" existe, ajouter icône ShoppingCart visuelle
+  - Remplacer texte par `ShoppingCart` icon de lucide-react
+  - Ajouter badge numérique avec count
+  - Status : IN PROGRESS
+
 - [ ] 🔥 **Mobile UX** : Simplifier navigation étapes (menu bas d'écran)
+  - Créer bottom navigation bar responsive
+  - Optimiser touch interactions
+  - Status : PENDING
+
+- [ ] 🔥🔥 **Avatar Chanthana "Prend Commande"** : Visual sidebar/header avec Chanthana tenant carnet + stylo
+  - Position : Sidebar fixe desktop OU header mobile
+  - Format : PNG/WebP 400x500px, fond transparent
+  - Humanise l'expérience (impression que Chanthana prend vraiment la commande)
+  - Status : PENDING (non validé dans session)
+
+- [ ] 🔥 **Animation ajout panier** : Micro-animation Chanthana clin d'œil + thumbs up
+  - Format : GIF/MP4 2-3s, 200x200px
+  - Trigger : Apparaît 0.5s quand plat ajouté au panier
+  - Feedback visuel ludique et satisfaisant
+  - Status : PENDING (non validé dans session)
+
+#### ⚙️ Configuration Requise pour Affichage
+
+**Après restart du serveur de développement, configurer via Prisma Studio** :
+
+1. **Pour badges spéciaux** : Éditer plats dans `plats_db`
+   - `est_vegetarien` → `true` pour plats végétariens
+   - `niveau_epice` → `1`, `2`, ou `3` pour plats épicés
+   - Exemple : Pad Thai végétarien → `est_vegetarien: true, niveau_epice: 2`
+
+2. **Pour sélecteur épicé dans modal** :
+   - Définir `niveau_epice` > 0 sur plats concernés
+   - Modal affichera automatiquement le sélecteur
+
+3. **Pour section plat vedette** :
+   - Aller dans `/admin/plats`
+   - Cliquer sur bouton "⭐ Vedette" du plat souhaité
+   - Vérifier que plat a au moins 1 jour disponible (`lundi_dispo` = "oui", etc.)
+   - Section apparaîtra automatiquement sur `/commander`
+
+4. **Vérification** :
+   - Prisma Studio en cours : Background process c1883f
+   - Interface : http://localhost:5555
+   - Redémarrer serveur après modifications Prisma
 
 ### 🛍️ C. Page Panier (/panier)
 - [ ] 🔥🔥 **Sauvegarde panier non connecté** : Proposer création compte pour conserver sélection
@@ -1291,6 +1530,43 @@ Services:
 Fallback logic: Push PWA → Email → SMS/WhatsApp
 ```
 
+### Capacité Génération Assets Chanthana (Mascotte)
+
+**Le propriétaire peut générer des visuels personnalisés de Chanthana (mascotte du restaurant) à la demande via IA générative.**
+
+#### Workflow Génération :
+1. Claude décrit scène souhaitée (ex: "Chanthana tenant carnet + stylo")
+2. Propriétaire génère image/vidéo avec IA (Veo 3.1 Fast, Imagen)
+3. Propriétaire fournit fichier (PNG, WebP, MP4, GIF)
+4. Claude intègre le fichier dans le code
+
+#### Style Référence Chanthana :
+- Animation manga chibi moderne, énergique
+- Femme thaïlandaise, cheveux noirs en chignon serré, front dégagé
+- Eye-liner "cat eye" (virgule) noir distinctif
+- Tablier noir avec texte "chanthana thai cook"
+- Expressions chaleureuses et souriantes
+
+#### Assets Existants :
+- `/chanthana.svg` (891KB) - Avatar principal utilisé page À Propos
+- `/videogif/Sawadee.gif` (257KB) - Geste wai animé (emails)
+- `/videohero/Sawadeechanthana.mp4` (5.9MB)
+- `/videohero/telephone.mp4` (9.6MB)
+
+#### Utilisation Transversale :
+- **Page Commander** : Avatar prend commande (sidebar/header)
+- **Modal Confirmation** : Polaroid sawadee remerciement
+- **Animation Panier** : Clin d'œil + thumbs up feedback
+- **Page À Propos** : Présentation chef (déjà implémenté)
+- **Page Événements** : Chanthana présente buffet/traiteur
+- **Emails** : Sawadee.gif dans templates (déjà utilisé)
+
+#### Avantages :
+- Personnalisation illimitée pour chaque contexte UX
+- Cohérence visuelle avec mascotte unique du restaurant
+- Humanisation et authenticité de l'expérience client
+- Identité de marque forte et mémorable
+
 ### Budget Mensuel Estimé (Nov 2025)
 
 | Service | Coût | Notes |
@@ -1334,4 +1610,4 @@ Phase 4-7 (Optimisations) → Continu, non bloquant
 
 ---
 
-**📅 Dernière mise à jour :** 2025-11-11 (QuickNav créé : Navigation rapide entre Hero et Cards avec animation vague séquentielle (800ms) + Highlight cards au clic avec glow orange-vert pulsant (3s) + Rotation Polaroid inversée (hover tilt) + Photo profil par défaut + Fix Supabase images hostname + Suppression focus outlines QuickNav)
+**📅 Dernière mise à jour :** 2025-11-11 (QuickNav créé : Navigation rapide entre Hero et Cards avec animation vague séquentielle (800ms) + Highlight cards au clic avec glow orange-vert pulsant (3s) + Rotation Polaroid inversée (hover tilt) + Photo profil par défaut + Fix Supabase images hostname + Suppression focus outlines QuickNav | Enrichissement Section B. Page Commander : 5 suggestions Chanthana (avatar prend commande, modal Polaroid remerciement, animation panier, sélecteur épicé, section vedette) | Ajout section Annexes : Capacité Génération Assets Chanthana (workflow IA, style référence, utilisation transversale) | Correction B. Page Commander : Suppression suggestion PDF + Simplification "Section Cette semaine au menu" (Chanthana + Polaroid + scroll jours gold, pas d'auto-sélection))

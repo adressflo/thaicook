@@ -17,15 +17,18 @@ import {
   ChevronRight,
   Clock,
   CreditCard,
+  Flame,
   Loader2,
   MapPin,
   Phone,
   Search,
   ShoppingCart,
+  Star,
   Trash2,
   X,
 } from 'lucide-react';
 import { memo, useEffect, useMemo, useRef, useState, Suspense } from 'react';
+import { flushSync } from 'react-dom';
 import Link from 'next/link';
 import type { Route } from 'next';
 import { useQueryState, parseAsString } from 'nuqs';
@@ -58,6 +61,10 @@ import { useCart } from '@/contexts/CartContext';
 import { usePrismaCreateCommande } from '@/hooks/usePrismaData';
 import type { PlatUI as Plat, PlatPanier } from '@/types/app';
 import { DishDetailsModalInteractive } from '@/components/historique/DishDetailsModalInteractive';
+import { FeaturedDishSection } from '@/components/commander/FeaturedDishSection';
+import { PolaroidThankYouModal } from '@/components/commander/PolaroidThankYouModal';
+import { spiceTextToLevel } from '@/lib/spice-helpers';
+import { SpiceDistributionDisplay } from '@/components/commander/SpiceDistributionDisplay';
 
 export const dynamic = 'force-dynamic';
 
@@ -120,6 +127,7 @@ const Commander = memo(() => {
   } = useCart();
   const isMobile = useIsMobile();
   const platsSectionRef = useRef<HTMLDivElement>(null);
+  const dayButtonsSectionRef = useRef<HTMLDivElement>(null);
 
   // États pour la sidebar mobile
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -127,6 +135,9 @@ const Commander = memo(() => {
   const [highlightedPlatId, setHighlightedPlatId] = useState<string | null>(
     null
   );
+  const [showThankYouModal, setShowThankYouModal] = useState(false);
+  const [featuredDishDays, setFeaturedDishDays] = useState<string[]>([]);
+  const [featuredDish, setFeaturedDish] = useState<any>(null);
 
   // Fonction pour formater les prix
   const formatPrix = (prix: number): string => {
@@ -195,6 +206,23 @@ const Commander = memo(() => {
     return heures;
   }, []);
 
+  // Récupérer le plat vedette et ses jours disponibles
+  useEffect(() => {
+    fetch('/api/featured-dish')
+      .then(res => res.json())
+      .then(data => {
+        if (data?.dish) {
+          setFeaturedDish(data.dish);
+          if (data.dish.joursDisponibles && Array.isArray(data.dish.joursDisponibles)) {
+            setFeaturedDishDays(data.dish.joursDisponibles);
+          }
+        }
+      })
+      .catch(err => {
+        console.error('Erreur récupération plat vedette:', err);
+      });
+  }, []);
+
   useEffect(() => {
     if (jourSelectionne && jourSelectionne in dayNameToNumber) {
       const targetDayNumber = dayNameToNumber[jourSelectionne];
@@ -236,14 +264,48 @@ const Commander = memo(() => {
       heureRetrait &&
       platsSectionRef.current
     ) {
-      setTimeout(() => {
-        platsSectionRef.current?.scrollIntoView({
-          behavior: 'smooth',
-          block: 'start',
+      // Double requestAnimationFrame pour attendre que le layout soit recalculé
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          platsSectionRef.current?.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start',
+          });
         });
-      }, 100);
+      });
     }
   }, [jourSelectionne, dateRetrait, heureRetrait]);
+
+  // Fonction pour ouvrir le panier et scroller vers les plats
+  const handleOpenCart = () => {
+    // flushSync force React à mettre à jour le DOM immédiatement
+    flushSync(() => {
+      setIsCartCollapsed(false);
+    });
+
+    // Double requestAnimationFrame = attendre 2 frames pour que le layout soit recalculé
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        // Fallback : si platsSectionRef n'existe pas, scroller vers les boutons jours
+        const targetRef = platsSectionRef.current || dayButtonsSectionRef.current;
+
+        if (targetRef) {
+          targetRef.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start',
+          });
+        }
+      });
+    });
+  };
+
+  // Fonction pour scroll vers la section des boutons jours
+  const handleScrollToDays = () => {
+    dayButtonsSectionRef.current?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+    });
+  };
 
   // Calculer la quantité actuelle d'un plat dans le panier
   const getCurrentQuantity = (platId: number): number => {
@@ -261,7 +323,7 @@ const Commander = memo(() => {
       .reduce((total, item) => total + item.quantite, 0);
   };
 
-  const handleAjouterAuPanier = (plat: Plat, quantite: number = 1) => {
+  const handleAjouterAuPanier = (plat: Plat, quantite: number = 1, spicePreference?: string) => {
     if (!plat.idplats || !plat.plat || plat.prix === undefined) return;
 
     // Vérifier qu'un jour, une date et une heure sont sélectionnés
@@ -289,6 +351,7 @@ const Commander = memo(() => {
         quantite: 1,
         jourCommande: jourSelectionne,
         dateRetrait: dateCompleteRetrait,
+        demandeSpeciale: spicePreference || undefined,
       });
     }
 
@@ -336,7 +399,7 @@ const Commander = memo(() => {
       for (const [dateKey, items] of Object.entries(groupedByDate)) {
         if (!dateKey) continue;
 
-        await createCommande.mutateAsync({
+        const commandeData = {
           client_r: currentUser.id,
           client_r_id: idclient,
           date_et_heure_de_retrait_souhaitees: dateKey,
@@ -344,8 +407,19 @@ const Commander = memo(() => {
           details: items.map(item => ({
             plat_r: item.id, // Garder comme string, sera converti dans le hook
             quantite_plat_commande: item.quantite,
+            preference_epice_niveau: spiceTextToLevel(item.demandeSpeciale),
           })),
+        };
+
+        // DEBUG: Log les données envoyées
+        console.log('🛒 validerCommande - Données envoyées:', {
+          dateKey,
+          items_count: items.length,
+          items: items.map(i => ({ id: i.id, nom: i.nom, quantite: i.quantite })),
+          commandeData,
         });
+
+        await createCommande.mutateAsync(commandeData);
 
         commandesCreees++;
       }
@@ -355,15 +429,10 @@ const Commander = memo(() => {
         0
       );
 
-      toast({
-        title: 'Commande(s) envoyée(s) !',
-        description: `${commandesCreees} commande${
-          commandesCreees > 1 ? 's' : ''
-        } d'un total de ${formatPrix(totalGeneral)} ${
-          commandesCreees > 1 ? 'ont été enregistrées' : 'a été enregistrée'
-        }.`,
-      });
+      // Ouvrir le modal Polaroid au lieu du toast
+      setShowThankYouModal(true);
 
+      // Nettoyer le panier et les états
       viderPanier();
       setDateRetrait(undefined);
       setHeureRetrait('');
@@ -396,20 +465,16 @@ const Commander = memo(() => {
 
   return (
     <AppLayout>
-      <div className="min-h-screen bg-gradient-thai py-8 px-4">
+      <div className="min-h-screen bg-gradient-thai py-8 px-2 sm:px-4">
         <div
-          className={`container mx-auto transition-all duration-500 ${
+          className={`mx-auto transition-all duration-500 ${
             panier.length > 0 && !isCartCollapsed
-              ? 'max-w-7xl grid grid-cols-1 md:grid-cols-2 gap-6'
-              : 'max-w-5xl'
+              ? 'max-w-[95%] xl:max-w-[1600px] grid grid-cols-1 md:grid-cols-[3fr_2fr] gap-4 md:gap-6'
+              : 'max-w-[95%] xl:max-w-6xl'
           }`}
         >
           {/* Section principale - Menu */}
-          <div
-            className={
-              panier.length > 0 && !isCartCollapsed ? 'md:col-span-1' : 'w-full'
-            }
-          >
+          <div className="w-full">
             {/* Bannière offline compacte */}
             <OfflineBannerCompact className="mb-4" />
 
@@ -445,7 +510,7 @@ const Commander = memo(() => {
               {!isMobile && isCartCollapsed && panier.length > 0 && (
                 <div
                   className="absolute top-1/2 -right-10 -translate-y-1/2 cursor-pointer group"
-                  onClick={() => setIsCartCollapsed(false)}
+                  onClick={handleOpenCart}
                 >
                   <div className="relative flex items-center justify-center w-20 h-20 bg-thai-green backdrop-blur-sm rounded-full transition-all duration-300 group-hover:scale-110 group-hover:bg-thai-green/80">
                     <ShoppingCart className="h-8 w-8 text-white drop-shadow-lg" />
@@ -463,6 +528,9 @@ const Commander = memo(() => {
             {/* Section 2: Sélection du jour et recherche */}
             <Card className="shadow-xl border-thai-orange/20 mb-6">
               <CardContent className="p-6">
+                <div className="grid md:grid-cols-[1fr_auto] gap-6">
+                  {/* Colonne gauche - Recherche + Boutons */}
+                  <div>
                 <div className="mb-6 pb-6 border-b border-thai-orange/10">
                   <Label
                     htmlFor="recherche-plat"
@@ -520,104 +588,185 @@ const Commander = memo(() => {
                   )}
                 </div>
 
-                <div>
+                <div ref={dayButtonsSectionRef}>
                   <Label className="text-md font-semibold text-thai-green mb-3 block">
                     Ou choisissez un jour pour voir le menu :
                   </Label>
                   <div className="flex flex-wrap gap-2 sm:gap-3">
-                    {joursOuverture.map(jour => (
-                      <Button
-                        key={jour.value}
-                        variant={
-                          jourSelectionne === jour.value ? 'default' : 'outline'
-                        }
-                        onClick={() => setJourSelectionne(jour.value)}
-                        className={cn(
-                          'px-4 py-2 text-sm sm:px-5 sm:py-2.5 rounded-md transition-all duration-200 hover:scale-105',
-                          jourSelectionne === jour.value
-                            ? 'bg-thai-orange text-white'
-                            : 'border-thai-orange text-thai-orange bg-white hover:bg-thai-orange/10'
-                        )}
-                      >
-                        {jour.label}
-                      </Button>
-                    ))}
+                    {joursOuverture.map(jour => {
+                      const isFeaturedDay = featuredDishDays.includes(jour.value);
+                      return (
+                        <Button
+                          key={jour.value}
+                          variant={
+                            jourSelectionne === jour.value ? 'default' : 'outline'
+                          }
+                          onClick={() => setJourSelectionne(jour.value)}
+                          className={cn(
+                            'px-4 py-2 text-sm sm:px-5 sm:py-2.5 rounded-md transition-all duration-200 hover:scale-105',
+                            jourSelectionne === jour.value
+                              ? 'bg-thai-orange text-white'
+                              : isFeaturedDay
+                              ? 'border-2 border-thai-gold text-thai-orange bg-thai-gold/10 hover:bg-thai-gold/20 hover:ring-2 hover:ring-thai-gold/50'
+                              : 'border-thai-orange text-thai-orange bg-white hover:bg-thai-orange/10'
+                          )}
+                        >
+                          {jour.label}
+                        </Button>
+                      );
+                    })}
                   </div>
+                </div>
+
+                {/* Section Date/Heure */}
+                {jourSelectionne && (
+                  <div className="mt-6 pt-6 border-t border-thai-orange/10">
+                    <h3 className="text-lg font-semibold text-thai-green mb-3">
+                      Choisissez votre date et heure de retrait :
+                    </h3>
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="dateRetrait">Date de retrait *</Label>
+                        <Select
+                          onValueChange={value => setDateRetrait(new Date(value))}
+                          value={dateRetrait?.toISOString() || ''}
+                        >
+                          <SelectTrigger
+                            className="w-full transition-all duration-300 hover:shadow-md hover:border-thai-orange/50 text-thai-green"
+                          >
+                            <CalendarIconLucide className="mr-2 h-4 w-4" />
+                            <SelectValue placeholder="Sélectionner">
+                              {dateRetrait
+                                ? format(dateRetrait, 'eeee dd MMMM', {
+                                    locale: fr,
+                                  })
+                                : 'Sélectionner une date'}
+                            </SelectValue>
+                          </SelectTrigger>
+                          <SelectContent>
+                            {allowedDates.map(date => (
+                              <SelectItem
+                                key={date.toISOString()}
+                                value={date.toISOString()}
+                              >
+                                {format(date, 'eeee dd MMMM', { locale: fr })}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label htmlFor="heureRetrait">Heure de retrait *</Label>
+                        <Select
+                          onValueChange={setHeureRetrait}
+                          value={heureRetrait}
+                        >
+                          <SelectTrigger
+                            className="transition-all duration-300 hover:shadow-md hover:border-thai-orange/50 text-thai-green"
+                          >
+                            <Clock className="mr-2 h-4 w-4" />
+                            <SelectValue placeholder="Sélectionner" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {heuresDisponibles.map(h => (
+                              <SelectItem key={h} value={h}>
+                                {h}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <p className="text-xs text-thai-green/70 mt-1">
+                          Entre 18h00 et 20h30 (par 5 min)
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                  </div>
+
+                  {/* Colonne droite - Card Polaroid plat vedette */}
+                  {featuredDish && (
+                    <div className="hidden md:block">
+                      <div className="sticky top-8">
+                        <div className="bg-white p-4 shadow-2xl rounded-lg border-4 border-white transform hover:rotate-1 transition-transform max-w-xs">
+                          {/* Badge étoile */}
+                          <div className="absolute -top-2 -left-2 bg-thai-gold rounded-full p-2 shadow-lg z-10">
+                            <Star className="w-6 h-6 text-white fill-white" />
+                          </div>
+
+                          {/* Image du plat */}
+                          <div className="relative aspect-square overflow-hidden rounded-md mb-3">
+                            <img
+                              src={featuredDish.photo_du_plat || 'https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/default.png'}
+                              alt={featuredDish.plat}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+
+                          {/* Nom + Prix sur même ligne */}
+                          <div className="flex items-center justify-between mb-2 px-2">
+                            <h3 className="font-semibold text-thai-green line-clamp-1">
+                              {featuredDish.plat}
+                            </h3>
+                            <Badge variant="secondary" className="shrink-0 ml-2">
+                              {featuredDish.prix ? `${parseFloat(featuredDish.prix.toString()).toFixed(2).replace('.', ',')}€` : 'Prix sur demande'}
+                            </Badge>
+                          </div>
+
+                          {/* Description du plat */}
+                          <div
+                            className="max-h-20 overflow-y-auto px-2 mb-2"
+                            style={{
+                              scrollbarWidth: 'thin',
+                              scrollbarColor: '#9ca3af #f3f4f6'
+                            }}
+                          >
+                            <p className="text-xs text-gray-600 leading-relaxed">
+                              {featuredDish.description}
+                            </p>
+                          </div>
+
+                          {/* Jours disponibles */}
+                          <div className="text-center">
+                            <p className="text-xs text-thai-green font-semibold mb-1">Disponible</p>
+                            <div className="flex flex-wrap gap-1 justify-center">
+                              {featuredDish.joursDisponibles?.map((jour: string) => (
+                                <Badge
+                                  key={jour}
+                                  variant="outline"
+                                  className={cn(
+                                    'text-xs',
+                                    jourSelectionne === jour
+                                      ? 'bg-thai-gold text-white border-thai-gold'
+                                      : 'border-thai-gold/30 text-thai-gold'
+                                  )}
+                                >
+                                  {jour.charAt(0).toUpperCase() + jour.slice(1)}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Message */}
+                          <p className="text-xs text-center text-thai-orange mt-3 font-semibold">
+                            ⭐ Au menu cette semaine !
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
 
-            {/* Section 3: Sélection date/heure */}
-            {jourSelectionne && (
-              <Card className="shadow-xl border-thai-orange/20 mb-6">
-                <CardContent className="p-6">
-                  <h3 className="text-lg font-semibold text-thai-green mb-3">
-                    Choisissez votre date et heure de retrait :
-                  </h3>
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="dateRetrait">Date de retrait *</Label>
-                      <Select
-                        onValueChange={value => setDateRetrait(new Date(value))}
-                        value={dateRetrait?.toISOString() || ''}
-                      >
-                        <SelectTrigger
-                          className={cn(
-                            'w-full transition-all duration-300 hover:shadow-md hover:border-thai-orange/50',
-                            !dateRetrait && 'text-green-700'
-                          )}
-                        >
-                          <CalendarIconLucide className="mr-2 h-4 w-4" />
-                          <SelectValue placeholder="Sélectionner">
-                            {dateRetrait
-                              ? format(dateRetrait, 'eeee dd MMMM', {
-                                  locale: fr,
-                                })
-                              : 'Sélectionner une date'}
-                          </SelectValue>
-                        </SelectTrigger>
-                        <SelectContent>
-                          {allowedDates.map(date => (
-                            <SelectItem
-                              key={date.toISOString()}
-                              value={date.toISOString()}
-                            >
-                              {format(date, 'eeee dd MMMM', { locale: fr })}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label htmlFor="heureRetrait">Heure de retrait *</Label>
-                      <Select
-                        onValueChange={setHeureRetrait}
-                        value={heureRetrait}
-                      >
-                        <SelectTrigger
-                          className={cn(
-                            'transition-all duration-300 hover:shadow-md hover:border-thai-orange/50',
-                            !heureRetrait && 'text-green-700'
-                          )}
-                        >
-                          <Clock className="mr-2 h-4 w-4" />
-                          <SelectValue placeholder="Sélectionner" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {heuresDisponibles.map(h => (
-                            <SelectItem key={h} value={h}>
-                              {h}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Entre 18h00 et 20h30 (par 5 min)
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+            {/* Section Plat Vedette "Cette semaine au menu" - Mobile only */}
+            {featuredDish && (
+              <div className="md:hidden mb-6">
+                <FeaturedDishSection
+                  onScrollToDays={handleScrollToDays}
+                  featuredDay={jourSelectionne}
+                />
+              </div>
             )}
 
             {/* Section 4: Liste des plats disponibles */}
@@ -676,9 +825,28 @@ const Commander = memo(() => {
                               </div>
                             )}
                             <CardContent className="p-3 flex flex-col flex-grow">
-                              <h4 className="font-semibold text-thai-green mb-1">
-                                {plat.plat}
-                              </h4>
+                              {/* Nom + Badges sur même ligne */}
+                              <div className="flex items-center justify-between gap-2 mb-1">
+                                <h4 className="font-semibold text-thai-green flex-1 line-clamp-1">
+                                  {plat.plat}
+                                </h4>
+                                {(plat.est_vegetarien || (plat.niveau_epice ?? 0) > 0) && (
+                                  <div className="flex gap-1 flex-shrink-0">
+                                    {plat.est_vegetarien && (
+                                      <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5 bg-green-50 text-green-700 border-green-300">
+                                        🌱 Végétarien
+                                      </Badge>
+                                    )}
+                                    {(plat.niveau_epice ?? 0) > 0 && (
+                                      <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5 bg-orange-50 text-orange-700 border-orange-300 flex items-center gap-0.5">
+                                        <Flame className="w-3 h-3" />
+                                        Peut être épicé
+                                      </Badge>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+
                               <p className="text-xs text-gray-600 mb-2 flex-grow">
                                 {plat.description}
                               </p>
@@ -694,10 +862,6 @@ const Commander = memo(() => {
                                     </Badge>
                                   )}
                                   <Button
-                                    onClick={e => {
-                                      e.stopPropagation();
-                                      handleAjouterAuPanier(plat, 1);
-                                    }}
                                     size="sm"
                                     className="transition-all duration-200 hover:scale-105 hover:shadow-md"
                                   >
@@ -725,11 +889,11 @@ const Commander = memo(() => {
 
           {/* Section latérale droite - Panier */}
           {panier.length > 0 && !isCartCollapsed && (
-            <div className="md:col-span-1">
-              {/* Desktop Sidebar */}
+            <div className="w-full">
+              {/* Desktop Sidebar - 30% fixe */}
               {!isMobile && (
-                <div className="sticky top-8 h-fit w-full">
-                  <Card className="shadow-xl border-thai-orange/20">
+                <div className="sticky top-8 max-h-[calc(100vh-4rem)] flex flex-col">
+                  <Card className="shadow-xl border-thai-orange/20 flex flex-col h-full overflow-hidden">
                     <CardHeader className="bg-gradient-to-r from-thai-orange to-thai-gold text-white py-4 relative rounded-t-lg">
                       <div className="text-center">
                         <div className="flex items-center justify-center mb-1">
@@ -762,7 +926,7 @@ const Commander = memo(() => {
                       </div>
                     </CardHeader>
 
-                    <CardContent className="p-4">
+                    <CardContent className="p-4 flex-1 overflow-y-auto">
                       {(() => {
                         const groupedByDate = panier.reduce(
                           (groups, item) => {
@@ -854,34 +1018,26 @@ const Commander = memo(() => {
                                             </div>
                                           )}
 
-                                          <div className="flex-1">
+                                          <div className="flex-1 min-w-0">
                                             <h4 className="font-medium text-thai-green text-base mb-1">
                                               {item.nom}
                                             </h4>
-                                            <div className="flex items-center gap-4 text-sm text-gray-600">
-                                              <span className="flex items-center gap-1">
-                                                <span className="font-medium">
-                                                  Quantité:
-                                                </span>
-                                                <span className="bg-thai-orange/10 text-thai-orange px-2 py-1 rounded-full font-medium">
-                                                  {item.quantite}
-                                                </span>
-                                              </span>
-                                              <span className="flex items-center gap-2">
-                                                <span className="font-medium">
-                                                  Prix unitaire:
-                                                </span>
-                                                <Badge variant="secondary">
-                                                  {formatPrix(
-                                                    parseFloat(item.prix)
-                                                  )}
-                                                </Badge>
-                                              </span>
+                                            {item.demandeSpeciale && item.demandeSpeciale.includes("épicé") && (
+                                              <SpiceDistributionDisplay
+                                                distributionText={item.demandeSpeciale}
+                                                className="mb-1"
+                                              />
+                                            )}
+                                            <div className="text-sm text-gray-600">
+                                              <span className="font-medium">Prix unitaire: </span>
+                                              <Badge variant="secondary" className="text-xs">
+                                                {formatPrix(parseFloat(item.prix))}
+                                              </Badge>
                                             </div>
                                           </div>
 
-                                          <div className="text-right">
-                                            <div className="text-lg font-bold text-thai-orange mb-3">
+                                          <div className="flex flex-col items-end gap-3">
+                                            <div className="text-xl font-bold text-thai-orange">
                                               {formatPrix(
                                                 parseFloat(item.prix) *
                                                   item.quantite
@@ -891,7 +1047,7 @@ const Commander = memo(() => {
                                               <Button
                                                 size="sm"
                                                 variant="outline"
-                                                className="h-6 w-6 p-0 transition-all duration-200 hover:scale-110 hover:shadow-lg hover:border-thai-orange hover:ring-2 hover:ring-thai-orange/30"
+                                                className="h-8 w-8 p-0 transition-all duration-200 hover:scale-110 hover:border-thai-orange"
                                                 onClick={e => {
                                                   e.stopPropagation();
                                                   modifierQuantite(
@@ -902,13 +1058,13 @@ const Commander = memo(() => {
                                               >
                                                 -
                                               </Button>
-                                              <span className="w-6 text-center font-medium text-sm">
+                                              <span className="w-8 text-center font-bold text-base">
                                                 {item.quantite}
                                               </span>
                                               <Button
                                                 size="sm"
                                                 variant="outline"
-                                                className="h-6 w-6 p-0 transition-all duration-200 hover:scale-110 hover:shadow-lg hover:border-thai-orange hover:ring-2 hover:ring-thai-orange/30"
+                                                className="h-8 w-8 p-0 transition-all duration-200 hover:scale-110 hover:border-thai-orange"
                                                 onClick={e => {
                                                   e.stopPropagation();
                                                   modifierQuantite(
@@ -919,25 +1075,25 @@ const Commander = memo(() => {
                                               >
                                                 +
                                               </Button>
-                                              <Button
-                                                size="icon"
-                                                variant="ghost"
-                                                onClick={e => {
-                                                  e.stopPropagation();
-                                                  supprimerDuPanier(
-                                                    item.uniqueId!
-                                                  );
-                                                  toast({
-                                                    title: 'Article supprimé',
-                                                    description: `${item.nom} a été retiré de votre panier.`,
-                                                  });
-                                                }}
-                                                className="h-6 w-6 text-gray-400 hover:text-red-500 hover:bg-red-50 ml-2 transition-all duration-200 hover:scale-110 hover:shadow-lg hover:ring-2 hover:ring-red-300"
-                                                aria-label="Supprimer l'article"
-                                              >
-                                                <Trash2 className="h-3 w-3" />
-                                              </Button>
                                             </div>
+                                            <Button
+                                              size="sm"
+                                              variant="ghost"
+                                              onClick={e => {
+                                                e.stopPropagation();
+                                                supprimerDuPanier(
+                                                  item.uniqueId!
+                                                );
+                                                toast({
+                                                  title: 'Article supprimé',
+                                                  description: `${item.nom} a été retiré de votre panier.`,
+                                                });
+                                              }}
+                                              className="h-8 w-8 p-0 text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all duration-200"
+                                              aria-label="Supprimer l'article"
+                                            >
+                                              <Trash2 className="h-4 w-4" />
+                                            </Button>
                                           </div>
                                         </div>
                                       </DishDetailsModalInteractive>
@@ -1051,7 +1207,7 @@ const Commander = memo(() => {
                       </Card>
                     </CardContent>
 
-                    <div className="border-t p-4">
+                    <div className="border-t p-4 flex-shrink-0 bg-white rounded-b-lg">
                       <Button
                         onClick={validerCommande}
                         disabled={
@@ -1071,17 +1227,17 @@ const Commander = memo(() => {
                 </div>
               )}
 
-              {/* Mobile - Bouton flottant */}
+              {/* Mobile - Bouton flottant en bas */}
               {isMobile && panier.length > 0 && (
                 <Button
                   onClick={() => setIsCartOpen(true)}
-                  className="fixed top-24 right-6 z-50 h-16 w-16 rounded-full bg-thai-orange hover:bg-thai-orange/90 shadow-lg transition-all duration-200 hover:scale-110"
+                  className="fixed bottom-6 right-6 z-50 h-16 w-16 rounded-full bg-thai-orange hover:bg-thai-orange/90 shadow-2xl transition-all duration-200 hover:scale-110 animate-pulse"
                 >
                   <div className="flex flex-col items-center relative">
-                    <ShoppingCart className="h-6 w-6" />
+                    <ShoppingCart className="h-7 w-7" />
                     <Badge
                       variant="secondary"
-                      className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-thai-gold text-thai-green font-bold text-xs flex items-center justify-center"
+                      className="absolute -top-2 -right-2 h-7 w-7 rounded-full bg-thai-gold text-thai-green font-bold text-sm flex items-center justify-center border-2 border-white shadow-lg"
                     >
                       {panier.reduce((total, item) => total + item.quantite, 0)}
                     </Badge>
@@ -1216,6 +1372,12 @@ const Commander = memo(() => {
                                               >
                                                 {item.nom}
                                               </p>
+                                              {item.demandeSpeciale && item.demandeSpeciale.includes("épicé") && (
+                                                <SpiceDistributionDisplay
+                                                  distributionText={item.demandeSpeciale}
+                                                  className="my-1"
+                                                />
+                                              )}
                                               <p className="text-thai-orange font-medium text-sm">
                                                 {formatPrix(
                                                   parseFloat(item.prix) *
@@ -1367,6 +1529,12 @@ const Commander = memo(() => {
           )}
         </div>
       </div>
+
+      {/* Modal Polaroid Remerciement */}
+      <PolaroidThankYouModal
+        isOpen={showThankYouModal}
+        onClose={() => setShowThankYouModal(false)}
+      />
     </AppLayout>
   );
 });

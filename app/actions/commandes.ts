@@ -20,6 +20,7 @@ import {
   toggleEpingleSchema,
   toggleOffertSchema,
   updatePlatQuantiteSchema,
+  updateSpiceLevelSchema,
 } from '@/lib/validations'
 
 type CommandeWithRelations = commande_db & {
@@ -207,6 +208,9 @@ function convertCommandeToUI(commande: CommandeWithRelations): CommandeUI {
                 epuise_jusqu_a:
                   detail.plats_db.epuise_jusqu_a?.toISOString() ?? null,
                 raison_epuisement: detail.plats_db.raison_epuisement ?? null,
+                est_vegetarien: detail.plats_db.est_vegetarien ?? null,
+                niveau_epice: detail.plats_db.niveau_epice ?? null,
+                categorie: detail.plats_db.categorie ?? null,
               }
             : null,
         extra:
@@ -314,6 +318,7 @@ const createCommandeSchema = z.object({
         z.object({
           plat_r: z.union([z.number(), z.string().transform(Number)]),
           quantite_plat_commande: z.number(),
+          preference_epice_niveau: z.number().optional(), // Niveau d'épice souhaité (0-3)
         }),
       )
       .optional(),
@@ -331,6 +336,17 @@ const createCommandeSchema = z.object({
 export const createCommande = authAction
   .schema(createCommandeSchema)
   .action(async ({ parsedInput: data }) => {
+    // DEBUG: Log les données reçues
+    console.log('📦 createCommande - Données reçues:', {
+      client_r: data.client_r,
+      client_r_id: data.client_r_id,
+      date: data.date_et_heure_de_retrait_souhaitees,
+      details_count: data.details?.length ?? 0,
+      plats_count: data.plats?.length ?? 0,
+      details: data.details,
+      plats: data.plats,
+    })
+
     try {
       let clientRId: bigint
       if (data.client_r_id) {
@@ -345,25 +361,64 @@ export const createCommande = authAction
         throw new Error('client_r_id ou client_r requis')
       }
 
-      const commande = await prisma.commande_db.create({
-        data: {
-          client_r: data.client_r || null,
-          client_r_id: clientRId,
-          date_et_heure_de_retrait_souhaitees:
-            data.date_et_heure_de_retrait_souhaitees
-              ? new Date(data.date_et_heure_de_retrait_souhaitees)
-              : null,
-          demande_special_pour_la_commande:
-            data.demande_special_pour_la_commande || null,
-          type_livraison: (data.type_livraison as any) || 'emporter',
-          adresse_specifique: data.adresse_specifique || null,
-          statut_commande: 'En_attente_de_confirmation',
-          statut_paiement: 'En_attente_sur_place',
-        },
-      })
-
       const items = data.details || data.plats || []
-      if (items.length > 0) {
+      console.log('📦 createCommande - Items à traiter:', items.length, items)
+
+      // VALIDATION: Empêcher la création de commande sans plats
+      if (items.length === 0) {
+        throw new Error('Impossible de créer une commande sans plats')
+      }
+
+      // VALIDATION: Vérifier que tous les plats existent AVANT de créer la commande
+      const platsData: Map<number, plats_db> = new Map()
+      for (const item of items) {
+        const platId =
+          'plat_r' in item
+            ? typeof item.plat_r === 'string'
+              ? parseInt(item.plat_r)
+              : item.plat_r
+            : item.plat_r_id
+
+        if (platId === null || platId === undefined || isNaN(platId)) {
+          console.error('❌ Invalid platId:', item)
+          throw new Error(`ID de plat invalide: ${JSON.stringify(item)}`)
+        }
+
+        if (!platsData.has(platId)) {
+          const platData = await prisma.plats_db.findUnique({
+            where: { idplats: platId },
+          })
+
+          if (!platData) {
+            console.error('❌ Plat not found:', platId)
+            throw new Error(`Plat introuvable: ID ${platId}`)
+          }
+
+          platsData.set(platId, platData)
+        }
+      }
+
+      // Utiliser une transaction pour garantir l'intégrité des données
+      const commandeComplete = await prisma.$transaction(async (tx) => {
+        // Créer la commande
+        const commande = await tx.commande_db.create({
+          data: {
+            client_r: data.client_r || null,
+            client_r_id: clientRId,
+            date_et_heure_de_retrait_souhaitees:
+              data.date_et_heure_de_retrait_souhaitees
+                ? new Date(data.date_et_heure_de_retrait_souhaitees)
+                : null,
+            demande_special_pour_la_commande:
+              data.demande_special_pour_la_commande || null,
+            type_livraison: (data.type_livraison as any) || 'emporter',
+            adresse_specifique: data.adresse_specifique || null,
+            statut_commande: 'En_attente_de_confirmation',
+            statut_paiement: 'En_attente_sur_place',
+          },
+        })
+
+        // Créer tous les détails
         for (const item of items) {
           const platId =
             'plat_r' in item
@@ -372,13 +427,7 @@ export const createCommande = authAction
                 : item.plat_r
               : item.plat_r_id
 
-          if (platId === null || platId === undefined) continue
-
-          const platData = await prisma.plats_db.findUnique({
-            where: { idplats: platId },
-          })
-
-          if (!platData) continue
+          const platData = platsData.get(platId)!
 
           const quantite =
             'quantite_plat_commande' in item
@@ -387,7 +436,12 @@ export const createCommande = authAction
               ? item.quantite
               : 1
 
-          await prisma.details_commande_db.create({
+          const preferenceEpice: number =
+            'preference_epice_niveau' in item && typeof item.preference_epice_niveau === 'number'
+              ? item.preference_epice_niveau
+              : 0
+
+          await tx.details_commande_db.create({
             data: {
               commande_r: commande.idcommande,
               plat_r: platId,
@@ -395,32 +449,35 @@ export const createCommande = authAction
               prix_unitaire: platData.prix?.toString() || null,
               nom_plat: platData.plat,
               type: 'plat',
+              preference_epice_niveau: preferenceEpice,
             },
           })
         }
-      }
+
+        // Récupérer la commande complète
+        return await tx.commande_db.findUnique({
+          where: { idcommande: commande.idcommande },
+          include: {
+            client_db: true,
+            details_commande_db: {
+              include: {
+                plats_db: true,
+                extras_db: true,
+              },
+            },
+          },
+        })
+      })
 
       revalidatePath('/admin/commandes')
       revalidatePath('/historique')
       revalidatePath('/suivi')
-
-      const commandeComplete = await prisma.commande_db.findUnique({
-        where: { idcommande: commande.idcommande },
-        include: {
-          client_db: true,
-          details_commande_db: {
-            include: {
-              plats_db: true,
-              extras_db: true,
-            },
-          },
-        },
-      })
+      revalidatePath('/commander')
 
       return convertCommandeToUI(commandeComplete!)
     } catch (error) {
       console.error('❌ Error in createCommande:', error)
-      throw new Error('Impossible de créer la commande')
+      throw error instanceof Error ? error : new Error('Impossible de créer la commande')
     }
   })
 
@@ -661,6 +718,9 @@ export const toggleOffertDetail = authAction
                   updatedDetail.plats_db.epuise_jusqu_a?.toISOString() ?? null,
                 raison_epuisement:
                   updatedDetail.plats_db.raison_epuisement ?? null,
+                est_vegetarien: updatedDetail.plats_db.est_vegetarien ?? null,
+                niveau_epice: updatedDetail.plats_db.niveau_epice ?? null,
+                categorie: updatedDetail.plats_db.categorie ?? null,
               }
             : null,
         extra:
@@ -783,6 +843,24 @@ export const updatePlatQuantite = authAction
     } catch (error) {
       console.error('❌ Error in updatePlatQuantite:', error)
       throw new Error('Impossible de mettre à jour la quantité')
+    }
+  })
+
+export const updateSpiceLevel = authAction
+  .schema(updateSpiceLevelSchema)
+  .action(async ({ parsedInput: { detailId, spiceLevel } }) => {
+    try {
+      await prisma.details_commande_db.update({
+        where: { iddetails: detailId },
+        data: { preference_epice_niveau: spiceLevel },
+      })
+
+      revalidatePath('/admin/commandes')
+      revalidatePath('/modifier-commande')
+      return { success: true }
+    } catch (error) {
+      console.error('❌ Error in updateSpiceLevel:', error)
+      throw new Error('Impossible de mettre à jour le niveau épicé')
     }
   })
 

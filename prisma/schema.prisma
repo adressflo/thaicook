@@ -165,6 +165,7 @@ model details_commande_db {
   type                   String?
   extra_id               Int?
   est_offert             Boolean?    @default(false)
+  preference_epice_niveau Int?       @default(0)
   extras_db              extras_db?  @relation(fields: [extra_id], references: [idextra], onUpdate: NoAction)
   commande_db            commande_db @relation(fields: [commande_r], references: [idcommande], onDelete: Cascade, onUpdate: NoAction, map: "détails_commande_db_commande_r_fkey")
   plats_db               plats_db?   @relation(fields: [plat_r], references: [idplats], onDelete: Cascade, onUpdate: NoAction, map: "détails_commande_db_plat_r_fkey")
@@ -432,6 +433,9 @@ model plats_db {
   epuise_depuis       DateTime?             @db.Timestamptz(6)
   epuise_jusqu_a      DateTime?             @db.Timestamptz(6)
   raison_epuisement   String?
+  est_vegetarien      Boolean?              @default(false)
+  niveau_epice        Int?                  @default(0)
+  categorie           String?               @db.VarChar(100)
   details_commande_db details_commande_db[]
   evenements_plats_r  evenements_plats_r[]
   menus_types_plats_r menus_types_plats_r[]
@@ -441,6 +445,9 @@ model plats_db {
   @@index([lundi_dispo, mardi_dispo, mercredi_dispo, jeudi_dispo, vendredi_dispo, samedi_dispo, dimanche_dispo], map: "idx_plats_disponibilite")
   @@index([est_epuise], map: "idx_plats_epuise")
   @@index([prix], map: "idx_plats_prix")
+  @@index([est_vegetarien], map: "idx_plats_vegetarien")
+  @@index([niveau_epice], map: "idx_plats_niveau_epice")
+  @@index([categorie], map: "idx_plats_categorie")
 }
 
 model plats_ingredients_r {

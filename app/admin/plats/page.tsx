@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
   AlertDialog,
@@ -32,13 +33,15 @@ import {
   EyeOff,
   Calendar,
   Utensils,
-  ChefHat
+  ChefHat,
+  Star
 } from 'lucide-react';
 import { usePrismaPlats, usePrismaCreatePlat, usePrismaUpdatePlat, usePrismaExtras, usePrismaCreateExtra, usePrismaUpdateExtra, usePrismaDeleteExtra } from "@/hooks/usePrismaData";
 import { useImageUpload } from '@/hooks/useImageUpload';
 import type { PlatUI as Plat, ExtraUI } from '@/types/app';
 import { EditableField } from '@/components/ui/EditableField';
 import { DateRuptureManager } from '@/components/admin/DateRuptureManager';
+import { setFeaturedDish, getFeaturedDish, isFeaturedDish } from '@/app/actions/restaurant-settings';
 
 // Fonction pour formater le prix à la française
 const formatPrice = (price: number): string => {
@@ -761,6 +764,7 @@ export default function AdminGestionPlats() {
   const [activeTab, setActiveTab] = useState<'plats' | 'extras'>('plats');
   const [showRuptureManager, setShowRuptureManager] = useState<{platId: number; platNom: string} | null>(null);
   const [isEditingPlat, setIsEditingPlat] = useState<Plat | null>(null);
+  const [featuredDishId, setFeaturedDishId] = useState<number | null>(null);
 
   const { data: allPlats, refetch } = usePrismaPlats();
   const { data: extras } = usePrismaExtras(); // Récupérer les extras de la table extras_db
@@ -774,6 +778,21 @@ export default function AdminGestionPlats() {
       startEditing(isEditingPlat);
     }
   }, [isEditingPlat]);
+
+  // Charger le plat vedette au montage
+  useEffect(() => {
+    const loadFeaturedDish = async () => {
+      try {
+        const featured = await getFeaturedDish();
+        if (featured) {
+          setFeaturedDishId(featured.idplats);
+        }
+      } catch (error) {
+        console.error('Erreur lors du chargement du plat vedette:', error);
+      }
+    };
+    loadFeaturedDish();
+  }, []);
 
   // Séparer les plats principaux des extras
   const plats = allPlats?.filter(p => p.idplats !== 0) || [];
@@ -836,6 +855,41 @@ export default function AdminGestionPlats() {
 
   const handleDayToggle = async (platId: number, jour: string, newValue: boolean) => {
     return handleInlineUpdate(platId, { [jour]: newValue ? 'oui' : 'non' });
+  };
+
+  // Gérer le plat vedette
+  const handleToggleFeaturedDish = async (platId: number) => {
+    try {
+      const isCurrentlyFeatured = featuredDishId === platId;
+
+      // Si déjà vedette, on le retire, sinon on le met
+      const result = await setFeaturedDish({
+        plat_id: isCurrentlyFeatured ? null : platId
+      });
+
+      if (result?.data?.success) {
+        setFeaturedDishId(isCurrentlyFeatured ? null : platId);
+        toast({
+          title: "Succès",
+          description: result.data.message,
+          variant: "default"
+        });
+        refetch();
+      } else {
+        toast({
+          title: "Erreur",
+          description: result?.data?.error || "Impossible de définir le plat vedette",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('Erreur toggle featured dish:', error);
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleSubmit = async () => {
@@ -1234,13 +1288,13 @@ export default function AdminGestionPlats() {
                           {/* Informations du plat */}
                           <div className="flex-1 space-y-2">
                           {/* Nom du plat - Éditable inline */}
-                          <div className="flex justify-between items-start">
+                          <div className="flex justify-between items-start gap-2">
                             <EditableField
                               value={plat.plat}
                               onSave={(newValue) => handleInlineUpdate(plat.idplats, { plat: newValue })}
                               type="text"
                               placeholder="Nom du plat"
-                              className="text-lg font-semibold text-thai-green flex-1 mr-2"
+                              className="text-lg font-semibold text-thai-green flex-1"
                               validation={(value) => {
                                 if (!value || value.trim().length < 2) {
                                   return "Le nom doit contenir au moins 2 caractères";
@@ -1248,6 +1302,36 @@ export default function AdminGestionPlats() {
                                 return true;
                               }}
                             />
+
+                            {/* Boutons Végétarien et Épicé */}
+                            <div className="flex items-center gap-2 flex-shrink-0">
+                              <Button
+                                variant={plat.est_vegetarien ? "default" : "outline"}
+                                size="sm"
+                                onClick={() => handleInlineUpdate(plat.idplats, { est_vegetarien: !plat.est_vegetarien })}
+                                className={cn(
+                                  "text-xs h-7 px-2",
+                                  plat.est_vegetarien ? "bg-green-600 hover:bg-green-700 text-white" : "text-green-700 border-green-300"
+                                )}
+                              >
+                                🌱 Végétarien
+                              </Button>
+
+                              <Button
+                                variant={(plat.niveau_epice ?? 0) > 0 ? "default" : "outline"}
+                                size="sm"
+                                onClick={() => handleInlineUpdate(plat.idplats, {
+                                  niveau_epice: (plat.niveau_epice ?? 0) > 0 ? 0 : 1
+                                })}
+                                className={cn(
+                                  "text-xs h-7 px-2",
+                                  (plat.niveau_epice ?? 0) > 0 ? "bg-red-600 hover:bg-red-700 text-white" : "text-red-700 border-red-300"
+                                )}
+                              >
+                                🔥 Épicé
+                              </Button>
+                            </div>
+
                             <Badge variant={isDisponible ? "default" : "destructive"} className={isDisponible ? "bg-thai-green" : ""}>
                               {joursDispos} jour{joursDispos > 1 ? 's' : ''} dispo
                             </Badge>
@@ -1280,9 +1364,6 @@ export default function AdminGestionPlats() {
                               className="text-thai-green font-medium"
                             />
                           </div>
-
-
-
 
                         </div>
                         </div>
@@ -1332,6 +1413,22 @@ export default function AdminGestionPlats() {
                               <Calendar className="w-3 h-3 mr-1" />
                               Ruptures
                             </Button>
+
+                            {activeTab === 'plats' && (
+                              <Button
+                                size="sm"
+                                variant={featuredDishId === plat.idplats ? 'default' : 'outline'}
+                                onClick={() => handleToggleFeaturedDish(plat.idplats)}
+                                className={`flex-1 text-xs transition-all duration-200 shadow-sm hover:shadow-md ${
+                                  featuredDishId === plat.idplats
+                                    ? 'bg-thai-gold hover:bg-thai-gold/90 text-white border-thai-gold'
+                                    : 'text-thai-gold border-thai-gold/40 hover:bg-thai-gold hover:text-white'
+                                }`}
+                              >
+                                <Star className={`w-3 h-3 mr-1 ${featuredDishId === plat.idplats ? 'fill-white' : ''}`} />
+                                {featuredDishId === plat.idplats ? 'Vedette ✓' : 'Vedette'}
+                              </Button>
+                            )}
 
                             {activeTab === 'plats' && (
                               isDisponible ? (

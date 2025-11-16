@@ -31,11 +31,26 @@ export async function getPlats(): Promise<PlatUI[]> {
     })
 
     return plats.map(plat => ({
-      ...plat,
       id: plat.idplats,
+      idplats: plat.idplats,
+      plat: plat.plat,
+      description: plat.description,
       prix: plat.prix?.toString() ?? null,
+      lundi_dispo: plat.lundi_dispo,
+      mardi_dispo: plat.mardi_dispo,
+      mercredi_dispo: plat.mercredi_dispo,
+      jeudi_dispo: plat.jeudi_dispo,
+      vendredi_dispo: plat.vendredi_dispo,
+      samedi_dispo: plat.samedi_dispo,
+      dimanche_dispo: plat.dimanche_dispo,
+      photo_du_plat: plat.photo_du_plat,
+      est_epuise: plat.est_epuise,
       epuise_depuis: plat.epuise_depuis?.toISOString() ?? null,
       epuise_jusqu_a: plat.epuise_jusqu_a?.toISOString() ?? null,
+      raison_epuisement: plat.raison_epuisement,
+      est_vegetarien: plat.est_vegetarien,
+      niveau_epice: plat.niveau_epice,
+      categorie: plat.categorie,
     }))
   } catch (error) {
     console.error('❌ Error in getPlats:', error)
@@ -62,12 +77,28 @@ export const createPlat = action
       revalidatePath('/admin/plats')
       revalidatePath('/commander')
 
+      // Explicit mapping to avoid Decimal serialization errors
       return {
-        ...plat,
         id: plat.idplats,
+        idplats: plat.idplats,
+        plat: plat.plat,
+        description: plat.description,
         prix: plat.prix?.toString() ?? null,
+        lundi_dispo: plat.lundi_dispo,
+        mardi_dispo: plat.mardi_dispo,
+        mercredi_dispo: plat.mercredi_dispo,
+        jeudi_dispo: plat.jeudi_dispo,
+        vendredi_dispo: plat.vendredi_dispo,
+        samedi_dispo: plat.samedi_dispo,
+        dimanche_dispo: plat.dimanche_dispo,
+        photo_du_plat: plat.photo_du_plat,
+        est_epuise: plat.est_epuise,
         epuise_depuis: plat.epuise_depuis?.toISOString() ?? null,
         epuise_jusqu_a: plat.epuise_jusqu_a?.toISOString() ?? null,
+        raison_epuisement: plat.raison_epuisement,
+        est_vegetarien: plat.est_vegetarien,
+        niveau_epice: plat.niveau_epice,
+        categorie: plat.categorie,
       } as PlatUI
     } catch (error) {
       console.error('❌ Error in createPlat:', error)
@@ -95,12 +126,28 @@ export const updatePlat = action
       revalidatePath('/admin/plats')
       revalidatePath('/commander')
 
+      // Explicit mapping to avoid Decimal serialization errors
       return {
-        ...plat,
         id: plat.idplats,
+        idplats: plat.idplats,
+        plat: plat.plat,
+        description: plat.description,
         prix: plat.prix?.toString() ?? null,
+        lundi_dispo: plat.lundi_dispo,
+        mardi_dispo: plat.mardi_dispo,
+        mercredi_dispo: plat.mercredi_dispo,
+        jeudi_dispo: plat.jeudi_dispo,
+        vendredi_dispo: plat.vendredi_dispo,
+        samedi_dispo: plat.samedi_dispo,
+        dimanche_dispo: plat.dimanche_dispo,
+        photo_du_plat: plat.photo_du_plat,
+        est_epuise: plat.est_epuise,
         epuise_depuis: plat.epuise_depuis?.toISOString() ?? null,
         epuise_jusqu_a: plat.epuise_jusqu_a?.toISOString() ?? null,
+        raison_epuisement: plat.raison_epuisement,
+        est_vegetarien: plat.est_vegetarien,
+        niveau_epice: plat.niveau_epice,
+        categorie: plat.categorie,
       } as PlatUI
     } catch (error) {
       console.error('❌ Error in updatePlat:', error)

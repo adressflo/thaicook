@@ -62,19 +62,21 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
   // Fonction pour ajouter un plat
   const ajouterAuPanier = (plat: PlatPanier) => {
     setPanier(prev => {
-      // Chercher un plat identique avec le même jour et la même date
-      const platExistant = prev.find(p => 
-        p.id === plat.id && 
+      // Chercher un plat identique avec le même jour, la même date ET la même préférence épicée
+      const platExistant = prev.find(p =>
+        p.id === plat.id &&
         p.jourCommande === plat.jourCommande &&
-        p.dateRetrait?.toDateString() === plat.dateRetrait?.toDateString()
+        p.dateRetrait?.toDateString() === plat.dateRetrait?.toDateString() &&
+        p.demandeSpeciale === plat.demandeSpeciale
       );
-      
+
       if (platExistant) {
-        return prev.map(p => 
-          p.id === plat.id && 
+        return prev.map(p =>
+          p.id === plat.id &&
           p.jourCommande === plat.jourCommande &&
-          p.dateRetrait?.toDateString() === plat.dateRetrait?.toDateString()
-            ? { ...p, quantite: p.quantite + 1 } 
+          p.dateRetrait?.toDateString() === plat.dateRetrait?.toDateString() &&
+          p.demandeSpeciale === plat.demandeSpeciale
+            ? { ...p, quantite: p.quantite + 1 }
             : p
         );
       }

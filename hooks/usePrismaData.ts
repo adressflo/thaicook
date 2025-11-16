@@ -82,6 +82,7 @@ import {
   deleteCommande,
   addPlatToCommande,
   updatePlatQuantite,
+  updateSpiceLevel,
   removePlatFromCommande,
   addExtraToCommande,
 } from '@/app/actions/commandes'
@@ -453,8 +454,9 @@ export const usePrismaCreateCommande = () => {
       return await unwrapSafeAction<CommandeUI>(createCommande(cleanedData))
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['prisma-commandes'] })
-      queryClient.invalidateQueries({ queryKey: ['prisma-commandes-client'] })
+      // Invalider toutes les requêtes de commandes (exact: false pour matcher les sous-clés)
+      queryClient.invalidateQueries({ queryKey: ['prisma-commandes'], exact: false })
+      queryClient.invalidateQueries({ queryKey: ['prisma-commandes-client'], exact: false })
       toast({
         title: 'Commande créée',
         description: 'Votre commande a été créée avec succès',
@@ -699,6 +701,40 @@ export const usePrismaUpdatePlatQuantite = () => {
       toast({
         title: 'Quantité modifiée',
         description: 'La quantité a été modifiée avec succès',
+      })
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Erreur',
+        description: error.message,
+        variant: 'destructive',
+      })
+    },
+  })
+}
+
+/**
+ * Met à jour le niveau épicé d'un détail de commande
+ */
+export const usePrismaUpdateSpiceLevel = () => {
+  const queryClient = useQueryClient()
+  const { toast } = useToast()
+
+  return useMutation({
+    mutationFn: async ({
+      detailId,
+      spiceLevel,
+    }: {
+      detailId: number
+      spiceLevel: number
+    }) => {
+      return await unwrapSafeAction<{ success: boolean }>(updateSpiceLevel({ detailId, spiceLevel }))
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['prisma-commande'] })
+      toast({
+        title: 'Niveau épicé modifié',
+        description: 'Le niveau épicé a été modifié avec succès',
       })
     },
     onError: (error: Error) => {

@@ -56,7 +56,7 @@ async function main() {
   })
 
   console.log('\n📸 Médias actifs dans le Hero Carousel:')
-  allMedias.forEach((media) => {
+  allMedias.forEach((media: any) => {
     console.log(`  ${media.ordre}. ${media.titre} (${media.type}) - ${media.url}`)
   })
 

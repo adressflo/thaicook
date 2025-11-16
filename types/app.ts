@@ -58,6 +58,7 @@ export type DetailCommande = Omit<details_commande_db, 'prix_unitaire'> & {
   nom_plat?: string | null; // Nom custom pour les extras
   type?: 'plat' | 'extra' | null; // Type pour distinguer plats vs extras
   est_offert?: boolean | null; // Indique si le plat est offert
+  preference_epice_niveau?: number | null; // Niveau épicé choisi par le client (0-3)
   extra?: ExtraUI | null; // Données de l'extra lié si applicable (type UI)
   plat?: PlatSimpleUI | null; // Données du plat lié si applicable (type UI)
 };
@@ -86,7 +87,7 @@ export interface PlatUI
   nom_plat?: string; // Alias pour `plat`
   url_photo?: string; // Alias pour `photo_du_plat`
   disponible?: boolean; // Calculé depuis les jours et est_epuise
-  categorie?: string; // Catégorie du plat (plat principal, extra, etc.)
+  categorie: string | null; // Catégorie du plat (plat principal, extra, etc.)
 }
 
 // Type pour un plat dans le panier
@@ -99,6 +100,7 @@ export interface PlatPanier {
   dateRetrait?: Date; // Date de retrait associée
   uniqueId?: string; // ID unique pour chaque article dans le panier
   type?: 'plat' | 'extra'; // Type de l'item (plat normal ou extra)
+  demandeSpeciale?: string; // Demandes spéciales (niveau épicé, etc.)
 }
 
 // Type pour l'interface utilisateur des commandes
@@ -234,6 +236,7 @@ export interface CreateCommandeData {
     nom_plat?: string // Nom pour les extras
     prix_unitaire?: string | number // Prix pour les extras
     type?: string // 'plat' ou 'extra'
+    preference_epice_niveau?: number // Niveau épicé choisi (0-3)
   }>
   plats?: Array<{
     plat_r_id: number // nouveau format

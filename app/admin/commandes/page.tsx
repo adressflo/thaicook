@@ -64,6 +64,7 @@ import {
   usePrismaToggleEpingleCommande,
   usePrismaToggleOffertDetail,
   usePrismaUpdatePlatQuantite,
+  usePrismaUpdateSpiceLevel,
   usePrismaRemovePlatFromCommande,
   usePrismaAddPlatToCommande,
   usePrismaPlats,
@@ -77,6 +78,7 @@ import { useImageUpload } from '@/hooks/useImageUpload';
 import { format, isToday, isPast, isFuture } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import type { CommandeUI, CommandeUpdate } from '@/types/app';
+import { getSpiceEmojis, spiceLevelToText } from '@/lib/spice-helpers';
 
 // Composant pour les actions rapides selon le statut
 const QuickActionButtons = ({
@@ -2454,6 +2456,7 @@ const ModalPlatCard = ({
   formatPrix: (prix: number) => string;
 }) => {
   const updateQuantiteMutation = usePrismaUpdatePlatQuantite();
+  const updateSpiceLevelMutation = usePrismaUpdateSpiceLevel();
   const removePlatMutation = usePrismaRemovePlatFromCommande();
   const [isModifying, setIsModifying] = useState(false);
 
@@ -2509,6 +2512,22 @@ const ModalPlatCard = ({
       console.log('🗑️ V2 Suppression result:', result);
     } catch (error) {
       console.error('🗑️ V2 Erreur suppression:', error);
+    } finally {
+      setIsModifying(false);
+    }
+  };
+
+  const handleSpiceLevelChange = async (newLevel: number) => {
+    if (newLevel === (item.preference_epice_niveau ?? 0)) {
+      return;
+    }
+
+    setIsModifying(true);
+    try {
+      await updateSpiceLevelMutation.mutateAsync({
+        detailId: item.iddetails,
+        spiceLevel: newLevel,
+      });
     } finally {
       setIsModifying(false);
     }
@@ -2640,6 +2659,31 @@ const ModalPlatCard = ({
               {item.quantite_plat_commande || 0}
             </span>
           </span>
+
+          {/* Spice Level Display and Modification */}
+          {item.plat && item.plat.niveau_epice > 0 && (
+            <span className="flex items-center gap-2">
+              <span className="font-medium">Niveau épicé:</span>
+              <Select
+                value={(item.preference_epice_niveau ?? 0).toString()}
+                onValueChange={(value) => handleSpiceLevelChange(parseInt(value))}
+                disabled={isModifying}
+              >
+                <SelectTrigger className="w-[180px] h-8 bg-white border-gray-300">
+                  <SelectValue>
+                    {getSpiceEmojis(item.preference_epice_niveau ?? 0)} {spiceLevelToText(item.preference_epice_niveau ?? 0)}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="0">🍃 Non épicé</SelectItem>
+                  <SelectItem value="1">🔥 Un peu épicé</SelectItem>
+                  <SelectItem value="2">🔥🔥 Épicé</SelectItem>
+                  <SelectItem value="3">🔥🔥🔥 Très épicé</SelectItem>
+                </SelectContent>
+              </Select>
+            </span>
+          )}
+
           <span className="flex items-center gap-1">
             <span className="font-medium">Prix unitaire:</span>
             <span className="text-thai-green font-semibold">
