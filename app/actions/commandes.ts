@@ -10,6 +10,7 @@ import type {
   plats_db,
   extras_db,
 } from '@/generated/prisma/client'
+import { Prisma } from '@/generated/prisma/client'
 import { z } from 'zod'
 import { authAction } from '@/lib/safe-action'
 import {
@@ -21,6 +22,7 @@ import {
   toggleOffertSchema,
   updatePlatQuantiteSchema,
   updateSpiceLevelSchema,
+  updateSpiceDistributionSchema,
 } from '@/lib/validations'
 
 type CommandeWithRelations = commande_db & {
@@ -180,6 +182,7 @@ function convertCommandeToUI(commande: CommandeWithRelations): CommandeUI {
         type: (detail.type ?? 'plat') as 'plat' | 'extra' | null,
         extra_id: detail.extra_id ?? null,
         est_offert: detail.est_offert ?? false,
+        spice_distribution: detail.spice_distribution ?? null,
         plat:
           detail.plats_db
             ? {
@@ -319,6 +322,7 @@ const createCommandeSchema = z.object({
           plat_r: z.union([z.number(), z.string().transform(Number)]),
           quantite_plat_commande: z.number(),
           preference_epice_niveau: z.number().optional(), // Niveau d'épice souhaité (0-3)
+          spice_distribution: z.array(z.number()).optional(), // Distribution épicée [non_epice, peu, epice, tres_epice]
         }),
       )
       .optional(),
@@ -328,6 +332,7 @@ const createCommandeSchema = z.object({
         z.object({
           plat_r_id: z.number(),
           quantite: z.number(),
+          spice_distribution: z.array(z.number()).optional(), // Distribution épicée
         }),
       )
       .optional(),
@@ -441,6 +446,12 @@ export const createCommande = authAction
               ? item.preference_epice_niveau
               : 0
 
+          // Extraire la distribution épicée si présente
+          const spiceDistribution =
+            'spice_distribution' in item && Array.isArray(item.spice_distribution)
+              ? item.spice_distribution
+              : undefined
+
           await tx.details_commande_db.create({
             data: {
               commande_r: commande.idcommande,
@@ -450,6 +461,7 @@ export const createCommande = authAction
               nom_plat: platData.plat,
               type: 'plat',
               preference_epice_niveau: preferenceEpice,
+              spice_distribution: spiceDistribution ?? Prisma.JsonNull,
             },
           })
         }
@@ -861,6 +873,24 @@ export const updateSpiceLevel = authAction
     } catch (error) {
       console.error('❌ Error in updateSpiceLevel:', error)
       throw new Error('Impossible de mettre à jour le niveau épicé')
+    }
+  })
+
+export const updateSpiceDistribution = authAction
+  .schema(updateSpiceDistributionSchema)
+  .action(async ({ parsedInput: { detailId, distribution } }) => {
+    try {
+      await prisma.details_commande_db.update({
+        where: { iddetails: detailId },
+        data: { spice_distribution: distribution },
+      })
+
+      revalidatePath('/admin/commandes')
+      revalidatePath('/modifier-commande')
+      return { success: true }
+    } catch (error) {
+      console.error('❌ Error in updateSpiceDistribution:', error)
+      throw new Error('Impossible de mettre à jour la distribution épicée')
     }
   })
 

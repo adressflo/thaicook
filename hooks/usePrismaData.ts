@@ -83,6 +83,7 @@ import {
   addPlatToCommande,
   updatePlatQuantite,
   updateSpiceLevel,
+  updateSpiceDistribution,
   removePlatFromCommande,
   addExtraToCommande,
 } from '@/app/actions/commandes'
@@ -735,6 +736,40 @@ export const usePrismaUpdateSpiceLevel = () => {
       toast({
         title: 'Niveau épicé modifié',
         description: 'Le niveau épicé a été modifié avec succès',
+      })
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Erreur',
+        description: error.message,
+        variant: 'destructive',
+      })
+    },
+  })
+}
+
+/**
+ * Met à jour la distribution épicée d'un plat dans une commande
+ */
+export const usePrismaUpdateSpiceDistribution = () => {
+  const queryClient = useQueryClient()
+  const { toast } = useToast()
+
+  return useMutation({
+    mutationFn: async ({
+      detailId,
+      distribution,
+    }: {
+      detailId: number
+      distribution: number[]
+    }) => {
+      return await unwrapSafeAction<{ success: boolean }>(updateSpiceDistribution({ detailId, distribution }))
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['prisma-commande'] })
+      toast({
+        title: 'Distribution épicée modifiée',
+        description: 'La distribution épicée a été modifiée avec succès',
       })
     },
     onError: (error: Error) => {

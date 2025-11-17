@@ -22,6 +22,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogDescription,
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -372,6 +373,9 @@ const QuickActionsModal = ({
       <DialogContent className="max-w-md bg-white border border-thai-orange shadow-lg">
         <DialogHeader>
           <DialogTitle>Actions Commande #{commande.idcommande}</DialogTitle>
+          <DialogDescription className="sr-only">
+            Actions disponibles pour la commande #{commande.idcommande}
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
@@ -722,6 +726,9 @@ const AddComplementModal = ({
           <DialogTitle className="text-thai-orange">
             Ajouter un Extra
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            Créer un extra personnalisé pour cette commande
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 mt-4">
           <div>
@@ -849,6 +856,9 @@ const AddPlatModal = ({
           <DialogTitle>
             Ajouter des plats à la commande #{commandeId}
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            Sélectionner les plats et quantités à ajouter à la commande
+          </DialogDescription>
         </DialogHeader>
 
         {platsLoading ? (

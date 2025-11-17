@@ -422,6 +422,12 @@ export const updateSpiceLevelSchema = z.object({
   spiceLevel: z.number().int().min(0, "Niveau minimum 0").max(3, "Niveau maximum 3"),
 });
 
+// Update spice distribution
+export const updateSpiceDistributionSchema = z.object({
+  detailId: z.number().int().positive("ID détail invalide"),
+  distribution: z.array(z.number().int().min(0)).length(4, "Distribution doit avoir 4 éléments"),
+});
+
 // Get by ID schemas
 export const getByIdSchema = z.object({
   id: z.number().int().positive("ID invalide"),

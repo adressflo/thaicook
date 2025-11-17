@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { toSafeNumber } from '@/lib/serialization';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -24,6 +24,8 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogDescription,
+  DialogFooter,
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -65,6 +67,7 @@ import {
   usePrismaToggleOffertDetail,
   usePrismaUpdatePlatQuantite,
   usePrismaUpdateSpiceLevel,
+  usePrismaUpdateSpiceDistribution,
   usePrismaRemovePlatFromCommande,
   usePrismaAddPlatToCommande,
   usePrismaPlats,
@@ -78,7 +81,10 @@ import { useImageUpload } from '@/hooks/useImageUpload';
 import { format, isToday, isPast, isFuture } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import type { CommandeUI, CommandeUpdate } from '@/types/app';
-import { getSpiceEmojis, spiceLevelToText } from '@/lib/spice-helpers';
+import { spiceLevelToText, getSpiceFlameCount } from '@/lib/spice-helpers';
+import { SpiceDistributionSelector, getDistributionText } from '@/components/commander/SpiceDistributionSelector';
+import { SpiceDistributionDisplay } from '@/components/commander/SpiceDistributionDisplay';
+import { Flame, Leaf } from 'lucide-react';
 
 // Composant pour les actions rapides selon le statut
 const QuickActionButtons = ({
@@ -365,6 +371,9 @@ const QuickActionsModal = ({
       <DialogContent className="max-w-md bg-white border border-thai-orange shadow-lg">
         <DialogHeader>
           <DialogTitle>Actions Commande #{commande.idcommande}</DialogTitle>
+          <DialogDescription className="sr-only">
+            Actions disponibles pour la commande #{commande.idcommande}
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
@@ -470,9 +479,25 @@ const PlatCommandeCard = ({
   toast: any;
   toggleOffertDetailMutation: any;
 }) => {
+  const router = useRouter();
   const updateQuantiteMutation = usePrismaUpdatePlatQuantite();
+  const updateSpiceLevelMutation = usePrismaUpdateSpiceLevel();
+  const updateSpiceDistributionMutation = usePrismaUpdateSpiceDistribution();
   const removePlatMutation = usePrismaRemovePlatFromCommande();
   const [isModifying, setIsModifying] = useState(false);
+  const [isDistributionDialogOpen, setIsDistributionDialogOpen] = useState(false);
+  const [tempDistribution, setTempDistribution] = useState<number[]>(
+    Array.isArray(item.spice_distribution) ? item.spice_distribution : [item.quantite_plat_commande || 1, 0, 0, 0]
+  );
+
+  // Sync tempDistribution avec les données de la DB quand elles changent
+  useEffect(() => {
+    if (Array.isArray(item.spice_distribution)) {
+      setTempDistribution(item.spice_distribution as number[]);
+    } else {
+      setTempDistribution([item.quantite_plat_commande || 1, 0, 0, 0]);
+    }
+  }, [item.spice_distribution, item.quantite_plat_commande]);
   // Fonction formatPrix identique à celle du panier
   const formatPrix = (prix: any): string => {
     const numericPrix = toSafeNumber(prix, 0);
@@ -546,6 +571,41 @@ const PlatCommandeCard = ({
       console.log('🗑️ Suppression result:', result);
     } catch (error) {
       console.error('🗑️ Erreur suppression:', error);
+    } finally {
+      setIsModifying(false);
+    }
+  };
+
+  const handleSpiceLevelChange = async (newLevel: number) => {
+    if (newLevel === (item.preference_epice_niveau ?? 0)) {
+      return;
+    }
+
+    setIsModifying(true);
+    try {
+      await updateSpiceLevelMutation.mutateAsync({
+        detailId: item.iddetails,
+        spiceLevel: newLevel,
+      });
+      toast({
+        title: "🔥 Niveau épicé mis à jour",
+        description: `Préférence changée à "${spiceLevelToText(newLevel)}"`,
+      });
+    } finally {
+      setIsModifying(false);
+    }
+  };
+
+  const handleSaveDistribution = async () => {
+    setIsModifying(true);
+    try {
+      await updateSpiceDistributionMutation.mutateAsync({
+        detailId: item.iddetails,
+        distribution: tempDistribution,
+      });
+      setIsDistributionDialogOpen(false);
+      // Rafraîchir la page pour afficher les nouvelles données
+      router.refresh();
     } finally {
       setIsModifying(false);
     }
@@ -664,19 +724,75 @@ const PlatCommandeCard = ({
             </span>
           )}
         </h4>
-        <div className="flex items-center gap-4 text-sm text-gray-600">
+        <div className="flex items-center gap-4 text-sm text-gray-600 flex-wrap">
           <span className="flex items-center gap-1">
             <span className="font-medium">Quantité:</span>
             <span className="bg-thai-orange/10 text-thai-orange px-2 py-1 rounded-full font-medium">
               {item.quantite_plat_commande || 0}
             </span>
           </span>
+
           <span className="flex items-center gap-1">
             <span className="font-medium">Prix unitaire:</span>
             <span className="text-thai-green font-semibold">
               {formatPrix(toSafeNumber(item.extra?.prix || item.plat?.prix || item.prix_unitaire))}
             </span>
           </span>
+
+          {/* Distribution épicée - TOUJOURS afficher les cercles pour plats épicés */}
+          {item.plat && item.plat.niveau_epice > 0 && (
+            <span className="flex items-center gap-2">
+              <span className="font-medium">Épicé:</span>
+              <Dialog open={isDistributionDialogOpen} onOpenChange={setIsDistributionDialogOpen}>
+                <DialogTrigger asChild>
+                  <button
+                    className="cursor-pointer hover:bg-thai-orange/10 rounded-md px-2 py-1 transition-colors"
+                    disabled={isModifying}
+                  >
+                    <SpiceDistributionDisplay
+                      distributionText={
+                        Array.isArray(item.spice_distribution)
+                          ? getDistributionText(item.spice_distribution as number[])
+                          : `${item.quantite_plat_commande || 1} non épicé`
+                      }
+                      className="text-xs"
+                    />
+                  </button>
+                </DialogTrigger>
+                <DialogContent className="max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Modifier la distribution épicée</DialogTitle>
+                    <DialogDescription>
+                      Répartissez les {item.quantite_plat_commande} portions selon le niveau d&apos;épice souhaité
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="py-4">
+                    <SpiceDistributionSelector
+                      totalQuantity={item.quantite_plat_commande || 1}
+                      distribution={tempDistribution}
+                      onDistributionChange={setTempDistribution}
+                    />
+                  </div>
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => setIsDistributionDialogOpen(false)}
+                      disabled={isModifying}
+                    >
+                      Annuler
+                    </Button>
+                    <Button
+                      onClick={handleSaveDistribution}
+                      disabled={isModifying}
+                      className="bg-thai-orange hover:bg-thai-orange/90"
+                    >
+                      {isModifying ? "Enregistrement..." : "Enregistrer"}
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </span>
+          )}
         </div>
       </div>
 
@@ -884,6 +1000,9 @@ const AddComplementModal = ({
       <DialogContent className="sm:max-w-lg bg-white border border-thai-orange shadow-lg">
         <DialogHeader>
           <DialogTitle className="text-thai-orange">Ajouter un Extra</DialogTitle>
+          <DialogDescription className="sr-only">
+            Sélectionner ou créer un extra pour cette commande
+          </DialogDescription>
         </DialogHeader>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2">
@@ -1034,6 +1153,9 @@ const AddPlatModal = ({
           <DialogTitle>
             Ajouter des plats à la commande #{commandeId}
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            Sélectionner les plats et quantités à ajouter à la commande
+          </DialogDescription>
         </DialogHeader>
 
         {platsLoading ? (
@@ -2455,10 +2577,25 @@ const ModalPlatCard = ({
   toast: any;
   formatPrix: (prix: number) => string;
 }) => {
+  const router = useRouter();
   const updateQuantiteMutation = usePrismaUpdatePlatQuantite();
   const updateSpiceLevelMutation = usePrismaUpdateSpiceLevel();
+  const updateSpiceDistributionMutation = usePrismaUpdateSpiceDistribution();
   const removePlatMutation = usePrismaRemovePlatFromCommande();
   const [isModifying, setIsModifying] = useState(false);
+  const [isDistributionDialogOpen, setIsDistributionDialogOpen] = useState(false);
+  const [tempDistribution, setTempDistribution] = useState<number[]>(
+    Array.isArray(item.spice_distribution) ? item.spice_distribution : [item.quantite_plat_commande || 1, 0, 0, 0]
+  );
+
+  // Sync tempDistribution avec les données de la DB quand elles changent
+  useEffect(() => {
+    if (Array.isArray(item.spice_distribution)) {
+      setTempDistribution(item.spice_distribution as number[]);
+    } else {
+      setTempDistribution([item.quantite_plat_commande || 1, 0, 0, 0]);
+    }
+  }, [item.spice_distribution, item.quantite_plat_commande]);
 
   const handleQuantiteChange = async (nouvelleQuantite: number) => {
     if (nouvelleQuantite <= 0 || nouvelleQuantite === item.quantite_plat_commande) {
@@ -2528,6 +2665,20 @@ const ModalPlatCard = ({
         detailId: item.iddetails,
         spiceLevel: newLevel,
       });
+    } finally {
+      setIsModifying(false);
+    }
+  };
+
+  const handleSaveDistribution = async () => {
+    setIsModifying(true);
+    try {
+      await updateSpiceDistributionMutation.mutateAsync({
+        detailId: item.iddetails,
+        distribution: tempDistribution,
+      });
+      setIsDistributionDialogOpen(false);
+      router.refresh();
     } finally {
       setIsModifying(false);
     }
@@ -2664,23 +2815,56 @@ const ModalPlatCard = ({
           {item.plat && item.plat.niveau_epice > 0 && (
             <span className="flex items-center gap-2">
               <span className="font-medium">Niveau épicé:</span>
-              <Select
-                value={(item.preference_epice_niveau ?? 0).toString()}
-                onValueChange={(value) => handleSpiceLevelChange(parseInt(value))}
-                disabled={isModifying}
-              >
-                <SelectTrigger className="w-[180px] h-8 bg-white border-gray-300">
-                  <SelectValue>
-                    {getSpiceEmojis(item.preference_epice_niveau ?? 0)} {spiceLevelToText(item.preference_epice_niveau ?? 0)}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="0">🍃 Non épicé</SelectItem>
-                  <SelectItem value="1">🔥 Un peu épicé</SelectItem>
-                  <SelectItem value="2">🔥🔥 Épicé</SelectItem>
-                  <SelectItem value="3">🔥🔥🔥 Très épicé</SelectItem>
-                </SelectContent>
-              </Select>
+              <Dialog open={isDistributionDialogOpen} onOpenChange={setIsDistributionDialogOpen}>
+                <DialogTrigger asChild>
+                  <button
+                    className="cursor-pointer hover:bg-thai-orange/10 rounded-md px-2 py-1 transition-colors"
+                    disabled={isModifying}
+                  >
+                    <SpiceDistributionDisplay
+                      distributionText={
+                        Array.isArray(item.spice_distribution)
+                          ? getDistributionText(item.spice_distribution as number[])
+                          : `${item.quantite_plat_commande || 1} non épicé`
+                      }
+                      className="text-xs"
+                    />
+                  </button>
+                </DialogTrigger>
+                <DialogContent className="max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Modifier la distribution épicée</DialogTitle>
+                    <DialogDescription>
+                      Répartissez les {item.quantite_plat_commande} portions selon le niveau d&apos;épice souhaité
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="py-4">
+                    <SpiceDistributionSelector
+                      totalQuantity={item.quantite_plat_commande || 1}
+                      distribution={tempDistribution}
+                      onDistributionChange={setTempDistribution}
+                    />
+                  </div>
+                  <DialogFooter>
+                    <Button
+                      variant="outline"
+                      onClick={() => setIsDistributionDialogOpen(false)}
+                    >
+                      Annuler
+                    </Button>
+                    <Button
+                      onClick={handleSaveDistribution}
+                      disabled={isModifying || updateSpiceDistributionMutation.isPending}
+                      className="bg-thai-orange hover:bg-thai-orange/90"
+                    >
+                      {updateSpiceDistributionMutation.isPending ? (
+                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                      ) : null}
+                      Enregistrer
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </span>
           )}
 

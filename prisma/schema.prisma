@@ -166,6 +166,7 @@ model details_commande_db {
   extra_id               Int?
   est_offert             Boolean?    @default(false)
   preference_epice_niveau Int?       @default(0)
+  spice_distribution     Json?
   extras_db              extras_db?  @relation(fields: [extra_id], references: [idextra], onUpdate: NoAction)
   commande_db            commande_db @relation(fields: [commande_r], references: [idcommande], onDelete: Cascade, onUpdate: NoAction, map: "détails_commande_db_commande_r_fkey")
   plats_db               plats_db?   @relation(fields: [plat_r], references: [idplats], onDelete: Cascade, onUpdate: NoAction, map: "détails_commande_db_plat_r_fkey")

@@ -59,6 +59,7 @@ export type DetailCommande = Omit<details_commande_db, 'prix_unitaire'> & {
   type?: 'plat' | 'extra' | null; // Type pour distinguer plats vs extras
   est_offert?: boolean | null; // Indique si le plat est offert
   preference_epice_niveau?: number | null; // Niveau épicé choisi par le client (0-3)
+  spice_distribution?: number[] | null; // Distribution épicée [nonEpice, peuEpice, epice, tresEpice]
   extra?: ExtraUI | null; // Données de l'extra lié si applicable (type UI)
   plat?: PlatSimpleUI | null; // Données du plat lié si applicable (type UI)
 };
@@ -101,6 +102,7 @@ export interface PlatPanier {
   uniqueId?: string; // ID unique pour chaque article dans le panier
   type?: 'plat' | 'extra'; // Type de l'item (plat normal ou extra)
   demandeSpeciale?: string; // Demandes spéciales (niveau épicé, etc.)
+  spiceDistribution?: number[]; // Distribution épicée [nonEpice, peuEpice, epice, tresEpice]
 }
 
 // Type pour l'interface utilisateur des commandes

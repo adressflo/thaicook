@@ -2,6 +2,10 @@
 const nextConfig = {
   typedRoutes: true,
   outputFileTracingRoot: __dirname, // Moved from experimental in Next.js 16
+  devIndicators: {
+    appIsrStatus: true,
+    buildActivity: true,
+  },
   experimental: {
     typedEnv: true,
   },

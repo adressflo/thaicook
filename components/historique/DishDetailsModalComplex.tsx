@@ -1,5 +1,5 @@
 import React from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { FileText, ShoppingCart, Hash, Euro, Calculator } from 'lucide-react';
 import type { DetailCommande, Plat, Extra } from '@/types/app';
@@ -91,6 +91,9 @@ export const DishDetailsModalComplex = React.memo<DishDetailsModalComplexProps>(
               <DialogTitle className="text-xl font-bold text-thai-green">
                 {platName}
               </DialogTitle>
+              <DialogDescription className="sr-only">
+                Détails de {platName} - Quantité: {quantite}, Sous-total: {formatPrix(sousTotal)}
+              </DialogDescription>
             </DialogHeader>
 
             {/* Description */}

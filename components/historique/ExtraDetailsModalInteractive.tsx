@@ -1,5 +1,5 @@
 import React from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { FileText, Plus, Minus, ShoppingCart, Sparkles } from 'lucide-react';
@@ -111,6 +111,9 @@ export const ExtraDetailsModalInteractive = React.memo<ExtraDetailsModalInteract
                 <Sparkles className="h-5 w-5 text-thai-gold" />
                 {extra.nom_extra}
               </DialogTitle>
+              <DialogDescription className="sr-only">
+                Ajouter l'extra {extra.nom_extra} au panier - Prix: {formatPrix(prixUnitaire)}
+              </DialogDescription>
             </DialogHeader>
 
             {/* Description */}

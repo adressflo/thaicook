@@ -323,7 +323,7 @@ const Commander = memo(() => {
       .reduce((total, item) => total + item.quantite, 0);
   };
 
-  const handleAjouterAuPanier = (plat: Plat, quantite: number = 1, spicePreference?: string) => {
+  const handleAjouterAuPanier = (plat: Plat, quantite: number = 1, spicePreference?: string, spiceDistribution?: number[]) => {
     if (!plat.idplats || !plat.plat || plat.prix === undefined) return;
 
     // Vérifier qu'un jour, une date et une heure sont sélectionnés
@@ -342,18 +342,17 @@ const Commander = memo(() => {
     const [heures, minutes] = heureRetrait.split(':');
     dateCompleteRetrait.setHours(parseInt(heures), parseInt(minutes), 0, 0);
 
-    // Ajouter le plat avec la quantité spécifiée
-    for (let i = 0; i < quantite; i++) {
-      ajouterAuPanier({
-        id: plat.idplats.toString(),
-        nom: plat.plat,
-        prix: plat.prix || '0',
-        quantite: 1,
-        jourCommande: jourSelectionne,
-        dateRetrait: dateCompleteRetrait,
-        demandeSpeciale: spicePreference || undefined,
-      });
-    }
+    // Ajouter UNE SEULE entrée avec la quantité totale et le texte de distribution
+    ajouterAuPanier({
+      id: plat.idplats.toString(),
+      nom: plat.plat,
+      prix: plat.prix || '0',
+      quantite: quantite,
+      jourCommande: jourSelectionne,
+      dateRetrait: dateCompleteRetrait,
+      demandeSpeciale: spicePreference || undefined,
+      spiceDistribution: spiceDistribution,
+    });
 
     setIsCartCollapsed(false); // Open cart on add
 
@@ -408,6 +407,7 @@ const Commander = memo(() => {
             plat_r: item.id, // Garder comme string, sera converti dans le hook
             quantite_plat_commande: item.quantite,
             preference_epice_niveau: spiceTextToLevel(item.demandeSpeciale),
+            spice_distribution: item.spiceDistribution || null,
           })),
         };
 
@@ -626,12 +626,15 @@ const Commander = memo(() => {
                     </h3>
                     <div className="grid md:grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor="dateRetrait">Date de retrait *</Label>
+                        <label htmlFor="select-date-retrait" className="text-sm font-medium leading-none mb-1.5 block">Date de retrait *</label>
                         <Select
                           onValueChange={value => setDateRetrait(new Date(value))}
                           value={dateRetrait?.toISOString() || ''}
+                          name="dateRetrait"
                         >
                           <SelectTrigger
+                            id="select-date-retrait"
+                            aria-label="Date de retrait"
                             className="w-full transition-all duration-300 hover:shadow-md hover:border-thai-orange/50 text-thai-green"
                           >
                             <CalendarIconLucide className="mr-2 h-4 w-4" />
@@ -656,12 +659,15 @@ const Commander = memo(() => {
                         </Select>
                       </div>
                       <div>
-                        <Label htmlFor="heureRetrait">Heure de retrait *</Label>
+                        <label htmlFor="select-heure-retrait" className="text-sm font-medium leading-none mb-1.5 block">Heure de retrait *</label>
                         <Select
                           onValueChange={setHeureRetrait}
                           value={heureRetrait}
+                          name="heureRetrait"
                         >
                           <SelectTrigger
+                            id="select-heure-retrait"
+                            aria-label="Heure de retrait"
                             className="transition-all duration-300 hover:shadow-md hover:border-thai-orange/50 text-thai-green"
                           >
                             <Clock className="mr-2 h-4 w-4" />

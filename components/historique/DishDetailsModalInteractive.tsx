@@ -1,5 +1,5 @@
 import React from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { FileText, Plus, Minus, ShoppingCart } from 'lucide-react';
@@ -10,7 +10,7 @@ interface DishDetailsModalInteractiveProps {
   plat: Plat;
   children: React.ReactNode;
   formatPrix: (prix: number) => string;
-  onAddToCart?: (plat: Plat, quantity: number, spicePreference?: string) => void;
+  onAddToCart?: (plat: Plat, quantity: number, spicePreference?: string, spiceDistribution?: number[]) => void;
   currentQuantity?: number;
   dateRetrait?: Date;
 }
@@ -39,8 +39,10 @@ export const DishDetailsModalInteractive = React.memo<DishDetailsModalInteractiv
 
   const handleAddToCart = () => {
     if (onAddToCart) {
-      const spicePreference = getDistributionText(spiceDistribution);
-      onAddToCart(plat, quantity, spicePreference);
+      // Ne passer la distribution épicée que si le plat a l'option épicée activée
+      const spicePreference = maxSpiceLevel > 0 ? getDistributionText(spiceDistribution) : undefined;
+      const distribution = maxSpiceLevel > 0 ? spiceDistribution : undefined;
+      onAddToCart(plat, quantity, spicePreference, distribution);
       setOpen(false);
       // Reset pour la prochaine ouverture
       setQuantity(1);
@@ -116,6 +118,9 @@ export const DishDetailsModalInteractive = React.memo<DishDetailsModalInteractiv
               <DialogTitle className="text-lg font-bold text-thai-green">
                 {plat.plat}
               </DialogTitle>
+              <DialogDescription className="sr-only">
+                Ajouter {plat.plat} au panier - Prix: {formatPrix(prixUnitaire)}
+              </DialogDescription>
             </DialogHeader>
 
             {/* Description */}

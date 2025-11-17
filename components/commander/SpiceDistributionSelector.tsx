@@ -177,22 +177,25 @@ export function SpiceDistributionSelector({
 
 /**
  * Fonction helper pour générer le texte à afficher dans le panier
- * Exemple: "1 très épicé 🔥🔥🔥, 1 épicé 🔥🔥"
+ * Exemple: "2 non épicé, 1 un peu épicé, 1 épicé, 1 très épicé"
+ * Ordre croissant: non épicé → un peu épicé → épicé → très épicé
+ * Note: Plus d'emojis - les icônes Lucide sont utilisées dans SpiceDistributionDisplay
  */
 export function getDistributionText(distribution: number[]): string {
   const parts: string[] = []
 
-  if (distribution[3] > 0) {
-    parts.push(`${distribution[3]} très épicé 🔥🔥🔥`)
-  }
-  if (distribution[2] > 0) {
-    parts.push(`${distribution[2]} épicé 🔥🔥`)
+  // Ordre croissant: du moins épicé au plus épicé
+  if (distribution[0] > 0) {
+    parts.push(`${distribution[0]} non épicé`)
   }
   if (distribution[1] > 0) {
-    parts.push(`${distribution[1]} un peu épicé 🔥`)
+    parts.push(`${distribution[1]} un peu épicé`)
   }
-  if (distribution[0] > 0) {
-    parts.push(`${distribution[0]} non épicé 🍃`)
+  if (distribution[2] > 0) {
+    parts.push(`${distribution[2]} épicé`)
+  }
+  if (distribution[3] > 0) {
+    parts.push(`${distribution[3]} très épicé`)
   }
 
   return parts.length > 0 ? parts.join(", ") : ""
