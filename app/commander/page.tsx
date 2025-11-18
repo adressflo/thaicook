@@ -822,12 +822,26 @@ const Commander = memo(() => {
                             onMouseLeave={() => setHighlightedPlatId(null)}
                           >
                             {plat.photo_du_plat && (
-                              <div className="aspect-video overflow-hidden rounded-t-lg">
+                              <div className="aspect-video overflow-hidden rounded-t-lg relative">
                                 <img
                                   src={plat.photo_du_plat}
                                   alt={plat.plat}
                                   className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
                                 />
+                                {/* Badge Disponible en haut à gauche */}
+                                <div className="absolute top-2 left-2">
+                                  <Badge className="bg-thai-green text-white shadow-md font-semibold px-2 py-0.5 text-xs">
+                                    Disponible
+                                  </Badge>
+                                </div>
+                                {/* Badge Panier en haut à droite */}
+                                {getCurrentQuantity(plat.idplats) > 0 && (
+                                  <div className="absolute top-2 right-2">
+                                    <Badge className="bg-thai-orange text-white shadow-md font-semibold px-2 py-0.5 text-xs">
+                                      Panier {getCurrentQuantity(plat.idplats)}
+                                    </Badge>
+                                  </div>
+                                )}
                               </div>
                             )}
                             <CardContent className="p-3 flex flex-col flex-grow">
@@ -860,20 +874,12 @@ const Commander = memo(() => {
                                 <Badge variant="secondary">
                                   {formatPrix(parseFloat(plat.prix || '0'))}
                                 </Badge>
-                                <div className="flex items-center gap-2">
-                                  {getCurrentQuantity(plat.idplats) > 0 && (
-                                    <Badge className="bg-thai-orange text-white font-semibold">
-                                      {getCurrentQuantity(plat.idplats)} dans le
-                                      panier
-                                    </Badge>
-                                  )}
-                                  <Button
-                                    size="sm"
-                                    className="transition-all duration-200 hover:scale-105 hover:shadow-md"
-                                  >
-                                    Ajouter
-                                  </Button>
-                                </div>
+                                <Button
+                                  size="sm"
+                                  className="transition-all duration-200 hover:scale-105 hover:shadow-md"
+                                >
+                                  Ajouter
+                                </Button>
                               </div>
                             </CardContent>
                           </Card>
@@ -1004,102 +1010,108 @@ const Commander = memo(() => {
                                         plat={platData}
                                         formatPrix={formatPrix}
                                         onAddToCart={handleAjouterAuPanier}
-                                        currentQuantity={getCurrentQuantity(
-                                          platData.idplats
-                                        )}
+                                        currentQuantity={item.quantite}
+                                        currentSpiceDistribution={item.spiceDistribution}
                                         dateRetrait={item.dateRetrait}
                                       >
                                         <div className="flex items-start gap-3 p-3 bg-white rounded-lg border border-gray-200 transition-all duration-300 hover:shadow-xl hover:bg-thai-cream/20 hover:border-thai-orange hover:ring-2 hover:ring-thai-orange/30 hover:scale-[1.02] transform cursor-pointer">
-                                          {imageUrl ? (
-                                            <img
-                                              src={imageUrl}
-                                              alt={item.nom}
-                                              className="w-16 h-12 object-cover rounded-lg"
-                                            />
-                                          ) : (
-                                            <div className="w-16 h-12 bg-thai-cream/30 border border-thai-orange/20 rounded-lg flex items-center justify-center">
-                                              <span className="text-thai-orange text-lg">
-                                                🍽️
-                                              </span>
+                                          {/* Photo 18x18 avec badge quantité */}
+                                          <div className="relative flex-shrink-0">
+                                            <div className="absolute -top-2 -right-2 bg-thai-orange text-white text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full shadow-md z-10">
+                                              {item.quantite}
                                             </div>
-                                          )}
-
-                                          <div className="flex-1 min-w-0">
-                                            <h4 className="font-medium text-thai-green text-base mb-1">
-                                              {item.nom}
-                                            </h4>
-                                            {item.demandeSpeciale && item.demandeSpeciale.includes("épicé") && (
-                                              <SpiceDistributionDisplay
-                                                distributionText={item.demandeSpeciale}
-                                                className="mb-1"
+                                            {imageUrl ? (
+                                              <img
+                                                src={imageUrl}
+                                                alt={item.nom}
+                                                className="w-[72px] h-[72px] object-cover rounded-lg"
                                               />
+                                            ) : (
+                                              <div className="w-[72px] h-[72px] bg-thai-cream/30 border border-thai-orange/20 rounded-lg flex items-center justify-center">
+                                                <span className="text-thai-orange text-2xl">
+                                                  🍽️
+                                                </span>
+                                              </div>
                                             )}
-                                            <div className="text-sm text-gray-600">
-                                              <span className="font-medium">Prix unitaire: </span>
-                                              <Badge variant="secondary" className="text-xs">
-                                                {formatPrix(parseFloat(item.prix))}
-                                              </Badge>
-                                            </div>
                                           </div>
 
-                                          <div className="flex flex-col items-end gap-3">
-                                            <div className="text-xl font-bold text-thai-orange">
-                                              {formatPrix(
-                                                parseFloat(item.prix) *
-                                                  item.quantite
+                                          {/* Contenu principal - 2 lignes */}
+                                          <div className="flex-1 flex flex-col gap-2 min-w-0">
+                                            {/* Ligne 1: Nom → Icônes épicées → Prix total */}
+                                            <div className="flex items-center justify-between gap-2">
+                                              <h4 className="font-medium text-thai-green text-base">
+                                                {item.nom}
+                                              </h4>
+                                              {item.demandeSpeciale && item.demandeSpeciale.includes("épicé") && (
+                                                <SpiceDistributionDisplay
+                                                  distributionText={item.demandeSpeciale}
+                                                />
                                               )}
+                                              <div className="text-lg font-bold text-thai-orange whitespace-nowrap">
+                                                {formatPrix(
+                                                  parseFloat(item.prix) *
+                                                    item.quantite
+                                                )}
+                                              </div>
                                             </div>
-                                            <div className="flex items-center gap-2">
-                                              <Button
-                                                size="sm"
-                                                variant="outline"
-                                                className="h-8 w-8 p-0 transition-all duration-200 hover:scale-110 hover:border-thai-orange"
-                                                onClick={e => {
-                                                  e.stopPropagation();
-                                                  modifierQuantite(
-                                                    item.uniqueId!,
-                                                    item.quantite - 1
-                                                  );
-                                                }}
-                                              >
-                                                -
-                                              </Button>
-                                              <span className="w-8 text-center font-bold text-base">
-                                                {item.quantite}
+
+                                            {/* Ligne 2: Prix unitaire (gauche) → Contrôles (droite) */}
+                                            <div className="flex items-center justify-between gap-2">
+                                              <span className="text-xs text-gray-600">
+                                                Prix unitaire: <span className="font-medium">{formatPrix(parseFloat(item.prix))}</span>
                                               </span>
-                                              <Button
-                                                size="sm"
-                                                variant="outline"
-                                                className="h-8 w-8 p-0 transition-all duration-200 hover:scale-110 hover:border-thai-orange"
-                                                onClick={e => {
-                                                  e.stopPropagation();
-                                                  modifierQuantite(
-                                                    item.uniqueId!,
-                                                    item.quantite + 1
-                                                  );
-                                                }}
-                                              >
-                                                +
-                                              </Button>
+                                              <div className="flex items-center gap-2">
+                                                <Button
+                                                  size="sm"
+                                                  variant="ghost"
+                                                  onClick={e => {
+                                                    e.stopPropagation();
+                                                    supprimerDuPanier(
+                                                      item.uniqueId!
+                                                    );
+                                                    toast({
+                                                      title: 'Article supprimé',
+                                                      description: `${item.nom} a été retiré de votre panier.`,
+                                                    });
+                                                  }}
+                                                  className="h-7 w-7 p-0 text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all duration-200"
+                                                  aria-label="Supprimer l'article"
+                                                >
+                                                  <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                                <Button
+                                                  size="sm"
+                                                  variant="outline"
+                                                  className="h-7 w-7 p-0 transition-all duration-200 hover:scale-110 hover:border-thai-orange"
+                                                  onClick={e => {
+                                                    e.stopPropagation();
+                                                    modifierQuantite(
+                                                      item.uniqueId!,
+                                                      item.quantite - 1
+                                                    );
+                                                  }}
+                                                >
+                                                  -
+                                                </Button>
+                                                <span className="w-6 text-center font-bold text-sm">
+                                                  {item.quantite}
+                                                </span>
+                                                <Button
+                                                  size="sm"
+                                                  variant="outline"
+                                                  className="h-7 w-7 p-0 transition-all duration-200 hover:scale-110 hover:border-thai-orange"
+                                                  onClick={e => {
+                                                    e.stopPropagation();
+                                                    modifierQuantite(
+                                                      item.uniqueId!,
+                                                      item.quantite + 1
+                                                    );
+                                                  }}
+                                                >
+                                                  +
+                                                </Button>
+                                              </div>
                                             </div>
-                                            <Button
-                                              size="sm"
-                                              variant="ghost"
-                                              onClick={e => {
-                                                e.stopPropagation();
-                                                supprimerDuPanier(
-                                                  item.uniqueId!
-                                                );
-                                                toast({
-                                                  title: 'Article supprimé',
-                                                  description: `${item.nom} a été retiré de votre panier.`,
-                                                });
-                                              }}
-                                              className="h-8 w-8 p-0 text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all duration-200"
-                                              aria-label="Supprimer l'article"
-                                            >
-                                              <Trash2 className="h-4 w-4" />
-                                            </Button>
                                           </div>
                                         </div>
                                       </DishDetailsModalInteractive>
@@ -1346,9 +1358,8 @@ const Commander = memo(() => {
                                           plat={platData}
                                           formatPrix={formatPrix}
                                           onAddToCart={handleAjouterAuPanier}
-                                          currentQuantity={getCurrentQuantity(
-                                            platData.idplats
-                                          )}
+                                          currentQuantity={item.quantite}
+                                          currentSpiceDistribution={item.spiceDistribution}
                                           dateRetrait={item.dateRetrait}
                                         >
                                           <div className="flex items-center gap-3 p-3 rounded bg-white/60 cursor-pointer hover:bg-white/80 transition-colors">

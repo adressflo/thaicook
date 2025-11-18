@@ -1,9 +1,14 @@
 "use client"
 
-import { Label } from "@/components/ui/label"
 import { Flame, Leaf } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { motion } from "framer-motion"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 interface SpiceDistributionSelectorProps {
   totalQuantity: number
@@ -75,103 +80,155 @@ export function SpiceDistributionSelector({
 }: SpiceDistributionSelectorProps) {
   const handleCardClick = (index: number) => {
     const newDistribution = [...distribution]
-    const currentTotal = newDistribution.reduce((sum, count) => sum + count, 0)
 
-    if (currentTotal < totalQuantity) {
-      // Il reste de la place, on ajoute simplement
-      newDistribution[index] += 1
-    } else {
-      // Transfert automatique depuis un autre niveau (priorité: Non épicé d'abord)
-      const priorities = [0, 1, 2, 3].filter(i => i !== index)
-      for (const sourceIndex of priorities) {
-        if (newDistribution[sourceIndex] > 0) {
-          newDistribution[sourceIndex] -= 1
-          newDistribution[index] += 1
-          break
-        }
+    // Toujours transférer depuis un autre niveau (priorité: Non épicé d'abord)
+    const priorities = [0, 1, 2, 3].filter(i => i !== index)
+    for (const sourceIndex of priorities) {
+      if (newDistribution[sourceIndex] > 0) {
+        newDistribution[sourceIndex] -= 1
+        newDistribution[index] += 1
+        break
       }
     }
 
     onDistributionChange(newDistribution)
   }
 
-  return (
-    <div className={cn("space-y-3", className)}>
-      <div className="flex items-center gap-2">
-        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-thai-orange to-red-500 shadow-md">
-          <Flame className="w-4 h-4 text-white" />
-        </div>
-        <Label className="text-sm font-bold text-thai-green">
-          Répartition épicée
-        </Label>
-      </div>
+  // Détermine la couleur de fond selon les niveaux sélectionnés (proportionnel aux quantités avec dégradés)
+  const getBackgroundStyle = () => {
+    const total = distribution.reduce((sum, count) => sum + count, 0)
 
-      <div className="grid grid-cols-4 gap-2 w-full">
+    if (total === 0) {
+      return { background: "linear-gradient(to right, #22c55e, #16a34a)" } // Default green
+    }
+
+    const colors = [
+      { color: "#22c55e", count: distribution[0] }, // green-500
+      { color: "#f59e0b", count: distribution[1] }, // amber-500
+      { color: "#f97316", count: distribution[2] }, // orange-500
+      { color: "#dc2626", count: distribution[3] }, // red-600
+    ]
+
+    // Filtrer les couleurs avec des quantités > 0
+    const activeColors = colors.filter(c => c.count > 0)
+
+    if (activeColors.length === 1) {
+      return { background: activeColors[0].color }
+    }
+
+    // Créer le gradient proportionnel avec dégradés fluides
+    const gradientStops: string[] = []
+    let currentPercent = 0
+
+    activeColors.forEach((colorData, index) => {
+      const percentage = (colorData.count / total) * 100
+      // Position au milieu de la zone de cette couleur
+      const midPoint = currentPercent + (percentage / 2)
+
+      gradientStops.push(`${colorData.color} ${midPoint}%`)
+      currentPercent += percentage
+    })
+
+    return { background: `linear-gradient(to right, ${gradientStops.join(", ")})` }
+  }
+
+  // Génère le texte de sélection avec nombres encerclés
+  const getSelectionParts = () => {
+    const parts: { count: number; label: string }[] = []
+    if (distribution[0] > 0) parts.push({ count: distribution[0], label: "Non épicé" })
+    if (distribution[1] > 0) parts.push({ count: distribution[1], label: "Un peu épicé" })
+    if (distribution[2] > 0) parts.push({ count: distribution[2], label: "Épicé" })
+    if (distribution[3] > 0) parts.push({ count: distribution[3], label: "Très épicé" })
+    return parts
+  }
+
+  return (
+    <TooltipProvider>
+      <div className={cn("rounded-xl p-4", className)} style={getBackgroundStyle()}>
+        <div className="flex items-center justify-center gap-4">
         {SPICE_LEVELS.map((spiceLevel) => {
           const count = distribution[spiceLevel.index]
           const hasCount = count > 0
 
           return (
-            <motion.div
-              key={spiceLevel.index}
-              onClick={() => handleCardClick(spiceLevel.index)}
-              whileHover={{ scale: 1.08, y: -4 }}
-              whileTap={{ scale: 0.95 }}
-              transition={{ type: "spring", stiffness: 300, damping: 20 }}
-              className={cn(
-                "relative flex flex-col items-center justify-center p-2 rounded-xl border-2 cursor-pointer",
-                "bg-white shadow-md",
-                "h-16",
-                spiceLevel.borderColor,
-                hasCount && "ring-2 ring-thai-gold/50 shadow-lg"
-              )}
-            >
-              {/* Badge numérique en haut à droite */}
-              {hasCount && (
+            <Tooltip key={spiceLevel.index}>
+              <TooltipTrigger asChild>
                 <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  className="absolute -top-2 -right-2 bg-thai-gold text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full shadow-md z-10"
+                  onClick={() => handleCardClick(spiceLevel.index)}
+                  whileHover={{ scale: 1.15 }}
+                  whileTap={{ scale: 0.9 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                  className="relative cursor-pointer"
                 >
-                  {count}
-                </motion.div>
-              )}
+                  {/* Badge numérique en haut à droite */}
+                  {hasCount && (
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      className="absolute -top-2 -right-2 bg-thai-green text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full shadow-md z-10"
+                    >
+                      {count}
+                    </motion.div>
+                  )}
 
-              {/* Icône */}
-              <div className="mb-1 flex items-center justify-center gap-0.5">
-                {spiceLevel.flameCount === 0 ? (
-                  <div className={cn(
-                    "flex items-center justify-center w-6 h-6 rounded-full bg-gradient-to-br shadow-sm",
-                    spiceLevel.gradientFrom,
-                    spiceLevel.gradientTo
-                  )}>
-                    <Leaf className="w-3.5 h-3.5 text-white" />
-                  </div>
-                ) : (
-                  Array.from({ length: spiceLevel.flameCount }).map((_, i) => (
-                    <div
-                      key={i}
-                      className={cn(
-                        "flex items-center justify-center w-5 h-5 rounded-full bg-gradient-to-br shadow-sm",
+                  {/* Icône(s) */}
+                  <div className="flex items-center justify-center">
+                    {spiceLevel.flameCount === 0 ? (
+                      <div className={cn(
+                        "flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-br shadow-md",
                         spiceLevel.gradientFrom,
                         spiceLevel.gradientTo
-                      )}
-                    >
-                      <Flame className="w-3 h-3 text-white" />
-                    </div>
-                  ))
-                )}
-              </div>
-
-              {/* Label */}
-              <span className="text-[9px] font-bold text-center leading-tight">
-                {spiceLevel.label}
-              </span>
-            </motion.div>
+                      )}>
+                        <Leaf className="w-8 h-8 text-white" />
+                      </div>
+                    ) : spiceLevel.flameCount === 1 ? (
+                      <div className={cn(
+                        "flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-br shadow-md",
+                        spiceLevel.gradientFrom,
+                        spiceLevel.gradientTo
+                      )}>
+                        <Flame className="w-8 h-8 text-white" />
+                      </div>
+                    ) : spiceLevel.flameCount === 3 ? (
+                      // Triangle formation for 3 flames in a circle
+                      <div className={cn(
+                        "flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-br shadow-md",
+                        spiceLevel.gradientFrom,
+                        spiceLevel.gradientTo
+                      )}>
+                        <div className="flex flex-col items-center gap-0">
+                          <Flame className="w-4 h-4 text-white" />
+                          <div className="flex gap-0 -mt-1">
+                            <Flame className="w-4 h-4 text-white" />
+                            <Flame className="w-4 h-4 text-white" />
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      // 2 flames in a circle
+                      <div className={cn(
+                        "flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-br shadow-md",
+                        spiceLevel.gradientFrom,
+                        spiceLevel.gradientTo
+                      )}>
+                        <div className="flex gap-0">
+                          <Flame className="w-5 h-5 text-white" />
+                          <Flame className="w-5 h-5 text-white" />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="bg-white border border-gray-200 shadow-lg z-50">
+                <span className="text-xs font-medium">{spiceLevel.label}</span>
+              </TooltipContent>
+            </Tooltip>
           )
         })}
       </div>
-    </div>
+      </div>
+    </TooltipProvider>
   )
 }
 

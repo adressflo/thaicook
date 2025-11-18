@@ -12,129 +12,6 @@ Notre feuille de route pour faire évoluer l'expérience ChanthanaThaiCook. Ce d
 
 ---
 
-## 📝 Changelog Récent
-
-### Session : Icônes Lucide & UX Panier Amélioré ✅
-
-**Remplacement emojis par icônes Lucide** :
-- ✅ Badge "🔥 Peut être épicé" → icône Flame avec cercle gradient
-- ✅ SpiceLevelSelector : emojis → Lucide Flame/Leaf dans cercles avec gradients
-- ✅ SpiceDistributionSelector : déjà avec icônes Lucide (maintenu)
-- ✅ Helper `getSpiceLevelText()` : utilise `flameCount` pour générer texte
-
-**SpiceDistributionDisplay** (nouveau composant) :
-- ✅ [SpiceDistributionDisplay.tsx](components/commander/SpiceDistributionDisplay.tsx) (97 lignes)
-- ✅ Parse le texte distribution et affiche icônes visuelles dans panier
-- ✅ Cercles gradient (vert = feuille, jaune/orange/rouge = flammes)
-- ✅ Remplace affichage texte `1 épicé 🔥🔥` par icônes Lucide
-- ✅ Intégré dans Mon Panier (desktop + mobile)
-
-**Panier sticky (always visible)** :
-- ✅ `sticky top-8 max-h-[calc(100vh-4rem)]` sur wrapper carte
-- ✅ Structure flex avec `overflow-hidden` pour scroll interne
-- ✅ CardContent avec `flex-1 overflow-y-auto`
-- ✅ Panier reste visible lors du scroll des plats
-
-**Fichiers modifiés** :
-- [page.tsx](app/commander/page.tsx) - Import SpiceDistributionDisplay, sticky cart, Flame icon badge
-- [SpiceLevelSelector.tsx](components/commander/SpiceLevelSelector.tsx) - Lucide icons avec gradients
-- [SpiceDistributionSelector.tsx](components/commander/SpiceDistributionSelector.tsx) - Structure maintenue
-- [SpiceDistributionDisplay.tsx](components/commander/SpiceDistributionDisplay.tsx) - Nouveau composant
-
----
-
-### 2025-11-11 : Section B - Page Commander (/commander) ✅
-**9/11 tâches complétées** - Améliorations majeures UX et fonctionnalités
-
-**Infrastructure** :
-- ✅ Migration DB `20251111183339_add_plat_features` (3 champs + 3 indexes)
-- ✅ Server Actions `restaurant-settings.ts` (241 lignes - plat vedette)
-- ✅ Zod schemas étendus (platSchema, platVedetteSchema, restaurantSettingSchema)
-- ✅ Types étendus (PlatPanier.demandeSpeciale)
-
-**Composants créés** :
-- ✅ [FeaturedDishSection.tsx](components/commander/FeaturedDishSection.tsx) (172 lignes) - Section plat vedette avec vidéo Chanthana
-- ✅ [SpiceLevelSelector.tsx](components/commander/SpiceLevelSelector.tsx) (161 lignes) - Sélecteur niveau épicé 0-3 piments
-- ✅ [PolaroidThankYouModal.tsx](components/commander/PolaroidThankYouModal.tsx) (146 lignes) - Modal remerciement Polaroid
-
-**Features implémentées** :
-- ✅ Badges spéciaux (🌱 végétarien, 🔥 épicé) sur cards plats
-- ✅ Sélecteur niveau épicé dans modal plat (0-3 avec gradient couleurs)
-- ✅ Section "Cette semaine au menu" (vidéo + Polaroid plat vedette)
-- ✅ Bouton admin "⭐ Vedette" pour définir plat de la semaine
-- ✅ Modal Polaroid après validation commande (remplace toast)
-- ✅ API route `/api/featured-dish` (force-dynamic)
-
-**Assets** :
-- ✅ Vidéo [platsemaine.mp4](public/videohero/platsemaine.mp4) (1.81 MB, 720x720, 1:1, 3s)
-- ✅ Prompt générateur vidéo mis à jour (format 1:1 square)
-
-**⚙️ Configuration requise** :
-- Définir `est_vegetarien` et `niveau_epice` dans Prisma Studio
-- Cliquer bouton "⭐ Vedette" sur un plat dans admin
-- Redémarrer serveur après modifications
-
-**🔄 Tâches restantes** (2/11) :
-- 🔄 Icône panier avec badge numérique (IN PROGRESS)
-- ⏳ Mobile UX navigation bottom bar (PENDING)
-
-**🐛 Bugs connus** :
-- ❌ **Scroll auto panier ne fonctionne pas** - Lors de la sélection date+heure, le scroll vers "Plats disponibles" ne se déclenche pas
-  - Tenté : `flushSync` + double `requestAnimationFrame` (lignes 256-274)
-  - Problème : Transition CSS 500ms du grid layout interfère avec scroll timing
-  - TODO : Investiguer solution alternative (IntersectionObserver, scroll events, ou augmenter délai)
-  - Fichiers concernés : `app/commander/page.tsx` (useEffect lignes 256-274, handleOpenCart lignes 276-296)
-
----
-
-### Session : Système de Préférences Épicées & Admin Amélioré ✅
-
-**Admin /admin/plats** :
-- ✅ Bouton ⭐ "Vedette" pour définir le plat de la semaine
-- ✅ Boutons 🌱 Végétarien et 🔥 Épicé directement sur les cards
-- ✅ Chargement/toggle plat vedette avec Server Actions
-- ✅ État `featuredDishId` synchronisé avec DB
-
-**Page /commander** :
-- ✅ Intégration FeaturedDishSection (vidéo + Polaroid)
-- ✅ PolaroidThankYouModal après validation commande
-- ✅ API `/api/featured-dish` pour récupérer plat vedette
-- ✅ Double `requestAnimationFrame` + `flushSync` pour scroll fiable
-- ✅ Scroll vers section jours depuis plat vedette
-- ✅ `handleOpenCart()` avec expansion automatique
-
-**SpiceDistributionSelector** (nouveau composant) :
-- ✅ Répartition multi-portions (ex: 3 portions = 1 non épicé + 1 épicé + 1 très épicé)
-- ✅ Default "Non épicé" (bouton Ajouter immédiat)
-- ✅ Clic sur carte = +1 avec transfert automatique
-- ✅ Animation dock framer-motion (whileHover scale: 1.08, y: -4)
-- ✅ Badge quantité en haut à droite
-- ✅ Icônes Lucide Flame/Leaf avec gradient circulaire
-- ✅ Helper `getDistributionText()` pour panier
-- ✅ Reset distribution lors changement quantité
-
-**DishDetailsModalInteractive** :
-- ✅ Max-height 90vh avec scroll interne
-- ✅ Bouton sticky "Ajouter au panier" en bas
-- ✅ Intégration SpiceDistributionSelector (si plat épicé)
-- ✅ Sous-total dynamique + badge "Dans le panier"
-
-**CartContext** :
-- ✅ Gestion préférences épicées différentes = items séparés dans panier
-- ✅ Comparaison `demandeSpeciale` dans `ajouterAuPanier()`
-
-**UI Components** :
-- ✅ Placeholder color : `text-muted-foreground/60` → `text-thai-green/60`
-- ✅ Input, Select, Textarea : meilleure lisibilité placeholders
-- ✅ `--muted-foreground` : 120 20% 50% → 120 40% 20% (plus foncé)
-
-**Infrastructure** :
-- ✅ `lib/spice-helpers.ts` - Helper `spiceTextToLevel()` pour conversion DB
-- ✅ Server Action `restaurant-settings.ts` avec Decimal serialization
-- ✅ `preference_epice_niveau` dans détails commande
-
----
-
 ## 📋 Phase 0 : Infrastructure Critique (🔥🔥🔥🔥)
 **Objectif : Sécurité, validation robuste, et fondations techniques avant toutes les features**
 
@@ -144,12 +21,12 @@ Notre feuille de route pour faire évoluer l'expérience ChanthanaThaiCook. Ce d
 <details>
 <summary>📊 Détails de la migration</summary>
 
-✅ **Infrastructure complétée** (2025-10-12)
+✅ **Infrastructure complétée**
 - [x] Schéma Prisma généré avec 26 modèles depuis Supabase
 - [x] Types TypeScript auto-générés et BigInt corrigés
 - [x] Tests CRUD validés : `npm run prisma:test` (18 tests ✅)
 
-✅ **Migration application COMPLÈTE** (2025-10-27)
+✅ **Migration application COMPLÈTE**
 - [x] Server Actions créés : `app/actions/*.ts` (5 fichiers, 100% CRUD)
   - clients.ts, plats.ts, commandes.ts, extras.ts, evenements.ts
 - [x] Hooks Prisma créés : `hooks/usePrismaData.ts` (44 hooks TanStack Query)
@@ -218,7 +95,7 @@ Notre feuille de route pour faire évoluer l'expérience ChanthanaThaiCook. Ce d
   - ✅ Helper `unwrapSafeAction()` dans `hooks/usePrismaData.ts` (lignes 29-52)
   - ✅ Messages d'erreur français dans tous les schemas
 
-#### ✅ Schemas Auth Complets [COMPLÉTÉ 2025-11-04]
+#### ✅ Schemas Auth Complets
 **Statut : 100% TERMINÉ ✅**
 
 - [x] **✅ Ajoutés dans `lib/validations.ts` (lignes 400-550) :**
@@ -246,7 +123,7 @@ Notre feuille de route pour faire évoluer l'expérience ChanthanaThaiCook. Ce d
 ---
 
 ### ✅ 3️⃣ Better Auth - Authentication Moderne TypeScript [TERMINÉ]
-**Statut : Migration COMPLÈTE depuis Firebase Auth (2025-10-27)**
+**Statut : Migration COMPLÈTE depuis Firebase Auth**
 
 <details>
 <summary>📊 Configuration actuelle</summary>
@@ -279,7 +156,7 @@ Notre feuille de route pour faire évoluer l'expérience ChanthanaThaiCook. Ce d
 
 </details>
 
-#### ✅ Workflows Authentication - COMPLÉTÉS [100% ✅] (2025-11-04)
+#### ✅ Workflows Authentication - COMPLÉTÉS [100% ✅]
 **Statut : Infrastructure 100% complète + Configuration Resend ✅**
 
 - [x] **✅ Email Verification Workflow** (100% COMPLÉTÉ + RESEND CONFIGURÉ)
@@ -290,7 +167,7 @@ Notre feuille de route pour faire évoluer l'expérience ChanthanaThaiCook. Ce d
   - ✅ Server Actions : `app/auth/verify-email/actions.ts` (verifyEmailToken + resendVerificationEmail)
   - ✅ Plugin Better Auth activé : `lib/auth.ts` lignes 24-28
   - ✅ 4 états UI : loading, success (countdown 3s), error, expired
-  - ✅ **Resend API configurée avec domaine personnalisé `cthaicook.com`** (2025-11-04)
+  - ✅ **Resend API configurée avec domaine personnalisé `cthaicook.com`**
     - ✅ Domaine vérifié : DNS DKIM + SPF + MX + DMARC (iwantmyname)
     - ✅ Sender email : `noreply@cthaicook.com` (illimité)
     - ✅ Clé API : `re_dj6BWeqN_CNBFbNu4XZ3h18YmyvV6W755` (`.env` ligne 38)
@@ -348,18 +225,18 @@ Notre feuille de route pour faire évoluer l'expérience ChanthanaThaiCook. Ce d
 ---
 
 ### ✅ 4️⃣ Vitest - Tests Unitaires Modernes [TERMINÉ]
-**Statut : 100% ✅ (2025-11-05)**
+**Statut : 100% ✅**
 
 **Dépend de : Schemas Zod ✅**
 
 <details>
 <summary>📊 Configuration et Premier Pattern Test</summary>
 
-✅ **Installation complète** (2025-11-05)
+✅ **Installation complète**
 - [x] Vitest 4.0.7 + @testing-library/react + @testing-library/jest-dom + jsdom
 - [x] @vitejs/plugin-react pour support JSX
 
-✅ **Configuration `vitest.config.ts`** (2025-11-05)
+✅ **Configuration `vitest.config.ts`**
 - [x] Environment jsdom pour tests React
 - [x] Support TypeScript + path alias `@/`
 - [x] Setup file : `tests/setup.ts`
@@ -388,7 +265,7 @@ Notre feuille de route pour faire évoluer l'expérience ChanthanaThaiCook. Ce d
 - [x] `npm run test:ui` : Interface web Vitest
 - [x] `npm run test:coverage` : Rapport coverage
 
-✅ **Résultats Validation** (2025-11-05)
+✅ **Résultats Validation**
 ```
 ✓ tests/actions/plats.test.ts (15 tests) 12ms
 
@@ -468,23 +345,23 @@ Tests       15 passed (15)
 - [x] Création du dossier `emails` avec 4 templates fonctionnels
 - [x] Configurer la clé API Resend dans le fichier `.env`
 
-#### ✅ Templates Authentication Complets (6/6) [100% ✅] (2025-11-04)
+#### ✅ Templates Authentication Complets (6/6) [100% ✅]
 **Statut : Templates Better Auth 100% + 1 transactionnel**
 
-- [x] **ChanthanaWelcomeEmail.tsx** ✅ (31377 lignes, créé 2025-11-03)
-- [x] **ResetPasswordEmail.tsx** ✅ (8390 lignes, créé 2025-11-03)
-- [x] **VerificationEmail.tsx** ✅ (2975 lignes, créé 2025-10-22)
-- [x] **ChanthanaEmailChangeConfirmation.tsx** ✅ (650+ lignes, créé 2025-11-04)
+- [x] **ChanthanaWelcomeEmail.tsx** ✅ (31377 lignes)
+- [x] **ResetPasswordEmail.tsx** ✅ (8390 lignes)
+- [x] **VerificationEmail.tsx** ✅ (2975 lignes)
+- [x] **ChanthanaEmailChangeConfirmation.tsx** ✅ (650+ lignes)
   - Design bleu/or professionnel
   - Section ancien/nouvel email avec flèche visuelle
   - Bouton vérification + expiration 24h
   - Notices sécurité (contactez si pas vous)
-- [x] **ChanthanaAccountDeletedEmail.tsx** ✅ (800+ lignes, créé 2025-11-04)
+- [x] **ChanthanaAccountDeletedEmail.tsx** ✅ (800+ lignes)
   - Design rouge/gris avec icône trash
   - Section RGPD détaillée (données supprimées vs conservées)
   - Messages "Vous nous manquerez" avec bouton retour site
   - Compliance légale : Factures 10 ans (anonymisées)
-- [x] **CommandeConfirmationEmail.tsx** ✅ (1170 lignes, créé 2025-11-03)
+- [x] **CommandeConfirmationEmail.tsx** ✅ (1170 lignes)
 
 #### 🔥🔥 Templates Transactionnels [À FAIRE AVEC GEMINI - PHASE 3]
 **Ces templates seront créés plus tard via n8n workflows**
@@ -584,7 +461,7 @@ Tests       15 passed (15)
 ### 🔥 🔟 Outils Techniques Supplémentaires [PHASE 2-3]
 
 #### ✅ framer-motion - Animations React Déclaratives [INSTALLÉ + UTILISÉ]
-**Statut : Installation complète, utilisé dans HeroCarousel** ✅ (2025-11-08)
+**Statut : Installation complète, utilisé dans HeroCarousel** ✅
 
 - [x] **Installation de la bibliothèque framer-motion** (NPM v12.23.24, MIT License)
 - [x] **Animations scroll Hero Section** ✅ UTILISÉ
@@ -660,7 +537,7 @@ Tests       15 passed (15)
 
 **Dépend de : Better Auth ✅ | Server Actions stables ⏳**
 
-### ✅ Fondations PWA [COMPLÉTÉ 2025-11-05]
+### ✅ Fondations PWA
 - [x] 🔥🔥🔥 Mettre en place les bases de la Progressive Web App (Service Worker, Manifest)
   - ✅ Next.js 16 native PWA (app/manifest.ts avec MetadataRoute.Manifest)
   - ✅ Service Worker personnalisé (public/sw.js v2.0.0 - 502 lignes)
@@ -682,7 +559,7 @@ Tests       15 passed (15)
   - ✅ TTL configurable : 24h menu, 1h commandes
   - ✅ Cleanup automatique données expirées au chargement app
 
-### ✅ Notifications Push [COMPLÉTÉ 2025-11-05]
+### ✅ Notifications Push
 - [x] 🔥🔥🔥 Intégrer Firebase Cloud Messaging (canal prioritaire gratuit)
   - ✅ lib/fcm.ts : Client-side FCM (requestNotificationPermission, onMessageListener, revokeFCMToken)
   - ✅ lib/fcm-admin.ts : Server-side Firebase Admin SDK (sendNotificationToClient, multicast)
@@ -707,7 +584,7 @@ Tests       15 passed (15)
   - ✅ app/api/notifications/send/route.ts : API endpoint POST avec validation Zod
   - ✅ Erreurs non-bloquantes (try-catch)
   - ✅ Routing intelligent vers /suivi-commande/{id}
-- [x] 🔥🔥 Notifications rappel événement (24h/48h avant) [COMPLÉTÉ 2025-11-05]
+- [x] 🔥🔥 Notifications rappel événement (24h/48h avant)
   - ✅ app/api/cron/event-reminders/route.ts : API endpoint CRON (207 lignes)
   - ✅ Logique recherche événements dans plages temporelles (23h-25h et 47h-49h)
   - ✅ Filtre statut événement : Confirm____Acompte_re_u, En_pr_paration
@@ -732,7 +609,7 @@ Priorité 2: Canal préféré client (WhatsApp/SMS/Telegram via n8n)
 - [ ] 🔥🔥 Préférences notifications dans profil utilisateur
 - [ ] 🔥 Dashboard admin : statistiques taux opt-in notifications
 
-### ✅ Tests & Qualité [COMPLÉTÉ 2025-11-05]
+### ✅ Tests & Qualité
 - [x] 🔥🔥🔥 Tests automatisés Playwright : Parcours critiques (commande, auth, paiement)
   - ✅ Infrastructure E2E complète (playwright.config.ts - 3 projets)
   - ✅ Authentication setup avec Better Auth (tests/auth.setup.ts)
@@ -755,11 +632,11 @@ Priorité 2: Canal préféré client (WhatsApp/SMS/Telegram via n8n)
   - ✅ Tests mode offline : badge, bannière, contenu en cache
   - ✅ Tests retour online : notification, synchronisation
 
-### ⚠️ Tests E2E - Configuration Ajustée [EN COURS 2025-11-07]
+### ⚠️ Tests E2E - Configuration Ajustée
 
 **Problème identifié :** `webServer` auto-start Playwright crée processus zombie (ports 3000/3001 occupés)
 - Bug connu Playwright Windows (Issues #19049, #24101, #34190)
-- PID 127692 zombie résolu le 2025-11-07
+- PID 127692 zombie résolu
 - Configuration `reuseExistingServer` ne fonctionne pas sur Node 18+
 
 **Actions appliquées :**
@@ -793,7 +670,7 @@ npm run test:e2e
 ### 🏠 A. Page d'Accueil (/)
 
 #### 🎬 Hero Section Dynamique
-- [x] 🔥🔥🔥 **Carousel média administratif** : Images + vidéos courtes (5-8s) ✅ (2025-11-08)
+- [x] 🔥🔥🔥 **Carousel média administratif** : Images + vidéos courtes (5-8s) ✅
   - [ ] Upload depuis interface admin (/admin/hero-media) ⚠️ À faire
   - [x] Support image (JPG, PNG, WebP) + vidéo (MP4, WebM)
   - [ ] Drag & drop pour réorganiser l'ordre
@@ -805,7 +682,7 @@ npm run test:e2e
   - [x] Autoplay 7s configurable + pause au hover
   - [x] Respect prefers-reduced-motion
 
-- [x] 🔥🔥 **Card navigation en haut à gauche** : ✅ (2025-11-08)
+- [x] 🔥🔥 **Card navigation en haut à gauche** : ✅
   - [x] Logo + ChanthanaThaiCook
   - [x] Bouton Commander (gradient orange)
   - [x] Bouton Nous Trouver (outline blanc)
@@ -821,7 +698,7 @@ npm run test:e2e
 
 #### 🧭 Navigation Contextuelle
 
-- [x] 🔥🔥🔥 **Cartes navigation adaptatives selon auth** : ✅ (2025-11-08)
+- [x] 🔥🔥🔥 **Cartes navigation adaptatives selon auth** : ✅
   - [x] **Visiteur non connecté** : 6 cartes (4 actives + 2 désactivées)
     - Pour Commander ✓
     - Nous Trouver ✓
@@ -890,29 +767,29 @@ npm run test:e2e
   - [Découvrir] : Outline blanc + smooth scroll vers section navigation
 
 **Navigation Cards (6 cartes) :**
-- [x] **Visiteur non connecté** : 6 cartes affichées ✅ (2025-11-11)
+- [x] **Visiteur non connecté** : 6 cartes affichées ✅
   - Pour Commander (actif)
   - Nous Trouver (actif)
   - Pour vos Événements (actif)
   - À propos de nous (actif)
   - Découvertes (actif) ← NOUVELLE CARTE
   - Mon Profil (désactivé/grisé)
-- [x] **Utilisateur connecté** : 6 cartes actives ✅ (2025-11-11)
+- [x] **Utilisateur connecté** : 6 cartes actives ✅
   - Ajouter : Mon Profil (actif) + Suivi (actif)
   - Badge "Nouveau !" sur Mon Profil si `photo_client` récente (<7 jours)
-- [x] **Nouvelle carte "Découvertes"** : ✅ (2025-11-11)
+- [x] **Nouvelle carte "Découvertes"** : ✅
   - Route : `/actualites`
   - Icon : Sparkles ✨
   - Description : "Nouveautés, plats du moment et suivez nos coulisses sur les réseaux sociaux"
   - Image : Photo plat saisonnier ou collage Instagram
-- [x] **Grid responsive** : ✅ (2025-11-11)
+- [x] **Grid responsive** : ✅
   - Desktop (≥1024px) : 4 colonnes (lg:grid-cols-4)
   - Tablet (768-1023px) : 2 colonnes (md:grid-cols-2)
   - Mobile (<768px) : 1 colonne (grid)
-- [x] **Animations** : Stagger 150ms top to bottom (framer-motion) ✅ (2025-11-11)
-- [x] **Rotation Polaroid** : Straight par défaut, tilt -2deg au hover ✅ (2025-11-11)
-- [x] **Photo profil par défaut** : `/image avatar/profildefaut.svg` ✅ (2025-11-11)
-- [x] **Card highlighting au clic** : Rotation + scale + élévation + glow 3s ✅ (2025-11-11)
+- [x] **Animations** : Stagger 150ms top to bottom (framer-motion) ✅
+- [x] **Rotation Polaroid** : Straight par défaut, tilt -2deg au hover ✅
+- [x] **Photo profil par défaut** : `/image avatar/profildefaut.svg` ✅
+- [x] **Card highlighting au clic** : Rotation + scale + élévation + glow 3s ✅
   - Glow pulsant : Dégradé orange thaï (#ff7b54) → vert thaï (#2d5016)
   - Scroll automatique smooth vers card ciblée (scrollIntoView)
 
@@ -939,30 +816,30 @@ npm run test:e2e
 
 **Bonus Implémentés :**
 - [ ] **Badge "Nouveau !" card Mon Profil** : Si `photo_client` uploadée < 7 jours (logique calcul date à implémenter)
-- [x] **Smooth scroll CTA "Découvrir"** : Scroll vers section navigation cards ✅ (2025-11-11)
-- [x] **Photo client dans card Mon Profil** : Depuis `client_db.photo_client` ✅ (2025-11-11)
+- [x] **Smooth scroll CTA "Découvrir"** : Scroll vers section navigation cards ✅
+- [x] **Photo client dans card Mon Profil** : Depuis `client_db.photo_client` ✅
 
 #### 🎨 Polish & Accessibilité
 
-- [x] 🔥🔥 **Sélecteur de langue** : Permettre changement langue (fr/th/en) ✅ (2025-11-08)
+- [x] 🔥🔥 **Sélecteur de langue** : Permettre changement langue (fr/th/en) ✅
   - [x] DropdownMenu avec drapeaux waving WebP (fr.webp, th.webp, gb.webp, nl.webp)
   - [x] Position : bottom-4 left-4 (bas gauche)
   - [x] État local : useState selectedLang (fr/th/en/nl)
   - [x] Hover scale 110% + transition smooth
   - [ ] ⚠️ Intégration next-intl routing (Phase 6 - futur)
-- [x] 🔥🔥 **Header navigation simplifié** : ✅ (2025-11-08)
+- [x] 🔥🔥 **Header navigation simplifié** : ✅
   - [x] Centré avec gap-8
   - [x] Liens : Événements, À Propos, Actualités
   - [x] Liens auth conditionnels : Mon Profil, Suivi (si isAuthenticated)
   - [x] Couleurs : text-white/90 hover:text-thai-orange
   - [x] Backdrop blur minimal : from-black/5 backdrop-blur-[2px]
   - [x] Smooth scroll vers sections navigation cards
-- [x] 🔥🔥 **Bouton Installer l'App** : ✅ (2025-11-08)
+- [x] 🔥🔥 **Bouton Installer l'App** : ✅
   - [x] Position : bottom-4 right-4 (bas droite)
   - [x] Design : bg-white/10 backdrop-blur-sm border-2 border-white
   - [x] Hook usePWAInstalled pour détecter installation
   - [x] Texte conditionnel : "Application Installée" vs "Installer l'App"
-- [x] 🔥 **Footer enrichi** : ✅ (2025-11-09 - Mise à jour complète)
+- [x] 🔥 **Footer enrichi** : ✅
   - [x] **10 icônes réseaux sociaux avec effet dock magnification** (macOS style)
     - Facebook, Instagram, WhatsApp, TikTok, YouTube, Google Maps, Email, Phone, Messenger, X
     - Framer Motion : useSpring physics (mass 0.1, stiffness 150, damping 12)
@@ -983,7 +860,7 @@ npm run test:e2e
 - [x] 🔥 **Animations entrance** : Hero fade-in, cards stagger animation ✅
   - [x] Card navigation : Framer Motion scroll animations + slide-in
   - [x] Navigation cards : Stagger 150ms (via animationDelay CSS)
-- [x] 🔥🔥 **QuickNav - Navigation rapide entre Hero et Cards** : ✅ (2025-11-11)
+- [x] 🔥🔥 **QuickNav - Navigation rapide entre Hero et Cards** : ✅
   - [x] Composant `QuickNav.tsx` créé (145 lignes)
   - [x] Position : sticky top-0 z-30 entre HeroCarousel et NavigationCards
   - [x] **Animation vague séquentielle automatique** :
@@ -1003,7 +880,7 @@ npm run test:e2e
   - [x] **Focus styles supprimés** : .quick-nav exclusions dans globals.css
   - [x] **États gérés** : isPaused, isClicked, clickedIndex, activeWaveIndex
 
-#### 🎨 Icônes Réseaux Sociaux Personnalisées [COMPLÉTÉ 2025-11-09]
+#### 🎨 Icônes Réseaux Sociaux Personnalisées
 **Statut : 10 composants SVG avec couleurs officielles des marques**
 
 - [x] **`components/icons/FacebookIcon.tsx`** : Circle blue #1877F2
@@ -1210,7 +1087,7 @@ npm run test:e2e
 - [ ] 🔥 **Rappels automatiques** : n8n envoie rappels avant événement + remerciement après
 
 ### 👤 H. Page Profil (/profil) & Inscription (/auth/signup)
-#### ✅ Améliorations UI/UX Complétées (2025-11-01)
+#### ✅ Améliorations UI/UX Complétées
 - [x] ✅ **Sélecteur de date de naissance amélioré** : Composant `DateBirthSelector` (3 selects)
 - [x] ✅ **Harmonisation formulaire signup avec profil** :
   - "Adresse (numéro et rue)" identique
@@ -1238,10 +1115,17 @@ npm run test:e2e
 **Dépend de : n8n setup ⏳ | React Email templates ⏳**
 
 ### 📋 A. Page Admin / Commandes (/admin/commandes)
-#### ✅ Améliorations Complétées (2025-10-31 / 2025-11-01)
+#### ✅ Améliorations Complétées
 - [x] ✅ **Sélecteur de date amélioré** : Composant `DateSelector` (3 selects)
 - [x] ✅ **"Mettre en avant"** : Bouton épingler/désépingler + tri automatique
 - [x] ✅ **"Offrir un plat"** : Marquer plat comme offert (prix 0€)
+- [x] ✅ **Distribution épicée sauvegardée** : Zod schema + `spice_distribution` conservé lors création commande
+- [x] ✅ **Affichage cercles colorés** : SpiceDistributionDisplay + `getDistributionText()` remplace SELECT dropdown
+- [x] ✅ **Modification distribution liste** : Dialog + SpiceDistributionSelector dans PlatCommandeCard
+- [x] ✅ **Modification distribution modal Détails** : Dialog + SpiceDistributionSelector dans ModalPlatCard
+- [x] ✅ **Ordre affichage** : Quantité → Prix unitaire → Épicé
+- [x] ✅ **SpiceDistributionDisplay avec icônes gradient** : Icônes circulaires (Leaf/Flame) avec gradients colorés + badges numériques, style identique à SpiceDistributionSelector
+- [x] ✅ **Layout panier optimisé** : Photo 1:1 (w-18 h-18) sur 2 lignes, Ligne 1 (Nom + icônes épicées + prix), Ligne 2 (prix unitaire + poubelle + quantité)
 
 #### 🔥🔥 Automatisations n8n
 - [ ] **Factures automatiques** : Génération + envoi email si statut "Récupérée"
@@ -1610,4 +1494,4 @@ Phase 4-7 (Optimisations) → Continu, non bloquant
 
 ---
 
-**📅 Dernière mise à jour :** 2025-11-11 (QuickNav créé : Navigation rapide entre Hero et Cards avec animation vague séquentielle (800ms) + Highlight cards au clic avec glow orange-vert pulsant (3s) + Rotation Polaroid inversée (hover tilt) + Photo profil par défaut + Fix Supabase images hostname + Suppression focus outlines QuickNav | Enrichissement Section B. Page Commander : 5 suggestions Chanthana (avatar prend commande, modal Polaroid remerciement, animation panier, sélecteur épicé, section vedette) | Ajout section Annexes : Capacité Génération Assets Chanthana (workflow IA, style référence, utilisation transversale) | Correction B. Page Commander : Suppression suggestion PDF + Simplification "Section Cette semaine au menu" (Chanthana + Polaroid + scroll jours gold, pas d'auto-sélection))
+

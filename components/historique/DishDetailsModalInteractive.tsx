@@ -12,15 +12,17 @@ interface DishDetailsModalInteractiveProps {
   formatPrix: (prix: number) => string;
   onAddToCart?: (plat: Plat, quantity: number, spicePreference?: string, spiceDistribution?: number[]) => void;
   currentQuantity?: number;
+  currentSpiceDistribution?: number[];
   dateRetrait?: Date;
 }
 
-export const DishDetailsModalInteractive = React.memo<DishDetailsModalInteractiveProps>(({ 
-  plat, 
-  children, 
+export const DishDetailsModalInteractive = React.memo<DishDetailsModalInteractiveProps>(({
+  plat,
+  children,
   formatPrix,
   onAddToCart,
   currentQuantity = 0,
+  currentSpiceDistribution,
   dateRetrait
 }) => {
   const [open, setOpen] = React.useState(false);
@@ -33,6 +35,28 @@ export const DishDetailsModalInteractive = React.memo<DishDetailsModalInteractiv
   // Niveau d'épice maximum du plat (0 = pas épicé, 1-3 = niveaux d'épice)
   const maxSpiceLevel = plat.niveau_epice || 0;
 
+  // Quand le modal s'ouvre, charger les données du panier existant
+  React.useEffect(() => {
+    if (open) {
+      if (currentSpiceDistribution && currentSpiceDistribution.length === 4 && currentQuantity > 0) {
+        // Ouverture depuis un item du panier : charger sa distribution
+        const distTotal = currentSpiceDistribution.reduce((sum, count) => sum + count, 0);
+        if (distTotal === currentQuantity) {
+          setQuantity(currentQuantity);
+          setSpiceDistribution(currentSpiceDistribution);
+        } else {
+          // Désynchronisation : reset
+          setQuantity(1);
+          setSpiceDistribution([1, 0, 0, 0]);
+        }
+      } else {
+        // Nouveau plat ou ouverture depuis plat disponible : reset
+        setQuantity(1);
+        setSpiceDistribution([1, 0, 0, 0]);
+      }
+    }
+  }, [open, currentQuantity, currentSpiceDistribution]);
+
   const handleModalClick = () => {
     setOpen(false);
   };
@@ -44,27 +68,22 @@ export const DishDetailsModalInteractive = React.memo<DishDetailsModalInteractiv
       const distribution = maxSpiceLevel > 0 ? spiceDistribution : undefined;
       onAddToCart(plat, quantity, spicePreference, distribution);
       setOpen(false);
-      // Reset pour la prochaine ouverture
-      setQuantity(1);
-      setSpiceDistribution([1, 0, 0, 0]);
     }
   };
 
   const incrementQuantity = () => {
     setQuantity(prev => {
-      const newQty = prev + 1;
-      // Par défaut, toutes les portions sont "Non épicé"
-      setSpiceDistribution([newQty, 0, 0, 0]);
-      return newQty;
+      const newQuantity = prev + 1;
+      setSpiceDistribution([newQuantity, 0, 0, 0]);
+      return newQuantity;
     });
   };
 
   const decrementQuantity = () => {
     setQuantity(prev => {
-      const newQty = Math.max(1, prev - 1);
-      // Par défaut, toutes les portions sont "Non épicé"
-      setSpiceDistribution([newQty, 0, 0, 0]);
-      return newQty;
+      const newQuantity = Math.max(1, prev - 1);
+      setSpiceDistribution([newQuantity, 0, 0, 0]);
+      return newQuantity;
     });
   };
 
@@ -106,7 +125,7 @@ export const DishDetailsModalInteractive = React.memo<DishDetailsModalInteractiv
             {currentQuantity > 0 && (
               <div className="absolute top-3 right-3">
                 <Badge className="bg-thai-orange text-white shadow-md font-semibold px-3 py-1">
-                  Dans le panier: {currentQuantity}
+                  Panier {currentQuantity}
                 </Badge>
               </div>
             )}

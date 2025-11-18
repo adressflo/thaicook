@@ -35,6 +35,15 @@ export const ExtraDetailsModalInteractive = React.memo<ExtraDetailsModalInteract
   const prixUnitaire = parseFloat(extra.prix || '0');
   const sousTotal = prixUnitaire * quantity;
 
+  // Quand le modal s'ouvre, charger la quantité du panier existant
+  React.useEffect(() => {
+    if (open && currentQuantity > 0) {
+      setQuantity(currentQuantity);
+    } else if (open && currentQuantity === 0) {
+      setQuantity(1);
+    }
+  }, [open, currentQuantity]);
+
   const handleModalClick = () => {
     setOpen(false);
   };
@@ -98,7 +107,7 @@ export const ExtraDetailsModalInteractive = React.memo<ExtraDetailsModalInteract
             {currentQuantity > 0 && (
               <div className="absolute top-3 right-3">
                 <Badge className="bg-thai-orange text-white shadow-md font-semibold px-3 py-1">
-                  Dans le panier: {currentQuantity}
+                  Panier {currentQuantity}
                 </Badge>
               </div>
             )}

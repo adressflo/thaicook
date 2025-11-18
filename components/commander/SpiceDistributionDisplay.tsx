@@ -10,10 +10,10 @@ interface SpiceDistributionDisplayProps {
 
 /**
  * Composant qui affiche la répartition épicée avec des icônes Lucide
- * au lieu des emojis 🔥🍃
+ * Style identique à SpiceDistributionSelector avec badges numériques
  *
- * Exemple d'entrée: "1 très épicé 🔥🔥🔥, 1 épicé 🔥🔥, 1 non épicé 🍃"
- * Sortie: Icônes visuelles avec gradients
+ * Exemple d'entrée: "1 très épicé, 1 épicé, 1 un peu épicé, 1 non épicé"
+ * Sortie: Icônes circulaires avec gradient et badge numérique
  */
 export function SpiceDistributionDisplay({
   distributionText,
@@ -25,7 +25,7 @@ export function SpiceDistributionDisplay({
   const parts = distributionText.split(", ")
 
   return (
-    <div className={cn("flex flex-wrap gap-2", className)}>
+    <div className={cn("flex items-center gap-1", className)}>
       {parts.map((part, index) => {
         const match = part.match(/^(\d+)\s+(.+?)(?:\s+[🔥🍃]+)?$/)
         if (!match) return null
@@ -57,35 +57,57 @@ export function SpiceDistributionDisplay({
         }
 
         return (
-          <div
-            key={index}
-            className="flex items-center gap-1 bg-white/50 rounded-md px-2 py-1"
-          >
-            <span className="text-xs font-semibold text-gray-700">{count}</span>
-            <div className="flex gap-0.5">
-              {flameCount === 0 ? (
-                <div className={cn(
-                  "flex items-center justify-center w-4 h-4 rounded-full bg-gradient-to-br shadow-sm",
-                  gradientFrom,
-                  gradientTo
-                )}>
-                  <Leaf className="w-2.5 h-2.5 text-white" />
-                </div>
-              ) : (
-                Array.from({ length: flameCount }).map((_, i) => (
-                  <div
-                    key={i}
-                    className={cn(
-                      "flex items-center justify-center w-4 h-4 rounded-full bg-gradient-to-br shadow-sm",
-                      gradientFrom,
-                      gradientTo
-                    )}
-                  >
+          <div key={index} className="relative">
+            {/* Badge numérique en haut à droite */}
+            <div className="absolute -top-1.5 -right-1.5 bg-thai-green text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full shadow-md z-10">
+              {count}
+            </div>
+
+            {/* Icône circulaire avec gradient */}
+            {flameCount === 0 ? (
+              <div className={cn(
+                "flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br shadow-md",
+                gradientFrom,
+                gradientTo
+              )}>
+                <Leaf className="w-5 h-5 text-white" />
+              </div>
+            ) : flameCount === 1 ? (
+              <div className={cn(
+                "flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br shadow-md",
+                gradientFrom,
+                gradientTo
+              )}>
+                <Flame className="w-5 h-5 text-white" />
+              </div>
+            ) : flameCount === 3 ? (
+              // Triangle formation for 3 flames
+              <div className={cn(
+                "flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br shadow-md",
+                gradientFrom,
+                gradientTo
+              )}>
+                <div className="flex flex-col items-center gap-0">
+                  <Flame className="w-2.5 h-2.5 text-white" />
+                  <div className="flex gap-0 -mt-0.5">
+                    <Flame className="w-2.5 h-2.5 text-white" />
                     <Flame className="w-2.5 h-2.5 text-white" />
                   </div>
-                ))
-              )}
-            </div>
+                </div>
+              </div>
+            ) : (
+              // 2 flames
+              <div className={cn(
+                "flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br shadow-md",
+                gradientFrom,
+                gradientTo
+              )}>
+                <div className="flex gap-0">
+                  <Flame className="w-3 h-3 text-white" />
+                  <Flame className="w-3 h-3 text-white" />
+                </div>
+              </div>
+            )}
           </div>
         )
       })}

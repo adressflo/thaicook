@@ -22,6 +22,8 @@ import type { PlatPanier, PlatUI as Plat } from '@/types/app';
 import { DishDetailsModalInteractive } from '@/components/historique/DishDetailsModalInteractive';
 import { FloatingUserIcon } from '@/components/FloatingUserIcon';
 import { toSafeNumber } from '@/lib/serialization';
+import { spiceTextToLevel } from '@/lib/spice-helpers';
+import { SpiceDistributionSelector, getDistributionText } from '@/components/commander/SpiceDistributionSelector';
 
 export default function PanierPage() {
   const { toast } = useToast();
@@ -86,12 +88,15 @@ export default function PanierPage() {
         if (!dateKey) continue;
 
         await createCommande.mutateAsync({
-          client_r: clientFirebaseUID,
+          client_r: currentUser.id,
+          client_r_id: clientFirebaseUID,
           date_et_heure_de_retrait_souhaitees: dateKey,
           demande_special_pour_la_commande: demandesSpeciales,
           details: items.map(item => ({
             plat_r: item.id, // Garder comme string, sera converti dans le hook
-            quantite_plat_commande: item.quantite
+            quantite_plat_commande: item.quantite,
+            preference_epice_niveau: spiceTextToLevel(item.demandeSpeciale),
+            spice_distribution: item.spiceDistribution || null,
           }))
         });
 
@@ -123,24 +128,27 @@ export default function PanierPage() {
   };
 
   // Fonction pour ajouter un plat au panier avec quantité spécifique
-  const handleAjouterAuPanier = (plat: Plat, quantite: number, dateRetrait?: Date, jourCommande?: string) => {
+  const handleAjouterAuPanier = (plat: Plat, quantite: number, spicePreference?: string, spiceDistribution?: number[]) => {
     if (!plat.idplats || !plat.plat || plat.prix === undefined) return;
 
-    if (dateRetrait && jourCommande) {
-      for (let i = 0; i < quantite; i++) {
-        ajouterAuPanier({
-          id: plat.idplats.toString(),
-          nom: plat.plat,
-          prix: plat.prix ?? '0',
-          quantite: 1,
-          dateRetrait: dateRetrait,
-          jourCommande: jourCommande
-        });
-      }
+    // Récupérer le premier item du panier pour cette plat pour obtenir dateRetrait et jourCommande
+    const existingItem = panier.find(item => item.id === plat.idplats.toString());
+
+    if (existingItem?.dateRetrait && existingItem?.jourCommande) {
+      ajouterAuPanier({
+        id: plat.idplats.toString(),
+        nom: plat.plat,
+        prix: plat.prix ?? '0',
+        quantite: quantite,
+        dateRetrait: existingItem.dateRetrait,
+        jourCommande: existingItem.jourCommande,
+        demandeSpeciale: spicePreference || undefined,
+        spiceDistribution: spiceDistribution,
+      });
 
       toast({
-        title: 'Plat ajouté !',
-        description: `${quantite} ${plat.plat}${quantite > 1 ? 's' : ''} ajouté${quantite > 1 ? 's' : ''} à votre panier.`,
+        title: 'Plat mis à jour !',
+        description: `${plat.plat} a été mis à jour dans votre panier.`,
       });
     }
   };
@@ -155,6 +163,65 @@ export default function PanierPage() {
         item.dateRetrait?.getTime() === dateRetrait.getTime()
       )
       .reduce((total, item) => total + item.quantite, 0);
+  };
+
+  // Modifier la distribution épicée directement
+  const handleDistributionChange = (item: PlatPanier, newDistribution: number[]) => {
+    if (item.uniqueId) {
+      const newDistributionText = getDistributionText(newDistribution);
+
+      // Supprimer l'ancien item
+      supprimerDuPanier(item.uniqueId);
+
+      // Ajouter le nouvel item avec la distribution mise à jour
+      ajouterAuPanier({
+        ...item,
+        spiceDistribution: newDistribution,
+        demandeSpeciale: newDistributionText,
+      });
+    }
+  };
+
+  // Gérer le changement de quantité avec ajustement automatique de la distribution
+  const handleQuantityChange = (item: PlatPanier, newQuantity: number) => {
+    if (newQuantity <= 0) {
+      supprimerDuPanier(item.uniqueId!);
+      return;
+    }
+
+    // Si le plat a une distribution épicée, on l'ajuste
+    if (item.spiceDistribution && item.spiceDistribution.length === 4) {
+      const currentTotal = item.spiceDistribution.reduce((sum, count) => sum + count, 0);
+      const diff = newQuantity - currentTotal;
+      const newDistribution = [...item.spiceDistribution];
+
+      if (diff > 0) {
+        // Augmentation: ajouter les portions sur "non épicé" (index 0)
+        newDistribution[0] += diff;
+      } else if (diff < 0) {
+        // Diminution: retirer des portions en commençant par "non épicé"
+        let toRemove = Math.abs(diff);
+        for (let i = 0; i < 4 && toRemove > 0; i++) {
+          const canRemove = Math.min(newDistribution[i], toRemove);
+          newDistribution[i] -= canRemove;
+          toRemove -= canRemove;
+        }
+      }
+
+      const newDistributionText = getDistributionText(newDistribution);
+
+      // Supprimer l'ancien et ajouter le nouveau
+      supprimerDuPanier(item.uniqueId!);
+      ajouterAuPanier({
+        ...item,
+        quantite: newQuantity,
+        spiceDistribution: newDistribution,
+        demandeSpeciale: newDistributionText,
+      });
+    } else {
+      // Pas de distribution épicée, juste modifier la quantité
+      modifierQuantite(item.uniqueId!, newQuantity);
+    }
   };
 
   return (
@@ -233,18 +300,16 @@ export default function PanierPage() {
                                   <DishDetailsModalInteractive
                                     plat={platData}
                                     formatPrix={formatPrix}
-                                    onAddToCart={(plat, quantite) =>
+                                    onAddToCart={(plat, quantite, spicePreference, spiceDistribution) =>
                                       handleAjouterAuPanier(
                                         plat,
                                         quantite,
-                                        item.dateRetrait,
-                                        item.jourCommande
+                                        spicePreference,
+                                        spiceDistribution
                                       )
                                     }
-                                    currentQuantity={getCurrentQuantity(
-                                      platData.idplats,
-                                      item.dateRetrait
-                                    )}
+                                    currentQuantity={item.quantite}
+                                    currentSpiceDistribution={item.spiceDistribution}
                                     dateRetrait={item.dateRetrait}
                                   >
                                     {imageUrl ? (
@@ -270,34 +335,44 @@ export default function PanierPage() {
                                 )}
 
                                 {/* Informations du plat */}
-                                <div className="flex-1">
+                                <div className="flex-1 space-y-2">
+                                  {/* Ligne 1: Nom du plat */}
                                   {platData ? (
                                     <DishDetailsModalInteractive
                                       plat={platData}
                                       formatPrix={formatPrix}
-                                      onAddToCart={(plat, quantite) =>
+                                      onAddToCart={(plat, quantite, spicePreference, spiceDistribution) =>
                                         handleAjouterAuPanier(
                                           plat,
                                           quantite,
-                                          item.dateRetrait,
-                                          item.jourCommande
+                                          spicePreference,
+                                          spiceDistribution
                                         )
                                       }
-                                      currentQuantity={getCurrentQuantity(
-                                        platData.idplats,
-                                        item.dateRetrait
-                                      )}
+                                      currentQuantity={item.quantite}
+                                      currentSpiceDistribution={item.spiceDistribution}
                                       dateRetrait={item.dateRetrait}
                                     >
-                                      <h4 className="font-medium text-thai-green text-lg mb-1 cursor-pointer hover:text-thai-orange transition-colors duration-200 hover:underline decoration-thai-orange/50">
+                                      <h4 className="font-medium text-thai-green text-lg cursor-pointer hover:text-thai-orange transition-colors duration-200 hover:underline decoration-thai-orange/50">
                                         {item.nom}
                                       </h4>
                                     </DishDetailsModalInteractive>
                                   ) : (
-                                    <h4 className="font-medium text-gray-500 text-lg mb-1">
+                                    <h4 className="font-medium text-gray-500 text-lg">
                                       {item.nom}
                                     </h4>
                                   )}
+
+                                  {/* Ligne 2: Badges épicés (milieu) - Modifiables directement */}
+                                  {item.demandeSpeciale && item.demandeSpeciale.includes("épicé") && item.spiceDistribution && (
+                                    <SpiceDistributionSelector
+                                      totalQuantity={item.quantite}
+                                      distribution={item.spiceDistribution}
+                                      onDistributionChange={(newDistribution) => handleDistributionChange(item, newDistribution)}
+                                    />
+                                  )}
+
+                                  {/* Ligne 3: Quantité et Prix unitaire */}
                                   <div className="flex items-center gap-4 text-sm text-gray-600">
                                     <span className="flex items-center gap-1">
                                       <span className="font-medium">
@@ -332,10 +407,7 @@ export default function PanierPage() {
                                       className="h-8 w-8 p-0 transition-all duration-200 hover:scale-110 hover:shadow-lg hover:border-thai-orange hover:ring-2 hover:ring-thai-orange/30"
                                       onClick={e => {
                                         e.stopPropagation();
-                                        modifierQuantite(
-                                          item.uniqueId!,
-                                          item.quantite - 1
-                                        );
+                                        handleQuantityChange(item, item.quantite - 1);
                                       }}
                                     >
                                       -
@@ -349,10 +421,7 @@ export default function PanierPage() {
                                       className="h-8 w-8 p-0 transition-all duration-200 hover:scale-110 hover:shadow-lg hover:border-thai-orange hover:ring-2 hover:ring-thai-orange/30"
                                       onClick={e => {
                                         e.stopPropagation();
-                                        modifierQuantite(
-                                          item.uniqueId!,
-                                          item.quantite + 1
-                                        );
+                                        handleQuantityChange(item, item.quantite + 1);
                                       }}
                                     >
                                       +

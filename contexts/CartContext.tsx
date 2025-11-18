@@ -62,12 +62,21 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
   // Fonction pour ajouter un plat
   const ajouterAuPanier = (plat: PlatPanier) => {
     setPanier(prev => {
-      // Chercher un plat identique avec le même jour, la même date ET la même préférence épicée
+      // Helper pour comparer les distributions épicées
+      const isSameSpiceDistribution = (a?: number[], b?: number[]) => {
+        if (!a && !b) return true;
+        if (!a || !b) return false;
+        if (a.length !== b.length) return false;
+        return a.every((val, idx) => val === b[idx]);
+      };
+
+      // Chercher un plat identique avec le même jour, la même date, la même préférence épicée ET la même distribution épicée
       const platExistant = prev.find(p =>
         p.id === plat.id &&
         p.jourCommande === plat.jourCommande &&
         p.dateRetrait?.toDateString() === plat.dateRetrait?.toDateString() &&
-        p.demandeSpeciale === plat.demandeSpeciale
+        p.demandeSpeciale === plat.demandeSpeciale &&
+        isSameSpiceDistribution(p.spiceDistribution, plat.spiceDistribution)
       );
 
       if (platExistant) {
@@ -75,15 +84,16 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
           p.id === plat.id &&
           p.jourCommande === plat.jourCommande &&
           p.dateRetrait?.toDateString() === plat.dateRetrait?.toDateString() &&
-          p.demandeSpeciale === plat.demandeSpeciale
-            ? { ...p, quantite: p.quantite + 1 }
+          p.demandeSpeciale === plat.demandeSpeciale &&
+          isSameSpiceDistribution(p.spiceDistribution, plat.spiceDistribution)
+            ? { ...p, quantite: p.quantite + plat.quantite }
             : p
         );
       }
-      
+
       // Ajouter un nouvel article avec un ID unique
-      const nouvelArticle = { 
-        ...plat, 
+      const nouvelArticle = {
+        ...plat,
         quantite: plat.quantite || 1,
         uniqueId: `${plat.id}-${Date.now()}-${Math.random()}`
       };
@@ -97,9 +107,9 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
       supprimerDuPanier(uniqueId);
       return;
     }
-    
-    setPanier(prev => prev.map(item => 
-      item.uniqueId === uniqueId 
+
+    setPanier(prev => prev.map(item =>
+      item.uniqueId === uniqueId
         ? { ...item, quantite: nouvelleQuantite }
         : item
     ));
