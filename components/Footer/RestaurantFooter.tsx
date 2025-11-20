@@ -117,63 +117,65 @@ export function RestaurantFooter() {
               })}
             </nav>
 
-            {/* Social Links - Dock Effect */}
-            <Dock
-              magnification={60}
-              distance={150}
-              spring={{ mass: 0.1, stiffness: 150, damping: 12 }}
-            >
-              <DockItem href={SOCIAL_LINKS[0].url}>
-                <DockIcon>
-                  <FacebookIcon className="size-full" />
-                </DockIcon>
-              </DockItem>
-              <DockItem href={SOCIAL_LINKS[1].url}>
-                <DockIcon>
-                  <InstagramIcon className="size-full" />
-                </DockIcon>
-              </DockItem>
-              <DockItem href={SOCIAL_LINKS[2].url}>
-                <DockIcon>
-                  <WhatsAppIcon className="size-full" />
-                </DockIcon>
-              </DockItem>
-              <DockItem href={SOCIAL_LINKS[3].url}>
-                <DockIcon>
-                  <TikTokIcon className="size-full" />
-                </DockIcon>
-              </DockItem>
-              <DockItem href={SOCIAL_LINKS[4].url}>
-                <DockIcon>
-                  <YouTubeIcon className="size-full" />
-                </DockIcon>
-              </DockItem>
-              <DockItem href={SOCIAL_LINKS[5].url}>
-                <DockIcon>
-                  <GoogleMapsIcon className="size-full" />
-                </DockIcon>
-              </DockItem>
-              <DockItem href={SOCIAL_LINKS[6].url}>
-                <DockIcon>
-                  <EmailIcon className="size-full" />
-                </DockIcon>
-              </DockItem>
-              <DockItem href={SOCIAL_LINKS[7].url}>
-                <DockIcon>
-                  <PhoneIconSocial className="size-full" />
-                </DockIcon>
-              </DockItem>
-              <DockItem href={SOCIAL_LINKS[8].url}>
-                <DockIcon>
-                  <MessengerIcon className="size-full" />
-                </DockIcon>
-              </DockItem>
-              <DockItem href={SOCIAL_LINKS[9].url}>
-                <DockIcon>
-                  <XIcon className="size-full" />
-                </DockIcon>
-              </DockItem>
-            </Dock>
+            {/* Social Links */}
+            <div className="w-full flex justify-center">
+              <div className="flex flex-col lg:flex-row gap-4">
+                <Dock magnification={60} distance={150} className="px-0">
+                  <DockItem href={SOCIAL_LINKS[0].url}>
+                    <DockIcon>
+                      <FacebookIcon className="size-full" />
+                    </DockIcon>
+                  </DockItem>
+                  <DockItem href={SOCIAL_LINKS[1].url}>
+                    <DockIcon>
+                      <InstagramIcon className="size-full" />
+                    </DockIcon>
+                  </DockItem>
+                  <DockItem href={SOCIAL_LINKS[2].url}>
+                    <DockIcon>
+                      <WhatsAppIcon className="size-full" />
+                    </DockIcon>
+                  </DockItem>
+                  <DockItem href={SOCIAL_LINKS[3].url}>
+                    <DockIcon>
+                      <TikTokIcon className="size-full" />
+                    </DockIcon>
+                  </DockItem>
+                  <DockItem href={SOCIAL_LINKS[4].url}>
+                    <DockIcon>
+                      <YouTubeIcon className="size-full" />
+                    </DockIcon>
+                  </DockItem>
+                </Dock>
+                <Dock magnification={60} distance={150} className="px-0">
+                  <DockItem href={SOCIAL_LINKS[5].url}>
+                    <DockIcon>
+                      <GoogleMapsIcon className="size-full" />
+                    </DockIcon>
+                  </DockItem>
+                  <DockItem href={SOCIAL_LINKS[6].url}>
+                    <DockIcon>
+                      <EmailIcon className="size-full" />
+                    </DockIcon>
+                  </DockItem>
+                  <DockItem href={SOCIAL_LINKS[7].url}>
+                    <DockIcon>
+                      <PhoneIconSocial className="size-full" />
+                    </DockIcon>
+                  </DockItem>
+                  <DockItem href={SOCIAL_LINKS[8].url}>
+                    <DockIcon>
+                      <MessengerIcon className="size-full" />
+                    </DockIcon>
+                  </DockItem>
+                  <DockItem href={SOCIAL_LINKS[9].url}>
+                    <DockIcon>
+                      <XIcon className="size-full" />
+                    </DockIcon>
+                  </DockItem>
+                </Dock>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -202,16 +204,16 @@ export function RestaurantFooter() {
       </div>
 
       {/* Mobile CTA Bar (hidden on desktop) */}
-      <div className="sticky bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-gray-200 lg:hidden z-40">
-        <div className="w-full flex gap-2 px-8 py-3">
+      <div className="sticky bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-gray-200 lg:hidden z-50">
+        <div className="w-full flex gap-2 px-3 xs:px-4 sm:px-6 py-3">
           <Button
             asChild
             size="sm"
             className="flex-1 rounded-lg bg-thai-orange hover:bg-thai-orange/90 text-white shadow-lg"
           >
-            <a href={`tel:${RESTAURANT_INFO.phone}`}>
-              <Phone className="h-4 w-4 mr-1" />
-              Appeler
+            <a href={`tel:${RESTAURANT_INFO.phone}`} className="flex items-center justify-center">
+              <Phone className="h-4 w-4 sm:mr-1" />
+              <span className="hidden xs:inline ml-1">Appeler</span>
             </a>
           </Button>
           <Button
@@ -224,9 +226,10 @@ export function RestaurantFooter() {
               href={RESTAURANT_INFO.googleMapsUrl}
               target="_blank"
               rel="noopener noreferrer"
+              className="flex items-center justify-center"
             >
-              <MapPin className="h-4 w-4 mr-1" />
-              Localiser
+              <MapPin className="h-4 w-4 sm:mr-1" />
+              <span className="hidden xs:inline ml-1">Localiser</span>
             </a>
           </Button>
         </div>

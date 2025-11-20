@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Calendar as CalendarIconLucide, AlertCircle, ShoppingCart, CreditCard, Loader2, Trash2, MapPin, Phone } from 'lucide-react';
+import { Calendar as CalendarIconLucide, AlertCircle, ShoppingCart, CreditCard, Loader2, Trash2, MapPin, Phone, Star } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -24,6 +24,7 @@ import { FloatingUserIcon } from '@/components/FloatingUserIcon';
 import { toSafeNumber } from '@/lib/serialization';
 import { spiceTextToLevel } from '@/lib/spice-helpers';
 import { SpiceDistributionSelector, getDistributionText } from '@/components/commander/SpiceDistributionSelector';
+import { PolaroidPhoto } from '@/components/PolaroidPhoto';
 
 export default function PanierPage() {
   const { toast } = useToast();
@@ -225,8 +226,8 @@ export default function PanierPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-thai py-8 px-4">
-      <div className="container mx-auto max-w-4xl">
+    <div className="min-h-screen bg-gradient-thai py-8 px-2">
+      <div className="container mx-auto max-w-6xl">
         {!currentUser || !clientFirebaseUID ? (
           <Alert className="mb-6 border-blue-200 bg-blue-50 text-blue-800">
             <AlertCircle className="h-4 w-4" />
@@ -237,11 +238,19 @@ export default function PanierPage() {
         ) : null}
 
         <Card className="shadow-xl border-thai-orange/20" style={{ position: 'relative', zIndex: 1 }}>
-          <CardHeader className="text-center bg-gradient-to-r from-thai-orange to-thai-gold text-white rounded-t-lg py-4">
-            <div className="flex items-center justify-center mb-1">
-              <ShoppingCart className="h-7 w-7 mr-2" />
+          <CardHeader className="bg-gradient-to-r from-thai-orange to-thai-gold text-white rounded-t-lg py-8 relative">
+            <div className="flex items-center justify-center gap-2">
+              <ShoppingCart className="h-7 w-7" />
               <CardTitle className="text-2xl font-bold">Mon Panier</CardTitle>
             </div>
+            <PolaroidPhoto
+              src="/image avatar/panier1.svg"
+              alt="Avatar Chanthana"
+              caption="panier"
+              position="right"
+              size={128}
+              rotation={3}
+            />
           </CardHeader>
 
           <CardContent className="p-6 md:p-8" style={{ position: 'relative', zIndex: 1 }}>
@@ -293,155 +302,170 @@ export default function PanierPage() {
                             return (
                               <div
                                 key={item.uniqueId}
-                                className="flex items-start gap-4 p-4 bg-white rounded-lg border border-gray-200 transition-all duration-300 hover:shadow-xl hover:bg-thai-cream/20 hover:border-thai-orange hover:ring-2 hover:ring-thai-orange/30 hover:scale-[1.02] transform"
+                                className="p-3 sm:p-4 bg-white rounded-lg border border-gray-200 transition-all duration-300 hover:shadow-xl hover:bg-thai-cream/20 hover:border-thai-orange hover:ring-2 hover:ring-thai-orange/30 hover:scale-[1.02] transform"
                               >
-                                {/* Image du plat */}
-                                {platData ? (
-                                  <DishDetailsModalInteractive
-                                    plat={platData}
-                                    formatPrix={formatPrix}
-                                    onAddToCart={(plat, quantite, spicePreference, spiceDistribution) =>
-                                      handleAjouterAuPanier(
-                                        plat,
-                                        quantite,
-                                        spicePreference,
-                                        spiceDistribution
-                                      )
-                                    }
-                                    currentQuantity={item.quantite}
-                                    currentSpiceDistribution={item.spiceDistribution}
-                                    dateRetrait={item.dateRetrait}
-                                  >
-                                    {imageUrl ? (
-                                      <img
-                                        src={imageUrl}
-                                        alt={item.nom}
-                                        className="w-24 h-16 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity duration-200"
-                                      />
+                                <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
+                                  {/* Image du plat */}
+                                  <div className="w-full sm:w-auto flex justify-center sm:justify-start">
+                                    {platData ? (
+                                      <DishDetailsModalInteractive
+                                        plat={platData}
+                                        formatPrix={formatPrix}
+                                        onAddToCart={(plat, quantite, spicePreference, spiceDistribution) =>
+                                          handleAjouterAuPanier(
+                                            plat,
+                                            quantite,
+                                            spicePreference,
+                                            spiceDistribution
+                                          )
+                                        }
+                                        currentQuantity={item.quantite}
+                                        currentSpiceDistribution={item.spiceDistribution}
+                                        dateRetrait={item.dateRetrait}
+                                      >
+                                        <div className="relative">
+                                          {imageUrl ? (
+                                            <img
+                                              src={imageUrl}
+                                              alt={item.nom}
+                                              className="w-32 h-32 sm:w-20 sm:h-20 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity duration-200"
+                                            />
+                                          ) : (
+                                            <div className="w-32 h-32 sm:w-20 sm:h-20 bg-thai-cream/30 border border-thai-orange/20 rounded-lg flex items-center justify-center cursor-pointer hover:bg-thai-cream/50 transition-colors duration-200">
+                                              <span className="text-thai-orange text-xl sm:text-lg">
+                                                🍽️
+                                              </span>
+                                            </div>
+                                          )}
+                                          {/* Badge de quantité */}
+                                          <div className="absolute -top-1.5 -right-1.5 bg-thai-orange text-white rounded-full w-6 h-6 flex items-center justify-center font-bold text-xs shadow-lg border-2 border-white">
+                                            {item.quantite}
+                                          </div>
+                                        </div>
+                                      </DishDetailsModalInteractive>
                                     ) : (
-                                      <div className="w-24 h-16 bg-thai-cream/30 border border-thai-orange/20 rounded-lg flex items-center justify-center cursor-pointer hover:bg-thai-cream/50 transition-colors duration-200">
-                                        <span className="text-thai-orange text-lg">
-                                          🍽️
-                                        </span>
+                                      <div className="relative">
+                                        <div className="w-32 h-32 sm:w-20 sm:h-20 bg-gray-200 rounded-lg flex items-center justify-center">
+                                          <span className="text-gray-400 text-xl sm:text-lg">
+                                            🍽️
+                                          </span>
+                                        </div>
+                                        {/* Badge de quantité */}
+                                        <div className="absolute -top-1.5 -right-1.5 bg-thai-orange text-white rounded-full w-6 h-6 flex items-center justify-center font-bold text-xs shadow-lg border-2 border-white">
+                                          {item.quantite}
+                                        </div>
                                       </div>
                                     )}
-                                  </DishDetailsModalInteractive>
-                                ) : (
-                                  <div className="w-24 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
-                                    <span className="text-gray-400 text-lg">
-                                      🍽️
-                                    </span>
                                   </div>
-                                )}
 
-                                {/* Informations du plat */}
-                                <div className="flex-1 space-y-2">
-                                  {/* Ligne 1: Nom du plat */}
-                                  {platData ? (
-                                    <DishDetailsModalInteractive
-                                      plat={platData}
-                                      formatPrix={formatPrix}
-                                      onAddToCart={(plat, quantite, spicePreference, spiceDistribution) =>
-                                        handleAjouterAuPanier(
-                                          plat,
-                                          quantite,
-                                          spicePreference,
-                                          spiceDistribution
-                                        )
-                                      }
-                                      currentQuantity={item.quantite}
-                                      currentSpiceDistribution={item.spiceDistribution}
-                                      dateRetrait={item.dateRetrait}
-                                    >
-                                      <h4 className="font-medium text-thai-green text-lg cursor-pointer hover:text-thai-orange transition-colors duration-200 hover:underline decoration-thai-orange/50">
+                                  {/* Informations du plat */}
+                                  <div className="flex-1 min-w-0 flex flex-col justify-between w-full sm:w-auto">
+                                    {platData ? (
+                                      <DishDetailsModalInteractive
+                                        plat={platData}
+                                        formatPrix={formatPrix}
+                                        onAddToCart={(plat, quantite, spicePreference, spiceDistribution) =>
+                                          handleAjouterAuPanier(
+                                            plat,
+                                            quantite,
+                                            spicePreference,
+                                            spiceDistribution
+                                          )
+                                        }
+                                        currentQuantity={item.quantite}
+                                        currentSpiceDistribution={item.spiceDistribution}
+                                        dateRetrait={item.dateRetrait}
+                                      >
+                                        <h4 className="font-medium text-thai-green text-base cursor-pointer hover:text-thai-orange transition-colors duration-200 hover:underline decoration-thai-orange/50">
+                                          {item.nom}
+                                        </h4>
+                                      </DishDetailsModalInteractive>
+                                    ) : (
+                                      <h4 className="font-medium text-gray-500 text-base">
                                         {item.nom}
                                       </h4>
-                                    </DishDetailsModalInteractive>
-                                  ) : (
-                                    <h4 className="font-medium text-gray-500 text-lg">
-                                      {item.nom}
-                                    </h4>
-                                  )}
+                                    )}
+                                    <div className="text-sm text-gray-600">
+                                      Prix unitaire: <span className="text-thai-green font-semibold">{formatPrix(toSafeNumber(item.prix))}</span>
+                                    </div>
 
-                                  {/* Ligne 2: Badges épicés (milieu) - Modifiables directement */}
-                                  {item.demandeSpeciale && item.demandeSpeciale.includes("épicé") && item.spiceDistribution && (
-                                    <SpiceDistributionSelector
-                                      totalQuantity={item.quantite}
-                                      distribution={item.spiceDistribution}
-                                      onDistributionChange={(newDistribution) => handleDistributionChange(item, newDistribution)}
-                                    />
-                                  )}
-
-                                  {/* Ligne 3: Quantité et Prix unitaire */}
-                                  <div className="flex items-center gap-4 text-sm text-gray-600">
-                                    <span className="flex items-center gap-1">
-                                      <span className="font-medium">
-                                        Quantité:
-                                      </span>
-                                      <span className="bg-thai-orange/10 text-thai-orange px-2 py-1 rounded-full font-medium">
-                                        {item.quantite}
-                                      </span>
-                                    </span>
-                                    <span className="flex items-center gap-1">
-                                      <span className="font-medium">
-                                        Prix unitaire:
-                                      </span>
-                                      <span className="text-thai-green font-semibold">
-                                        {formatPrix(toSafeNumber(item.prix))}
-                                      </span>
-                                    </span>
-                                  </div>
-                                </div>
-
-                                {/* Prix total et contrôles */}
-                                <div className="text-right">
-                                  <div className="text-2xl font-bold text-thai-orange mb-4">
-                                    {formatPrix(
-                                      toSafeNumber(item.prix) * item.quantite
+                                    {/* Sélecteur épicé (Mobile uniquement - entre prix unitaire et prix total) */}
+                                    {item.demandeSpeciale && item.demandeSpeciale.includes("épicé") && item.spiceDistribution && (
+                                      <div className="lg:hidden flex justify-center mt-2">
+                                        <div className="scale-60 origin-center">
+                                          <SpiceDistributionSelector
+                                            totalQuantity={item.quantite}
+                                            distribution={item.spiceDistribution}
+                                            onDistributionChange={(newDistribution) => handleDistributionChange(item, newDistribution)}
+                                          />
+                                        </div>
+                                      </div>
                                     )}
                                   </div>
-                                  <div className="flex items-center gap-2">
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      className="h-8 w-8 p-0 transition-all duration-200 hover:scale-110 hover:shadow-lg hover:border-thai-orange hover:ring-2 hover:ring-thai-orange/30"
-                                      onClick={e => {
-                                        e.stopPropagation();
-                                        handleQuantityChange(item, item.quantite - 1);
-                                      }}
-                                    >
-                                      -
-                                    </Button>
-                                    <span className="w-8 text-center font-medium">
-                                      {item.quantite}
-                                    </span>
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      className="h-8 w-8 p-0 transition-all duration-200 hover:scale-110 hover:shadow-lg hover:border-thai-orange hover:ring-2 hover:ring-thai-orange/30"
-                                      onClick={e => {
-                                        e.stopPropagation();
-                                        handleQuantityChange(item, item.quantite + 1);
-                                      }}
-                                    >
-                                      +
-                                    </Button>
-                                    <Button
-                                      size="icon"
-                                      variant="ghost"
-                                      onClick={e => {
-                                        e.stopPropagation();
-                                        supprimerDuPanier(item.uniqueId!);
-                                        toast({
-                                          title: 'Article supprimé',
-                                          description: `${item.nom} a été retiré de votre panier.`,
-                                        });
-                                      }}
-                                      className="h-8 w-8 text-gray-400 hover:text-red-500 hover:bg-red-50 ml-2 transition-all duration-200 hover:scale-110 hover:shadow-lg hover:ring-2 hover:ring-red-300"
-                                      aria-label="Supprimer l'article"
-                                    >
-                                      <Trash2 className="h-4 w-4" />
-                                    </Button>
+
+                                  {/* Sélecteur épicé (Desktop uniquement) */}
+                                  {item.demandeSpeciale && item.demandeSpeciale.includes("épicé") && item.spiceDistribution && (
+                                    <div className="hidden lg:flex items-center">
+                                      <div className="scale-75 origin-center">
+                                        <SpiceDistributionSelector
+                                          totalQuantity={item.quantite}
+                                          distribution={item.spiceDistribution}
+                                          onDistributionChange={(newDistribution) => handleDistributionChange(item, newDistribution)}
+                                        />
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* Prix total et contrôles */}
+                                  <div className="w-full sm:w-auto flex flex-col items-center sm:items-end gap-2 sm:gap-4">
+                                    <div className="text-xl sm:text-2xl font-bold text-thai-orange">
+                                      {formatPrix(
+                                        toSafeNumber(item.prix) * item.quantite
+                                      )}
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      <Button
+                                        size="icon"
+                                        variant="ghost"
+                                        onClick={e => {
+                                          e.stopPropagation();
+                                          supprimerDuPanier(item.uniqueId!);
+                                          toast({
+                                            title: 'Article supprimé',
+                                            description: `${item.nom} a été retiré de votre panier.`,
+                                          });
+                                        }}
+                                        className="h-8 w-8 text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all duration-200 hover:scale-110 hover:shadow-lg hover:ring-2 hover:ring-red-300"
+                                        aria-label="Supprimer l'article"
+                                      >
+                                        <Trash2 className="h-4 w-4" />
+                                      </Button>
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="h-8 w-8 p-0 transition-all duration-200 hover:scale-110 hover:shadow-lg hover:border-thai-orange hover:ring-2 hover:ring-thai-orange/30"
+                                        onClick={e => {
+                                          e.stopPropagation();
+                                          handleQuantityChange(item, item.quantite - 1);
+                                        }}
+                                      >
+                                        -
+                                      </Button>
+                                      <span className="w-8 text-center font-medium">
+                                        {item.quantite}
+                                      </span>
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="h-8 w-8 p-0 transition-all duration-200 hover:scale-110 hover:shadow-lg hover:border-thai-orange hover:ring-2 hover:ring-thai-orange/30"
+                                        onClick={e => {
+                                          e.stopPropagation();
+                                          handleQuantityChange(item, item.quantite + 1);
+                                        }}
+                                      >
+                                        +
+                                      </Button>
+                                    </div>
                                   </div>
                                 </div>
                               </div>
@@ -503,15 +527,25 @@ export default function PanierPage() {
                 </Card>
 
                 {/* Boutons d'action */}
-                <div className="flex gap-3">
-                  <Link href="/commander" className="flex-1">
-                    <Button variant="outline" className="w-full py-6 border-thai-orange text-thai-orange hover:bg-thai-orange hover:text-white">
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Link href="/commander" className="flex-1 order-2 sm:order-1">
+                    <Button variant="outline" className="w-full py-4 sm:py-6 text-xs sm:text-base border-thai-orange text-thai-orange hover:bg-thai-orange hover:text-white">
                       Retour à Commander
                     </Button>
                   </Link>
-                  <Button onClick={validerCommande} disabled={createCommande.isPending || !currentUser || !clientFirebaseUID} className="flex-1 bg-thai-orange text-lg py-6">
-                    {createCommande.isPending ? <Loader2 className="animate-spin mr-2"/> : <CreditCard className="mr-2"/>}
-                    Valider ma commande ({formatPrix(totalPrix)})
+                  <Button
+                    onClick={validerCommande}
+                    disabled={createCommande.isPending || !currentUser || !clientFirebaseUID}
+                    className="flex-1 bg-thai-orange py-4 sm:py-6 text-sm sm:text-lg order-1 sm:order-2"
+                  >
+                    {createCommande.isPending ? (
+                      <Loader2 className="animate-spin mr-1 sm:mr-2 h-4 w-4 sm:h-5 sm:w-5"/>
+                    ) : (
+                      <CreditCard className="mr-1 sm:mr-2 h-4 w-4 sm:h-5 sm:w-5"/>
+                    )}
+                    <span className="truncate">
+                      Valider ({formatPrix(totalPrix)})
+                    </span>
                   </Button>
                 </div>
               </div>

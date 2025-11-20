@@ -1040,6 +1040,18 @@ npm run test:e2e
    - Redémarrer serveur après modifications Prisma
 
 ### 🛍️ C. Page Panier (/panier)
+#### ✅ Améliorations Complétées
+- [x] ✅ **Photo Polaroid Header** : Composant réutilisable `PolaroidPhoto.tsx` avec styling authentique
+  - Padding 10px (top/sides) et 20px (bottom) pour effet Polaroid
+  - Bordures Thai green (border-1) sur frame et photo
+  - Rotation 3° avec effet hover:rotate-0 pour redressement
+  - Position customizable (left/center/right) avec chevauchement léger sur bord
+  - Taille et rotation paramétrables via props
+  - Shadow effects avec hover (shadow-xl)
+  - Caption en Thai green bold
+  - Utilisé dans CardHeader avec py-8 pour bande orange élargie
+
+#### 🔥🔥 Fonctionnalités Prioritaires
 - [ ] 🔥🔥 **Sauvegarde panier non connecté** : Proposer création compte pour conserver sélection
 - [ ] 🔥🔥 **Page confirmation visuelle** : Récapitulatif + message remerciement après validation
 - [ ] 🔥 **Message confirmation lisible** : Fond blanc pour toast confirmation

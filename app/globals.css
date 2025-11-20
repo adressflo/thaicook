@@ -16,6 +16,9 @@
   --color-thai-gold-dark: #b8860b;
   --color-thai-red: #dc2626;
   --color-thai-cream: #fef7e0;
+
+  /* Breakpoint custom pour responsive très petit écran */
+  --breakpoint-xs: 480px;
 }
 
 /* Configuration Tailwind v4 */
@@ -544,6 +547,16 @@ button.rdp-day_today,
       var(--color-thai-cream),
       rgba(45, 80, 22, 0.1)
     );
+  }
+
+  /* Utilitaire pour cacher la scrollbar tout en gardant le scroll */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
   }
 
   /* Utilitaires pour les focus et states orange par défaut */
