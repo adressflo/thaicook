@@ -65,7 +65,6 @@ import { FeaturedDishSection } from '@/components/commander/FeaturedDishSection'
 import { PolaroidThankYouModal } from '@/components/commander/PolaroidThankYouModal';
 import { spiceTextToLevel } from '@/lib/spice-helpers';
 import { SpiceDistributionDisplay } from '@/components/commander/SpiceDistributionDisplay';
-import { ChanthanaAvatar } from '@/components/commander/ChanthanaAvatar';
 
 export const dynamic = 'force-dynamic';
 
@@ -796,6 +795,379 @@ const Commander = memo(() => {
                     </div>
                   ) : platsDisponibles.length === 0 ? (
                     <div className="text-center py-6 bg-thai-cream/30 rounded-lg">
+                      <p className="text-thai-green/70">
+                        Aucun plat disponible ce jour-là.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="grid md:grid-cols-2 gap-4">
+                      {platsDisponibles.map(plat => (
+                        <DishDetailsModalInteractive
+                          key={plat.id}
+                          plat={plat}
+                          formatPrix={formatPrix}
+                          onAddToCart={handleAjouterAuPanier}
+                          currentQuantity={getCurrentQuantity(plat.idplats)}
+                          dateRetrait={dateRetrait}
+                        >
+                          <Card
+                            className={`border-thai-orange/20 flex flex-col transition-all duration-300 cursor-pointer ${
+                              highlightedPlatId === plat.id.toString()
+                                ? 'ring-4 ring-thai-orange/50 border-thai-orange scale-105 shadow-lg'
+                                : 'hover:shadow-md hover:border-thai-orange/40'
+                            }`}
+                            onMouseEnter={() =>
+                              setHighlightedPlatId(plat.id.toString())
+                            }
+                            onMouseLeave={() => setHighlightedPlatId(null)}
+                          >
+                            {plat.photo_du_plat && (
+                              <div className="aspect-video overflow-hidden rounded-t-lg relative">
+                                <img
+                                  src={plat.photo_du_plat}
+                                  alt={plat.plat}
+                                  className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
+                                />
+                                {/* Badge Disponible en haut à gauche */}
+                                <div className="absolute top-2 left-2">
+                                  <Badge className="bg-thai-green text-white shadow-md font-semibold px-2 py-0.5 text-xs">
+                                    Disponible
+                                  </Badge>
+                                </div>
+                                {/* Badge Panier en haut à droite */}
+                                {getCurrentQuantity(plat.idplats) > 0 && (
+                                  <div className="absolute top-2 right-2">
+                                    <Badge className="bg-thai-orange text-white shadow-md font-semibold px-2 py-0.5 text-xs">
+                                      Panier {getCurrentQuantity(plat.idplats)}
+                                    </Badge>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                            <CardContent className="p-3 flex flex-col flex-grow">
+                              {/* Nom + Badges sur même ligne */}
+                              <div className="flex items-center justify-between gap-2 mb-1">
+                                <h4 className="font-semibold text-thai-green flex-1 line-clamp-1">
+                                  {plat.plat}
+                                </h4>
+                                {(plat.est_vegetarien || (plat.niveau_epice ?? 0) > 0) && (
+                                  <div className="flex gap-1 flex-shrink-0">
+                                    {plat.est_vegetarien && (
+                                      <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5 bg-green-50 text-green-700 border-green-300">
+                                        🌱 Végétarien
+                                      </Badge>
+                                    )}
+                                    {(plat.niveau_epice ?? 0) > 0 && (
+                                      <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5 bg-orange-50 text-orange-700 border-orange-300 flex items-center gap-0.5">
+                                        <Flame className="w-3 h-3" />
+                                        Peut être épicé
+                                      </Badge>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+
+                              <p className="text-xs text-gray-600 mb-2 flex-grow">
+                                {plat.description}
+                              </p>
+                              <div className="flex items-center justify-between mt-auto pt-2">
+                                <Badge variant="secondary">
+                                  {formatPrix(parseFloat(plat.prix || '0'))}
+                                </Badge>
+                                <Button
+                                  size="sm"
+                                  className="transition-all duration-200 hover:scale-105 hover:shadow-md"
+                                >
+                                  Ajouter
+                                </Button>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        </DishDetailsModalInteractive>
+                      ))}
+                    </div>
+                  )}
+                  <div className="mt-6 p-3 bg-green-50 border border-green-200 rounded-lg text-center">
+                    <p className="text-sm text-green-800 font-medium">
+                      ✓ Retrait prévu le{' '}
+                      {format(dateRetrait, 'eeee dd MMMM', { locale: fr })} à{' '}
+                      {heureRetrait}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+
+          {/* Section latérale droite - Panier */}
+          {panier.length > 0 && !isCartCollapsed && (
+            <div className="w-full">
+              {/* Desktop Sidebar - 30% fixe */}
+              {!isMobile && (
+                <div className="sticky top-8 max-h-[calc(100vh-4rem)] flex flex-col">
+                  <Card className="shadow-xl border-thai-orange/20 flex flex-col h-full overflow-hidden">
+                    <CardHeader className="bg-gradient-to-r from-thai-orange to-thai-gold text-white py-4 relative rounded-t-lg">
+                      <div className="text-center">
+                        <div className="flex items-center justify-center mb-1">
+                          <ShoppingCart className="h-7 w-7 mr-2" />
+                          <CardTitle className="text-2xl font-bold">
+                            Mon Panier
+                          </CardTitle>
+                        </div>
+                        <p className="text-white/90 text-xs">
+                          {panier.reduce(
+                            (total, item) => total + item.quantite,
+                            0
+                          )}{' '}
+                          Plat
+                          {panier.reduce(
+                            (total, item) => total + item.quantite,
+                            0
+                          ) > 1
+                            ? 's'
+                            : ''}
+                        </p>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setIsCartCollapsed(true)}
+                          className="text-white hover:bg-white/20 p-1 absolute top-2 right-2"
+                        >
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </CardHeader>
+
+                    <CardContent className="p-4 flex-1 overflow-y-auto">
+                      {(() => {
+                        const groupedByDate = panier.reduce(
+                          (groups, item) => {
+                            const dateKey =
+                              item.dateRetrait?.toDateString() || 'no-date';
+                            if (!groups[dateKey]) {
+                              groups[dateKey] = [];
+                            }
+                            groups[dateKey].push(item);
+                            return groups;
+                          },
+                          {} as Record<string, PlatPanier[]>
+                        );
+
+                        return Object.entries(groupedByDate).map(
+                          ([dateKey, items]) => {
+                            const dateRetrait = items[0]?.dateRetrait;
+
+                            return (
+                              <div
+                                key={dateKey}
+                                className="mb-4 border border-thai-orange/20 rounded-lg p-3 bg-thai-cream/20 animate-fade-in transition-all duration-300 hover:shadow-md hover:border-thai-orange/30 hover:bg-thai-cream/30"
+                              >
+                                {dateRetrait && (
+                                  <div
+                                    className="mb-2 pb-2 border-b border-thai-orange/10 cursor-pointer transition-all duration-300 hover:bg-thai-orange/5 hover:border-thai-orange/20 rounded-lg px-2 py-1"
+                                    onMouseEnter={() => {
+                                      const jourDate = format(
+                                        dateRetrait,
+                                        'eeee',
+                                        {
+                                          locale: fr,
+                                        }
+                                      ).toLowerCase();
+                                      const heureDate = format(
+                                        dateRetrait,
+                                        'HH:mm'
+                                      );
+                                      setJourSelectionne(jourDate);
+                                      setDateRetrait(dateRetrait);
+                                      setHeureRetrait(heureDate);
+                                    }}
+                                  >
+                                    <h4 className="font-semibold text-thai-green flex items-center gap-2 text-base">
+                                      <CalendarIconLucide className="h-4 w-4 text-thai-orange" />
+                                      Retrait prévu le{' '}
+                                      <span className="text-thai-orange font-bold">
+                                        {format(dateRetrait, 'eeee dd MMMM', {
+                                          locale: fr,
+                                        }).replace(/^\w/, c =>
+                                          c.toUpperCase()
+                                        )}{' '}
+                                        à {format(dateRetrait, 'HH:mm')}
+                                      </span>
+                                    </h4>
+                                  </div>
+                                )}
+
+                                <div className="space-y-3">
+                                  {items.map(item => {
+                                    const platData = plats?.find(
+                                      p => p.id.toString() === item.id
+                                    );
+                                    const imageUrl = platData?.photo_du_plat;
+
+                                    return platData ? (
+                                      <DishDetailsModalInteractive
+                                        key={item.uniqueId}
+                                        plat={platData}
+                                        formatPrix={formatPrix}
+                                        onAddToCart={handleAjouterAuPanier}
+                                        currentQuantity={item.quantite}
+                                        currentSpiceDistribution={item.spiceDistribution}
+                                        dateRetrait={item.dateRetrait}
+                                      >
+                                        <div className="flex items-start gap-3 p-3 bg-white rounded-lg border border-gray-200 transition-all duration-300 hover:shadow-xl hover:bg-thai-cream/20 hover:border-thai-orange hover:ring-2 hover:ring-thai-orange/30 hover:scale-[1.02] transform cursor-pointer">
+                                          {/* Photo 18x18 avec badge quantité */}
+                                          <div className="relative flex-shrink-0">
+                                            <div className="absolute -top-2 -right-2 bg-thai-orange text-white text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full shadow-md z-10">
+                                              {item.quantite}
+                                            </div>
+                                            {imageUrl ? (
+                                              <img
+                                                src={imageUrl}
+                                                alt={item.nom}
+                                                className="w-[72px] h-[72px] object-cover rounded-lg"
+                                              />
+                                            ) : (
+                                              <div className="w-[72px] h-[72px] bg-thai-cream/30 border border-thai-orange/20 rounded-lg flex items-center justify-center">
+                                                <span className="text-thai-orange text-2xl">
+                                                  🍽️
+                                                </span>
+                                              </div>
+                                            )}
+                                          </div>
+
+                                          {/* Contenu principal - 2 lignes */}
+                                          <div className="flex-1 flex flex-col gap-2 min-w-0">
+                                            {/* Ligne 1: Nom → Icônes épicées → Prix total */}
+                                            <div className="flex items-center justify-between gap-2">
+                                              <h4 className="font-medium text-thai-green text-base">
+                                                {item.nom}
+                                              </h4>
+                                              {item.demandeSpeciale && item.demandeSpeciale.includes("épicé") && (
+                                                <SpiceDistributionDisplay
+                                                  distributionText={item.demandeSpeciale}
+                                                />
+                                              )}
+                                              <div className="text-lg font-bold text-thai-orange whitespace-nowrap">
+                                                {formatPrix(
+                                                  parseFloat(item.prix) *
+                                                    item.quantite
+                                                )}
+                                              </div>
+                                            </div>
+
+                                            {/* Ligne 2: Prix unitaire (gauche) → Contrôles (droite) */}
+                                            <div className="flex items-center justify-between gap-2">
+                                              <span className="text-xs text-gray-600">
+                                                Prix unitaire: <span className="font-medium">{formatPrix(parseFloat(item.prix))}</span>
+                                              </span>
+                                              <div className="flex items-center gap-2">
+                                                <Button
+                                                  size="sm"
+                                                  variant="ghost"
+                                                  onClick={e => {
+                                                    e.stopPropagation();
+                                                    supprimerDuPanier(
+                                                      item.uniqueId!
+                                                    );
+                                                    toast({
+                                                      title: 'Article supprimé',
+                                                      description: `${item.nom} a été retiré de votre panier.`,
+                                                    });
+                                                  }}
+                                                  className="h-7 w-7 p-0 text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all duration-200"
+                                                  aria-label="Supprimer l'article"
+                                                >
+                                                  <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                                <Button
+                                                  size="sm"
+                                                  variant="outline"
+                                                  className="h-7 w-7 p-0 transition-all duration-200 hover:scale-110 hover:border-thai-orange"
+                                                  onClick={e => {
+                                                    e.stopPropagation();
+                                                    modifierQuantite(
+                                                      item.uniqueId!,
+                                                      item.quantite - 1
+                                                    );
+                                                  }}
+                                                >
+                                                  -
+                                                </Button>
+                                                <span className="w-6 text-center font-bold text-sm">
+                                                  {item.quantite}
+                                                </span>
+                                                <Button
+                                                  size="sm"
+                                                  variant="outline"
+                                                  className="h-7 w-7 p-0 transition-all duration-200 hover:scale-110 hover:border-thai-orange"
+                                                  onClick={e => {
+                                                    e.stopPropagation();
+                                                    modifierQuantite(
+                                                      item.uniqueId!,
+                                                      item.quantite + 1
+                                                    );
+                                                  }}
+                                                >
+                                                  +
+                                                </Button>
+                                              </div>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </DishDetailsModalInteractive>
+                                    ) : (
+                                      <div className="flex items-start gap-3 p-3 bg-white rounded-lg border border-gray-200 opacity-50">
+                                        <div className="w-16 h-12 bg-gray-200 rounded-lg flex items-center justify-center">
+                                          <span className="text-gray-400 text-lg">
+                                            🍽️
+                                          </span>
+                                        </div>
+                                        <div className="flex-1">
+                                          <h4 className="font-medium text-gray-500 text-base mb-1">
+                                            {item.nom}
+                                          </h4>
+                                          <p className="text-sm text-gray-400">
+                                            Plat supprimé
+                                          </p>
+                                        </div>
+                                        <div className="text-right">
+                                          <div className="text-lg font-bold text-gray-400 mb-3">
+                                            {formatPrix(
+                                              parseFloat(item.prix) *
+                                                item.quantite
+                                            )}
+                                          </div>
+                                          <Button
+                                            size="icon"
+                                            variant="ghost"
+                                            onClick={() => {
+                                              supprimerDuPanier(item.uniqueId!);
+                                              toast({
+                                                title: 'Article supprimé',
+                                                description: `${item.nom} a été retiré de votre panier.`,
+                                              });
+                                            }}
+                                            className="h-6 w-6 text-gray-400 hover:text-red-500 hover:bg-red-50"
+                                          >
+                                            <Trash2 className="h-3 w-3" />
+                                          </Button>
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            );
+                          }
+                        );
+                      })()}
+
+                      <div className="flex justify-between items-center bg-thai-cream/30 p-3 rounded-lg mb-4">
+                        <span className="text-lg font-bold text-thai-green">
+                          Total de la commande :
+                        </span>
+                        <span className="text-xl font-bold text-thai-orange">
+                          {formatPrix(totalPrix)}
                         </span>
                       </div>
 
