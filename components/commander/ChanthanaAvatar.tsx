@@ -5,9 +5,11 @@ import { cn } from "@/lib/utils"
 
 interface ChanthanaAvatarProps {
   className?: string
+  reaction?: "idle" | "happy"
+  message?: string
 }
 
-export function ChanthanaAvatar({ className }: ChanthanaAvatarProps) {
+export function ChanthanaAvatar({ className, reaction = "idle", message }: ChanthanaAvatarProps) {
   const isMobile = useIsMobile()
 
   return (
@@ -22,19 +24,28 @@ export function ChanthanaAvatar({ className }: ChanthanaAvatarProps) {
       )}
     >
       <div className="relative h-full w-full">
-        <Image
-          src="/chanthana.svg"
-          alt="Chanthana prend votre commande"
-          fill
-          className="object-contain object-bottom"
-          priority
-        />
+        {reaction === "happy" ? (
+          <img
+            src="/videogif/Sawadee.gif"
+            alt="Chanthana contente"
+            className="h-full w-full object-contain object-bottom"
+          />
+        ) : (
+          <Image
+            src="/chanthana.svg"
+            alt="Chanthana prend votre commande"
+            fill
+            className="object-contain object-bottom"
+            priority
+          />
+        )}
 
-        {/* Bulle de dialogue optionnelle - visible au chargement */}
+        {/* Bulle de dialogue optionnelle - visible au chargement ou si message */}
         <motion.div
           initial={{ opacity: 0, scale: 0.8, y: 10 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          transition={{ delay: 1, duration: 0.5 }}
+          transition={{ delay: reaction === "happy" ? 0 : 1, duration: 0.5 }}
+          key={message || "default"} // Re-animate on message change
           className={cn(
             "border-thai-orange absolute rounded-2xl border-2 bg-white p-3 shadow-xl",
             isMobile
@@ -43,8 +54,14 @@ export function ChanthanaAvatar({ className }: ChanthanaAvatarProps) {
           )}
         >
           <div className="text-thai-green relative text-center font-medium">
-            <span className="mb-1 block">Sawadee kha ! 🙏</span>
-            Je prends votre commande.
+            {message ? (
+              <span>{message}</span>
+            ) : (
+              <>
+                <span className="mb-1 block">Sawadee kha ! 🙏</span>
+                Je prends votre commande.
+              </>
+            )}
             {/* Triangle de la bulle */}
             <div
               className={cn(
