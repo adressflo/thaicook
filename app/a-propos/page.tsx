@@ -1,10 +1,10 @@
-import Link from 'next/link';
-import { AppLayout } from '@/components/AppLayout';
+﻿import Link from 'next/link';
+import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Heart, Utensils, Calendar, Home, Star, Users, Award } from 'lucide-react';
 import { Metadata } from 'next';
-import AProposButtons from '@/components/AProposButtons';
+import AProposButtons from '@/components/shared/AProposButtons';
 
 export const metadata: Metadata = {
   title: 'À Propos - ChanthanaThaiCook',

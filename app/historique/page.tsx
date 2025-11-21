@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { memo, useMemo, useCallback, useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -28,7 +28,7 @@ import {
 import { Loader2, Clock, History, Calendar, Utensils, Euro, BarChart3, Zap, PartyPopper, Users, WifiOff } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useOnlineStatus } from '@/hooks/useOnlineStatus';
-import { OfflineBannerCompact } from '@/components/OfflineBanner';
+import { OfflineBannerCompact } from '@/components/pwa/OfflineBanner';
 import { Badge } from '@/components/ui/badge';
 import type {
   CommandeUI,
@@ -37,7 +37,7 @@ import type {
   ExtraUI,
   EvenementUI,
 } from '@/types/app';
-import { AppLayout } from '@/components/AppLayout';
+import { AppLayout } from '@/components/layout/AppLayout';
 import { isWithinInterval, parseISO } from 'date-fns';
 import { toSafeNumber } from '@/lib/serialization';
 

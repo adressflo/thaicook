@@ -1,4 +1,4 @@
-// src/pages/Index.tsx converted to Next.js app/page.tsx
+﻿// src/pages/Index.tsx converted to Next.js app/page.tsx
 'use client';
 
 import Link from 'next/link';
@@ -7,11 +7,11 @@ import { Info, AlertTriangle, CheckCircle, XCircle } from 'lucide-react';
 import { memo, useState, useEffect } from 'react';
 import { usePermissions } from '@/hooks/usePermissions';
 import { getActiveAnnouncement, announcementTypeConfig, type Announcement } from '@/lib/announcements';
-import { FloatingUserIcon } from '@/components/FloatingUserIcon';
-import { HeroCarousel, type HeroMedia } from '@/components/HeroCarousel';
-import { QuickNav } from '@/components/QuickNav';
-import { NavigationCards } from '@/components/NavigationCards';
-import { SectionPourquoiCompte } from '@/components/SectionPourquoiCompte';
+import { FloatingUserIcon } from '@/components/layout/FloatingUserIcon';
+import { HeroCarousel, type HeroMedia } from '@/components/shared/HeroCarousel';
+import { QuickNav } from '@/components/layout/QuickNav';
+import { NavigationCards } from '@/components/layout/NavigationCards';
+import { SectionPourquoiCompte } from '@/components/shared/SectionPourquoiCompte';
 import { supabase } from '@/lib/supabase';
 
 const TableauDeBord = memo(() => {

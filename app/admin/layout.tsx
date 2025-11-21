@@ -1,6 +1,6 @@
-'use client';
+﻿'use client';
 
-import { PermissionGuard } from '@/components/PermissionGuard';
+import { PermissionGuard } from '@/components/shared/PermissionGuard';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { 

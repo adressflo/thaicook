@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Link from 'next/link';
 import Image from 'next/image';
@@ -40,7 +40,7 @@ import ReactCrop, {
   makeAspectCrop,
 } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
-import { FloatingUserIcon } from '@/components/FloatingUserIcon';
+import { FloatingUserIcon } from '@/components/layout/FloatingUserIcon';
 import { useSession } from '@/lib/auth-client';
 import { updateUserProfile, getClientProfile, updateProfilePhoto as updateProfilePhotoAction, deleteProfilePhotoAction } from './actions';
 import { DateBirthSelector } from '@/components/forms/DateBirthSelector';

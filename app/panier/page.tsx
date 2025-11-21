@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
@@ -33,8 +33,8 @@ import {
   SpiceDistributionSelector,
   getDistributionText,
 } from "@/components/commander/SpiceDistributionSelector"
-import { FloatingUserIcon } from "@/components/FloatingUserIcon"
-import { PolaroidPhoto } from "@/components/PolaroidPhoto"
+import { FloatingUserIcon } from "@/components/layout/FloatingUserIcon"
+import { PolaroidPhoto } from "@/components/shared/PolaroidPhoto"
 
 // Helper function pour convertir le prix en nombre
 const toSafeNumber = (prix: string | number | undefined): number => {

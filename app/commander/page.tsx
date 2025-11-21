@@ -1,6 +1,6 @@
-"use client"
+﻿"use client"
 
-import { AppLayout } from "@/components/AppLayout"
+import { AppLayout } from "@/components/layout/AppLayout"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -9,8 +9,10 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { useToast } from "@/hooks/use-toast"
+import { toastVideo } from "@/hooks/use-toast-video"
+import { TypingAnimation } from "@/components/ui/typing-animation"
 import { useOnlineStatus } from "@/hooks/useOnlineStatus"
-import { OfflineBannerCompact } from "@/components/OfflineBanner"
+import { OfflineBannerCompact } from "@/components/pwa/OfflineBanner"
 import {
   AlertCircle,
   Calendar as CalendarIconLucide,
@@ -336,13 +338,29 @@ const Commander = memo(() => {
 
     setIsCartCollapsed(false) // Open cart on add
 
-    toast({
+    toastVideo({
       title: uniqueId ? "Panier mis à jour !" : "Plat ajouté !",
-      description: `${quantite} ${plat.plat}${quantite > 1 ? "s" : ""} ${uniqueId ? "mis à jour" : "ajouté"}${quantite > 1 ? "s" : ""} à votre panier pour le ${format(
-        dateCompleteRetrait,
-        "eeee dd MMMM",
-        { locale: fr }
-      )} à ${heureRetrait}.`,
+      description: (
+        <TypingAnimation duration={5}>
+          <span className="text-thai-green font-medium">{quantite}</span>
+          <span className="text-thai-orange font-medium">
+            {" "}
+            {plat.plat}
+            {quantite > 1 ? "s" : ""}
+          </span>
+          <span className="text-thai-green font-medium">
+            {" "}
+            {uniqueId ? "mis à jour" : "ajouté"}
+            {quantite > 1 ? "s" : ""} à votre panier pour le{" "}
+          </span>
+          <span className="text-thai-orange font-medium">
+            {format(dateCompleteRetrait, "eeee dd MMMM", { locale: fr })}
+          </span>
+          <span className="text-thai-green font-medium"> à </span>
+          <span className="text-thai-orange font-medium">{heureRetrait}</span>
+        </TypingAnimation>
+      ),
+      media: "/media/animations/toasts/ajoutpaniernote.mp4",
     })
   }
 

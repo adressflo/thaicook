@@ -1,5 +1,5 @@
-'use client';
-import { AppLayout } from '@/components/AppLayout';
+﻿'use client';
+import { AppLayout } from '@/components/layout/AppLayout';
 import { useState, useMemo, memo } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
