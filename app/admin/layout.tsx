@@ -3,18 +3,19 @@
 import { PermissionGuard } from '@/components/shared/PermissionGuard';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { 
-  LayoutGrid, 
-  ShoppingCart, 
-  Users, 
-  BarChart3, 
-  Settings, 
-  Utensils, 
-  Package, 
-  Bot, 
-  Zap, 
+import {
+  LayoutGrid,
+  ShoppingCart,
+  Users,
+  BarChart3,
+  Settings,
+  Utensils,
+  Package,
+  Bot,
+  Zap,
   Home,
-  ChevronLeft
+  ChevronLeft,
+  Video
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -68,6 +69,12 @@ const adminNavItems = [
     href: "/admin/stock-ia",
     icon: Zap,
     description: "Gestion intelligente du stock"
+  },
+  {
+    title: "Hero Media",
+    href: "/admin/hero-media",
+    icon: Video,
+    description: "Gestion du carousel hero"
   },
   {
     title: "Advanced",

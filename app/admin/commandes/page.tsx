@@ -59,6 +59,7 @@ import {
   Pin,
   PinOff,
   Gift,
+  Loader2,
 } from 'lucide-react';
 import {
   usePrismaCommandes,

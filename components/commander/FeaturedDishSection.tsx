@@ -69,7 +69,7 @@ export function FeaturedDishSection({
           {/* Vidéo Chanthana + Bulle dialogue */}
           <div className="relative flex-shrink-0">
             <video
-              src="/videohero/platsemaine.mp4"
+              src="/media/hero/videos/platsemaine.mp4"
               autoPlay
               loop
               muted

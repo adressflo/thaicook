@@ -87,7 +87,7 @@ export function NavigationCards({
       title: 'Pour Commander',
       buttonTitle: 'Commander',
       description: 'Découvrez notre menu authentique et passez votre commande',
-      image: '/pourcommander.svg',
+      image: '/illustrations/pourcommander.svg',
       link: '/commander',
       icon: Utensils,
     },
@@ -98,7 +98,7 @@ export function NavigationCards({
       description: isInstalled
         ? 'Accédez rapidement depuis votre écran d\'accueil'
         : 'Commander plus rapidement, notifications et mode hors ligne',
-      image: '/installapp.svg',
+      image: '/illustrations/installapp.svg',
       link: '#',
       icon: Smartphone,
       badge: !isInstalled && canInstall ? 'Recommandé' : undefined,
@@ -115,7 +115,7 @@ export function NavigationCards({
       title: 'Pour vos Événements',
       buttonTitle: 'Événements',
       description: 'Organisez vos événements avec nos menus personnalisés',
-      image: '/pourvosevenement.svg',
+      image: '/illustrations/pourvosevenement.svg',
       link: '/evenements',
       icon: Calendar,
     },
@@ -124,7 +124,7 @@ export function NavigationCards({
       title: 'Nous Trouver',
       buttonTitle: 'Nous Trouver',
       description: 'Venez nous rendre visite à Marigny-Marmande',
-      image: '/nous trouver.svg',
+      image: '/illustrations/nous trouver.svg',
       link: '/nous-trouver',
       icon: MapPin,
     },
@@ -133,7 +133,7 @@ export function NavigationCards({
       title: 'Découvertes',
       buttonTitle: 'Découvrir',
       description: 'Nouveautés, plats du moment et suivez nos coulisses sur les réseaux sociaux',
-      image: '/pourcommander.svg', // Temporaire - à remplacer par image appropriée
+      image: '/illustrations/pourcommander.svg', // Temporaire - à remplacer par image appropriée
       link: '/actualites',
       icon: Sparkles,
     },
@@ -142,7 +142,7 @@ export function NavigationCards({
       title: 'Mon Profil',
       buttonTitle: 'Mon Profil',
       description: 'Gérez vos informations personnelles et préférences',
-      image: userPhoto || '/image avatar/profildefaut.svg',
+      image: userPhoto || '/media/avatars/default.svg',
       link: isAuthenticated ? '/profil' : '/auth/login',
       icon: User,
       disabled: !isAuthenticated,
@@ -154,7 +154,7 @@ export function NavigationCards({
       title: isAuthenticated ? 'Suivi' : 'Historique',
       buttonTitle: isAuthenticated ? 'Suivi' : 'Historique',
       description: "Suivez vos commandes et consultez l'historique",
-      image: '/suivihistorique.svg',
+      image: '/illustrations/suivihistorique.svg',
       link: isAuthenticated ? '/historique' : '/auth/login',
       icon: History,
       disabled: !isAuthenticated,
@@ -164,7 +164,7 @@ export function NavigationCards({
       title: 'À propos de nous',
       buttonTitle: 'À Propos',
       description: 'Découvrez notre histoire et notre passion',
-      image: '/apropos.svg',
+      image: '/illustrations/apropos.svg',
       link: '/a-propos',
       icon: Users,
     },
@@ -348,7 +348,7 @@ export function NavigationCards({
           {/* Image en haut comme les cards */}
           <div className="relative w-full aspect-video overflow-hidden">
             <Image
-              src="/image avatar/phonevalid.svg"
+              src="/media/avatars/phonevalid.svg"
               alt="Installation"
               fill
               className="object-cover"

@@ -1,4 +1,5 @@
 ### 🎯 Plan d'Amélioration Stratégique : ChanthanaThaiCook
+
 Notre feuille de route pour faire évoluer l'expérience ChanthanaThaiCook. Ce document est notre espace de collaboration pour construire l'avenir de l'application.
 
 ---
@@ -13,20 +14,24 @@ Notre feuille de route pour faire évoluer l'expérience ChanthanaThaiCook. Ce d
 ---
 
 ## 📋 Phase 0 : Infrastructure Critique (🔥🔥🔥🔥)
+
 **Objectif : Sécurité, validation robuste, et fondations techniques avant toutes les features**
 
 ### ✅ 1️⃣ Prisma ORM - Migration Base de Données [TERMINÉ]
+
 **Statut : 100% ✅**
 
 <details>
 <summary>📊 Détails de la migration</summary>
 
 ✅ **Infrastructure complétée**
+
 - [x] Schéma Prisma généré avec 26 modèles depuis Supabase
 - [x] Types TypeScript auto-générés et BigInt corrigés
 - [x] Tests CRUD validés : `npm run prisma:test` (18 tests ✅)
 
 ✅ **Migration application COMPLÈTE**
+
 - [x] Server Actions créés : `app/actions/*.ts` (5 fichiers, 100% CRUD)
   - clients.ts, plats.ts, commandes.ts, extras.ts, evenements.ts
 - [x] Hooks Prisma créés : `hooks/usePrismaData.ts` (44 hooks TanStack Query)
@@ -36,7 +41,7 @@ Notre feuille de route pour faire évoluer l'expérience ChanthanaThaiCook. Ce d
   - Extras: 4 hooks (CRUD complet)
   - Evenements: 7 hooks (CRUD + relations)
 - [x] Migration 100% des composants : 17 pages + 10 composants
-  - app/profil, app/commander, app/panier, app/admin/*, app/suivi-*, etc.
+  - app/profil, app/commander, app/panier, app/admin/_, app/suivi-_, etc.
   - Tous les composants utilisent usePrismaData.ts
 - [x] Nettoyage `hooks/useSupabaseData.ts` : **2904 → 361 lignes (-87%)**
   - Supprimé 36 hooks obsolètes (CRUD remplacés par Prisma)
@@ -56,15 +61,18 @@ Notre feuille de route pour faire évoluer l'expérience ChanthanaThaiCook. Ce d
 ---
 
 ### 🔥🔥🔥🔥 2️⃣ Next Safe Action - Validation Zod Complète [CRITIQUE]
+
 **Dépend de : Prisma ORM ✅**
 
 #### Configuration de base ✅
+
 - [x] Installation de la bibliothèque `next-safe-action`
 - [x] Création du client d'action public dans `lib/safe-action.ts`
 - [x] Middleware d'authentification disponible via Better Auth (`middleware.ts`)
 - [x] Migration de `plats.ts`, `clients.ts`, `commandes.ts`, `evenements.ts` et `extras.ts` vers next-safe-action
 
 #### ✅ Schemas Zod pour toutes les actions [COMPLÉTÉ]
+
 **Statut : Schemas dans `lib/validations.ts` + Server Actions migrés**
 
 - [x] **✅ Schemas centralisés dans `lib/validations.ts`** (369 lignes)
@@ -96,6 +104,7 @@ Notre feuille de route pour faire évoluer l'expérience ChanthanaThaiCook. Ce d
   - ✅ Messages d'erreur français dans tous les schemas
 
 #### ✅ Schemas Auth Complets
+
 **Statut : 100% TERMINÉ ✅**
 
 - [x] **✅ Ajoutés dans `lib/validations.ts` (lignes 400-550) :**
@@ -123,12 +132,14 @@ Notre feuille de route pour faire évoluer l'expérience ChanthanaThaiCook. Ce d
 ---
 
 ### ✅ 3️⃣ Better Auth - Authentication Moderne TypeScript [TERMINÉ]
+
 **Statut : Migration COMPLÈTE depuis Firebase Auth**
 
 <details>
 <summary>📊 Configuration actuelle</summary>
 
 ✅ **Configuration de base**
+
 - [x] Installation et configuration initiale (MIT License, gratuit)
 - [x] Configuration serveur : `lib/auth.ts` (Prisma adapter + email/password)
 - [x] Configuration client : `lib/auth-client.ts` (hooks React useSession, signIn, signUp)
@@ -136,20 +147,24 @@ Notre feuille de route pour faire évoluer l'expérience ChanthanaThaiCook. Ce d
 - [x] Tables Better Auth dans Prisma : User, Account, Session, Verification
 
 ✅ **Pages d'authentification créées**
+
 - [x] `app/auth/login/page.tsx` (connexion email/password)
 - [x] `app/auth/signup/page.tsx` (inscription complète)
 - [x] `app/auth/reset-password/page.tsx` (réinitialisation mot de passe)
 
 ✅ **Synchronisation User ↔ client_db**
+
 - [x] Server Action : `app/auth/actions.ts` - `createClientProfile(authUserId, data)`
 - [x] Lien : User.id → client_db.auth_user_id
 
 ✅ **Protection des routes**
+
 - [x] Middleware : `middleware.ts` (vérifie cookie better-auth.session_token)
 - [x] PrivateRoute : `components/PrivateRoute.tsx` (useSession Better Auth)
 - [x] AdminRoute : `components/AdminRoute.tsx` (useSession + vérification role)
 
 ✅ **Firebase Auth 100% supprimé**
+
 - [x] lib/firebaseConfig.ts (supprimé)
 - [x] contexts/AuthContext.tsx (supprimé)
 - [x] Aucune dépendance Firebase dans package.json
@@ -157,6 +172,7 @@ Notre feuille de route pour faire évoluer l'expérience ChanthanaThaiCook. Ce d
 </details>
 
 #### ✅ Workflows Authentication - COMPLÉTÉS [100% ✅]
+
 **Statut : Infrastructure 100% complète + Configuration Resend ✅**
 
 - [x] **✅ Email Verification Workflow** (100% COMPLÉTÉ + RESEND CONFIGURÉ)
@@ -212,6 +228,7 @@ Notre feuille de route pour faire évoluer l'expérience ChanthanaThaiCook. Ce d
   - [ ] **TODO Phase 2** : Envoyer email confirmation suppression
 
 #### 🔥 Fonctionnalités Avancées [PHASE 4 - FUTUR]
+
 - [ ] **OAuth Social Providers** (Google, Facebook, GitHub)
   - Configuration : Créer OAuth apps sur providers
   - Better Auth plugin : `@better-auth/oauth-providers`
@@ -225,6 +242,7 @@ Notre feuille de route pour faire évoluer l'expérience ChanthanaThaiCook. Ce d
 ---
 
 ### ✅ 4️⃣ Vitest - Tests Unitaires Modernes [TERMINÉ]
+
 **Statut : 100% ✅**
 
 **Dépend de : Schemas Zod ✅**
@@ -233,10 +251,12 @@ Notre feuille de route pour faire évoluer l'expérience ChanthanaThaiCook. Ce d
 <summary>📊 Configuration et Premier Pattern Test</summary>
 
 ✅ **Installation complète**
+
 - [x] Vitest 4.0.7 + @testing-library/react + @testing-library/jest-dom + jsdom
 - [x] @vitejs/plugin-react pour support JSX
 
 ✅ **Configuration `vitest.config.ts`**
+
 - [x] Environment jsdom pour tests React
 - [x] Support TypeScript + path alias `@/`
 - [x] Setup file : `tests/setup.ts`
@@ -244,6 +264,7 @@ Notre feuille de route pour faire évoluer l'expérience ChanthanaThaiCook. Ce d
 - [x] Coverage provider v8 (text + json + html)
 
 ✅ **Setup Mocks Complets** (`tests/setup.ts` - 128 lignes)
+
 - [x] Mock Prisma Client : 6 tables (client_db, plats_db, commande_db, details_commande_db, extras_db, evenement_db)
 - [x] Mock Better Auth server (`@/lib/auth`) : verifyEmail, resetPassword, signIn, signOut
 - [x] Mock Better Auth client (`@/lib/auth-client`) : useSession avec user test
@@ -253,6 +274,7 @@ Notre feuille de route pour faire évoluer l'expérience ChanthanaThaiCook. Ce d
 - [x] Globals : ResizeObserver, IntersectionObserver
 
 ✅ **Pattern Test Établi** : `tests/actions/plats.test.ts` (310 lignes, 15 tests ✅)
+
 - [x] **getPlats** : 3 tests (récupération, transformations data, erreurs DB)
 - [x] **createPlat** : 3 tests (création valide, validation Zod, erreurs DB)
 - [x] **updatePlat** : 3 tests (mise à jour, validation Zod, erreurs DB)
@@ -260,12 +282,14 @@ Notre feuille de route pour faire évoluer l'expérience ChanthanaThaiCook. Ce d
 - [x] **Transformations** : 3 tests (prix string, dates ISO, null handling)
 
 ✅ **Scripts NPM** (package.json)
+
 - [x] `npm run test` : Vitest en mode run
 - [x] `npm run test:watch` : Mode watch interactif
 - [x] `npm run test:ui` : Interface web Vitest
 - [x] `npm run test:coverage` : Rapport coverage
 
 ✅ **Résultats Validation**
+
 ```
 ✓ tests/actions/plats.test.ts (15 tests) 12ms
 
@@ -274,6 +298,7 @@ Tests       15 passed (15)
 ```
 
 **📝 Patterns Techniques Validés :**
+
 - ✅ Prix format string `"13.50"` (pas number) → Zod validation
 - ✅ Categorie non dans platSchema → Zod filtre champs automatiquement
 - ✅ Mock return value doit correspondre au format Server Action (idplats → id transformation)
@@ -283,6 +308,7 @@ Tests       15 passed (15)
 </details>
 
 **🔥 Tests Additionnels À Créer (Phase suivante) :**
+
 - [ ] `tests/actions/commandes.test.ts` : Tests CRUD + logique métier (prix, quantités, détails)
 - [ ] `tests/actions/clients.test.ts` : Tests CRUD + validation profil
 - [ ] `tests/actions/extras.test.ts` : Tests CRUD extras
@@ -296,9 +322,11 @@ Tests       15 passed (15)
 ---
 
 ### ✅ 5️⃣ Upload Fichiers - Supabase Storage Fonctionnel [COMPLÉTÉ]
+
 **Statut : 100% Opérationnel | Migration Hetzner optionnelle (Phase 4)**
 
 **✅ Infrastructure actuelle Supabase Storage :**
+
 - [x] **Validation MIME complète** : `lib/supabaseStorage.ts` (7583 lignes)
   - ✅ MIME types autorisés : `image/jpeg`, `image/png`, `image/webp`, `image/gif`
   - ✅ Validation taille max : 5MB par fichier
@@ -338,14 +366,17 @@ Tests       15 passed (15)
 ---
 
 ### ✅ 6️⃣ React Email - Templates Professionnels [PARTIELLEMENT COMPLÉTÉ]
+
 **Dépend de : Better Auth workflows ⚠️ 90%**
 
 #### Configuration de base ✅
+
 - [x] Installation et configuration de base (`react-email`, `resend`)
 - [x] Création du dossier `emails` avec 4 templates fonctionnels
 - [x] Configurer la clé API Resend dans le fichier `.env`
 
 #### ✅ Templates Authentication Complets (6/6) [100% ✅]
+
 **Statut : Templates Better Auth 100% + 1 transactionnel**
 
 - [x] **ChanthanaWelcomeEmail.tsx** ✅ (31377 lignes)
@@ -364,6 +395,7 @@ Tests       15 passed (15)
 - [x] **CommandeConfirmationEmail.tsx** ✅ (1170 lignes)
 
 #### 🔥🔥 Templates Transactionnels [À FAIRE AVEC GEMINI - PHASE 3]
+
 **Ces templates seront créés plus tard via n8n workflows**
 
 - [ ] **CommandeConfirmationEmail.tsx** (récapitulatif, heure retrait, QR code)
@@ -376,6 +408,7 @@ Tests       15 passed (15)
 - [ ] **EvenementRappelEmail.tsx** (rappel 24h/48h avant)
 
 #### Tests emails
+
 - [ ] Tests visuels sur différents clients email (Gmail, Outlook, Apple Mail)
 - [ ] Tests responsive (mobile + desktop)
 - [ ] Tests dark mode
@@ -383,6 +416,7 @@ Tests       15 passed (15)
 ---
 
 ### ✅ 7️⃣ Configuration Email Domaine Personnalisé [COMPLÉTÉ]
+
 **Statut : Email contact@cthaicook.com configuré avec ImprovMX gratuit**
 
 - [x] **Email professionnel configuré** : `contact@cthaicook.com`
@@ -394,6 +428,7 @@ Tests       15 passed (15)
 - [ ] **Tests envoi/réception** : Vérifier forwarding opérationnel
 
 **Configuration ImprovMX** :
+
 - Alias : contact@cthaicook.com
 - Forward to : [email personnel utilisateur]
 - Free tier : Illimité forwards (gratuit à vie)
@@ -404,9 +439,11 @@ Tests       15 passed (15)
 ---
 
 ### ⚠️ 8️⃣ n8n - Infrastructure TypeScript Complète [50% COMPLÉTÉ]
+
 **Note : Infrastructure prête, workflows serveur à créer en Phase 3**
 
 ✅ **Infrastructure TypeScript Complète**
+
 - [x] **`lib/n8n-webhooks.ts`** (10433 lignes) - Classes TypeScript complètes
   - ✅ `N8nWebhookClient` : Client HTTP pour webhooks n8n
   - ✅ `CommandeWebhookPayload` : Interface payload commandes
@@ -415,11 +452,13 @@ Tests       15 passed (15)
 - [x] Hébergé sur serveur Hetzner (opérationnel)
 
 **🔥 Workflows Server-Side à Créer (Phase 3)**
+
 - [ ] Vérifier instance n8n opérationnelle et accessible
 - [ ] Configurer webhooks entrants depuis Next.js
 - [ ] Tester connexion Next.js → n8n (ping/pong simple)
 
 **Intégrations tierces à préparer :**
+
 - [ ] **Brevo/SendGrid** : Compte + API key pour emails transactionnels
 - [ ] **Telegram Bot** : Création bot + token pour notifications admin
 - [ ] **WhatsApp Business API** : Vérification compte + configuration
@@ -432,6 +471,7 @@ Tests       15 passed (15)
 ### 🔥 9️⃣ Stack Monitoring - PLG + GlitchTip + UptimeRobot [PHASE 4 - FUTUR]
 
 #### PLG Stack (Prometheus + Loki + Grafana)
+
 - [ ] Installation Prometheus via image pré-configurée Hetzner Cloud
 - [ ] Configuration node_exporter pour métriques serveur (CPU, RAM, Disk, Network)
 - [ ] Installation Loki pour centralisation logs application Next.js
@@ -441,6 +481,7 @@ Tests       15 passed (15)
 - [ ] Tests corrélation métriques serveur ↔ logs application
 
 #### GlitchTip - Monitoring Erreurs Application
+
 - [ ] Setup Docker Compose (PostgreSQL + Redis + GlitchTip)
 - [ ] Configuration sous-domaine monitoring.chanthana.com
 - [ ] Installation SDK `@sentry/nextjs` dans projet
@@ -450,6 +491,7 @@ Tests       15 passed (15)
 - [ ] Tests capture erreurs (client-side + server-side)
 
 #### UptimeRobot - Monitoring Disponibilité Externe
+
 - [ ] Création compte gratuit UptimeRobot (50 monitors inclus)
 - [ ] Configuration monitors : homepage, /api/health, /admin, /commander
 - [ ] Setup alertes email + SMS optionnel si site down
@@ -461,6 +503,7 @@ Tests       15 passed (15)
 ### 🔥 🔟 Outils Techniques Supplémentaires [PHASE 2-3]
 
 #### ✅ framer-motion - Animations React Déclaratives [INSTALLÉ + UTILISÉ]
+
 **Statut : Installation complète, utilisé dans HeroCarousel** ✅
 
 - [x] **Installation de la bibliothèque framer-motion** (NPM v12.23.24, MIT License)
@@ -476,13 +519,14 @@ Tests       15 passed (15)
 - [ ] **Extensions futures** : Stagger animations, spring physics, gestures
 
 #### ✅ nuqs - URL State Management Type-Safe [INSTALLÉ + UTILISÉ]
+
 **Statut : Installation complète, utilisé dans /commander**
 
 - [x] **Installation de la bibliothèque nuqs** (NPM v2.7.2, gratuit)
 - [x] **Adapter configuré** : `app/layout.tsx` avec `NuqsAdapter`
 - [x] **Filtres menu `/commander`** ✅ UTILISÉ (ligne 29: `useQueryState`)
   ```typescript
-  const [category, setCategory] = useQueryState('cat', parseAsString)
+  const [category, setCategory] = useQueryState("cat", parseAsString)
   // Déjà implémenté dans app/commander/page.tsx
   ```
 - [ ] **Filtres avancés `/commander`** (🔥🔥 MOYENNE - EXTENSION)
@@ -490,13 +534,14 @@ Tests       15 passed (15)
   - URL: /commander?cat=entrees&q=pad%20thai&spicy=true
 - [ ] **Pagination `/historique/complet`** (🔥🔥 MOYENNE)
   ```typescript
-  const [page, setPage] = useQueryState('page', parseAsInteger.withDefault(1))
-  const [pageSize, setPageSize] = useQueryState('size', parseAsInteger.withDefault(10))
+  const [page, setPage] = useQueryState("page", parseAsInteger.withDefault(1))
+  const [pageSize, setPageSize] = useQueryState("size", parseAsInteger.withDefault(10))
   ```
 - [ ] Setup recherche clients avec URL state sync
 - [ ] Tests navigation et bookmarking d'états filtrés
 
 #### ⚠️ next-intl - Internationalization App Router [50% COMPLÉTÉ]
+
 **Statut : Installation + Config partielles - Routing multilingue incomplet**
 
 - [x] **Installation** : NPM v4.4.0
@@ -511,6 +556,7 @@ Tests       15 passed (15)
 💡 **Note :** Infrastructure prête, routing à finaliser avec Gemini (Phase 6)
 
 #### ⚠️ react-pdf - Génération Documents PDF [1/3 COMPLÉTÉ]
+
 **Statut : Facture commande fonctionnelle, devis et ticket à créer**
 
 - [x] **Installation** : react-pdf v4.3.1 configuré (NPM, gratuit)
@@ -530,14 +576,14 @@ Tests       15 passed (15)
 
 ---
 
-
-
 ## 📱 Phase 1 : PWA & Notifications (🔥🔥🔥 HAUTE)
+
 **Objectif : Engagement utilisateur et communication temps réel**
 
 **Dépend de : Better Auth ✅ | Server Actions stables ⏳**
 
 ### ✅ Fondations PWA
+
 - [x] 🔥🔥🔥 Mettre en place les bases de la Progressive Web App (Service Worker, Manifest)
   - ✅ Next.js 16 native PWA (app/manifest.ts avec MetadataRoute.Manifest)
   - ✅ Service Worker personnalisé (public/sw.js v2.0.0 - 502 lignes)
@@ -560,6 +606,7 @@ Tests       15 passed (15)
   - ✅ Cleanup automatique données expirées au chargement app
 
 ### ✅ Notifications Push
+
 - [x] 🔥🔥🔥 Intégrer Firebase Cloud Messaging (canal prioritaire gratuit)
   - ✅ lib/fcm.ts : Client-side FCM (requestNotificationPermission, onMessageListener, revokeFCMToken)
   - ✅ lib/fcm-admin.ts : Server-side Firebase Admin SDK (sendNotificationToClient, multicast)
@@ -587,10 +634,10 @@ Tests       15 passed (15)
 - [x] 🔥🔥 Notifications rappel événement (24h/48h avant)
   - ✅ app/api/cron/event-reminders/route.ts : API endpoint CRON (207 lignes)
   - ✅ Logique recherche événements dans plages temporelles (23h-25h et 47h-49h)
-  - ✅ Filtre statut événement : Confirm____Acompte_re_u, En_pr_paration
+  - ✅ Filtre statut événement : Confirm\_\_\_\_Acompte_re_u, En_pr_paration
   - ✅ Envoi notifications FCM avec détails événement (nom, date, heure)
   - ✅ Messages différenciés : "Votre événement est demain !" (24h) et "Rappel : événement dans 2 jours" (48h)
-  - ✅ vercel.json : Configuration CRON quotidien à 9h UTC (schedule: "0 9 * * *")
+  - ✅ vercel.json : Configuration CRON quotidien à 9h UTC (schedule: "0 9 \* \* \*")
   - ✅ Sécurité CRON : Vérification Authorization header (CRON_SECRET)
   - ✅ Gestion erreurs non-bloquantes + summary détaillé (eventsIn24h, eventsIn48h, totalSent)
   - ✅ 13 tests Playwright E2E (tests/event-reminders.spec.ts)
@@ -599,6 +646,7 @@ Tests       15 passed (15)
     - Tests sécurité : Pas d'infos sensibles révélées, méthodes HTTP autorisées
 
 ### Stratégie de Communication Hybride
+
 ```
 Priorité 1: Push PWA (gratuit, temps réel)
     ↓ si consentement refusé
@@ -610,10 +658,11 @@ Priorité 2: Canal préféré client (WhatsApp/SMS/Telegram via n8n)
 - [ ] 🔥 Dashboard admin : statistiques taux opt-in notifications
 
 ### ✅ Tests & Qualité
+
 - [x] 🔥🔥🔥 Tests automatisés Playwright : Parcours critiques (commande, auth, paiement)
   - ✅ Infrastructure E2E complète (playwright.config.ts - 3 projets)
   - ✅ Authentication setup avec Better Auth (tests/auth.setup.ts)
-  - ✅ Storage states pour client et admin (tests/.auth/*.json)
+  - ✅ Storage states pour client et admin (tests/.auth/\*.json)
   - ✅ 17 tests PWA offline passent (tests/offline.spec.ts)
   - ✅ Comptes de test configurés : client-test@example.com / admin-test@example.com
   - ✅ CI-ready avec dependencies et setup automatique
@@ -635,16 +684,19 @@ Priorité 2: Canal préféré client (WhatsApp/SMS/Telegram via n8n)
 ### ⚠️ Tests E2E - Configuration Ajustée
 
 **Problème identifié :** `webServer` auto-start Playwright crée processus zombie (ports 3000/3001 occupés)
+
 - Bug connu Playwright Windows (Issues #19049, #24101, #34190)
 - PID 127692 zombie résolu
 - Configuration `reuseExistingServer` ne fonctionne pas sur Node 18+
 
 **Actions appliquées :**
+
 - [x] Désactivation `webServer` en développement local
 - [x] Activation uniquement en CI via `process.env.CI`
 - [x] Scripts `kill-port-3000.js` conservés pour edge cases
 
 **Workflow développement actuel :**
+
 ```bash
 # Terminal 1: Serveur manuel
 npm run dev
@@ -654,6 +706,7 @@ npm run test:e2e
 ```
 
 **TODO avant production (2-4 semaines avant mise en ligne) :**
+
 - [ ] Vérifier tous tests passent (35 tests actuels)
 - [ ] Corriger 3 tests SKIP dans `tests/offline.spec.ts` (auth requis)
 - [ ] Ajouter tests workflow commande complète (panier → paiement → confirmation)
@@ -663,6 +716,7 @@ npm run test:e2e
 ---
 
 ## 🎨 Phase 2 : Améliorations UX par Page (🔥🔥 MOYENNE)
+
 **Objectif : Polir l'expérience utilisateur et ajouter features confort**
 
 **Dépend de : Server Actions stables ⏳ | Schemas Zod ⏳**
@@ -670,6 +724,7 @@ npm run test:e2e
 ### 🏠 A. Page d'Accueil (/)
 
 #### 🎬 Hero Section Dynamique
+
 - [x] 🔥🔥🔥 **Carousel média administratif** : Images + vidéos courtes (5-8s) ✅
   - [ ] Upload depuis interface admin (/admin/hero-media) ⚠️ À faire
   - [x] Support image (JPG, PNG, WebP) + vidéo (MP4, WebM)
@@ -751,6 +806,7 @@ npm run test:e2e
 #### 🔧 Spécifications Techniques Détaillées
 
 **Hero Carousel :**
+
 - [ ] **Bibliothèque** : Embla Carousel (shadcn/ui intégré)
 - [ ] **Auto-play** : Ajustable par admin (default 7s par média)
 - [ ] **Pause au hover** : Activée automatiquement
@@ -759,6 +815,7 @@ npm run test:e2e
 - [ ] **Transitions** : Fade 800ms cubic-bezier(0.4, 0, 0.2, 1)
 
 **Overlay Hero :**
+
 - [ ] **Position** : Tiers inférieur (70% image visible, 30% overlay)
 - [ ] **Fond** : Gradient `linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.7) 100%)`
 - [ ] **Backdrop blur** : 8px sur zone texte uniquement
@@ -767,6 +824,7 @@ npm run test:e2e
   - [Découvrir] : Outline blanc + smooth scroll vers section navigation
 
 **Navigation Cards (6 cartes) :**
+
 - [x] **Visiteur non connecté** : 6 cartes affichées ✅
   - Pour Commander (actif)
   - Nous Trouver (actif)
@@ -794,6 +852,7 @@ npm run test:e2e
   - Scroll automatique smooth vers card ciblée (scrollIntoView)
 
 **Médias Hero - Spécifications :**
+
 - [ ] **Images** :
   - Format prioritaire : WebP 1920x1080
   - Fallback : JPEG
@@ -807,6 +866,7 @@ npm run test:e2e
   - Taille max : 10MB
 
 **Fallbacks & Error Handling :**
+
 - [ ] **Cascade fallback médias** :
   1. Essayer vidéo
   2. Si erreur → Image associée
@@ -815,6 +875,7 @@ npm run test:e2e
 - [ ] **Aucun média actif** : Afficher image par défaut
 
 **Bonus Implémentés :**
+
 - [ ] **Badge "Nouveau !" card Mon Profil** : Si `photo_client` uploadée < 7 jours (logique calcul date à implémenter)
 - [x] **Smooth scroll CTA "Découvrir"** : Scroll vers section navigation cards ✅
 - [x] **Photo client dans card Mon Profil** : Depuis `client_db.photo_client` ✅
@@ -881,6 +942,7 @@ npm run test:e2e
   - [x] **États gérés** : isPaused, isClicked, clickedIndex, activeWaveIndex
 
 #### 🎨 Icônes Réseaux Sociaux Personnalisées
+
 **Statut : 10 composants SVG avec couleurs officielles des marques**
 
 - [x] **`components/icons/FacebookIcon.tsx`** : Circle blue #1877F2
@@ -895,6 +957,7 @@ npm run test:e2e
 - [x] **`components/icons/XIcon.tsx`** : Black with white X logo
 
 **Design patterns** :
+
 - [x] ViewBox 24x24 uniforme pour cohérence taille
 - [x] aria-label sur chaque SVG pour accessibilité
 - [x] className prop pour size control (size-full dans Dock)
@@ -902,6 +965,7 @@ npm run test:e2e
 - [x] Support hover via DockIcon parent (scale + shadow)
 
 **URLs configurées** :
+
 - ✅ Facebook : https://facebook.com/chanthanathaicook
 - ✅ Instagram : https://instagram.com/chanthanathaicook
 - ✅ WhatsApp : https://wa.me/33749283707
@@ -919,6 +983,7 @@ npm run test:e2e
 ### 🛒 B. Page Commander (/commander)
 
 **Migration** : `20251111183339_add_plat_features`
+
 - [x] ✅ Ajout champs `plats_db` :
   - `est_vegetarien` (Boolean, default: false) + index
   - `niveau_epice` (Int 0-3, default: 0) + index
@@ -927,16 +992,19 @@ npm run test:e2e
   - `plat_vedette_id` : ID du plat mis en avant cette semaine
 
 **Server Actions** : `app/actions/restaurant-settings.ts` (241 lignes)
+
 - [x] ✅ `setFeaturedDish(plat_id)` : Définir/retirer plat vedette + validation jours disponibles
 - [x] ✅ `getFeaturedDish()` : Récupération plat vedette avec jours disponibles calculés
 - [x] ✅ `isFeaturedDish(platId)` : Vérifier si plat est vedette actuel
 
 **Zod Schemas** : `lib/validations.ts`
+
 - [x] ✅ `platSchema` étendu : `est_vegetarien`, `niveau_epice` (0-3), `categorie` (enum)
 - [x] ✅ `platVedetteSchema` : Validation plat_id nullable
 - [x] ✅ `restaurantSettingSchema` : Validation settings key-value
 
 **Types** : `types/app.ts`
+
 - [x] ✅ `PlatPanier` étendu : Champ `demandeSpeciale` pour préférences épices
 
 #### 🔥🔥 Améliorations Complétées
@@ -1040,7 +1108,9 @@ npm run test:e2e
    - Redémarrer serveur après modifications Prisma
 
 ### 🛍️ C. Page Panier (/panier)
+
 #### ✅ Améliorations Complétées
+
 - [x] ✅ **Photo Polaroid Header** : Composant réutilisable `PolaroidPhoto.tsx` avec styling authentique
   - Padding 10px (top/sides) et 20px (bottom) pour effet Polaroid
   - Bordures Thai green (border-1) sur frame et photo
@@ -1052,6 +1122,7 @@ npm run test:e2e
   - Utilisé dans CardHeader avec py-8 pour bande orange élargie
 
 #### 🔥🔥 Fonctionnalités Prioritaires
+
 - [ ] 🔥🔥 **Sauvegarde panier non connecté** : Proposer création compte pour conserver sélection
 - [ ] 🔥🔥 **Page confirmation visuelle** : Récapitulatif + message remerciement après validation
 - [ ] 🔥 **Message confirmation lisible** : Fond blanc pour toast confirmation
@@ -1061,13 +1132,16 @@ npm run test:e2e
   - Notification via n8n si changement
 
 ### 📜 D. Page Historique (/historique & /historique/complet)
+
 #### Page Historique (/historique)
+
 - [ ] 🔥🔥 **Limiter affichage** : 3-5 dernières commandes + 3 derniers événements
 - [x] 🔥🔥 **Bouton Facture** ✅ : `BoutonTelechargerFacture.tsx` utilisé pour commandes "Récupérée"
 - [ ] 🔥🔥 **Bouton Devis/Facture** : Pour événements terminés (template PDF à créer)
 - [ ] 🔥🔥 **Bouton "Voir tout l'historique"** : Redirection vers `/historique/complet` (page à créer)
 
 #### ❌ Page Historique Complet (/historique/complet) - N'EXISTE PAS
+
 **Note : Page planifiée mais non créée, à développer en Phase 2**
 
 - [ ] 🔥🔥 **Créer page `/historique/complet/page.tsx`** : Route Next.js manquante
@@ -1078,6 +1152,7 @@ npm run test:e2e
 - [ ] 🔥 **Export Facture PDF** : Téléchargement pour chaque commande "Récupérée"
 
 ### 📍 E. Page Suivi de Commande (/suivi-commande/[id])
+
 - [ ] 🔥🔥 **Bouton Facture** : Pour commandes "Récupérée" (génération PDF)
 - [ ] 🔥🔥 **Notifications Push** : Changement statut via PWA + n8n
 - [ ] 🔥 **Carte localisation** : ⚠️ Code embed Google Maps ready, ajouter API key dans `.env`
@@ -1085,6 +1160,7 @@ npm run test:e2e
 - [ ] 🔥 **Laisser un Avis** : Formulaire simple après "Récupérée"
 
 ### ✏️ F. Page Modifier Commande (/modifier-commande/[id])
+
 - [ ] 🔥🔥 **Confirmation modifications** : Dialog récapitulatif changements + différence prix
 - [ ] 🔥🔥 **Notification admin** : Alerte via n8n si client modifie commande
 - [ ] 🔥🔥 **Confirmation client** : Email détaillé après sauvegarde modifications
@@ -1092,6 +1168,7 @@ npm run test:e2e
 - [ ] 🔥 **Gestion heure retrait** : Note indicative + proposition nouvelle heure admin
 
 ### 🎉 G. Page Suivi d'Événement (/suivi-evenement/[id])
+
 - [ ] 🔥🔥 **Chronologie visuelle** : Étapes clés ("Demande reçue" → "Devis envoyé" → "Confirmé")
 - [ ] 🔥🔥 **Accès Documents** : Téléchargement devis + facture PDF
 - [ ] 🔥🔥 **Validation Devis** : Bouton "Accepter le devis" → notification admin n8n
@@ -1099,7 +1176,9 @@ npm run test:e2e
 - [ ] 🔥 **Rappels automatiques** : n8n envoie rappels avant événement + remerciement après
 
 ### 👤 H. Page Profil (/profil) & Inscription (/auth/signup)
+
 #### ✅ Améliorations UI/UX Complétées
+
 - [x] ✅ **Sélecteur de date de naissance amélioré** : Composant `DateBirthSelector` (3 selects)
 - [x] ✅ **Harmonisation formulaire signup avec profil** :
   - "Adresse (numéro et rue)" identique
@@ -1108,6 +1187,7 @@ npm run test:e2e
   - "Newsletter" → RadioGroup ("Oui, j'accepte" / "Non")
 
 #### 🔥🔥🔥 Gestion du Compte (Sécurité)
+
 **Dépend de : Better Auth workflows ⏳**
 
 - [ ] **Modification Email Sécurisée** : Exiger password actuel + confirmation double email
@@ -1116,18 +1196,22 @@ npm run test:e2e
 - [ ] **Design Boutons Auth** : Inverser "Se connecter" / "Créer un compte" + revoir icônes
 
 #### 🔥 Intégration n8n Communication
+
 - [ ] **Messages Anniversaire** : Cron quotidien envoi vœux automatiques
 - [ ] **Newsletter Actualités** : Système envoi emails offres spéciales (manuel/programmé)
 
 ---
 
 ## 🛠️ Phase 3 : Interface Admin & Workflows (🔥🔥 MOYENNE)
+
 **Objectif : Optimiser workflows admin et automatiser communications**
 
 **Dépend de : n8n setup ⏳ | React Email templates ⏳**
 
 ### 📋 A. Page Admin / Commandes (/admin/commandes)
+
 #### ✅ Améliorations Complétées
+
 - [x] ✅ **Sélecteur de date amélioré** : Composant `DateSelector` (3 selects)
 - [x] ✅ **"Mettre en avant"** : Bouton épingler/désépingler + tri automatique
 - [x] ✅ **"Offrir un plat"** : Marquer plat comme offert (prix 0€)
@@ -1140,6 +1224,7 @@ npm run test:e2e
 - [x] ✅ **Layout panier optimisé** : Photo 1:1 (w-18 h-18) sur 2 lignes, Ligne 1 (Nom + icônes épicées + prix), Ligne 2 (prix unitaire + poubelle + quantité)
 
 #### 🔥🔥 Automatisations n8n
+
 - [ ] **Factures automatiques** : Génération + envoi email si statut "Récupérée"
 - [ ] **Notification retard** : Bouton admin envoi SMS prédéfini (ex: "5 min de retard")
 - [ ] **Notifications statut** : Webhook auto SMS/WhatsApp si "Prête à récupérer"
@@ -1147,7 +1232,9 @@ npm run test:e2e
 - [ ] **Demande avis** : Email/SMS automatique 1h après "Récupérée"
 
 ### 🍲 B. Page Admin / Plats (/admin/plats)
+
 #### 🔥🔥 Système Ruptures Exceptionnelles
+
 **Objectif : Gestion stock par exception (dates spécifiques)**
 
 - [ ] **Modification Base de Données** :
@@ -1166,6 +1253,7 @@ npm run test:e2e
   - "Épuisé pour aujourd'hui" si rupture totale
 
 #### 🔥 UX & Fonctionnalités
+
 - [ ] **Confirmation suppression extra** : Dialog avant delete
 - [ ] **Transférer extra → menu** :
   - Bouton "Ajouter au menu" sur chaque extra
@@ -1173,6 +1261,7 @@ npm run test:e2e
   - Proposition désactiver/supprimer extra d'origine (éviter doublons)
 
 ### 👥 C. Page Admin / Clients (/admin/clients)
+
 **🔥🔥 Création Client Manuel**
 
 - [ ] **Bouton "Nouveau Client"** : Sur page `/admin/clients`
@@ -1184,6 +1273,7 @@ npm run test:e2e
 - [ ] **Enregistrement** : Server Action + invalidation cache
 
 ### ➕ D. Page Admin / Création Commande (/admin/commandes/creer)
+
 **🔥🔥 Création Commande Manuelle**
 
 - [ ] **Bouton "Nouvelle Commande"** : Sur page `/admin/commandes`
@@ -1197,14 +1287,17 @@ npm run test:e2e
 - [ ] **Enregistrement** : Server Action création commande complète
 
 ### 🎬 E. Page Admin / Hero Media (/admin/hero-media)
+
 **🔥🔥 Gestion Carousel Page d'Accueil**
 
 #### Table Base de Données
+
 - [ ] **Créer table `hero_media`** :
   - Colonnes : id, type (image/video), url, titre, description, ordre, active, created_at, updated_at
   - Migration Prisma + génération types TypeScript
 
 #### Interface Admin
+
 - [ ] **Page CRUD complète** :
   - Liste médias avec preview miniature
   - Drag & drop pour réordonner (bibliothèque dnd-kit)
@@ -1215,12 +1308,14 @@ npm run test:e2e
   - Preview temps réel du carousel
 
 #### Server Actions
+
 - [ ] **uploadHeroMedia()** : Upload + validation + stockage
 - [ ] **updateHeroMediaOrder()** : Réorganiser ordre affichage
 - [ ] **toggleHeroMediaActive()** : Activer/désactiver média
 - [ ] **deleteHeroMedia()** : Suppression définitive
 
 #### Tests
+
 - [ ] **Tests upload** : Fichiers valides/invalides, taille max
 - [ ] **Tests permissions** : Seul admin peut modifier
 - [ ] **Tests performance** : Lazy loading, optimisation vidéos
@@ -1228,11 +1323,13 @@ npm run test:e2e
 ---
 
 ## 🤖 Phase 4 : n8n Workflows - Automatisations Détaillées (🔥🔥 MOYENNE)
+
 **Objectif : Automatiser communications multicanal et workflows métier**
 
 **Note : Section À COMPLÉTER AVEC GEMINI en Phase 3 après stabilisation features**
 
 ### Architecture générale n8n
+
 ```
 Next.js App → Webhook POST → n8n → Fan-out multicanal
                                    ├── SMS/WhatsApp (Twilio)
@@ -1242,6 +1339,7 @@ Next.js App → Webhook POST → n8n → Fan-out multicanal
 ```
 
 ### A. Workflows Commandes
+
 **Triggers : Webhooks depuis Server Actions**
 
 - [ ] 🔥🔥 **Changement statut commande** :
@@ -1266,6 +1364,7 @@ Next.js App → Webhook POST → n8n → Fan-out multicanal
   - Actions : Notification admin Telegram + Email récapitulatif client
 
 ### B. Workflows Événements
+
 - [ ] 🔥🔥 **Confirmation réception demande** : Email automatique accusé réception
 - [ ] 🔥🔥 **Notification envoi devis** : Email avec PDF devis + bouton validation
 - [ ] 🔥🔥 **Rappel 48h avant événement** : SMS + Email automatique
@@ -1274,15 +1373,18 @@ Next.js App → Webhook POST → n8n → Fan-out multicanal
 - [ ] 🔥 **Relance paiement solde** : Si solde impayé après événement
 
 ### C. Workflows Profil & Clients
+
 - [ ] 🔥 **Message anniversaire** : Cron quotidien (9h) vérification dates + envoi email/SMS
 - [ ] 🔥 **Newsletter actualités** : Workflow manuel envoi offres spéciales (filtre opt-in)
 - [ ] 🔥 **Confirmation modification email/téléphone** : Double email (ancienne + nouvelle adresse)
 
 ### D. Workflows Gestion Menu
+
 - [ ] 🔥 **Alerte stock faible** : Webhook si rupture exceptionnelle < seuil
 - [ ] 🔥 **Notification plat épuisé** : Alerte clients ayant commandé récemment ce plat
 
 ### E. Workflows Admin Généraux
+
 - [ ] 🔥🔥 **Impression tickets de caisse** : Webhook statut "Confirmée" → Impression auto
 - [ ] 🔥 **Résumé quotidien** : Cron 8h30 - Email admin stats jour (commandes/événements)
 - [ ] 🔥 **Alertes anomalies** : Détection commandes sans client, doublons, erreurs
@@ -1290,11 +1392,13 @@ Next.js App → Webhook POST → n8n → Fan-out multicanal
 ---
 
 ## 📧 Phase 5 : React Email - Templates Détaillés (🔥 BASSE)
+
 **Note : Section À COMPLÉTER AVEC GEMINI après workflows n8n fonctionnels**
 
 **Dépend de : n8n workflows ⏳**
 
 ### Templates Commande (8 templates)
+
 - [ ] **CommandeConfirmationEmail.tsx** : Récapitulatif complet, heure retrait, QR code
 - [ ] **CommandePreteEmail.tsx** : Notification simple et directe
 - [ ] **CommandeMiseAJourEmail.tsx** : Détail modifications (articles, prix, heure)
@@ -1305,6 +1409,7 @@ Next.js App → Webhook POST → n8n → Fan-out multicanal
 - [ ] **CommandeRappelRetraitEmail.tsx** : Rappel si commande non récupérée après 1h
 
 ### Templates Événement (6 templates)
+
 - [ ] **EvenementDemandeEmail.tsx** : Accusé réception demande devis
 - [ ] **EvenementDevisEmail.tsx** : Lien PDF devis + instructions validation
 - [ ] **EvenementConfirmationEmail.tsx** : Récapitulatif final après acceptation
@@ -1313,6 +1418,7 @@ Next.js App → Webhook POST → n8n → Fan-out multicanal
 - [ ] **EvenementRemerciementEmail.tsx** : Remerciement + demande avis
 
 ### Templates Compte Client (4 templates)
+
 - [x] **ChanthanaWelcomeEmail.tsx** ✅ (déjà créé)
 - [ ] **ChanthanaPasswordResetEmail.tsx** : Lien reset sécurisé, expiration 1h
 - [ ] **ChanthanaEmailVerificationEmail.tsx** : Lien vérification email
@@ -1322,11 +1428,13 @@ Next.js App → Webhook POST → n8n → Fan-out multicanal
 - [ ] **ChanthanaBirthdayEmail.tsx** : Message anniversaire + offre optionnelle
 
 ### Templates Admin (3 templates)
+
 - [ ] **AdminNewCommandeEmail.tsx** : Notification nouvelle commande (Telegram)
 - [ ] **AdminDailySummaryEmail.tsx** : Résumé quotidien stats
 - [ ] **AdminAnomalyAlertEmail.tsx** : Alerte anomalies détectées
 
 ### Tests Templates
+
 - [ ] Tests visuels clients email (Gmail, Outlook, Apple Mail, Thunderbird)
 - [ ] Tests responsive (mobile 320px → desktop 1920px)
 - [ ] Tests dark mode (Apple Mail, Gmail)
@@ -1335,17 +1443,18 @@ Next.js App → Webhook POST → n8n → Fan-out multicanal
 ---
 
 ## 🌍 Phase 6 : Internationalization (🔥 BASSE)
-**Note : À FAIRE AVEC GEMINI après stabilisation toutes pages**
 
 **Dépend de : Pages finalisées ⏳**
 
 ### Configuration next-intl
+
 - [ ] Configuration routing multilingue (fr/th/en)
 - [ ] Structure répertoires : `locales/{fr|th|en}/*.json`
 - [ ] Middleware i18n : Détection langue navigateur + cookie préférence
 - [ ] Composant `LocaleSwitcher` : Sélecteur langue dans header
 
 ### Traductions Contenu
+
 - [ ] **Traductions UI** : Tous labels, boutons, messages (3 langues)
 - [ ] **Traductions Statiques** : Pages marketing (accueil, à propos, contact)
 - [ ] **Traductions Menu** : Noms plats, descriptions (français + thaï authentique)
@@ -1353,6 +1462,7 @@ Next.js App → Webhook POST → n8n → Fan-out multicanal
 - [ ] **Traductions Erreurs** : Messages validation, erreurs serveur
 
 ### Tests i18n
+
 - [ ] Tests changement langue (persistence cookie)
 - [ ] Tests SSR (génération pages statiques par langue)
 - [ ] Tests SEO (hreflang tags, URLs multilingues)
@@ -1363,6 +1473,7 @@ Next.js App → Webhook POST → n8n → Fan-out multicanal
 ## 🚀 Phase 7 : Optimisations & Production (🔥 BASSE - CONTINU)
 
 ### Performance
+
 - [ ] Analyse Lighthouse : Scores 90+ (Performance, Accessibility, Best Practices, SEO)
 - [ ] Optimisation images : Conversion WebP automatique, lazy loading, responsive
 - [ ] Optimisation fonts : Preload fonts critiques, font-display: swap
@@ -1370,6 +1481,7 @@ Next.js App → Webhook POST → n8n → Fan-out multicanal
 - [ ] Bundle analyzer : Réduction taille bundles JavaScript
 
 ### Sécurité Production
+
 - [ ] **⚠️ CRITIQUE** : Réactiver RLS Policies Supabase (désactivées temporairement)
 - [ ] Audit dépendances : `npm audit` résolution vulnérabilités
 - [ ] Rate limiting : Protection API routes (10 req/min par IP)
@@ -1378,6 +1490,7 @@ Next.js App → Webhook POST → n8n → Fan-out multicanal
 - [ ] Environment variables : Rotation secrets régulière
 
 ### Monitoring & Observability
+
 - [ ] Stack PLG (Prometheus + Loki + Grafana) : Métriques serveur + logs app
 - [ ] GlitchTip : Capture erreurs frontend + backend
 - [ ] UptimeRobot : Monitoring disponibilité externe (5 min checks)
@@ -1385,6 +1498,7 @@ Next.js App → Webhook POST → n8n → Fan-out multicanal
 - [ ] Alertes automatiques : CPU/RAM/Disk dépassements seuils
 
 ### Documentation
+
 - [ ] Mise à jour `CLAUDE.md` : Refléter architecture finale
 - [ ] Mise à jour `documentation/` : Architecture, workflows, deployment
 - [ ] Guide déploiement : Steps production Hetzner
@@ -1398,6 +1512,7 @@ Next.js App → Webhook POST → n8n → Fan-out multicanal
 ### Architecture Emails & Notifications (Clarification)
 
 #### Better Auth → Resend (Emails Authentification)
+
 ```
 Better Auth workflows
 ├── Bienvenue (ChanthanaWelcomeEmail.tsx)
@@ -1410,6 +1525,7 @@ Use case: Emails critiques sécurité uniquement
 ```
 
 #### n8n → Brevo/SendGrid (Emails Transactionnels + Multicanal)
+
 ```
 n8n Workflows (Business Logic)
 ├── Commandes (confirmation, statut, facture, avis)
@@ -1431,12 +1547,14 @@ Fallback logic: Push PWA → Email → SMS/WhatsApp
 **Le propriétaire peut générer des visuels personnalisés de Chanthana (mascotte du restaurant) à la demande via IA générative.**
 
 #### Workflow Génération :
+
 1. Claude décrit scène souhaitée (ex: "Chanthana tenant carnet + stylo")
 2. Propriétaire génère image/vidéo avec IA (Veo 3.1 Fast, Imagen)
 3. Propriétaire fournit fichier (PNG, WebP, MP4, GIF)
 4. Claude intègre le fichier dans le code
 
 #### Style Référence Chanthana :
+
 - Animation manga chibi moderne, énergique
 - Femme thaïlandaise, cheveux noirs en chignon serré, front dégagé
 - Eye-liner "cat eye" (virgule) noir distinctif
@@ -1444,12 +1562,14 @@ Fallback logic: Push PWA → Email → SMS/WhatsApp
 - Expressions chaleureuses et souriantes
 
 #### Assets Existants :
+
 - `/chanthana.svg` (891KB) - Avatar principal utilisé page À Propos
 - `/videogif/Sawadee.gif` (257KB) - Geste wai animé (emails)
 - `/videohero/Sawadeechanthana.mp4` (5.9MB)
 - `/videohero/telephone.mp4` (9.6MB)
 
 #### Utilisation Transversale :
+
 - **Page Commander** : Avatar prend commande (sidebar/header)
 - **Modal Confirmation** : Polaroid sawadee remerciement
 - **Animation Panier** : Clin d'œil + thumbs up feedback
@@ -1458,6 +1578,7 @@ Fallback logic: Push PWA → Email → SMS/WhatsApp
 - **Emails** : Sawadee.gif dans templates (déjà utilisé)
 
 #### Avantages :
+
 - Personnalisation illimitée pour chaque contexte UX
 - Cohérence visuelle avec mascotte unique du restaurant
 - Humanisation et authenticité de l'expérience client
@@ -1465,18 +1586,18 @@ Fallback logic: Push PWA → Email → SMS/WhatsApp
 
 ### Budget Mensuel Estimé (Nov 2025)
 
-| Service | Coût | Notes |
-|---------|------|-------|
-| **Hetzner VPS** | 5-10€/mois | CX22 (2 vCPU, 4GB RAM, 80GB) |
-| **n8n self-hosted** | 0€ | Inclus dans VPS |
-| **Resend (Better Auth)** | 0€ | Free tier 100 emails/jour |
-| **Brevo (n8n emails)** | 0€ | Free tier 300 emails/jour |
-| **Firebase FCM (Push)** | 0€ | Gratuit illimité |
-| **Telegram Bot** | 0€ | Gratuit illimité |
-| **Supabase (DB + Storage)** | 0€ | Free tier (500MB DB, 1GB Storage) |
-| **Twilio SMS** (optionnel) | 0-15€ | Si activation SMS backup |
-| **Domaine** | 10-15€/an | .com/.fr |
-| **Total** | **10-25€/mois** | Sans SMS, 25-40€ avec |
+| Service                     | Coût            | Notes                             |
+| --------------------------- | --------------- | --------------------------------- |
+| **Hetzner VPS**             | 5-10€/mois      | CX22 (2 vCPU, 4GB RAM, 80GB)      |
+| **n8n self-hosted**         | 0€              | Inclus dans VPS                   |
+| **Resend (Better Auth)**    | 0€              | Free tier 100 emails/jour         |
+| **Brevo (n8n emails)**      | 0€              | Free tier 300 emails/jour         |
+| **Firebase FCM (Push)**     | 0€              | Gratuit illimité                  |
+| **Telegram Bot**            | 0€              | Gratuit illimité                  |
+| **Supabase (DB + Storage)** | 0€              | Free tier (500MB DB, 1GB Storage) |
+| **Twilio SMS** (optionnel)  | 0-15€           | Si activation SMS backup          |
+| **Domaine**                 | 10-15€/an       | .com/.fr                          |
+| **Total**                   | **10-25€/mois** | Sans SMS, 25-40€ avec             |
 
 ### Dépendances entre Phases
 
@@ -1505,5 +1626,3 @@ Phase 4-7 (Optimisations) → Continu, non bloquant
 ```
 
 ---
-
-

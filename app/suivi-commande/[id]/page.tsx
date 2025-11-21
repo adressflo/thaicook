@@ -21,7 +21,7 @@ import { cn } from '@/lib/utils';
 import { StatusBadge } from '@/components/historique/StatusBadge';
 import { CalendarIcon } from '@/components/historique/CalendarIcon';
 import { DishDetailsModalComplex } from '@/components/historique/DishDetailsModalComplex';
-import { AppLayout } from '@/components/AppLayout';
+import { AppLayout } from '@/components/layout/AppLayout';
 import { ProgressTimeline } from '@/components/suivi-commande/ProgressTimeline';
 import { toSafeNumber } from '@/lib/serialization';
 

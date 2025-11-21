@@ -3,7 +3,7 @@
 import { memo, useState, useEffect } from 'react';
 import { useParams, redirect } from 'next/navigation';
 import Link from 'next/link';
-import { AppLayout } from '@/components/AppLayout';
+import { AppLayout } from '@/components/layout/AppLayout';
 import { useSession } from '@/lib/auth-client';
 import { getClientProfile } from '@/app/profil/actions';
 import { usePrismaEvenementById } from "@/hooks/usePrismaData";

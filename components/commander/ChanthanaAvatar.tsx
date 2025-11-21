@@ -26,7 +26,7 @@ export function ChanthanaAvatar({ className, reaction = "idle", message }: Chant
       <div className="relative h-full w-full">
         {reaction === "happy" ? (
           <img
-            src="/videogif/Sawadee.gif"
+            src="/media/animations/ui/Sawadee.gif"
             alt="Chanthana contente"
             className="h-full w-full object-contain object-bottom"
           />

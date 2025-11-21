@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
-import LanguageSelector from '../LanguageSelector';
+import LanguageSelector from '@/components/layout/LanguageSelector';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 const Sidebar = () => {

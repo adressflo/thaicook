@@ -285,7 +285,7 @@ export default function PanierPage() {
               <CardTitle className="text-2xl font-bold">Mon Panier</CardTitle>
             </div>
             <PolaroidPhoto
-              src="/image avatar/panier1.svg"
+              src="/media/avatars/panier1.svg"
               alt="Avatar Chanthana"
               caption="panier"
               position="right"

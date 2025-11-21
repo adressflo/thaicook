@@ -1075,3 +1075,206 @@ export const usePrismaAllEvenements = () => {
     gcTime: 1000 * 60 * 10,
   })
 }
+
+// ============================================================================
+// HERO MEDIA HOOKS
+// ============================================================================
+
+import {
+  getAllHeroMedias,
+  createHeroMedia,
+  updateHeroMedia,
+  reorderHeroMedias,
+  toggleHeroMediaActive,
+  deleteHeroMedia,
+  uploadHeroFile,
+} from '@/app/actions/hero-media'
+
+export type HeroMediaType = {
+  id: string
+  type: 'image' | 'video'
+  url: string
+  titre: string
+  description: string | null
+  ordre: number
+  active: boolean
+  created_at: Date
+  updated_at: Date
+}
+
+/**
+ * Récupère tous les médias hero (pour l'admin)
+ */
+export const useGetAllHeroMedias = () => {
+  return useQuery({
+    queryKey: ['hero-medias-all'],
+    queryFn: async (): Promise<HeroMediaType[]> => {
+      return await unwrapSafeAction<HeroMediaType[]>(getAllHeroMedias({}))
+    },
+    staleTime: 1000 * 60 * 2, // 2 minutes
+    gcTime: 1000 * 60 * 5,
+  })
+}
+
+/**
+ * Crée un nouveau média hero
+ */
+export const useCreateHeroMedia = () => {
+  const queryClient = useQueryClient()
+  const { toast } = useToast()
+
+  return useMutation({
+    mutationFn: async (data: Omit<HeroMediaType, 'id' | 'created_at' | 'updated_at'>) => {
+      return await unwrapSafeAction<HeroMediaType>(createHeroMedia(data))
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['hero-medias-all'] })
+      queryClient.invalidateQueries({ queryKey: ['hero-medias-active'] })
+      toast({
+        title: 'Média créé',
+        description: 'Le média hero a été ajouté avec succès',
+      })
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Erreur',
+        description: error.message,
+        variant: 'destructive',
+      })
+    },
+  })
+}
+
+/**
+ * Met à jour un média hero
+ */
+export const useUpdateHeroMedia = () => {
+  const queryClient = useQueryClient()
+  const { toast } = useToast()
+
+  return useMutation({
+    mutationFn: async (data: Omit<HeroMediaType, 'created_at' | 'updated_at'>) => {
+      return await unwrapSafeAction<HeroMediaType>(updateHeroMedia(data))
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['hero-medias-all'] })
+      queryClient.invalidateQueries({ queryKey: ['hero-medias-active'] })
+      toast({
+        title: 'Média mis à jour',
+        description: 'Les modifications ont été enregistrées',
+      })
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Erreur',
+        description: error.message,
+        variant: 'destructive',
+      })
+    },
+  })
+}
+
+/**
+ * Réorganise les médias hero (drag & drop)
+ */
+export const useReorderHeroMedias = () => {
+  const queryClient = useQueryClient()
+  const { toast } = useToast()
+
+  return useMutation({
+    mutationFn: async (items: { id: string; ordre: number }[]) => {
+      return await unwrapSafeAction<{ success: boolean }>(reorderHeroMedias({ items }))
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['hero-medias-all'] })
+      queryClient.invalidateQueries({ queryKey: ['hero-medias-active'] })
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Erreur de réorganisation',
+        description: error.message,
+        variant: 'destructive',
+      })
+    },
+  })
+}
+
+/**
+ * Active/désactive un média hero
+ */
+export const useToggleHeroMediaActive = () => {
+  const queryClient = useQueryClient()
+  const { toast } = useToast()
+
+  return useMutation({
+    mutationFn: async ({ id, active }: { id: string; active: boolean }) => {
+      return await unwrapSafeAction<HeroMediaType>(toggleHeroMediaActive({ id, active }))
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['hero-medias-all'] })
+      queryClient.invalidateQueries({ queryKey: ['hero-medias-active'] })
+      toast({
+        title: variables.active ? 'Média activé' : 'Média désactivé',
+        description: `Le média a été ${variables.active ? 'activé' : 'désactivé'}`,
+      })
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Erreur',
+        description: error.message,
+        variant: 'destructive',
+      })
+    },
+  })
+}
+
+/**
+ * Supprime un média hero
+ */
+export const useDeleteHeroMedia = () => {
+  const queryClient = useQueryClient()
+  const { toast } = useToast()
+
+  return useMutation({
+    mutationFn: async ({ id, url }: { id: string; url: string }) => {
+      return await unwrapSafeAction<{ success: boolean }>(deleteHeroMedia({ id, url }))
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['hero-medias-all'] })
+      queryClient.invalidateQueries({ queryKey: ['hero-medias-active'] })
+      toast({
+        title: 'Média supprimé',
+        description: 'Le média hero a été supprimé avec succès',
+      })
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Erreur',
+        description: error.message,
+        variant: 'destructive',
+      })
+    },
+  })
+}
+
+/**
+ * Upload un fichier vers Supabase Storage
+ */
+export const useUploadHeroFile = () => {
+  const { toast } = useToast()
+
+  return useMutation({
+    mutationFn: async ({ fileName, fileType, fileBuffer }: { fileName: string; fileType: string; fileBuffer: string }) => {
+      return await unwrapSafeAction<{ url: string; path: string }>(
+        uploadHeroFile({ fileName, fileType, fileBuffer })
+      )
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Erreur d\'upload',
+        description: error.message,
+        variant: 'destructive',
+      })
+    },
+  })
+}

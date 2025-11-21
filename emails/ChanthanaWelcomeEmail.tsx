@@ -86,7 +86,7 @@ export const ChanthanaWelcomeEmail = ({
             <Section style={greetingSection}>
               <Heading style={h1}>Sawatdee !</Heading>
               <Img
-                src={`${baseUrl}/videogif/Sawadee.gif`}
+                src={`${baseUrl}/media/animations/ui/Sawadee.gif`}
                 alt="Sawatdee Animation"
                 width="128"
                 height="72"
