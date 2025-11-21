@@ -133,7 +133,14 @@ export default function HeroMediaAdminPage() {
 
     try {
       // Upload direct vers Supabase Storage depuis le client
-      const fileName = `${Date.now()}-${selectedFile.name.replace(/\s+/g, '-')}`
+      // Nettoyer le nom de fichier : enlever accents et caractères spéciaux
+      const cleanFileName = selectedFile.name
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '') // Enlever les accents
+        .replace(/[^a-zA-Z0-9._-]/g, '-') // Remplacer caractères spéciaux par tiret
+        .replace(/\s+/g, '-') // Remplacer espaces par tiret
+        .replace(/-+/g, '-') // Éviter tirets multiples
+      const fileName = `${Date.now()}-${cleanFileName}`
 
       // Créer un FormData pour l'upload
       const formData = new FormData()
@@ -195,7 +202,7 @@ export default function HeroMediaAdminPage() {
                 Gérez les vidéos et images affichées sur la page d'accueil
               </CardDescription>
             </div>
-            <Dialog open={isUploadDialogOpen} onOpenChange={handleDialogClose}>
+            <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
               <DialogTrigger asChild>
                 <Button className="bg-thai-orange hover:bg-thai-orange/90">
                   <Upload className="mr-2 h-4 w-4" />
