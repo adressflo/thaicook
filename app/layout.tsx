@@ -4,6 +4,7 @@ import { Providers } from "../components/providers"
 import "./globals.css" // This is a side-effect import
 import { Toaster } from "@/components/ui/toaster"
 import { ToasterVideo } from "@/components/ui/toastervideo"
+import { ToasterVideoCenter } from "@/components/ui/toastervideocenter"
 import { Toaster as Sonner } from "@/components/ui/sonner"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { FloatingUserIcon } from "@/components/layout/FloatingUserIcon"
@@ -71,6 +72,7 @@ export default function RootLayout({
                 <OfflineBanner dismissible showLastSync />
                 <Toaster />
                 <ToasterVideo />
+                <ToasterVideoCenter />
                 <Sonner />
                 <NuqsAdapter>
                   {children}

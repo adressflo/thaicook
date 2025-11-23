@@ -1,9 +1,8 @@
-'use client'
+"use client"
 
 import { useToast } from "@/hooks/use-toast"
 import {
   Toast,
-  ToastClose,
   ToastDescription,
   ToastProvider,
   ToastTitle,
@@ -18,14 +17,19 @@ export function Toaster() {
       {toasts.map(function ({ id, title, description, action, ...props }) {
         return (
           <Toast key={id} {...props}>
-            <div className="grid gap-1">
-              {title && <ToastTitle>{title}</ToastTitle>}
+            <div className="flex w-full flex-col items-center gap-3">
+              {title && (
+                <ToastTitle className="text-thai-green text-center text-xl font-bold">
+                  {title}
+                </ToastTitle>
+              )}
               {description && (
-                <ToastDescription>{description}</ToastDescription>
+                <ToastDescription className="text-center text-sm leading-relaxed">
+                  {description}
+                </ToastDescription>
               )}
             </div>
             {action}
-            <ToastClose />
           </Toast>
         )
       })}

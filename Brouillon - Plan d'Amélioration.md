@@ -726,9 +726,9 @@ npm run test:e2e
 #### 🎬 Hero Section Dynamique
 
 - [x] 🔥🔥🔥 **Carousel média administratif** : Images + vidéos courtes (5-8s) ✅
-  - [ ] Upload depuis interface admin (/admin/hero-media) ⚠️ À faire
+  - [x] Upload depuis interface admin (/admin/hero-media) ✅
   - [x] Support image (JPG, PNG, WebP) + vidéo (MP4, WebM)
-  - [ ] Drag & drop pour réorganiser l'ordre
+  - [x] Drag & drop pour réorganiser l'ordre ✅
   - [x] Transition fade douce entre médias (Embla Carousel + Autoplay + Fade)
   - [x] Indicateurs navigation discrets (dots en bas centre)
   - [x] Responsive : Aspect ratio adaptatif mobile/desktop
@@ -1286,39 +1286,57 @@ npm run test:e2e
 - [ ] **Validation** : Schemas Zod (dépend de : Schemas Zod ⏳)
 - [ ] **Enregistrement** : Server Action création commande complète
 
-### 🎬 E. Page Admin / Hero Media (/admin/hero-media)
+### 🎬 E. Page Admin / Hero Media (/admin/hero-media) ✅
 
-**🔥🔥 Gestion Carousel Page d'Accueil**
+**🔥🔥 Gestion Carousel Page d'Accueil - COMPLÈTE**
 
 #### Table Base de Données
 
-- [ ] **Créer table `hero_media`** :
+- [x] **Créer table `hero_media`** : ✅
   - Colonnes : id, type (image/video), url, titre, description, ordre, active, created_at, updated_at
   - Migration Prisma + génération types TypeScript
+  - Table existante dans schema.prisma
 
 #### Interface Admin
 
-- [ ] **Page CRUD complète** :
-  - Liste médias avec preview miniature
-  - Drag & drop pour réordonner (bibliothèque dnd-kit)
-  - Upload fichiers : Max 10MB, validation MIME
-  - Toggle actif/inactif (masquer sans supprimer)
-  - Édition titre + description
-  - Suppression avec confirmation
-  - Preview temps réel du carousel
+- [x] **Page CRUD complète** : ✅
+  - [x] Liste médias avec preview miniature (vidéo + image)
+  - [x] Drag & drop pour réordonner (@hello-pangea/dnd)
+  - [x] Upload fichiers : Max 50MB, validation MIME (MP4, JPG, PNG, WEBP, GIF)
+  - [x] Toggle actif/inactif (masquer sans supprimer)
+  - [x] Édition titre + description (via modal)
+  - [x] Suppression avec confirmation (AlertDialog)
+  - [x] Drag & drop upload zone moderne (style 21st.dev)
+  - [x] Preview fichier avant upload (vidéo + image)
+  - [x] Nettoyage noms fichiers (accents + caractères spéciaux)
 
 #### Server Actions
 
-- [ ] **uploadHeroMedia()** : Upload + validation + stockage
-- [ ] **updateHeroMediaOrder()** : Réorganiser ordre affichage
-- [ ] **toggleHeroMediaActive()** : Activer/désactiver média
-- [ ] **deleteHeroMedia()** : Suppression définitive
+- [x] **uploadHeroMedia()** : Upload + validation + stockage Supabase ✅
+  - API route `/api/hero-media/upload` avec service_role key
+  - Validation taille (50MB) et type MIME
+  - Buffer conversion pour upload Supabase Storage
+- [x] **updateHeroMediaOrder()** : Réorganiser ordre affichage ✅
+  - Server Action `reorderHeroMedias` avec transaction Prisma
+- [x] **toggleHeroMediaActive()** : Activer/désactiver média ✅
+  - Server Action `toggleHeroMediaActive`
+- [x] **deleteHeroMedia()** : Suppression définitive ✅
+  - Suppression fichier Supabase Storage + entrée DB
+
+#### TanStack Query Hooks
+
+- [x] **useGetAllHeroMedias()** : Récupérer tous les médias ✅
+- [x] **useCreateHeroMedia()** : Créer nouveau média ✅
+- [x] **useUpdateHeroMedia()** : Mettre à jour média ✅
+- [x] **useReorderHeroMedias()** : Réorganiser ordre ✅
+- [x] **useToggleHeroMediaActive()** : Toggle actif/inactif ✅
+- [x] **useDeleteHeroMedia()** : Supprimer média ✅
 
 #### Tests
 
-- [ ] **Tests upload** : Fichiers valides/invalides, taille max
-- [ ] **Tests permissions** : Seul admin peut modifier
-- [ ] **Tests performance** : Lazy loading, optimisation vidéos
+- [ ] **Tests upload** : Fichiers valides/invalides, taille max ⚠️ À faire
+- [ ] **Tests permissions** : Seul admin peut modifier ⚠️ À faire
+- [ ] **Tests performance** : Lazy loading, optimisation vidéos ⚠️ À faire
 
 ---
 
