@@ -57,23 +57,28 @@ export const DishDetailsModalInteractive = React.memo<DishDetailsModalInteractiv
     // Quand le modal s'ouvre, charger les données du panier existant
     React.useEffect(() => {
       if (open) {
-        if (
-          currentSpiceDistribution &&
-          currentSpiceDistribution.length === 4 &&
-          currentQuantity > 0
-        ) {
-          // Ouverture depuis un item du panier : charger sa distribution
-          const distTotal = currentSpiceDistribution.reduce((sum, count) => sum + count, 0)
-          if (distTotal === currentQuantity) {
-            setQuantity(currentQuantity)
-            setSpiceDistribution(currentSpiceDistribution)
+        if (currentQuantity > 0) {
+          // Item du panier : charger la quantité
+          setQuantity(currentQuantity)
+
+          // Charger la distribution épicée si elle existe
+          if (
+            currentSpiceDistribution &&
+            currentSpiceDistribution.length === 4
+          ) {
+            const distTotal = currentSpiceDistribution.reduce((sum, count) => sum + count, 0)
+            if (distTotal === currentQuantity) {
+              setSpiceDistribution(currentSpiceDistribution)
+            } else {
+              // Désynchronisation : toutes portions non épicées
+              setSpiceDistribution([currentQuantity, 0, 0, 0])
+            }
           } else {
-            // Désynchronisation : reset
-            setQuantity(1)
-            setSpiceDistribution([1, 0, 0, 0])
+            // Pas de distribution (plat non épicé) : toutes portions non épicées
+            setSpiceDistribution([currentQuantity, 0, 0, 0])
           }
         } else {
-          // Nouveau plat ou ouverture depuis plat disponible : reset
+          // Nouveau plat : reset à 1
           setQuantity(1)
           setSpiceDistribution([1, 0, 0, 0])
         }

@@ -30,6 +30,8 @@ const toastVariants = cva(
         default: "border-thai-orange bg-white text-foreground animate-moving-border",
         destructive:
           "destructive group border-destructive bg-destructive text-destructive-foreground",
+        polaroid:
+          "border-thai-green bg-white text-thai-green shadow-[0_4px_6px_rgba(0,0,0,0.3)] rotate-2 hover:rotate-0 transition-all duration-300 hover:scale-105 border-4 p-4",
       },
     },
     defaultVariants: {

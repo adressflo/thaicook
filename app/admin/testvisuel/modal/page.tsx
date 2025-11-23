@@ -1,0 +1,311 @@
+"use client"
+
+import { useState } from "react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import { CheckCircle2, Trash2, Settings, User, Mail, CreditCard } from "lucide-react"
+
+export default function ModalsTestPage() {
+  const [open, setOpen] = useState(false)
+
+  const NumberBadge = ({ number }: { number: number }) => (
+    <span className="bg-thai-orange mb-1 inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold text-white shadow-sm">
+      {number}
+    </span>
+  )
+
+  return (
+    <div className="space-y-8">
+      {/* Header */}
+      <div>
+        <h1 className="text-thai-green mb-2 text-3xl font-bold">🪟 Test des Modales</h1>
+        <p className="text-gray-600">
+          Composants Dialog et Alert Dialog pour les interactions utilisateur
+        </p>
+        <div className="mt-4 flex gap-2">
+          <Badge variant="outline" className="border-thai-orange text-thai-orange">
+            Dialog & Alert
+          </Badge>
+          <Badge className="bg-thai-green">
+            <CheckCircle2 className="mr-1 h-3 w-3" />
+            Fonctionnel
+          </Badge>
+        </div>
+      </div>
+
+      {/* Section 1: Dialogues Simples */}
+      <Card className="border-thai-orange/20">
+        <CardHeader>
+          <CardTitle className="text-thai-green">1. Dialogues d'Information</CardTitle>
+          <CardDescription>
+            Modales simples pour afficher du contenu ou des formulaires
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {/* Basic Dialog */}
+            <div className="flex flex-col gap-1">
+              <NumberBadge number={1} />
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="outline" className="w-full">
+                    <Settings className="mr-2 h-4 w-4" />
+                    Paramètres
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                  <DialogHeader>
+                    <DialogTitle>Modifier le profil</DialogTitle>
+                    <DialogDescription>
+                      Faites des changements à votre profil ici. Cliquez sur sauvegarder une fois
+                      terminé.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="name" className="text-right">
+                        Nom
+                      </Label>
+                      <Input id="name" defaultValue="Chanthana" className="col-span-3" />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="username" className="text-right">
+                        Email
+                      </Label>
+                      <Input
+                        id="username"
+                        defaultValue="contact@chanthana.fr"
+                        className="col-span-3"
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button type="submit" className="bg-thai-green hover:bg-thai-green/90">
+                      Sauvegarder
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
+
+            {/* Terms Dialog */}
+            <div className="flex flex-col gap-1">
+              <NumberBadge number={2} />
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="outline" className="w-full">
+                    <CheckCircle2 className="mr-2 h-4 w-4" />
+                    Conditions Générales
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[600px]">
+                  <DialogHeader>
+                    <DialogTitle>Conditions Générales de Vente</DialogTitle>
+                    <DialogDescription>Dernière mise à jour : 23 Novembre 2025</DialogDescription>
+                  </DialogHeader>
+                  <div className="max-h-[300px] overflow-y-auto text-sm text-gray-600">
+                    <p className="mb-4">
+                      <strong>1. Objet</strong>
+                      <br />
+                      Les présentes conditions régissent les ventes par la société Chanthana Thai
+                      Cook.
+                    </p>
+                    <p className="mb-4">
+                      <strong>2. Prix</strong>
+                      <br />
+                      Les prix de nos produits sont indiqués en euros toutes taxes comprises (TVA et
+                      autres taxes applicables au jour de la commande), sauf indication contraire et
+                      hors frais de traitement et d'expédition.
+                    </p>
+                    <p className="mb-4">
+                      <strong>3. Commandes</strong>
+                      <br />
+                      Vous pouvez passer commande sur Internet : www.chanthanathaicook.fr. Les
+                      informations contractuelles sont présentées en langue française et feront
+                      l'objet d'une confirmation au plus tard au moment de la validation de votre
+                      commande.
+                    </p>
+                    <p>
+                      <strong>4. Validation</strong>
+                      <br />
+                      Vous déclarez avoir pris connaissance et accepté les présentes Conditions
+                      générales de vente avant la passation de votre commande. La validation de
+                      votre commande vaut donc acceptation de ces Conditions générales de vente.
+                    </p>
+                  </div>
+                  <DialogFooter>
+                    <Button className="bg-thai-orange hover:bg-thai-orange/90">J'accepte</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
+
+            {/* Payment Dialog */}
+            <div className="flex flex-col gap-1">
+              <NumberBadge number={3} />
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button className="bg-thai-green hover:bg-thai-green/90 w-full">
+                    <CreditCard className="mr-2 h-4 w-4" />
+                    Paiement
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Détails du paiement</DialogTitle>
+                    <DialogDescription>
+                      Entrez vos informations de carte bancaire pour finaliser la commande.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="card">Numéro de carte</Label>
+                      <Input id="card" placeholder="0000 0000 0000 0000" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="expiry">Expiration</Label>
+                        <Input id="expiry" placeholder="MM/YY" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="cvc">CVC</Label>
+                        <Input id="cvc" placeholder="123" />
+                      </div>
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button className="bg-thai-green hover:bg-thai-green/90 w-full">
+                      Payer 24.90€
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Section 2: Alert Dialogs (Confirmations) */}
+      <Card className="border-thai-orange/20">
+        <CardHeader>
+          <CardTitle className="text-thai-green">2. Confirmations (Alert Dialog)</CardTitle>
+          <CardDescription>
+            Modales bloquantes pour les actions critiques nécessitant une confirmation
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {/* Delete Confirmation */}
+            <div className="flex flex-col gap-1">
+              <NumberBadge number={1} />
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" className="w-full">
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Supprimer le compte
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Êtes-vous absolument sûr ?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Cette action ne peut pas être annulée. Cela supprimera définitivement votre
+                      compte et effacera vos données de nos serveurs.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Annuler</AlertDialogCancel>
+                    <AlertDialogAction className="bg-red-600 hover:bg-red-700">
+                      Oui, supprimer mon compte
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
+
+            {/* Logout Confirmation */}
+            <div className="flex flex-col gap-1">
+              <NumberBadge number={2} />
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="border-thai-orange text-thai-orange hover:bg-thai-orange/10 w-full"
+                  >
+                    <User className="mr-2 h-4 w-4" />
+                    Déconnexion
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Se déconnecter ?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Vous devrez vous reconnecter pour accéder à votre panier et vos commandes.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Rester connecté</AlertDialogCancel>
+                    <AlertDialogAction className="bg-thai-orange hover:bg-thai-orange/90">
+                      Se déconnecter
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
+
+            {/* Order Confirmation */}
+            <div className="flex flex-col gap-1">
+              <NumberBadge number={3} />
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button className="bg-thai-green hover:bg-thai-green/90 w-full">
+                    <CheckCircle2 className="mr-2 h-4 w-4" />
+                    Valider la commande
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Confirmer la commande</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Vous allez valider votre commande de 3 articles pour un total de 45.90€.
+                      Voulez-vous continuer ?
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Modifier</AlertDialogCancel>
+                    <AlertDialogAction className="bg-thai-green hover:bg-thai-green/90">
+                      Confirmer et payer
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}

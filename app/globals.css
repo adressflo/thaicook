@@ -2,6 +2,7 @@
 @source "./components/**/*.{ts,tsx}";
 
 @import "tailwindcss";
+@import "./theme-mappings.css";
 
 @theme {
   /* Couleurs Thai - Configuration v4 avec structure objet correcte */

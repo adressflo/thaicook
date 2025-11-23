@@ -15,7 +15,8 @@ import {
   Zap,
   Home,
   ChevronLeft,
-  Video
+  Video,
+  Beaker
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -87,6 +88,12 @@ const adminNavItems = [
     href: "/admin/parametres",
     icon: Settings,
     description: "Configuration système"
+  },
+  {
+    title: "Test Visuel",
+    href: "/admin/testvisuel",
+    icon: Beaker,
+    description: "Validation complète des composants"
   }
 ];
 
