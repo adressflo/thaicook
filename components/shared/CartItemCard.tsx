@@ -96,7 +96,7 @@ export function CartItemCard({
         </div>
 
         {/* Informations du plat */}
-        <div className="relative flex min-w-0 flex-1 flex-col justify-between self-stretch p-3 sm:p-0">
+        <div className="relative flex min-w-0 flex-1 flex-col justify-between self-stretch p-3 sm:p-0 sm:pb-6">
           {/* Container Mobile : Stack vertical centré */}
           <div className="flex flex-col items-center gap-2 sm:block sm:gap-0">
             {/* Nom du plat */}
@@ -119,7 +119,7 @@ export function CartItemCard({
             </div>
 
             {/* Prix unitaire (Mobile : sous le nom, centré) */}
-            <div className="flex items-center justify-center text-xs text-gray-600 sm:mt-1 sm:justify-start sm:text-sm">
+            <div className="flex items-center justify-center text-xs text-gray-600 sm:mt-1 sm:max-w-[45%] sm:justify-start sm:text-sm">
               <span className="font-semibold text-gray-700">Prix unitaire:</span>
               <Badge variant="secondary" className="ml-1 text-xs font-bold sm:text-sm">
                 {formatPrix(unitPrice)}
