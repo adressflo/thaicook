@@ -139,6 +139,8 @@ export default function CardsTestPage() {
           <CardTitle className="text-thai-green">2. Cards Produit (ProductCard)</CardTitle>
           <CardDescription>
             Composant <code>&lt;ProductCard /&gt;</code> (Données réelles via useData)
+            <br />
+            <code className="text-xs text-gray-500">components\shared\ProductCard.tsx</code>
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -163,7 +165,7 @@ export default function CardsTestPage() {
                       isVegetarian={!!platExemple.est_vegetarien}
                       isSpicy={(platExemple.niveau_epice ?? 0) > 0}
                       quantityInCart={0}
-                      imageSrc={platExemple.photo_du_plat || undefined}
+                      imageSrc="/media/avatars/panier1.svg"
                       onAdd={() => console.log(`Ajout de ${platExemple.plat}`)}
                     />
                     <p className="mt-2 text-xs text-gray-500 italic">
@@ -185,6 +187,8 @@ export default function CardsTestPage() {
           <CardTitle className="text-thai-green">2.5. Cards Panier (CartItemCard)</CardTitle>
           <CardDescription>
             Composant <code>&lt;CartItemCard /&gt;</code> (Design validé page Panier)
+            <br />
+            <code className="text-xs text-gray-500">components\shared\CartItemCard.tsx</code>
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -203,7 +207,7 @@ export default function CardsTestPage() {
                     <NumberBadge number={5} />
                     <CartItemCard
                       name={platExemple.plat}
-                      imageUrl={platExemple.photo_du_plat || undefined}
+                      imageUrl="/media/avatars/panier1.svg"
                       unitPrice={parseFloat(platExemple.prix?.toString() || "0")}
                       quantity={quantity}
                       isVegetarian={!!platExemple.est_vegetarien}
@@ -246,7 +250,7 @@ export default function CardsTestPage() {
                     </div>
                     <CartItemCard
                       name={platExemple.plat}
-                      imageUrl={platExemple.photo_du_plat || undefined}
+                      imageUrl="/media/avatars/panier1.svg"
                       unitPrice={parseFloat(platExemple.prix?.toString() || "0")}
                       quantity={2}
                       isVegetarian={!!platExemple.est_vegetarien}

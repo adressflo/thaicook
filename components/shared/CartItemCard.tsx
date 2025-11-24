@@ -1,3 +1,6 @@
+"use client"
+
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Trash2 } from "lucide-react"
@@ -41,6 +44,12 @@ export function CartItemCard({
   readOnly = false,
   className,
 }: CartItemCardProps) {
+  const [imageError, setImageError] = useState(false)
+
+  useEffect(() => {
+    setImageError(false)
+  }, [imageUrl])
+
   const formatPrix = (prix: number): string => {
     if (prix % 1 === 0) {
       return `${prix.toFixed(0)}€`
@@ -63,10 +72,11 @@ export function CartItemCard({
         {/* Image du plat */}
         <div className="w-full sm:w-auto sm:flex-shrink-0">
           <div className="relative" onClick={onClick}>
-            {imageUrl ? (
+            {imageUrl && !imageError ? (
               <img
                 src={imageUrl}
                 alt={name}
+                onError={() => setImageError(true)}
                 className="aspect-video w-full cursor-pointer rounded-t-lg object-cover transition-opacity duration-200 hover:opacity-80 sm:h-20 sm:w-36 sm:rounded-lg"
               />
             ) : (

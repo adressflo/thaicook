@@ -26,9 +26,12 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { CheckCircle2, Trash2, Settings, User, Mail, CreditCard } from "lucide-react"
+import { CheckCircle2, Trash2, Settings, User, Mail, CreditCard, Eye } from "lucide-react"
+import { CommandePlatModal } from "@/components/shared/CommandePlatModal"
+import { useData } from "@/contexts/DataContext"
 
 export default function ModalsTestPage() {
+  const { plats, isLoading } = useData()
   const [open, setOpen] = useState(false)
 
   const NumberBadge = ({ number }: { number: number }) => (
@@ -220,7 +223,7 @@ export default function ModalsTestPage() {
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {/* Delete Confirmation */}
             <div className="flex flex-col gap-1">
-              <NumberBadge number={1} />
+              <NumberBadge number={4} />
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button variant="destructive" className="w-full">
@@ -248,7 +251,7 @@ export default function ModalsTestPage() {
 
             {/* Logout Confirmation */}
             <div className="flex flex-col gap-1">
-              <NumberBadge number={2} />
+              <NumberBadge number={5} />
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button
@@ -278,7 +281,7 @@ export default function ModalsTestPage() {
 
             {/* Order Confirmation */}
             <div className="flex flex-col gap-1">
-              <NumberBadge number={3} />
+              <NumberBadge number={6} />
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button className="bg-thai-green hover:bg-thai-green/90 w-full">
@@ -302,6 +305,55 @@ export default function ModalsTestPage() {
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Section 3: Modales Métier */}
+      <Card className="border-thai-orange/20">
+        <CardHeader>
+          <CardTitle className="text-thai-green">3. Modales Métier</CardTitle>
+          <CardDescription>
+            Composants modaux spécifiques à l'application (ex: Détails Plat)
+            <br />
+            <code className="text-xs text-gray-500">components\shared\CommandePlatModal.tsx</code>
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {/* CommandePlatModal Example */}
+            <div className="flex flex-col gap-1">
+              <NumberBadge number={7} />
+              {isLoading ? (
+                <div className="p-4 text-sm text-gray-500">Chargement des données...</div>
+              ) : plats && plats.length > 0 ? (
+                (() => {
+                  const platExemple =
+                    plats.find((p) => p.plat.toLowerCase().includes("ailes de poulet")) ||
+                    plats.find((p) => p.plat.toLowerCase().includes("pad thaï")) ||
+                    plats[0]
+
+                  const platTest = platExemple
+
+                  return (
+                    <CommandePlatModal
+                      plat={platTest}
+                      formatPrix={(p) => `${p.toFixed(2)}€`}
+                      onAddToCart={(p, q, s, d) =>
+                        console.log("Ajout au panier (Réel):", { p, q, s, d })
+                      }
+                    >
+                      <Button className="bg-thai-orange hover:bg-thai-orange/90 w-full">
+                        Ajouter commande
+                      </Button>
+                    </CommandePlatModal>
+                  )
+                })()
+              ) : (
+                <div className="p-4 text-sm text-red-500">Aucune donnée disponible</div>
+              )}
+              <p className="mt-2 text-xs text-gray-500 italic">* Données réelles</p>
             </div>
           </div>
         </CardContent>
