@@ -370,7 +370,7 @@ export default function ModalsTestPage() {
             <div className="flex flex-col gap-2">
               <div className="flex items-center gap-2">
                 <NumberBadge number={7} />
-                <span className="text-sm font-medium text-gray-600">Déclencheur Modal</span>
+                <span className="text-sm font-medium text-gray-600">Test Interactif</span>
               </div>
               {isLoading ? (
                 <div className="p-4 text-sm text-gray-500">Chargement des données...</div>
@@ -417,9 +417,8 @@ export default function ModalsTestPage() {
 
             {/* CommandePlatModal Example - Inline Preview */}
             <div className="flex flex-col gap-2">
-              <div className="flex items-center gap-2">
-                <NumberBadge number={8} />
-                <span className="text-sm font-medium text-gray-600">Aperçu Inline (Preview)</span>
+              <div className="flex h-6 items-center gap-2">
+                <span className="pl-2 text-sm font-medium text-gray-600">Aperçu Visuel</span>
               </div>
               {isLoading ? (
                 <div className="p-4 text-sm text-gray-500">Chargement...</div>

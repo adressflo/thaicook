@@ -18,6 +18,14 @@ import {
   ShoppingCart,
   User,
 } from "lucide-react"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
 
 export default function ToastsTestPage() {
@@ -54,11 +62,52 @@ export default function ToastsTestPage() {
 
       {/* Section 1: Toasts Standard (toaster.tsx) */}
       <Card className="border-thai-orange/20">
-        <CardHeader>
-          <CardTitle className="text-thai-green">1. Toasts Standard (toaster.tsx)</CardTitle>
-          <CardDescription>
-            Toasts classiques avec bordure orange et animation verte - Position: bas droite
-          </CardDescription>
+        <CardHeader className="flex flex-row items-start justify-between space-y-0">
+          <div>
+            <CardTitle className="text-thai-green">1. Toasts Standard</CardTitle>
+            <CardDescription className="mt-1.5">
+              Toasts classiques avec bordure orange et animation verte - Position: bas droite
+              <br />
+              <code className="text-xs text-gray-500">components\ui\toaster.tsx</code>
+              <br />
+              <code className="text-xs text-gray-500">hooks\use-toast.ts</code>
+            </CardDescription>
+          </div>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-2">
+                <Info className="h-4 w-4" />
+                Props
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Propriétés de useToast</DialogTitle>
+                <DialogDescription>
+                  Documentation des propriétés pour la fonction toast().
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <ul className="list-disc space-y-2 pl-5 text-sm text-gray-600">
+                  <li>
+                    <strong>title</strong> (string): Titre du toast
+                  </li>
+                  <li>
+                    <strong>description</strong> (string | ReactNode): Contenu du toast
+                  </li>
+                  <li>
+                    <strong>variant</strong> ("default" | "destructive"): Style visuel
+                  </li>
+                  <li>
+                    <strong>duration</strong> (number): Durée en ms (défaut: 5000)
+                  </li>
+                  <li>
+                    <strong>action</strong> (ToastAction): Bouton d'action optionnel
+                  </li>
+                </ul>
+              </div>
+            </DialogContent>
+          </Dialog>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -237,16 +286,73 @@ export default function ToastsTestPage() {
               </div>
             </div>
           </div>
+
+          <Separator className="my-4" />
+
+          {/* Aperçu Visuel */}
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-2">
+              <span className="pl-2 text-sm font-medium text-gray-600">Aperçu Visuel</span>
+            </div>
+            <div className="flex justify-center rounded-lg border border-dashed bg-gray-50 p-8">
+              {/* Static Toast Mockup */}
+              <div className="border-thai-orange/20 relative flex w-[350px] items-start gap-4 overflow-hidden rounded-md border bg-white p-4 shadow-lg">
+                <div className="bg-thai-orange absolute top-0 bottom-0 left-0 w-1" />
+                <div className="grid gap-1 pl-2">
+                  <div className="text-sm font-semibold">Notification</div>
+                  <div className="text-sm text-gray-600 opacity-90">
+                    Ceci est un exemple visuel de toast standard.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
       {/* Section 2: Toasts Vidéo (toastervideo.tsx) */}
       <Card className="border-thai-green/20">
-        <CardHeader>
-          <CardTitle className="text-thai-green">2. Toasts Vidéo (toastervideo.tsx)</CardTitle>
-          <CardDescription>
-            Toasts avec vidéo/image animée - Position: bas droite avec média
-          </CardDescription>
+        <CardHeader className="flex flex-row items-start justify-between space-y-0">
+          <div>
+            <CardTitle className="text-thai-green">2. Toasts Vidéo</CardTitle>
+            <CardDescription className="mt-1.5">
+              Toasts avec vidéo/image animée - Position: bas droite avec média
+              <br />
+              <code className="text-xs text-gray-500">hooks\use-toast-video.ts</code>
+            </CardDescription>
+          </div>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-2">
+                <Info className="h-4 w-4" />
+                Props
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Propriétés de toastVideo</DialogTitle>
+                <DialogDescription>
+                  Documentation des propriétés pour la fonction toastVideo().
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <ul className="list-disc space-y-2 pl-5 text-sm text-gray-600">
+                  <li>
+                    <strong>title</strong> (string): Titre du toast
+                  </li>
+                  <li>
+                    <strong>description</strong> (string | ReactNode): Contenu
+                  </li>
+                  <li>
+                    <strong>media</strong> (string): URL de la vidéo (.mp4) ou image
+                  </li>
+                  <li>
+                    <strong>duration</strong> (number): Durée en ms (défaut: 5000)
+                  </li>
+                </ul>
+              </div>
+            </DialogContent>
+          </Dialog>
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -349,18 +455,78 @@ export default function ToastsTestPage() {
               </Button>
             </div>
           </div>
+
+          <Separator className="my-4" />
+
+          {/* Aperçu Visuel */}
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-2">
+              <span className="pl-2 text-sm font-medium text-gray-600">Aperçu Visuel</span>
+            </div>
+            <div className="flex justify-center rounded-lg border border-dashed bg-gray-50 p-8">
+              {/* Static Video Toast Mockup */}
+              <div className="border-thai-green/20 relative flex w-[350px] flex-col overflow-hidden rounded-md border bg-white p-0 shadow-lg">
+                <div className="relative flex h-40 items-center justify-center bg-gray-200">
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/10">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/80">
+                      <div className="border-l-thai-green ml-1 h-0 w-0 border-t-[6px] border-b-[6px] border-l-[10px] border-t-transparent border-b-transparent"></div>
+                    </div>
+                  </div>
+                  <span className="text-xs text-gray-500">Média (Vidéo/Image)</span>
+                </div>
+                <div className="grid gap-1 p-4">
+                  <div className="text-sm font-semibold">Titre du Toast</div>
+                  <div className="text-sm text-gray-600 opacity-90">Description avec média...</div>
+                </div>
+              </div>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
       {/* Section 3: Toasts Centrés (toastervideocenter.tsx) */}
       <Card className="border-thai-orange/20">
-        <CardHeader>
-          <CardTitle className="text-thai-green">
-            3. Toasts Vidéo Centrés (toastervideocenter.tsx)
-          </CardTitle>
-          <CardDescription>
-            Toasts avec vidéo/image en plein centre de l'écran - Impact visuel maximal
-          </CardDescription>
+        <CardHeader className="flex flex-row items-start justify-between space-y-0">
+          <div>
+            <CardTitle className="text-thai-green">3. Toasts Vidéo Centrés</CardTitle>
+            <CardDescription className="mt-1.5">
+              Toasts avec vidéo/image en plein centre de l'écran - Impact visuel maximal
+              <br />
+              <code className="text-xs text-gray-500">hooks\use-toast-video-center.ts</code>
+            </CardDescription>
+          </div>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-2">
+                <Info className="h-4 w-4" />
+                Props
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Propriétés de toastVideoCenter</DialogTitle>
+                <DialogDescription>
+                  Documentation des propriétés pour la fonction toastVideoCenter().
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <ul className="list-disc space-y-2 pl-5 text-sm text-gray-600">
+                  <li>
+                    <strong>title</strong> (string): Titre du toast
+                  </li>
+                  <li>
+                    <strong>description</strong> (string | ReactNode): Contenu
+                  </li>
+                  <li>
+                    <strong>media</strong> (string): URL de la vidéo (.mp4) ou image
+                  </li>
+                  <li>
+                    <strong>duration</strong> (number): Durée en ms (défaut: 5000)
+                  </li>
+                </ul>
+              </div>
+            </DialogContent>
+          </Dialog>
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -439,6 +605,31 @@ export default function ToastsTestPage() {
                 <Bell className="mr-2 h-4 w-4" />
                 Centré - Événement
               </Button>
+            </div>
+          </div>
+
+          <Separator className="my-4" />
+
+          {/* Aperçu Visuel */}
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-2">
+              <span className="pl-2 text-sm font-medium text-gray-600">Aperçu Visuel</span>
+            </div>
+            <div className="flex justify-center rounded-lg border border-dashed bg-gray-50 p-8">
+              {/* Static Centered Toast Mockup */}
+              <div className="border-thai-orange/20 relative flex w-[300px] flex-col items-center gap-4 overflow-hidden rounded-xl border bg-white p-6 text-center shadow-2xl">
+                <div className="relative flex h-20 w-20 items-center justify-center overflow-hidden rounded-full bg-gray-100">
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/10">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/80">
+                      <div className="border-l-thai-green ml-1 h-0 w-0 border-t-[4px] border-b-[4px] border-l-[8px] border-t-transparent border-b-transparent"></div>
+                    </div>
+                  </div>
+                </div>
+                <div className="grid gap-2">
+                  <div className="text-thai-green text-lg font-bold">Titre Centré</div>
+                  <div className="text-sm text-gray-600">Description du toast centré...</div>
+                </div>
+              </div>
             </div>
           </div>
         </CardContent>
