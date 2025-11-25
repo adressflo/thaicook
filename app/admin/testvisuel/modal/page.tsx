@@ -26,8 +26,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { CheckCircle2, Trash2, Settings, User, Mail, CreditCard, Eye } from "lucide-react"
-import { CommandePlatModal } from "@/components/shared/CommandePlatModal"
+import { CheckCircle2, Trash2, Settings, User, Mail, CreditCard, Eye, Info } from "lucide-react"
+import { CommandePlatModal, CommandePlatContent } from "@/components/shared/CommandePlatModal"
 import { useData } from "@/contexts/DataContext"
 
 export default function ModalsTestPage() {
@@ -312,19 +312,66 @@ export default function ModalsTestPage() {
 
       {/* Section 3: Modales Métier */}
       <Card className="border-thai-orange/20">
-        <CardHeader>
-          <CardTitle className="text-thai-green">3. Modales Métier</CardTitle>
-          <CardDescription>
-            Composants modaux spécifiques à l'application (ex: Détails Plat)
-            <br />
-            <code className="text-xs text-gray-500">components\shared\CommandePlatModal.tsx</code>
-          </CardDescription>
+        <CardHeader className="flex flex-row items-start justify-between space-y-0">
+          <div>
+            <CardTitle className="text-thai-green">3. Modales Métier</CardTitle>
+            <CardDescription className="mt-1.5">
+              Composants modaux spécifiques à l'application (ex: Détails Plat)
+              <br />
+              <code className="text-xs text-gray-500">components\shared\CommandePlatModal.tsx</code>
+            </CardDescription>
+          </div>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-2">
+                <Info className="h-4 w-4" />
+                Props
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Propriétés de CommandePlatModal</DialogTitle>
+                <DialogDescription>Documentation des propriétés du composant.</DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <ul className="list-disc space-y-2 pl-5 text-sm text-gray-600">
+                  <li>
+                    <strong>plat</strong> (Plat): Objet plat complet (Requis)
+                  </li>
+                  <li>
+                    <strong>isOpen</strong> (boolean): État d'ouverture du modal
+                  </li>
+                  <li>
+                    <strong>onOpenChange</strong> (function): Callback changement d'état
+                  </li>
+                  <li>
+                    <strong>formatPrix</strong> (function): Fonction de formatage du prix
+                  </li>
+                  <li>
+                    <strong>onAddToCart</strong> (function): Callback ajout au panier
+                  </li>
+                  <li>
+                    <strong>currentQuantity</strong> (number): Quantité initiale (défaut: 0)
+                  </li>
+                  <li>
+                    <strong>currentSpiceDistribution</strong> (number[]): Répartition épices
+                  </li>
+                  <li>
+                    <strong>dateRetrait</strong> (Date): Date de retrait affichée
+                  </li>
+                </ul>
+              </div>
+            </DialogContent>
+          </Dialog>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {/* CommandePlatModal Example */}
-            <div className="flex flex-col gap-1">
-              <NumberBadge number={7} />
+          <div className="grid gap-8 md:grid-cols-2">
+            {/* CommandePlatModal Example - Button Trigger */}
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2">
+                <NumberBadge number={7} />
+                <span className="text-sm font-medium text-gray-600">Déclencheur Modal</span>
+              </div>
               {isLoading ? (
                 <div className="p-4 text-sm text-gray-500">Chargement des données...</div>
               ) : plats && plats.length > 0 ? (
@@ -337,12 +384,12 @@ export default function ModalsTestPage() {
                   const [isModalOpen, setIsModalOpen] = useState(false)
 
                   return (
-                    <>
+                    <div className="rounded-lg border border-dashed p-4">
                       <Button
                         className="bg-thai-orange hover:bg-thai-orange/90 w-full"
                         onClick={() => setIsModalOpen(true)}
                       >
-                        Ajouter commande
+                        Ouvrir le modal "{platExemple.plat}"
                       </Button>
 
                       <CommandePlatModal
@@ -357,13 +404,51 @@ export default function ModalsTestPage() {
                           console.log("Ajout au panier (Réel):", { p, q, s, d })
                         }
                       />
-                    </>
+                      <p className="mt-2 text-center text-xs text-gray-500">
+                        Cliquez pour voir le comportement réel du modal
+                      </p>
+                    </div>
                   )
                 })()
               ) : (
                 <div className="p-4 text-sm text-red-500">Aucune donnée disponible</div>
               )}
-              <p className="mt-2 text-xs text-gray-500 italic">* Données réelles</p>
+            </div>
+
+            {/* CommandePlatModal Example - Inline Preview */}
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2">
+                <NumberBadge number={8} />
+                <span className="text-sm font-medium text-gray-600">Aperçu Inline (Preview)</span>
+              </div>
+              {isLoading ? (
+                <div className="p-4 text-sm text-gray-500">Chargement...</div>
+              ) : plats && plats.length > 0 ? (
+                (() => {
+                  const platExemple =
+                    plats.find((p) => p.plat.toLowerCase().includes("nems")) || plats[0]
+
+                  return (
+                    <div className="relative mx-auto flex h-[500px] w-full max-w-sm flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl">
+                      <div className="absolute top-2 right-2 z-10 rounded bg-black/50 px-2 py-1 text-xs text-white">
+                        Mode Aperçu
+                      </div>
+                      <CommandePlatContent
+                        onOpenChange={() => console.log("Close requested")}
+                        plat={platExemple}
+                        formatPrix={(p) => `${p.toFixed(2)}€`}
+                        currentQuantity={1}
+                        currentSpiceDistribution={[1, 0, 0, 0]}
+                        dateRetrait={new Date()}
+                        standalone={true}
+                        onAddToCart={(p, q, s, d) =>
+                          console.log("Ajout au panier (Preview):", { p, q, s, d })
+                        }
+                      />
+                    </div>
+                  )
+                })()
+              ) : null}
             </div>
           </div>
         </CardContent>
