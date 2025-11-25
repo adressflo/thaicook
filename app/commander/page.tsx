@@ -55,11 +55,11 @@ import { useData } from "@/contexts/DataContext"
 import { useCart } from "@/contexts/CartContext"
 import { usePrismaCreateCommande } from "@/hooks/usePrismaData"
 import type { PlatUI as Plat, PlatPanier } from "@/types/app"
-import { DishDetailsModalInteractive } from "@/components/historique/DishDetailsModalInteractive"
+import { CommandePlatModal } from "@/components/shared/CommandePlatModal"
 import { FeaturedDishSection } from "@/components/commander/FeaturedDishSection"
 import { PolaroidThankYouModal } from "@/components/commander/PolaroidThankYouModal"
 import { spiceTextToLevel } from "@/lib/spice-helpers"
-import { SpiceDistributionDisplay } from "@/components/commander/SpiceDistributionDisplay"
+import { Spice } from "@/components/shared/Spice"
 
 export const dynamic = "force-dynamic"
 
@@ -123,6 +123,12 @@ const Commander = memo(() => {
   const [showThankYouModal, setShowThankYouModal] = useState(false)
   const [featuredDishDays, setFeaturedDishDays] = useState<string[]>([])
   const [featuredDish, setFeaturedDish] = useState<any>(null)
+  const [modalContext, setModalContext] = useState<{
+    plat: Plat
+    quantity: number
+    spiceDistribution?: number[]
+    uniqueId?: string
+  } | null>(null)
 
   // Fonction pour formater les prix
   const formatPrix = (prix: number): string => {
@@ -795,92 +801,87 @@ const Commander = memo(() => {
                   ) : (
                     <div className="grid gap-4 md:grid-cols-2">
                       {platsDisponibles.map((plat) => (
-                        <DishDetailsModalInteractive
+                        <Card
                           key={plat.id}
-                          plat={plat}
-                          formatPrix={formatPrix}
-                          onAddToCart={handleAjouterAuPanier}
-                          currentQuantity={getCurrentQuantity(plat.idplats)}
-                          dateRetrait={dateRetrait}
+                          className={`border-thai-orange/20 flex cursor-pointer flex-col transition-all duration-300 ${
+                            highlightedPlatId === plat.id.toString()
+                              ? "ring-thai-orange/50 border-thai-orange scale-105 shadow-lg ring-4"
+                              : "hover:border-thai-orange/40 hover:shadow-md"
+                          }`}
+                          onMouseEnter={() => setHighlightedPlatId(plat.id.toString())}
+                          onMouseLeave={() => setHighlightedPlatId(null)}
+                          onClick={() =>
+                            setModalContext({ plat, quantity: getCurrentQuantity(plat.idplats) })
+                          }
                         >
-                          <Card
-                            className={`border-thai-orange/20 flex cursor-pointer flex-col transition-all duration-300 ${
-                              highlightedPlatId === plat.id.toString()
-                                ? "ring-thai-orange/50 border-thai-orange scale-105 shadow-lg ring-4"
-                                : "hover:border-thai-orange/40 hover:shadow-md"
-                            }`}
-                            onMouseEnter={() => setHighlightedPlatId(plat.id.toString())}
-                            onMouseLeave={() => setHighlightedPlatId(null)}
-                          >
-                            {plat.photo_du_plat && (
-                              <div className="relative aspect-video overflow-hidden rounded-t-lg">
-                                <img
-                                  src={plat.photo_du_plat}
-                                  alt={plat.plat}
-                                  className="h-full w-full object-cover transition-transform duration-300 hover:scale-110"
-                                />
-                                {/* Badge Disponible en haut à gauche */}
-                                <div className="absolute top-2 left-2">
-                                  <Badge className="bg-thai-green px-2 py-0.5 text-xs font-semibold text-white shadow-md">
-                                    Disponible
+                          {plat.photo_du_plat && (
+                            <div className="relative aspect-video overflow-hidden rounded-t-lg">
+                              <img
+                                src={plat.photo_du_plat}
+                                alt={plat.plat}
+                                className="h-full w-full object-cover transition-transform duration-300 hover:scale-110"
+                              />
+                              {/* Badge Disponible en haut à gauche */}
+                              <div className="absolute top-2 left-2">
+                                <Badge className="bg-thai-green px-2 py-0.5 text-xs font-semibold text-white shadow-md">
+                                  Disponible
+                                </Badge>
+                              </div>
+                              {/* Badge Panier en haut à droite */}
+                              {getCurrentQuantity(plat.idplats) > 0 && (
+                                <div className="absolute top-2 right-2">
+                                  <Badge className="bg-thai-orange px-2 py-0.5 text-xs font-semibold text-white shadow-md">
+                                    Panier {getCurrentQuantity(plat.idplats)}
                                   </Badge>
                                 </div>
-                                {/* Badge Panier en haut à droite */}
-                                {getCurrentQuantity(plat.idplats) > 0 && (
-                                  <div className="absolute top-2 right-2">
-                                    <Badge className="bg-thai-orange px-2 py-0.5 text-xs font-semibold text-white shadow-md">
-                                      Panier {getCurrentQuantity(plat.idplats)}
+                              )}
+                            </div>
+                          )}
+                          <CardContent className="flex flex-grow flex-col p-3">
+                            {/* Nom + Badges sur même ligne */}
+                            <div className="mb-1 flex items-center justify-between gap-2">
+                              <h4 className="text-thai-green line-clamp-1 flex-1 font-semibold">
+                                {plat.plat}
+                              </h4>
+                              {(plat.est_vegetarien || (plat.niveau_epice ?? 0) > 0) && (
+                                <div className="flex flex-shrink-0 gap-1">
+                                  {plat.est_vegetarien && (
+                                    <Badge
+                                      variant="outline"
+                                      className="h-5 border-green-300 bg-green-50 px-1.5 py-0 text-[10px] text-green-700"
+                                    >
+                                      🌱 Végétarien
                                     </Badge>
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                            <CardContent className="flex flex-grow flex-col p-3">
-                              {/* Nom + Badges sur même ligne */}
-                              <div className="mb-1 flex items-center justify-between gap-2">
-                                <h4 className="text-thai-green line-clamp-1 flex-1 font-semibold">
-                                  {plat.plat}
-                                </h4>
-                                {(plat.est_vegetarien || (plat.niveau_epice ?? 0) > 0) && (
-                                  <div className="flex flex-shrink-0 gap-1">
-                                    {plat.est_vegetarien && (
-                                      <Badge
-                                        variant="outline"
-                                        className="h-5 border-green-300 bg-green-50 px-1.5 py-0 text-[10px] text-green-700"
-                                      >
-                                        🌱 Végétarien
-                                      </Badge>
-                                    )}
-                                    {(plat.niveau_epice ?? 0) > 0 && (
-                                      <Badge
-                                        variant="outline"
-                                        className="flex h-5 items-center gap-0.5 border-orange-300 bg-orange-50 px-1.5 py-0 text-[10px] text-orange-700"
-                                      >
-                                        <Flame className="h-3 w-3" />
-                                        Peut être épicé
-                                      </Badge>
-                                    )}
-                                  </div>
-                                )}
-                              </div>
+                                  )}
+                                  {(plat.niveau_epice ?? 0) > 0 && (
+                                    <Badge
+                                      variant="outline"
+                                      className="flex h-5 items-center gap-0.5 border-orange-300 bg-orange-50 px-1.5 py-0 text-[10px] text-orange-700"
+                                    >
+                                      <Flame className="h-3 w-3" />
+                                      Peut être épicé
+                                    </Badge>
+                                  )}
+                                </div>
+                              )}
+                            </div>
 
-                              <p className="mb-2 flex-grow text-xs text-gray-600">
-                                {plat.description}
-                              </p>
-                              <div className="mt-auto flex items-center justify-between pt-2">
-                                <Badge variant="secondary">
-                                  {formatPrix(parseFloat(plat.prix || "0"))}
-                                </Badge>
-                                <Button
-                                  size="sm"
-                                  className="transition-all duration-200 hover:scale-105 hover:shadow-md"
-                                >
-                                  Ajouter
-                                </Button>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        </DishDetailsModalInteractive>
+                            <p className="mb-2 flex-grow text-xs text-gray-600">
+                              {plat.description}
+                            </p>
+                            <div className="mt-auto flex items-center justify-between pt-2">
+                              <Badge variant="secondary">
+                                {formatPrix(parseFloat(plat.prix || "0"))}
+                              </Badge>
+                              <Button
+                                size="sm"
+                                className="transition-all duration-200 hover:scale-105 hover:shadow-md"
+                              >
+                                Ajouter
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
                       ))}
                     </div>
                   )}
@@ -977,116 +978,112 @@ const Commander = memo(() => {
                                   const imageUrl = platData?.photo_du_plat
 
                                   return platData ? (
-                                    <DishDetailsModalInteractive
+                                    <div
                                       key={item.uniqueId}
-                                      plat={platData}
-                                      formatPrix={formatPrix}
-                                      onAddToCart={handleAjouterAuPanier}
-                                      currentQuantity={item.quantite}
-                                      currentSpiceDistribution={item.spiceDistribution}
-                                      dateRetrait={item.dateRetrait}
-                                      uniqueId={item.uniqueId}
+                                      onClick={() =>
+                                        setModalContext({
+                                          plat: platData,
+                                          quantity: item.quantite,
+                                          spiceDistribution: item.spiceDistribution,
+                                          uniqueId: item.uniqueId,
+                                        })
+                                      }
+                                      className="hover:bg-thai-cream/20 hover:border-thai-orange hover:ring-thai-orange/30 flex transform cursor-pointer items-start gap-3 rounded-lg border border-gray-200 bg-white p-3 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:ring-2"
                                     >
-                                      <div className="hover:bg-thai-cream/20 hover:border-thai-orange hover:ring-thai-orange/30 flex transform cursor-pointer items-start gap-3 rounded-lg border border-gray-200 bg-white p-3 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:ring-2">
-                                        {/* Photo 18x18 avec badge quantité */}
-                                        <div className="relative flex-shrink-0">
-                                          <div className="bg-thai-orange absolute -top-2 -right-2 z-10 flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold text-white shadow-md">
-                                            {item.quantite}
+                                      {/* Photo 18x18 avec badge quantité */}
+                                      <div className="relative flex-shrink-0">
+                                        <div className="bg-thai-orange absolute -top-2 -right-2 z-10 flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold text-white shadow-md">
+                                          {item.quantite}
+                                        </div>
+                                        {imageUrl ? (
+                                          <img
+                                            src={imageUrl}
+                                            alt={item.nom}
+                                            className="h-[72px] w-[72px] rounded-lg object-cover"
+                                          />
+                                        ) : (
+                                          <div className="bg-thai-cream/30 border-thai-orange/20 flex h-[72px] w-[72px] items-center justify-center rounded-lg border">
+                                            <span className="text-thai-orange text-2xl">🍽️</span>
                                           </div>
-                                          {imageUrl ? (
-                                            <img
-                                              src={imageUrl}
-                                              alt={item.nom}
-                                              className="h-[72px] w-[72px] rounded-lg object-cover"
-                                            />
-                                          ) : (
-                                            <div className="bg-thai-cream/30 border-thai-orange/20 flex h-[72px] w-[72px] items-center justify-center rounded-lg border">
-                                              <span className="text-thai-orange text-2xl">🍽️</span>
-                                            </div>
-                                          )}
+                                        )}
+                                      </div>
+
+                                      {/* Contenu principal - 2 lignes */}
+                                      <div className="flex min-w-0 flex-1 flex-col gap-2">
+                                        {/* Ligne 1: Nom → Icônes épicées → Prix total */}
+                                        <div className="flex items-center justify-between gap-2">
+                                          <h4 className="text-thai-green text-base font-medium">
+                                            {item.nom}
+                                          </h4>
+                                          {item.demandeSpeciale &&
+                                            item.demandeSpeciale.includes("épicé") && (
+                                              <Spice
+                                                distribution={item.demandeSpeciale}
+                                                readOnly={true}
+                                                hideZeros={true}
+                                              />
+                                            )}
+                                          <div className="text-thai-orange text-lg font-bold whitespace-nowrap">
+                                            {formatPrix(parseFloat(item.prix) * item.quantite)}
+                                          </div>
                                         </div>
 
-                                        {/* Contenu principal - 2 lignes */}
-                                        <div className="flex min-w-0 flex-1 flex-col gap-2">
-                                          {/* Ligne 1: Nom → Icônes épicées → Prix total */}
-                                          <div className="flex items-center justify-between gap-2">
-                                            <h4 className="text-thai-green text-base font-medium">
-                                              {item.nom}
-                                            </h4>
-                                            {item.demandeSpeciale &&
-                                              item.demandeSpeciale.includes("épicé") && (
-                                                <SpiceDistributionDisplay
-                                                  distributionText={item.demandeSpeciale}
-                                                />
-                                              )}
-                                            <div className="text-thai-orange text-lg font-bold whitespace-nowrap">
-                                              {formatPrix(parseFloat(item.prix) * item.quantite)}
-                                            </div>
-                                          </div>
-
-                                          {/* Ligne 2: Prix unitaire (gauche) → Contrôles (droite) */}
-                                          <div className="flex items-center justify-between gap-2">
-                                            <span className="text-xs text-gray-600">
-                                              Prix unitaire:{" "}
-                                              <span className="font-medium">
-                                                {formatPrix(parseFloat(item.prix))}
-                                              </span>
+                                        {/* Ligne 2: Prix unitaire (gauche) → Contrôles (droite) */}
+                                        <div className="flex items-center justify-between gap-2">
+                                          <span className="text-xs text-gray-600">
+                                            Prix unitaire:{" "}
+                                            <span className="font-medium">
+                                              {formatPrix(parseFloat(item.prix))}
                                             </span>
-                                            <div className="flex items-center gap-2">
-                                              <Button
-                                                size="sm"
-                                                variant="ghost"
-                                                onClick={(e) => {
-                                                  e.stopPropagation()
-                                                  supprimerDuPanier(item.uniqueId!)
-                                                  toastVideoCenter({
-                                                    title: "Plat supprimé",
-                                                    description: `${item.nom} a été retiré de votre panier.`,
-                                                    media:
-                                                      "/media/animations/toasts/ajoutpaniernote.mp4",
-                                                  })
-                                                }}
-                                                className="h-7 w-7 p-0 text-gray-400 transition-all duration-200 hover:bg-red-50 hover:text-red-500"
-                                                aria-label="Supprimer l'article"
-                                              >
-                                                <Trash2 className="h-4 w-4" />
-                                              </Button>
-                                              <Button
-                                                size="sm"
-                                                variant="outline"
-                                                className="hover:border-thai-orange h-7 w-7 p-0 transition-all duration-200 hover:scale-110"
-                                                onClick={(e) => {
-                                                  e.stopPropagation()
-                                                  modifierQuantite(
-                                                    item.uniqueId!,
-                                                    item.quantite - 1
-                                                  )
-                                                }}
-                                              >
-                                                -
-                                              </Button>
-                                              <span className="w-6 text-center text-sm font-bold">
-                                                {item.quantite}
-                                              </span>
-                                              <Button
-                                                size="sm"
-                                                variant="outline"
-                                                className="hover:border-thai-orange h-7 w-7 p-0 transition-all duration-200 hover:scale-110"
-                                                onClick={(e) => {
-                                                  e.stopPropagation()
-                                                  modifierQuantite(
-                                                    item.uniqueId!,
-                                                    item.quantite + 1
-                                                  )
-                                                }}
-                                              >
-                                                +
-                                              </Button>
-                                            </div>
+                                          </span>
+                                          <div className="flex items-center gap-2">
+                                            <Button
+                                              size="sm"
+                                              variant="ghost"
+                                              onClick={(e) => {
+                                                e.stopPropagation()
+                                                supprimerDuPanier(item.uniqueId!)
+                                                toastVideoCenter({
+                                                  title: "Plat supprimé",
+                                                  description: `${item.nom} a été retiré de votre panier.`,
+                                                  media:
+                                                    "/media/animations/toasts/ajoutpaniernote.mp4",
+                                                })
+                                              }}
+                                              className="h-7 w-7 p-0 text-gray-400 transition-all duration-200 hover:bg-red-50 hover:text-red-500"
+                                              aria-label="Supprimer l'article"
+                                            >
+                                              <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                            <Button
+                                              size="sm"
+                                              variant="outline"
+                                              className="hover:border-thai-orange h-7 w-7 p-0 transition-all duration-200 hover:scale-110"
+                                              onClick={(e) => {
+                                                e.stopPropagation()
+                                                modifierQuantite(item.uniqueId!, item.quantite - 1)
+                                              }}
+                                            >
+                                              -
+                                            </Button>
+                                            <span className="w-6 text-center text-sm font-bold">
+                                              {item.quantite}
+                                            </span>
+                                            <Button
+                                              size="sm"
+                                              variant="outline"
+                                              className="hover:border-thai-orange h-7 w-7 p-0 transition-all duration-200 hover:scale-110"
+                                              onClick={(e) => {
+                                                e.stopPropagation()
+                                                modifierQuantite(item.uniqueId!, item.quantite + 1)
+                                              }}
+                                            >
+                                              +
+                                            </Button>
                                           </div>
                                         </div>
                                       </div>
-                                    </DishDetailsModalInteractive>
+                                    </div>
                                   ) : (
                                     <div className="flex items-start gap-3 rounded-lg border border-gray-200 bg-white p-3 opacity-50">
                                       <div className="flex h-12 w-16 items-center justify-center rounded-lg bg-gray-200">
@@ -1297,95 +1294,97 @@ const Commander = memo(() => {
                                     const imageUrl = platData?.photo_du_plat
 
                                     return platData ? (
-                                      <DishDetailsModalInteractive
+                                      <div
                                         key={item.uniqueId}
-                                        plat={platData}
-                                        formatPrix={formatPrix}
-                                        onAddToCart={handleAjouterAuPanier}
-                                        currentQuantity={item.quantite}
-                                        currentSpiceDistribution={item.spiceDistribution}
-                                        dateRetrait={item.dateRetrait}
-                                        uniqueId={item.uniqueId}
+                                        onClick={() =>
+                                          setModalContext({
+                                            plat: platData,
+                                            quantity: item.quantite,
+                                            spiceDistribution: item.spiceDistribution,
+                                            uniqueId: item.uniqueId,
+                                          })
+                                        }
+                                        className="flex cursor-pointer items-center gap-3 rounded bg-white/60 p-3 transition-colors hover:bg-white/80"
                                       >
-                                        <div className="flex cursor-pointer items-center gap-3 rounded bg-white/60 p-3 transition-colors hover:bg-white/80">
-                                          {imageUrl ? (
-                                            <img
-                                              src={imageUrl}
-                                              alt={item.nom}
-                                              className="border-thai-orange/20 h-12 w-12 rounded border object-cover"
-                                            />
-                                          ) : (
-                                            <div className="bg-thai-cream/30 border-thai-orange/20 flex h-12 w-12 items-center justify-center rounded border">
-                                              <span className="text-thai-orange">🍽️</span>
-                                            </div>
-                                          )}
-
-                                          <div className="flex-1">
-                                            <p
-                                              className="text-thai-green hover:text-thai-orange cursor-pointer text-base font-bold transition-colors"
-                                              onMouseEnter={() => setHighlightedPlatId(item.id)}
-                                              onMouseLeave={() => setHighlightedPlatId(null)}
-                                            >
-                                              {item.nom}
-                                            </p>
-                                            {item.demandeSpeciale &&
-                                              item.demandeSpeciale.includes("épicé") && (
-                                                <SpiceDistributionDisplay
-                                                  distributionText={item.demandeSpeciale}
-                                                  className="my-1"
-                                                />
-                                              )}
-                                            <p className="text-thai-orange text-sm font-medium">
-                                              {formatPrix(parseFloat(item.prix) * item.quantite)}
-                                            </p>
+                                        {imageUrl ? (
+                                          <img
+                                            src={imageUrl}
+                                            alt={item.nom}
+                                            className="border-thai-orange/20 h-12 w-12 rounded border object-cover"
+                                          />
+                                        ) : (
+                                          <div className="bg-thai-cream/30 border-thai-orange/20 flex h-12 w-12 items-center justify-center rounded border">
+                                            <span className="text-thai-orange">🍽️</span>
                                           </div>
+                                        )}
 
-                                          <div className="flex items-center gap-2">
-                                            <Button
-                                              size="sm"
-                                              variant="outline"
-                                              className="h-8 w-8 p-0"
-                                              onClick={(e) => {
-                                                e.stopPropagation()
-                                                modifierQuantite(item.uniqueId!, item.quantite - 1)
-                                              }}
-                                            >
-                                              -
-                                            </Button>
-                                            <span className="w-6 text-center font-medium">
-                                              {item.quantite}
-                                            </span>
-                                            <Button
-                                              size="sm"
-                                              variant="outline"
-                                              className="h-8 w-8 p-0"
-                                              onClick={(e) => {
-                                                e.stopPropagation()
-                                                modifierQuantite(item.uniqueId!, item.quantite + 1)
-                                              }}
-                                            >
-                                              +
-                                            </Button>
-                                            <Button
-                                              size="sm"
-                                              variant="ghost"
-                                              onClick={(e) => {
-                                                e.stopPropagation()
-                                                supprimerDuPanier(item.uniqueId!)
-                                                toastVideoCenter({
-                                                  title: "Plat supprimé",
-                                                  description: `${item.nom} retiré du panier.`,
-                                                  media:
-                                                    "/media/animations/toasts/ajoutpaniernote.mp4",
-                                                })
-                                              }}
-                                              className="h-8 w-8 p-0 text-gray-400 hover:text-red-500"
-                                            >
-                                              <Trash2 className="h-4 w-4" />
-                                            </Button>
-                                          </div>
+                                        <div className="flex-1">
+                                          <p
+                                            className="text-thai-green hover:text-thai-orange cursor-pointer text-base font-bold transition-colors"
+                                            onMouseEnter={() => setHighlightedPlatId(item.id)}
+                                            onMouseLeave={() => setHighlightedPlatId(null)}
+                                          >
+                                            {item.nom}
+                                          </p>
+                                          {item.demandeSpeciale &&
+                                            item.demandeSpeciale.includes("épicé") && (
+                                              <Spice
+                                                distribution={item.demandeSpeciale}
+                                                readOnly={true}
+                                                hideZeros={true}
+                                                className="my-1"
+                                              />
+                                            )}
+                                          <p className="text-thai-orange text-sm font-medium">
+                                            {formatPrix(parseFloat(item.prix) * item.quantite)}
+                                          </p>
                                         </div>
-                                      </DishDetailsModalInteractive>
+
+                                        <div className="flex items-center gap-2">
+                                          <Button
+                                            size="sm"
+                                            variant="outline"
+                                            className="h-8 w-8 p-0"
+                                            onClick={(e) => {
+                                              e.stopPropagation()
+                                              modifierQuantite(item.uniqueId!, item.quantite - 1)
+                                            }}
+                                          >
+                                            -
+                                          </Button>
+                                          <span className="w-6 text-center font-medium">
+                                            {item.quantite}
+                                          </span>
+                                          <Button
+                                            size="sm"
+                                            variant="outline"
+                                            className="h-8 w-8 p-0"
+                                            onClick={(e) => {
+                                              e.stopPropagation()
+                                              modifierQuantite(item.uniqueId!, item.quantite + 1)
+                                            }}
+                                          >
+                                            +
+                                          </Button>
+                                          <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            onClick={(e) => {
+                                              e.stopPropagation()
+                                              supprimerDuPanier(item.uniqueId!)
+                                              toastVideoCenter({
+                                                title: "Plat supprimé",
+                                                description: `${item.nom} retiré du panier.`,
+                                                media:
+                                                  "/media/animations/toasts/ajoutpaniernote.mp4",
+                                              })
+                                            }}
+                                            className="h-8 w-8 p-0 text-gray-400 hover:text-red-500"
+                                          >
+                                            <Trash2 className="h-4 w-4" />
+                                          </Button>
+                                        </div>
+                                      </div>
                                     ) : (
                                       <div className="flex items-center gap-3 rounded bg-white/60 p-3 opacity-50">
                                         <div className="flex h-12 w-12 items-center justify-center rounded bg-gray-200">
@@ -1466,6 +1465,23 @@ const Commander = memo(() => {
           )}
         </div>
       </div>
+
+      {/* Modal de commande de plat */}
+      {modalContext && (
+        <CommandePlatModal
+          isOpen={!!modalContext}
+          onOpenChange={(open) => {
+            if (!open) setModalContext(null)
+          }}
+          plat={modalContext.plat}
+          formatPrix={formatPrix}
+          onAddToCart={handleAjouterAuPanier}
+          currentQuantity={modalContext.quantity}
+          currentSpiceDistribution={modalContext.spiceDistribution}
+          dateRetrait={dateRetrait}
+          uniqueId={modalContext.uniqueId}
+        />
+      )}
 
       {/* Modal Polaroid Remerciement */}
       <PolaroidThankYouModal

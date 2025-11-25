@@ -8,6 +8,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -18,8 +26,10 @@ import {
   Users,
   DollarSign,
   ArrowRight,
+  Info,
 } from "lucide-react"
-import { PolaroidCard } from "@/components/shared/PolaroidCard"
+
+import { PolaroidPhoto } from "@/components/shared/PolaroidPhoto"
 import { ProductCard } from "@/components/shared/ProductCard"
 import { StatCard } from "@/components/shared/StatCard"
 import { CartItemCard } from "@/components/shared/CartItemCard"
@@ -135,13 +145,60 @@ export default function CardsTestPage() {
       </Card>
       {/* Section 2: Cards Produit (Composant ProductCard) */}
       <Card className="border-thai-orange/20">
-        <CardHeader>
-          <CardTitle className="text-thai-green">2. Cards Produit (ProductCard)</CardTitle>
-          <CardDescription>
-            Composant <code>&lt;ProductCard /&gt;</code> (Données réelles via useData)
-            <br />
-            <code className="text-xs text-gray-500">components\shared\ProductCard.tsx</code>
-          </CardDescription>
+        <CardHeader className="flex flex-row items-start justify-between space-y-0">
+          <div>
+            <CardTitle className="text-thai-green">2. Cards Produit (ProductCard)</CardTitle>
+            <CardDescription className="mt-1.5">
+              Composant <code>&lt;ProductCard /&gt;</code> (Données réelles via useData)
+              <br />
+              <code className="text-xs text-gray-500">components\shared\ProductCard.tsx</code>
+            </CardDescription>
+          </div>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-2">
+                <Info className="h-4 w-4" />
+                Props
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Propriétés de ProductCard</DialogTitle>
+                <DialogDescription>Documentation des propriétés du composant.</DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <ul className="list-disc space-y-2 pl-5 text-sm text-gray-600">
+                  <li>
+                    <strong>title</strong> (string): Titre du produit
+                  </li>
+                  <li>
+                    <strong>description</strong> (string): Description courte
+                  </li>
+                  <li>
+                    <strong>price</strong> (number): Prix unitaire
+                  </li>
+                  <li>
+                    <strong>imageSrc</strong> (string): URL de l'image
+                  </li>
+                  <li>
+                    <strong>isVegetarian</strong> (boolean): Affiche le badge végétarien
+                  </li>
+                  <li>
+                    <strong>isSpicy</strong> (boolean): Affiche le badge épicé
+                  </li>
+                  <li>
+                    <strong>quantityInCart</strong> (number): Affiche le badge "Panier X" si {">"} 0
+                  </li>
+                  <li>
+                    <strong>onAdd</strong> (function): Callback au clic sur "Ajouter"
+                  </li>
+                  <li>
+                    <strong>className</strong> (string): Classes CSS additionnelles
+                  </li>
+                </ul>
+              </div>
+            </DialogContent>
+          </Dialog>
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -165,7 +222,7 @@ export default function CardsTestPage() {
                       isVegetarian={!!platExemple.est_vegetarien}
                       isSpicy={(platExemple.niveau_epice ?? 0) > 0}
                       quantityInCart={0}
-                      imageSrc="/media/avatars/panier1.svg"
+                      imageSrc={platExemple.photo_du_plat || "/media/avatars/panier1.svg"}
                       onAdd={() => console.log(`Ajout de ${platExemple.plat}`)}
                     />
                     <p className="mt-2 text-xs text-gray-500 italic">
@@ -183,13 +240,80 @@ export default function CardsTestPage() {
 
       {/* Section 2.5: Cards Panier (Composant CartItemCard) */}
       <Card className="border-thai-orange/20">
-        <CardHeader>
-          <CardTitle className="text-thai-green">2.5. Cards Panier (CartItemCard)</CardTitle>
-          <CardDescription>
-            Composant <code>&lt;CartItemCard /&gt;</code> (Design validé page Panier)
-            <br />
-            <code className="text-xs text-gray-500">components\shared\CartItemCard.tsx</code>
-          </CardDescription>
+        <CardHeader className="flex flex-row items-start justify-between space-y-0">
+          <div>
+            <CardTitle className="text-thai-green">2.5. Cards Panier (CartItemCard)</CardTitle>
+            <CardDescription className="mt-1.5">
+              Composant <code>&lt;CartItemCard /&gt;</code> (Design validé page Panier)
+              <br />
+              <code className="text-xs text-gray-500">components\shared\CartItemCard.tsx</code>
+            </CardDescription>
+          </div>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-2">
+                <Info className="h-4 w-4" />
+                Props
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Propriétés de CartItemCard</DialogTitle>
+                <DialogDescription>Documentation des propriétés du composant.</DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <ul className="list-disc space-y-2 pl-5 text-sm text-gray-600">
+                  <li>
+                    <strong>name</strong> (string): Nom de l'article
+                  </li>
+                  <li>
+                    <strong>imageUrl</strong> (string): URL de l'image
+                  </li>
+                  <li>
+                    <strong>unitPrice</strong> (number): Prix unitaire
+                  </li>
+                  <li>
+                    <strong>quantity</strong> (number): Quantité actuelle
+                  </li>
+                  <li>
+                    <strong>isVegetarian</strong> (boolean): Badge végétarien
+                  </li>
+                  <li>
+                    <strong>isSpicy</strong> (boolean): Badge épicé
+                  </li>
+                  <li>
+                    <strong>showSpiceSelector</strong> (boolean): Affiche l'emplacement des épices
+                  </li>
+                  <li></li>
+                  <li>
+                    <strong>spiceSelectorSlot</strong> (ReactNode): Composant à injecter (ex:
+                    SmartSpice)
+                  </li>
+                  <li>
+                    <strong>readOnly</strong> (boolean): Mode lecture seule (pas de boutons +/-)
+                  </li>
+                  <li>
+                    <strong>imageClassName</strong> (string): Classes CSS pour l'image (ex:
+                    aspect-square)
+                  </li>
+                  <li>
+                    <strong>imageAspectRatio</strong> ("square" | "video" | "auto" |
+                    "square-contain" | "video-contain"): Format de l'image (défaut: "square")
+                  </li>
+                  <li>
+                    <strong>imageObjectPosition</strong> ("center" | "top" | "bottom" | "left" |
+                    "right"): Cadrage de l'image (défaut: "center")
+                  </li>
+                  <li>
+                    <strong>onQuantityChange</strong> (function): Callback changement quantité
+                  </li>
+                  <li>
+                    <strong>onRemove</strong> (function): Callback suppression
+                  </li>
+                </ul>
+              </div>
+            </DialogContent>
+          </Dialog>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -207,7 +331,7 @@ export default function CardsTestPage() {
                     <NumberBadge number={5} />
                     <CartItemCard
                       name={platExemple.plat}
-                      imageUrl="/media/avatars/panier1.svg"
+                      imageUrl={platExemple.photo_du_plat || "/media/avatars/panier1.svg"}
                       unitPrice={parseFloat(platExemple.prix?.toString() || "0")}
                       quantity={quantity}
                       isVegetarian={!!platExemple.est_vegetarien}
@@ -250,7 +374,7 @@ export default function CardsTestPage() {
                     </div>
                     <CartItemCard
                       name={platExemple.plat}
-                      imageUrl="/media/avatars/panier1.svg"
+                      imageUrl={platExemple.photo_du_plat || "/media/avatars/panier1.svg"}
                       unitPrice={parseFloat(platExemple.prix?.toString() || "0")}
                       quantity={2}
                       isVegetarian={!!platExemple.est_vegetarien}
@@ -274,9 +398,71 @@ export default function CardsTestPage() {
                   </div>
                 )
               })()}
+
+            {/* Cart Item 3 - Aspect Ratio Square */}
+            {plats &&
+              plats.length > 0 &&
+              (() => {
+                const platExemple =
+                  plats.find((p) => p.plat.toLowerCase().includes("brochette")) ||
+                  plats[2] ||
+                  plats[0]
+                return (
+                  <div className="flex flex-col gap-1 border-t border-dashed border-gray-200 pt-8">
+                    <div className="mb-2 flex items-center gap-2">
+                      <NumberBadge number={6.1} />
+                      <span className="text-sm font-medium text-gray-500">
+                        Format Carré (imageAspectRatio="square")
+                      </span>
+                    </div>
+                    <CartItemCard
+                      name={platExemple.plat}
+                      imageUrl={platExemple.photo_du_plat || "/media/avatars/panier1.svg"}
+                      unitPrice={parseFloat(platExemple.prix?.toString() || "0")}
+                      quantity={1}
+                      isVegetarian={!!platExemple.est_vegetarien}
+                      isSpicy={(platExemple.niveau_epice ?? 0) > 0}
+                      onQuantityChange={() => {}}
+                      onRemove={() => {}}
+                      imageAspectRatio="square"
+                    />
+                  </div>
+                )
+              })()}
+
+            {/* Cart Item 4 - Aspect Ratio Auto */}
+            {plats &&
+              plats.length > 0 &&
+              (() => {
+                const platExemple =
+                  plats.find((p) => p.plat.toLowerCase().includes("riz")) || plats[3] || plats[0]
+                return (
+                  <div className="flex flex-col gap-1 border-t border-dashed border-gray-200 pt-8">
+                    <div className="mb-2 flex items-center gap-2">
+                      <NumberBadge number={6.2} />
+                      <span className="text-sm font-medium text-gray-500">
+                        Format Auto (imageAspectRatio="auto")
+                      </span>
+                    </div>
+                    <CartItemCard
+                      name={platExemple.plat}
+                      imageUrl={platExemple.photo_du_plat || "/media/avatars/panier1.svg"}
+                      unitPrice={parseFloat(platExemple.prix?.toString() || "0")}
+                      quantity={1}
+                      isVegetarian={!!platExemple.est_vegetarien}
+                      isSpicy={(platExemple.niveau_epice ?? 0) > 0}
+                      onQuantityChange={() => {}}
+                      onRemove={() => {}}
+                      imageAspectRatio="auto"
+                    />
+                  </div>
+                )
+              })()}
           </div>
         </CardContent>
       </Card>
+
+      {/* Section 3: Cards Dashboard (StatCard) */}
       <Card className="border-thai-orange/20">
         <CardHeader>
           <CardTitle className="text-thai-green">3. Cards Dashboard (StatCard)</CardTitle>
@@ -341,29 +527,89 @@ export default function CardsTestPage() {
 
       {/* Section 4: Composants Spéciaux */}
       <Card className="border-thai-orange/20">
-        <CardHeader>
-          <CardTitle className="text-thai-green">4. Composants Spéciaux</CardTitle>
-          <CardDescription>Composants visuels uniques comme l'effet Polaroid</CardDescription>
+        <CardHeader className="flex flex-row items-start justify-between space-y-0">
+          <div>
+            <CardTitle className="text-thai-green">4. Composants Spéciaux</CardTitle>
+            <CardDescription className="mt-1.5">
+              Composants visuels uniques comme l'effet Polaroid
+              <br />
+              <code className="text-xs text-gray-500">components\shared\PolaroidCard.tsx</code>
+            </CardDescription>
+          </div>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-2">
+                <Info className="h-4 w-4" />
+                Props
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Propriétés de PolaroidCard</DialogTitle>
+                <DialogDescription>Documentation des propriétés du composant.</DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <ul className="list-disc space-y-2 pl-5 text-sm text-gray-600">
+                  <li>
+                    <strong>title</strong> (string): Titre de la carte
+                  </li>
+                  <li>
+                    <strong>description</strong> (string): Description de la carte
+                  </li>
+                  <li>
+                    <strong>photoSrc</strong> (string): URL de la photo (Requis)
+                  </li>
+                  <li>
+                    <strong>photoAlt</strong> (string): Texte alternatif de la photo (Requis)
+                  </li>
+                  <li>
+                    <strong>photoCaption</strong> (string): Légende manuscrite sous la photo
+                  </li>
+                  <li>
+                    <strong>photoRotation</strong> (number): Rotation en degrés (défaut: -6)
+                  </li>
+                  <li>
+                    <strong>photoSize</strong> (number): Taille de la photo en px (défaut: 140)
+                  </li>
+                  <li>
+                    <strong>className</strong> (string): Classes CSS additionnelles
+                  </li>
+                  <li>
+                    <strong>children</strong> (ReactNode): Contenu libre dans la carte
+                  </li>
+                </ul>
+              </div>
+            </DialogContent>
+          </Dialog>
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {/* Polaroid Example - Version Simplifiée */}
-            <div className="flex flex-col gap-1">
-              <NumberBadge number={11} />
-              <PolaroidCard
-                title="Effet Polaroid"
-                description="Image avec rotation et ombre"
-                photoSrc="/media/avatars/panier1.svg"
-                photoAlt="Exemple Polaroid"
-                photoCaption="Test Visuel"
-                photoRotation={-6}
-              >
-                <p className="mb-4 text-sm text-gray-600">
-                  Cette carte utilise maintenant le composant <code>PolaroidCard</code>. Plus besoin
-                  de gérer le CSS manuellement !
-                </p>
-              </PolaroidCard>
-            </div>
+            {plats &&
+              plats.length > 0 &&
+              (() => {
+                const platExemple =
+                  plats.find((p) => p.plat.toLowerCase().includes("nems")) || plats[0]
+                return (
+                  <div className="flex flex-col gap-1">
+                    <NumberBadge number={11} />
+                    <div className="relative flex h-[320px] w-full items-center justify-center rounded-lg border border-dashed bg-gray-50 p-4">
+                      <p className="absolute top-4 left-4 text-sm font-medium text-gray-500">
+                        Composant PolaroidPhoto seul
+                      </p>
+                      <PolaroidPhoto
+                        src="/media/avatars/panier1.svg"
+                        alt="Avatar Panier"
+                        caption="Photo Seule"
+                        position="center"
+                        size={140}
+                        rotation={-3}
+                        className="bottom-12"
+                      />
+                    </div>
+                  </div>
+                )
+              })()}
           </div>
         </CardContent>
       </Card>

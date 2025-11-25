@@ -4,7 +4,7 @@ import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Palette, MessageSquare, Bell, Layout, CreditCard } from "lucide-react"
+import { Palette, MessageSquare, Bell, Layout, CreditCard, Sparkles } from "lucide-react"
 
 const sections = [
   {
@@ -19,9 +19,17 @@ const sections = [
     title: "Inputs",
     href: "/admin/testvisuel/inputs",
     icon: MessageSquare,
-    description: "13 composants de formulaire et saisie",
-    count: "13",
+    description: "26 composants de formulaire et patterns avancés",
+    count: "26",
     color: "thai-green",
+  },
+  {
+    title: "Icônes & Badges",
+    href: "/admin/testvisuel/icon",
+    icon: Sparkles,
+    description: "131 icônes Lucide React et 6 variantes de badges",
+    count: "131",
+    color: "thai-orange",
   },
   {
     title: "UI Components",

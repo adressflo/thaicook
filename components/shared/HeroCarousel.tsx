@@ -197,6 +197,7 @@ export function HeroCarousel({ medias, autoPlayDuration = 7000, isAuthenticated 
                   src="/logo.svg"
                   alt="Logo ChanthanaThaiCook"
                   fill
+                  priority
                   className="object-contain transition-all duration-500 group-hover:scale-110 group-hover:rotate-6 relative z-10"
                 />
               </div>

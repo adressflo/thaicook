@@ -13,14 +13,14 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { FileText, Plus, Minus, ShoppingCart } from "lucide-react"
 import type { PlatUI as Plat } from "@/types/app"
-import {
-  SpiceDistributionSelector,
-  getDistributionText,
-} from "@/components/commander/SpiceDistributionSelector"
+import { SmartSpice } from "@/components/shared/SmartSpice"
+import { Spice } from "@/components/shared/Spice"
+import { getDistributionText } from "@/lib/spice-helpers"
 
 export interface CommandePlatModalProps {
   plat: Plat
-  children: React.ReactNode
+  isOpen: boolean
+  onOpenChange: (open: boolean) => void
   formatPrix: (prix: number) => string
   onAddToCart?: (
     plat: Plat,
@@ -38,7 +38,8 @@ export interface CommandePlatModalProps {
 export const CommandePlatModal = React.memo<CommandePlatModalProps>(
   ({
     plat,
-    children,
+    isOpen,
+    onOpenChange,
     formatPrix,
     onAddToCart,
     currentQuantity = 0,
@@ -46,7 +47,6 @@ export const CommandePlatModal = React.memo<CommandePlatModalProps>(
     dateRetrait,
     uniqueId,
   }) => {
-    const [open, setOpen] = React.useState(false)
     const [quantity, setQuantity] = React.useState(1)
     // Par défaut, toutes les portions sont "Non épicé"
     const [spiceDistribution, setSpiceDistribution] = React.useState<number[]>([1, 0, 0, 0])
@@ -58,7 +58,7 @@ export const CommandePlatModal = React.memo<CommandePlatModalProps>(
 
     // Quand le modal s'ouvre, charger les données du panier existant
     React.useEffect(() => {
-      if (open) {
+      if (isOpen) {
         if (currentQuantity > 0) {
           // Item du panier : charger la quantité
           setQuantity(currentQuantity)
@@ -82,10 +82,10 @@ export const CommandePlatModal = React.memo<CommandePlatModalProps>(
           setSpiceDistribution([1, 0, 0, 0])
         }
       }
-    }, [open, currentQuantity, currentSpiceDistribution])
+    }, [isOpen, currentQuantity, currentSpiceDistribution])
 
     const handleModalClick = () => {
-      setOpen(false)
+      onOpenChange(false)
     }
 
     const handleAddToCart = () => {
@@ -95,7 +95,7 @@ export const CommandePlatModal = React.memo<CommandePlatModalProps>(
           maxSpiceLevel > 0 ? getDistributionText(spiceDistribution) : undefined
         const distribution = maxSpiceLevel > 0 ? spiceDistribution : undefined
         onAddToCart(plat, quantity, spicePreference, distribution, uniqueId)
-        setOpen(false)
+        onOpenChange(false)
       }
     }
 
@@ -116,8 +116,7 @@ export const CommandePlatModal = React.memo<CommandePlatModalProps>(
     }
 
     return (
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogTrigger asChild>{children}</DialogTrigger>
+      <Dialog open={isOpen} onOpenChange={onOpenChange}>
         <DialogContent
           className="animate-scaleIn mx-auto flex max-h-[90vh] max-w-lg transform flex-col overflow-hidden rounded-xl border-0 bg-white p-0 shadow-2xl transition-all duration-300 [&>button]:hidden"
           onClick={(e) => e.stopPropagation()}
@@ -236,10 +235,12 @@ export const CommandePlatModal = React.memo<CommandePlatModalProps>(
                   {/* Sélecteur de répartition épicée (uniquement si le plat est épicé) */}
                   {maxSpiceLevel > 0 && (
                     <div className="border-thai-orange/20 animate-fadeIn rounded-lg border-2 bg-white p-3 shadow-sm">
-                      <SpiceDistributionSelector
-                        totalQuantity={quantity}
+                      <Spice
                         distribution={spiceDistribution}
                         onDistributionChange={setSpiceDistribution}
+                        readOnly={false}
+                        showBackground={true}
+                        hideZeros={false}
                       />
                     </div>
                   )}

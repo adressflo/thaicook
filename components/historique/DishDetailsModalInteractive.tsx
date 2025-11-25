@@ -11,10 +11,8 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { FileText, Plus, Minus, ShoppingCart } from "lucide-react"
 import type { PlatUI as Plat } from "@/types/app"
-import {
-  SpiceDistributionSelector,
-  getDistributionText,
-} from "@/components/commander/SpiceDistributionSelector"
+import { SmartSpice } from "@/components/shared/SmartSpice"
+import { getDistributionText } from "@/lib/spice-helpers"
 
 interface DishDetailsModalInteractiveProps {
   plat: Plat
@@ -62,10 +60,7 @@ export const DishDetailsModalInteractive = React.memo<DishDetailsModalInteractiv
           setQuantity(currentQuantity)
 
           // Charger la distribution épicée si elle existe
-          if (
-            currentSpiceDistribution &&
-            currentSpiceDistribution.length === 4
-          ) {
+          if (currentSpiceDistribution && currentSpiceDistribution.length === 4) {
             const distTotal = currentSpiceDistribution.reduce((sum, count) => sum + count, 0)
             if (distTotal === currentQuantity) {
               setSpiceDistribution(currentSpiceDistribution)
@@ -237,8 +232,8 @@ export const DishDetailsModalInteractive = React.memo<DishDetailsModalInteractiv
                   {/* Sélecteur de répartition épicée (uniquement si le plat est épicé) */}
                   {maxSpiceLevel > 0 && (
                     <div className="border-thai-orange/20 animate-fadeIn rounded-lg border-2 bg-white p-3 shadow-sm">
-                      <SpiceDistributionSelector
-                        totalQuantity={quantity}
+                      <SmartSpice
+                        quantity={quantity}
                         distribution={spiceDistribution}
                         onDistributionChange={setSpiceDistribution}
                       />

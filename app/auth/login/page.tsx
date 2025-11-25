@@ -109,6 +109,7 @@ export default function LoginPage() {
                     setAuthError(null);
                   }}
                   placeholder="votreadresse@email.com"
+                  autoComplete="email"
                   required
                   disabled={isLoading}
                 />
@@ -124,6 +125,7 @@ export default function LoginPage() {
                     setAuthError(null);
                   }}
                   placeholder="Votre mot de passe"
+                  autoComplete="current-password"
                   required
                   disabled={isLoading}
                 />

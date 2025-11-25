@@ -334,20 +334,30 @@ export default function ModalsTestPage() {
                     plats.find((p) => p.plat.toLowerCase().includes("pad thaï")) ||
                     plats[0]
 
-                  const platTest = platExemple
+                  const [isModalOpen, setIsModalOpen] = useState(false)
 
                   return (
-                    <CommandePlatModal
-                      plat={platTest}
-                      formatPrix={(p) => `${p.toFixed(2)}€`}
-                      onAddToCart={(p, q, s, d) =>
-                        console.log("Ajout au panier (Réel):", { p, q, s, d })
-                      }
-                    >
-                      <Button className="bg-thai-orange hover:bg-thai-orange/90 w-full">
+                    <>
+                      <Button
+                        className="bg-thai-orange hover:bg-thai-orange/90 w-full"
+                        onClick={() => setIsModalOpen(true)}
+                      >
                         Ajouter commande
                       </Button>
-                    </CommandePlatModal>
+
+                      <CommandePlatModal
+                        isOpen={isModalOpen}
+                        onOpenChange={setIsModalOpen}
+                        plat={platExemple}
+                        formatPrix={(p) => `${p.toFixed(2)}€`}
+                        currentQuantity={2}
+                        currentSpiceDistribution={[0, 1, 1, 0]}
+                        dateRetrait={new Date()}
+                        onAddToCart={(p, q, s, d) =>
+                          console.log("Ajout au panier (Réel):", { p, q, s, d })
+                        }
+                      />
+                    </>
                   )
                 })()
               ) : (

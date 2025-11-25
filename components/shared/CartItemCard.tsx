@@ -27,6 +27,10 @@ interface CartItemCardProps {
   spiceSelectorSlot?: React.ReactNode
   readOnly?: boolean
   className?: string
+  imageClassName?: string
+  imageAspectRatio?: "square" | "video" | "auto" | "square-contain" | "video-contain"
+  imageObjectPosition?: "center" | "top" | "bottom" | "left" | "right"
+  imageZoom?: number
 }
 
 export function CartItemCard({
@@ -43,6 +47,10 @@ export function CartItemCard({
   spiceSelectorSlot,
   readOnly = false,
   className,
+  imageClassName,
+  imageAspectRatio = "square",
+  imageObjectPosition = "center",
+  imageZoom = 1,
 }: CartItemCardProps) {
   const [imageError, setImageError] = useState(false)
 
@@ -60,6 +68,26 @@ export function CartItemCard({
 
   const totalPrice = unitPrice * quantity
 
+  const aspectRatioClass = {
+    square: "aspect-square",
+    video: "aspect-video",
+    auto: "aspect-auto",
+    "square-contain": "aspect-square",
+    "video-contain": "aspect-video",
+  }[imageAspectRatio]
+
+  const objectFitClass = imageAspectRatio.endsWith("-contain")
+    ? "object-contain bg-gray-50"
+    : "object-cover"
+
+  const objectPositionClass = {
+    center: "object-center",
+    top: "object-top",
+    bottom: "object-bottom",
+    left: "object-left",
+    right: "object-right",
+  }[imageObjectPosition]
+
   return (
     <div
       className={cn(
@@ -72,18 +100,32 @@ export function CartItemCard({
         {/* Image du plat */}
         <div className="w-full sm:w-auto sm:flex-shrink-0">
           <div className="relative" onClick={onClick}>
-            {imageUrl && !imageError ? (
-              <img
-                src={imageUrl}
-                alt={name}
-                onError={() => setImageError(true)}
-                className="aspect-video w-full cursor-pointer rounded-t-lg object-cover transition-opacity duration-200 hover:opacity-80 sm:h-20 sm:w-36 sm:rounded-lg"
-              />
-            ) : (
-              <div className="bg-thai-cream/30 border-thai-orange/20 hover:bg-thai-cream/50 flex aspect-video w-full cursor-pointer items-center justify-center rounded-t-lg border-b transition-colors duration-200 sm:h-20 sm:w-36 sm:rounded-lg sm:border">
-                <span className="text-thai-orange text-xl sm:text-lg">🍽️</span>
-              </div>
-            )}
+            <div className="overflow-hidden rounded-t-lg sm:rounded-lg">
+              {imageUrl && !imageError ? (
+                <img
+                  src={imageUrl}
+                  alt={name}
+                  onError={() => setImageError(true)}
+                  style={{ transform: `scale(${imageZoom})` }}
+                  className={cn(
+                    "w-full cursor-pointer rounded-t-lg transition-opacity duration-200 hover:opacity-80 sm:w-24 sm:rounded-lg",
+                    aspectRatioClass,
+                    objectFitClass,
+                    objectPositionClass,
+                    imageClassName
+                  )}
+                />
+              ) : (
+                <div
+                  className={cn(
+                    "bg-thai-cream/30 border-thai-orange/20 hover:bg-thai-cream/50 flex w-full cursor-pointer items-center justify-center rounded-t-lg border-b transition-colors duration-200 sm:w-24 sm:rounded-lg sm:border",
+                    aspectRatioClass
+                  )}
+                >
+                  <span className="text-thai-orange text-xl sm:text-lg">🍽️</span>
+                </div>
+              )}
+            </div>
             {/* Badges Mobile (Masqués sur Desktop) */}
             <div className="sm:hidden">
               <div className="absolute top-2 left-2">

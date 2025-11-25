@@ -20,6 +20,8 @@ import { Slider } from "@/components/ui/slider"
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp"
 import { Calendar } from "@/components/ui/calendar"
 import { Badge } from "@/components/ui/badge"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Eye, AlertTriangle, Mail, Search } from "lucide-react"
 
 const NumberBadge = ({ number }: { number: number }) => (
   <span className="bg-thai-orange mb-2 inline-flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold text-white shadow-md">
@@ -40,9 +42,9 @@ export default function InputsPage() {
         <h1 className="text-thai-green mb-2 text-3xl font-bold">📋 Inputs & Formulaires</h1>
         <p className="mb-3 text-gray-600">
           Tous les éléments de formulaire disponibles (input, textarea, select, checkbox, radio,
-          switch, slider, OTP, calendar)
+          switch, slider, OTP, calendar) + Patterns avancés (icônes, erreurs, groupements)
         </p>
-        <Badge className="bg-thai-orange">9+ Variantes</Badge>
+        <Badge className="bg-thai-orange">26 Variantes</Badge>
       </div>
 
       {/* Inputs de Base */}
@@ -394,6 +396,176 @@ export default function InputsPage() {
         </CardContent>
       </Card>
 
+      {/* Patterns Avancés */}
+      <Card className="border-thai-orange/20">
+        <CardHeader>
+          <CardTitle className="text-thai-green">Patterns Avancés</CardTitle>
+          <CardDescription>Inputs avec icônes, erreurs, et groupements</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* #14 - Input avec icône (Email) */}
+          <div className="space-y-3">
+            <NumberBadge number={14} />
+            <div className="border-thai-orange/20 flex flex-col gap-3 rounded-lg border-2 bg-white p-4">
+              <Label htmlFor="email-icon">Input avec icône - Email</Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-thai-orange/60" />
+                <Input
+                  id="email-icon"
+                  type="email"
+                  placeholder="votre@email.com"
+                  className="pl-10"
+                />
+              </div>
+              <p className="text-xs text-gray-600">
+                <code className="rounded bg-gray-100 px-1">Icône absolue à gauche, className="pl-10"</code>
+              </p>
+              <p className="text-xs text-gray-500">Usage : Formulaires avec contexte visuel</p>
+            </div>
+          </div>
+
+          {/* #15 - Input Password avec Eye/EyeOff */}
+          <div className="space-y-3">
+            <NumberBadge number={15} />
+            <div className="border-thai-green/20 flex flex-col gap-3 rounded-lg border-2 bg-white p-4">
+              <Label htmlFor="password-toggle">Input Password avec toggle visibilité</Label>
+              <div className="relative">
+                <Input
+                  id="password-toggle"
+                  type="password"
+                  placeholder="Votre mot de passe"
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
+                >
+                  <Eye className="h-4 w-4" />
+                </button>
+              </div>
+              <p className="text-xs text-gray-600">
+                <code className="rounded bg-gray-100 px-1">
+                  Toggle type="password/text" avec icône Eye/EyeOff
+                </code>
+              </p>
+              <p className="text-xs text-gray-500">Usage : Pages auth, sécurité</p>
+            </div>
+          </div>
+
+          {/* #16 - Input avec message d'erreur */}
+          <div className="space-y-3">
+            <NumberBadge number={16} />
+            <div className="border-thai-orange/20 flex flex-col gap-3 rounded-lg border-2 bg-white p-4">
+              <Label htmlFor="email-error">Input avec message d'erreur</Label>
+              <Input
+                id="email-error"
+                type="email"
+                placeholder="email@invalide"
+                className="border-red-500 focus-visible:ring-red-500"
+              />
+              <p className="text-sm text-red-600">
+                ❌ Adresse email invalide
+              </p>
+              <p className="text-xs text-gray-600">
+                <code className="rounded bg-gray-100 px-1">
+                  border-red-500 + message en text-red-600
+                </code>
+              </p>
+              <p className="text-xs text-gray-500">Usage : Validation formulaires</p>
+            </div>
+          </div>
+
+          {/* #17 - Alert de validation (multi-erreurs) */}
+          <div className="space-y-3">
+            <NumberBadge number={17} />
+            <div className="border-thai-green/20 flex flex-col gap-3 rounded-lg border-2 bg-white p-4">
+              <Label>Alert de validation Zod (multi-erreurs)</Label>
+              <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>
+                  <div className="font-medium text-sm mb-2">
+                    Veuillez corriger les erreurs suivantes :
+                  </div>
+                  <ul className="space-y-1 text-xs">
+                    <li className="flex items-start gap-2">
+                      <span className="text-red-500 font-medium">•</span>
+                      <span>email : Format d'email invalide</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-red-500 font-medium">•</span>
+                      <span>password : Minimum 8 caractères requis</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-red-500 font-medium">•</span>
+                      <span>nom : Ce champ est obligatoire</span>
+                    </li>
+                  </ul>
+                </AlertDescription>
+              </Alert>
+              <p className="text-xs text-gray-600">
+                <code className="rounded bg-gray-100 px-1">
+                  components/forms/ValidationErrorDisplay.tsx
+                </code>
+              </p>
+              <p className="text-xs text-gray-500">
+                Usage : Affichage erreurs Zod en haut de formulaire
+              </p>
+            </div>
+          </div>
+
+          {/* #18 - Inputs groupés (2 colonnes) */}
+          <div className="space-y-3">
+            <NumberBadge number={18} />
+            <div className="border-thai-orange/20 flex flex-col gap-3 rounded-lg border-2 bg-white p-4">
+              <Label>Inputs groupés (Nom + Prénom)</Label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="nom-grouped">Nom</Label>
+                  <Input id="nom-grouped" placeholder="Dupont" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="prenom-grouped">Prénom</Label>
+                  <Input id="prenom-grouped" placeholder="Jean" />
+                </div>
+              </div>
+              <p className="text-xs text-gray-600">
+                <code className="rounded bg-gray-100 px-1">
+                  grid grid-cols-1 md:grid-cols-2 gap-4
+                </code>
+              </p>
+              <p className="text-xs text-gray-500">
+                Usage : Formulaires signup, profil
+              </p>
+            </div>
+          </div>
+
+          {/* #19 - Input Search avec icône */}
+          <div className="space-y-3">
+            <NumberBadge number={19} />
+            <div className="border-thai-green/20 flex flex-col gap-3 rounded-lg border-2 bg-white p-4">
+              <Label htmlFor="search">Input Search</Label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                <Input
+                  id="search"
+                  type="search"
+                  placeholder="Rechercher un plat..."
+                  className="pl-10"
+                />
+              </div>
+              <p className="text-xs text-gray-600">
+                <code className="rounded bg-gray-100 px-1">
+                  type="search" avec icône Search
+                </code>
+              </p>
+              <p className="text-xs text-gray-500">
+                Usage : Barres de recherche, filtres
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Spice Distribution Selector */}
       <Card className="border-thai-orange/20">
         <CardHeader>
@@ -407,9 +579,9 @@ export default function InputsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* #14 - Interactif AVEC fond */}
+          {/* #20 - Interactif AVEC fond */}
           <div className="space-y-3">
-            <NumberBadge number={14} />
+            <NumberBadge number={20} />
             <div className="border-thai-orange/20 flex flex-col gap-3 rounded-lg border-2 bg-white p-4">
               <Label>Spice - Interactif AVEC fond</Label>
               <Spice
@@ -429,9 +601,9 @@ export default function InputsPage() {
             </div>
           </div>
 
-          {/* #15 - Interactif SANS fond */}
+          {/* #21 - Interactif SANS fond */}
           <div className="space-y-3">
-            <NumberBadge number={15} />
+            <NumberBadge number={21} />
             <div className="border-thai-green/20 flex flex-col gap-3 rounded-lg border-2 bg-white p-4">
               <Label>Spice - Interactif SANS fond</Label>
               <Spice
@@ -449,9 +621,9 @@ export default function InputsPage() {
             </div>
           </div>
 
-          {/* #16 - Lecture seule AVEC fond */}
+          {/* #22 - Lecture seule AVEC fond */}
           <div className="space-y-3">
-            <NumberBadge number={16} />
+            <NumberBadge number={22} />
             <div className="border-thai-orange/20 flex flex-col gap-3 rounded-lg border-2 bg-white p-4">
               <Label>Spice - Lecture seule AVEC fond</Label>
               <Spice distribution={[1, 1, 1, 2]} readOnly={true} showBackground={true} />
@@ -466,11 +638,11 @@ export default function InputsPage() {
             </div>
           </div>
 
-          {/* #17, #18, #19 - Lecture seule (côte à côte) */}
+          {/* #23, #24, #25 - Lecture seule (côte à côte) */}
           <div className="grid gap-4 md:grid-cols-3">
-            {/* #17 - Lecture seule SANS fond */}
+            {/* #23 - Lecture seule SANS fond */}
             <div className="space-y-3">
-              <NumberBadge number={17} />
+              <NumberBadge number={23} />
               <div className="border-thai-green/20 flex flex-col gap-3 rounded-lg border-2 bg-white p-4">
                 <Label>Spice - Lecture seule SANS fond</Label>
                 <Spice distribution={[0, 1, 1, 2]} readOnly={true} showBackground={false} />
@@ -485,9 +657,9 @@ export default function InputsPage() {
               </div>
             </div>
 
-            {/* #18 - Lecture seule SANS fond + hideZeros */}
+            {/* #24 - Lecture seule SANS fond + hideZeros */}
             <div className="space-y-3">
-              <NumberBadge number={18} />
+              <NumberBadge number={24} />
               <div className="border-thai-orange/20 flex flex-col gap-3 rounded-lg border-2 bg-white p-4">
                 <Label>Spice - Lecture seule SANS fond + hideZeros</Label>
                 <Spice
@@ -508,9 +680,9 @@ export default function InputsPage() {
               </div>
             </div>
 
-            {/* #19 - Depuis texte (lecture seule) */}
+            {/* #25 - Depuis texte (lecture seule) */}
             <div className="space-y-3">
-              <NumberBadge number={19} />
+              <NumberBadge number={25} />
               <div className="border-thai-green/20 flex flex-col gap-3 rounded-lg border-2 bg-white p-4">
                 <Label>Spice - Depuis texte (parsing automatique)</Label>
                 <Spice
@@ -530,9 +702,9 @@ export default function InputsPage() {
             </div>
           </div>
 
-          {/* #20 - Interactif AVEC fond + hideZeros */}
+          {/* #26 - Interactif AVEC fond + hideZeros */}
           <div className="space-y-3">
-            <NumberBadge number={20} />
+            <NumberBadge number={26} />
             <div className="border-thai-orange/20 flex flex-col gap-3 rounded-lg border-2 bg-white p-4">
               <Label>Spice - Interactif AVEC fond + hideZeros</Label>
               <Spice

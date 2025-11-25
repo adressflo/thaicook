@@ -156,20 +156,20 @@ model commande_db {
 }
 
 model details_commande_db {
-  iddetails              Int         @id(map: "détails_commande_db_pkey") @default(autoincrement())
-  commande_r             Int
-  plat_r                 Int?
-  quantite_plat_commande Int?        @default(1)
-  nom_plat               String?
-  prix_unitaire          Decimal?    @db.Decimal(10, 2)
-  type                   String?
-  extra_id               Int?
-  est_offert             Boolean?    @default(false)
-  preference_epice_niveau Int?       @default(0)
-  spice_distribution     Json?
-  extras_db              extras_db?  @relation(fields: [extra_id], references: [idextra], onUpdate: NoAction)
-  commande_db            commande_db @relation(fields: [commande_r], references: [idcommande], onDelete: Cascade, onUpdate: NoAction, map: "détails_commande_db_commande_r_fkey")
-  plats_db               plats_db?   @relation(fields: [plat_r], references: [idplats], onDelete: Cascade, onUpdate: NoAction, map: "détails_commande_db_plat_r_fkey")
+  iddetails               Int         @id(map: "détails_commande_db_pkey") @default(autoincrement())
+  commande_r              Int
+  plat_r                  Int?
+  quantite_plat_commande  Int?        @default(1)
+  nom_plat                String?
+  prix_unitaire           Decimal?    @db.Decimal(10, 2)
+  type                    String?
+  extra_id                Int?
+  est_offert              Boolean?    @default(false)
+  preference_epice_niveau Int?        @default(0)
+  spice_distribution      Json?
+  extras_db               extras_db?  @relation(fields: [extra_id], references: [idextra], onUpdate: NoAction)
+  commande_db             commande_db @relation(fields: [commande_r], references: [idcommande], onDelete: Cascade, onUpdate: NoAction, map: "détails_commande_db_commande_r_fkey")
+  plats_db                plats_db?   @relation(fields: [plat_r], references: [idplats], onDelete: Cascade, onUpdate: NoAction, map: "détails_commande_db_plat_r_fkey")
 
   @@index([commande_r], map: "idx_details_commande")
   @@index([commande_r], map: "idx_details_commande_commande_r")
@@ -567,7 +567,7 @@ model Verification {
 
 model hero_media {
   id          String   @id @default(cuid())
-  type        String   // 'image' | 'video'
+  type        String // 'image' | 'video'
   url         String
   titre       String?
   description String?

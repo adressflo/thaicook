@@ -5,46 +5,46 @@
  * Trouve automatiquement le prochain port disponible à partir de 3000
  */
 
-const { spawn } = require('child_process');
-const fs = require('fs');
-const path = require('path');
-const net = require('net');
+const { spawn } = require("child_process")
+const fs = require("fs")
+const path = require("path")
+const net = require("net")
 
-const lockPath = path.join(__dirname, '..', '.next', 'dev', 'lock');
+const lockPath = path.join(__dirname, "..", ".next", "dev", "lock")
 
 // Fonction pour vérifier si un port est disponible
 function isPortAvailable(port) {
   return new Promise((resolve) => {
-    const server = net.createServer();
+    const server = net.createServer()
 
-    server.once('error', (err) => {
-      if (err.code === 'EADDRINUSE') {
-        resolve(false); // Port occupé
+    server.once("error", (err) => {
+      if (err.code === "EADDRINUSE") {
+        resolve(false) // Port occupé
       } else {
-        resolve(false);
+        resolve(false)
       }
-    });
+    })
 
-    server.once('listening', () => {
-      server.close();
-      resolve(true); // Port disponible
-    });
+    server.once("listening", () => {
+      server.close()
+      resolve(true) // Port disponible
+    })
 
-    server.listen(port);
-  });
+    server.listen(port)
+  })
 }
 
 // Fonction pour trouver le prochain port disponible
 async function findAvailablePort(startPort = 3000) {
-  let port = startPort;
+  let port = startPort
 
   while (true) {
-    const available = await isPortAvailable(port);
+    const available = await isPortAvailable(port)
     if (available) {
-      return port;
+      return port
     }
-    console.log(`⚠️  Port ${port} occupé, essai du port ${port + 1}...`);
-    port++;
+    console.log(`⚠️  Port ${port} occupé, essai du port ${port + 1}...`)
+    port++
   }
 }
 
@@ -52,7 +52,7 @@ async function findAvailablePort(startPort = 3000) {
 function removeLock() {
   try {
     if (fs.existsSync(lockPath)) {
-      fs.unlinkSync(lockPath);
+      fs.unlinkSync(lockPath)
     }
   } catch (error) {
     // Ignore les erreurs
@@ -62,46 +62,46 @@ function removeLock() {
 // Fonction principale async
 async function main() {
   // Supprimer le lock avant de démarrer
-  removeLock();
+  removeLock()
 
   // Trouver le prochain port disponible
-  const port = await findAvailablePort(3000);
-  console.log(`🚀 Lancement Next.js sur port ${port} (sans lock)...`);
+  const port = await findAvailablePort(3000)
+  console.log(`🚀 Lancement Next.js sur port ${port} (sans lock)...`)
 
   // Lancer Next.js
-  const nextProcess = spawn('next', ['dev', '-p', port.toString()], {
-    stdio: 'inherit',
+  const nextProcess = spawn("next", ["dev", "-p", port.toString()], {
+    stdio: "inherit",
     shell: true,
-    cwd: path.join(__dirname, '..')
-  });
+    cwd: path.join(__dirname, ".."),
+  })
 
   // Supprimer le lock toutes les 500ms
-  const lockRemover = setInterval(removeLock, 500);
+  const lockRemover = setInterval(removeLock, 500)
 
   // Nettoyer à la sortie
-  process.on('SIGINT', () => {
-    clearInterval(lockRemover);
-    removeLock();
-    nextProcess.kill('SIGINT');
-    process.exit(0);
-  });
+  process.on("SIGINT", () => {
+    clearInterval(lockRemover)
+    removeLock()
+    nextProcess.kill("SIGINT")
+    process.exit(0)
+  })
 
-  process.on('SIGTERM', () => {
-    clearInterval(lockRemover);
-    removeLock();
-    nextProcess.kill('SIGTERM');
-    process.exit(0);
-  });
+  process.on("SIGTERM", () => {
+    clearInterval(lockRemover)
+    removeLock()
+    nextProcess.kill("SIGTERM")
+    process.exit(0)
+  })
 
-  nextProcess.on('exit', (code) => {
-    clearInterval(lockRemover);
-    removeLock();
-    process.exit(code);
-  });
+  nextProcess.on("exit", (code) => {
+    clearInterval(lockRemover)
+    removeLock()
+    process.exit(code)
+  })
 }
 
 // Lancer le script
 main().catch((error) => {
-  console.error('❌ Erreur:', error);
-  process.exit(1);
-});
+  console.error("❌ Erreur:", error)
+  process.exit(1)
+})

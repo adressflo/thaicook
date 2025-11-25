@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, memo, useCallback } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -147,11 +148,14 @@ const FloatingUserIcon = memo(() => {
           className="relative z-10 h-32 w-32 flex items-center justify-center !outline-none !ring-0 !border-0 hover:bg-transparent active:bg-transparent focus-visible:!ring-0 focus-visible:!ring-offset-0 !shadow-none group"
           aria-label="Ouvrir le menu"
         >
-          <img
-            src="/logo.svg"
-            alt="Logo Chanthana"
-            className="w-full h-full object-contain animate-pulse-soft hover:rotate-6 hover:scale-110 active:scale-95 transition-all duration-300 group-hover:animate-none"
-          />
+          <div className="relative w-full h-full">
+            <Image
+              src="/logo.svg"
+              alt="Logo Chanthana"
+              fill
+              className="object-contain animate-pulse-soft hover:rotate-6 hover:scale-110 active:scale-95 transition-all duration-300 group-hover:animate-none"
+            />
+          </div>
         </Button>
 
         {/* Cloche de notifications positionnée en haut à droite du FloatingUserIcon */}

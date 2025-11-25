@@ -28,11 +28,11 @@ import type { PlatUI as Plat, PlatPanier } from "@/types/app"
 import { format } from "date-fns"
 import { fr } from "date-fns/locale"
 import { spiceTextToLevel } from "@/lib/spice-helpers"
-import { DishDetailsModalInteractive } from "@/components/historique/DishDetailsModalInteractive"
-import {
-  SpiceDistributionSelector,
-  getDistributionText,
-} from "@/components/commander/SpiceDistributionSelector"
+import { CommandePlatModal } from "@/components/shared/CommandePlatModal"
+import { CartItemCard } from "@/components/shared/CartItemCard"
+import { SmartSpice } from "@/components/shared/SmartSpice"
+import { Spice } from "@/components/shared/Spice"
+import { getDistributionText } from "@/lib/spice-helpers"
 import { FloatingUserIcon } from "@/components/layout/FloatingUserIcon"
 import { PolaroidPhoto } from "@/components/shared/PolaroidPhoto"
 
@@ -72,6 +72,14 @@ export default function PanierPage() {
     useCart()
 
   const [demandesSpeciales, setDemandesSpeciales] = useState<string>("")
+
+  // State pour le modal global
+  const [modalContext, setModalContext] = useState<{
+    plat: Plat
+    quantity: number
+    spiceDistribution?: number[]
+    uniqueId?: string
+  } | null>(null)
 
   // Fonction pour formater les prix
   const formatPrix = (prix: number): string => {
@@ -162,14 +170,23 @@ export default function PanierPage() {
     plat: Plat,
     quantite: number,
     spicePreference?: string,
-    spiceDistribution?: number[]
+    spiceDistribution?: number[],
+    uniqueId?: string
   ) => {
     if (!plat.idplats || !plat.plat || plat.prix === undefined) return
 
     // Récupérer le premier item du panier pour cette plat pour obtenir dateRetrait et jourCommande
-    const existingItem = panier.find((item) => item.id === plat.idplats.toString())
+    // Si uniqueId est fourni, on essaie de trouver cet item spécifique, sinon on cherche par ID de plat
+    const existingItem = uniqueId
+      ? panier.find((item) => item.uniqueId === uniqueId)
+      : panier.find((item) => item.id === plat.idplats.toString())
 
     if (existingItem?.dateRetrait && existingItem?.jourCommande) {
+      // Si on a un uniqueId, on supprime l'ancien item avant d'ajouter le nouveau (mise à jour)
+      if (uniqueId) {
+        supprimerDuPanier(uniqueId)
+      }
+
       ajouterAuPanier({
         id: plat.idplats.toString(),
         nom: plat.plat,
@@ -351,197 +368,55 @@ export default function PanierPage() {
                         <div className="space-y-4">
                           {items.map((item) => {
                             const platData = plats?.find((p) => p.id.toString() === item.id)
-                            const imageUrl = platData?.photo_du_plat
+
+                            if (!platData) return null
 
                             return (
-                              <div
+                              <CartItemCard
                                 key={item.uniqueId}
-                                className="hover:bg-thai-cream/20 hover:border-thai-orange hover:ring-thai-orange/30 transform rounded-lg border border-gray-200 bg-white p-3 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:ring-2 sm:p-4"
-                              >
-                                <div className="flex flex-col items-start gap-3 sm:flex-row sm:gap-4">
-                                  {/* Image du plat */}
-                                  <div className="flex w-full justify-center sm:w-auto sm:justify-start">
-                                    {platData ? (
-                                      <DishDetailsModalInteractive
-                                        plat={platData}
-                                        formatPrix={formatPrix}
-                                        onAddToCart={(
-                                          plat,
-                                          quantite,
-                                          spicePreference,
-                                          spiceDistribution
-                                        ) =>
-                                          handleAjouterAuPanier(
-                                            plat,
-                                            quantite,
-                                            spicePreference,
-                                            spiceDistribution
-                                          )
+                                name={item.nom}
+                                imageUrl={platData.photo_du_plat ?? undefined}
+                                unitPrice={toSafeNumber(item.prix)}
+                                quantity={item.quantite}
+                                isVegetarian={platData.est_vegetarien === true}
+                                isSpicy={(platData.niveau_epice ?? 0) > 0}
+                                showSpiceSelector={
+                                  !!item.spiceDistribution &&
+                                  item.spiceDistribution.some((c) => c > 0)
+                                }
+                                spiceSelectorSlot={
+                                  item.spiceDistribution ? (
+                                    <div onClick={(e) => e.stopPropagation()}>
+                                      <SmartSpice
+                                        quantity={item.quantite}
+                                        distribution={item.spiceDistribution}
+                                        onDistributionChange={(newDist) =>
+                                          handleDistributionChange(item, newDist)
                                         }
-                                        currentQuantity={item.quantite}
-                                        currentSpiceDistribution={item.spiceDistribution}
-                                        dateRetrait={item.dateRetrait}
-                                      >
-                                        <div className="relative">
-                                          {imageUrl ? (
-                                            <img
-                                              src={imageUrl}
-                                              alt={item.nom}
-                                              className="h-32 w-32 cursor-pointer rounded-lg object-cover transition-opacity duration-200 hover:opacity-80 sm:h-20 sm:w-20"
-                                            />
-                                          ) : (
-                                            <div className="bg-thai-cream/30 border-thai-orange/20 hover:bg-thai-cream/50 flex h-32 w-32 cursor-pointer items-center justify-center rounded-lg border transition-colors duration-200 sm:h-20 sm:w-20">
-                                              <span className="text-thai-orange text-xl sm:text-lg">
-                                                🍽️
-                                              </span>
-                                            </div>
-                                          )}
-                                          {/* Badge de quantité */}
-                                          <div className="bg-thai-orange absolute -top-1.5 -right-1.5 flex h-6 w-6 items-center justify-center rounded-full border-2 border-white text-xs font-bold text-white shadow-lg">
-                                            {item.quantite}
-                                          </div>
-                                        </div>
-                                      </DishDetailsModalInteractive>
-                                    ) : (
-                                      <div className="relative">
-                                        <div className="flex h-32 w-32 items-center justify-center rounded-lg bg-gray-200 sm:h-20 sm:w-20">
-                                          <span className="text-xl text-gray-400 sm:text-lg">
-                                            🍽️
-                                          </span>
-                                        </div>
-                                        {/* Badge de quantité */}
-                                        <div className="bg-thai-orange absolute -top-1.5 -right-1.5 flex h-6 w-6 items-center justify-center rounded-full border-2 border-white text-xs font-bold text-white shadow-lg">
-                                          {item.quantite}
-                                        </div>
-                                      </div>
-                                    )}
-                                  </div>
-
-                                  {/* Informations du plat */}
-                                  <div className="flex w-full min-w-0 flex-1 flex-col justify-between sm:w-auto">
-                                    {platData ? (
-                                      <DishDetailsModalInteractive
-                                        plat={platData}
-                                        formatPrix={formatPrix}
-                                        onAddToCart={(
-                                          plat,
-                                          quantite,
-                                          spicePreference,
-                                          spiceDistribution
-                                        ) =>
-                                          handleAjouterAuPanier(
-                                            plat,
-                                            quantite,
-                                            spicePreference,
-                                            spiceDistribution
-                                          )
-                                        }
-                                        currentQuantity={item.quantite}
-                                        currentSpiceDistribution={item.spiceDistribution}
-                                        dateRetrait={item.dateRetrait}
-                                      >
-                                        <h4 className="text-thai-green hover:text-thai-orange decoration-thai-orange/50 cursor-pointer text-base font-medium transition-colors duration-200 hover:underline">
-                                          {item.nom}
-                                        </h4>
-                                      </DishDetailsModalInteractive>
-                                    ) : (
-                                      <h4 className="text-base font-medium text-gray-500">
-                                        {item.nom}
-                                      </h4>
-                                    )}
-                                    <div className="text-sm text-gray-600">
-                                      Prix unitaire:{" "}
-                                      <span className="text-thai-green font-semibold">
-                                        {formatPrix(toSafeNumber(item.prix))}
-                                      </span>
+                                        className="scale-90"
+                                      />
                                     </div>
-
-                                    {/* Sélecteur épicé (Mobile uniquement - entre prix unitaire et prix total) */}
-                                    {item.demandeSpeciale &&
-                                      item.demandeSpeciale.includes("épicé") &&
-                                      item.spiceDistribution && (
-                                        <div className="mt-2 flex justify-center lg:hidden">
-                                          <div className="origin-center scale-60">
-                                            <SpiceDistributionSelector
-                                              totalQuantity={item.quantite}
-                                              distribution={item.spiceDistribution}
-                                              onDistributionChange={(newDistribution) =>
-                                                handleDistributionChange(item, newDistribution)
-                                              }
-                                            />
-                                          </div>
-                                        </div>
-                                      )}
-                                  </div>
-
-                                  {/* Sélecteur épicé (Desktop uniquement) */}
-                                  {item.demandeSpeciale &&
-                                    item.demandeSpeciale.includes("épicé") &&
-                                    item.spiceDistribution && (
-                                      <div className="hidden items-center lg:flex">
-                                        <div className="origin-center scale-75">
-                                          <SpiceDistributionSelector
-                                            totalQuantity={item.quantite}
-                                            distribution={item.spiceDistribution}
-                                            onDistributionChange={(newDistribution) =>
-                                              handleDistributionChange(item, newDistribution)
-                                            }
-                                          />
-                                        </div>
-                                      </div>
-                                    )}
-
-                                  {/* Prix total et contrôles */}
-                                  <div className="flex w-full flex-col items-center gap-2 sm:w-auto sm:items-end sm:gap-4">
-                                    <div className="text-thai-orange text-xl font-bold sm:text-2xl">
-                                      {formatPrix(toSafeNumber(item.prix) * item.quantite)}
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                      <Button
-                                        size="icon"
-                                        variant="ghost"
-                                        onClick={(e) => {
-                                          e.stopPropagation()
-                                          supprimerDuPanier(item.uniqueId!)
-                                          toast({
-                                            title: "Article supprimé",
-                                            description: `${item.nom} a été retiré de votre panier.`,
-                                          })
-                                        }}
-                                        className="h-8 w-8 text-gray-400 transition-all duration-200 hover:scale-110 hover:bg-red-50 hover:text-red-500 hover:shadow-lg hover:ring-2 hover:ring-red-300"
-                                        aria-label="Supprimer l'article"
-                                      >
-                                        <Trash2 className="h-4 w-4" />
-                                      </Button>
-                                      <Button
-                                        size="sm"
-                                        variant="outline"
-                                        className="hover:border-thai-orange hover:ring-thai-orange/30 h-8 w-8 p-0 transition-all duration-200 hover:scale-110 hover:shadow-lg hover:ring-2"
-                                        onClick={(e) => {
-                                          e.stopPropagation()
-                                          handleQuantityChange(item, item.quantite - 1)
-                                        }}
-                                      >
-                                        -
-                                      </Button>
-                                      <span className="w-8 text-center font-medium">
-                                        {item.quantite}
-                                      </span>
-                                      <Button
-                                        size="sm"
-                                        variant="outline"
-                                        className="hover:border-thai-orange hover:ring-thai-orange/30 h-8 w-8 p-0 transition-all duration-200 hover:scale-110 hover:shadow-lg hover:ring-2"
-                                        onClick={(e) => {
-                                          e.stopPropagation()
-                                          handleQuantityChange(item, item.quantite + 1)
-                                        }}
-                                      >
-                                        +
-                                      </Button>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
+                                  ) : null
+                                }
+                                onQuantityChange={(newQuantity) =>
+                                  handleQuantityChange(item, newQuantity)
+                                }
+                                onRemove={() => {
+                                  supprimerDuPanier(item.uniqueId!)
+                                  toast({
+                                    title: "Article supprimé",
+                                    description: `${item.nom} a été retiré de votre panier.`,
+                                  })
+                                }}
+                                onClick={() =>
+                                  setModalContext({
+                                    plat: platData,
+                                    quantity: item.quantite,
+                                    spiceDistribution: item.spiceDistribution,
+                                    uniqueId: item.uniqueId,
+                                  })
+                                }
+                              />
                             )
                           })}
                         </div>
@@ -634,6 +509,22 @@ export default function PanierPage() {
 
         {/* FloatingUserIcon ajouté pour navigation universelle */}
         <FloatingUserIcon />
+
+        {/* Modal global de commande */}
+        {modalContext && (
+          <CommandePlatModal
+            isOpen={!!modalContext}
+            onOpenChange={(open) => {
+              if (!open) setModalContext(null)
+            }}
+            plat={modalContext.plat}
+            formatPrix={formatPrix}
+            onAddToCart={handleAjouterAuPanier}
+            currentQuantity={modalContext.quantity}
+            currentSpiceDistribution={modalContext.spiceDistribution}
+            uniqueId={modalContext.uniqueId}
+          />
+        )}
       </div>
     </div>
   )
