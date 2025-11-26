@@ -1,23 +1,52 @@
 "use client"
 
 import * as React from "react"
-import type { ToastActionElement, ToastProps } from "@/components/ui/toast"
+import type {
+  ToastActionElement,
+  ToastProps,
+  BorderColor,
+  ShadowSize,
+  MaxWidth,
+  TitleColor,
+  DescriptionColor,
+  ToastPosition,
+  FontWeight
+} from "@/components/ui/toast"
 
 const TOAST_LIMIT = 1
-const TOAST_REMOVE_DELAY = 3000 // 3 secondes pour les toasts vidéo (durée du GIF)
+const TOAST_REMOVE_DELAY = 3000 // 3 secondes pour les toasts video (duree du GIF)
 
 type ToasterToastVideo = ToastProps & {
   id: string
   title?: React.ReactNode
   description?: React.ReactNode
   action?: ToastActionElement
-  media?: string // URL de l'image ou vidéo
-  position?: "bottom-right" | "center" | "bottom-left"
+  media?: string // URL de l'image ou video
+  position?: ToastPosition
+  customX?: string // Position X custom (si position="custom")
+  customY?: string // Position Y custom (si position="custom")
   scrollingText?: boolean
   scrollDuration?: number
   polaroid?: boolean
   aspectRatio?: "16:9" | "4:5" | "1:1"
+  // Props de style
+  borderColor?: BorderColor
+  customBorderColor?: string
+  borderWidth?: 1 | 2 | 4 | "custom"
+  customBorderWidth?: number
+  shadowSize?: ShadowSize
+  maxWidth?: MaxWidth
+  titleColor?: TitleColor
+  titleFontWeight?: FontWeight
+  descriptionColor?: DescriptionColor
+  descriptionFontWeight?: FontWeight
+  animateBorder?: boolean
+  hoverScale?: boolean
+  loopVideo?: boolean
+  showCloseButton?: boolean
 }
+
+export type { BorderColor, ShadowSize, MaxWidth, TitleColor, DescriptionColor, ToastPosition, FontWeight }
 
 const actionTypes = {
   ADD_TOAST: "ADD_TOAST",

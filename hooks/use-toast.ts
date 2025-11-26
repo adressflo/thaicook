@@ -2,18 +2,44 @@
 
 import * as React from "react"
 
-import type { ToastActionElement, ToastProps } from "@/components/ui/toast"
+import type {
+  ToastActionElement,
+  ToastProps,
+  ToastExtendedProps,
+  BorderColor,
+  ShadowSize,
+  MaxWidth,
+  TitleColor,
+  DescriptionColor,
+  ToastPosition,
+  FontWeight
+} from "@/components/ui/toast"
 
 const TOAST_LIMIT = 1
 const TOAST_REMOVE_DELAY = 1000000
 
-type ToasterToast = ToastProps & {
+type ToasterToast = ToastProps & ToastExtendedProps & {
   id: string
   title?: React.ReactNode
   description?: React.ReactNode
   action?: ToastActionElement
-  tilted?: boolean | number
+  /** Couleur du titre */
+  titleColor?: TitleColor
+  /** Poids de la police du titre */
+  titleFontWeight?: FontWeight
+  /** Couleur de la description */
+  descriptionColor?: DescriptionColor
+  /** Poids de la police de la description */
+  descriptionFontWeight?: FontWeight
+  /** Position du toast */
+  position?: ToastPosition
+  /** Position X custom (si position="custom") */
+  customX?: string
+  /** Position Y custom (si position="custom") */
+  customY?: string
 }
+
+export type { BorderColor, ShadowSize, MaxWidth, TitleColor, DescriptionColor, ToastPosition, FontWeight }
 
 const actionTypes = {
   ADD_TOAST: "ADD_TOAST",

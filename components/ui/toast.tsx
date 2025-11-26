@@ -23,15 +23,21 @@ const ToastViewport = React.forwardRef<
 ToastViewport.displayName = ToastPrimitives.Viewport.displayName
 
 const toastVariants = cva(
-  "group pointer-events-auto relative flex min-w-[280px] max-w-[500px] items-center overflow-hidden rounded-md border-2 p-6 shadow-lg transition-all data-[swipe=cancel]:translate-x-0 data-[swipe=end]:translate-x-[var(--radix-toast-swipe-end-x)] data-[swipe=move]:translate-x-[var(--radix-toast-swipe-move-x)] data-[swipe=move]:transition-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[swipe=end]:animate-out data-[state=closed]:fade-out-80 data-[state=closed]:slide-out-to-right-full data-[state=open]:slide-in-from-top-full data-[state=open]:sm:slide-in-from-bottom-full",
+  "group pointer-events-auto relative flex items-center overflow-hidden rounded-md p-6 transition-all data-[swipe=cancel]:translate-x-0 data-[swipe=end]:translate-x-[var(--radix-toast-swipe-end-x)] data-[swipe=move]:translate-x-[var(--radix-toast-swipe-move-x)] data-[swipe=move]:transition-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[swipe=end]:animate-out data-[state=closed]:fade-out-80 data-[state=closed]:slide-out-to-right-full data-[state=open]:slide-in-from-top-full data-[state=open]:sm:slide-in-from-bottom-full",
   {
     variants: {
       variant: {
-        default: "border-thai-orange bg-white text-foreground animate-moving-border",
+        default: "border-thai-orange bg-white text-foreground",
         destructive:
           "destructive group border-destructive bg-destructive text-destructive-foreground",
         polaroid:
           "border-thai-green bg-white text-thai-green shadow-[0_4px_6px_rgba(0,0,0,0.3)] rotate-2 hover:rotate-0 transition-all duration-300 hover:scale-105 border-4 p-4",
+        success:
+          "border-thai-green bg-white text-thai-green",
+        warning:
+          "border-yellow-500 bg-yellow-50 text-yellow-700",
+        info:
+          "border-blue-500 bg-blue-50 text-blue-700",
       },
     },
     defaultVariants: {
@@ -40,34 +46,188 @@ const toastVariants = cva(
   }
 )
 
+// Types pour les props étendues du Toast
+type BorderColor = "thai-orange" | "thai-green" | "red" | "blue" | "yellow" | "purple" | "custom"
+type ShadowSize = "none" | "sm" | "md" | "lg" | "xl" | "2xl"
+type MaxWidth = "xs" | "sm" | "md" | "lg" | "xl"
+type TitleColor = "thai-green" | "thai-orange" | "white" | "black" | "thai-gold" | "inherit"
+type DescriptionColor = "thai-green" | "thai-orange" | "gray" | "black" | "inherit"
+type ToastPosition = "center" | "bottom-right" | "bottom-left" | "top-right" | "top-left" | "custom"
+type FontWeight = "normal" | "medium" | "semibold" | "bold" | "extrabold"
+
+interface ToastExtendedProps {
+  /** Inclinaison du toast (boolean ou angle en degrés) */
+  tilted?: boolean | number
+  /** Couleur de la bordure */
+  borderColor?: BorderColor
+  /** Classe Tailwind custom pour la bordure (si borderColor="custom") */
+  customBorderColor?: string
+  /** Épaisseur de la bordure (1, 2, 4 ou custom) */
+  borderWidth?: 1 | 2 | 4 | "custom"
+  /** Épaisseur custom en px */
+  customBorderWidth?: number
+  /** Taille de l'ombre */
+  shadowSize?: ShadowSize
+  /** Largeur max du toast */
+  maxWidth?: MaxWidth
+  /** Animation de bordure animée */
+  animateBorder?: boolean
+  /** Effet scale au hover */
+  hoverScale?: boolean
+  /** Couleur du titre */
+  titleColor?: TitleColor
+  /** Poids de la police du titre */
+  titleFontWeight?: FontWeight
+  /** Couleur de la description */
+  descriptionColor?: DescriptionColor
+  /** Poids de la police de la description */
+  descriptionFontWeight?: FontWeight
+  /** Position du toast */
+  position?: ToastPosition
+  /** Position X custom (si position="custom") */
+  customX?: string
+  /** Position Y custom (si position="custom") */
+  customY?: string
+}
+
+// Map des classes CSS pour les positions du Viewport
+const positionClassMap: Record<ToastPosition, string> = {
+  "center": "top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center sm:top-1/2 sm:right-auto sm:bottom-auto sm:flex-col",
+  "bottom-right": "sm:top-auto sm:right-0 sm:bottom-0 sm:w-auto sm:flex-col",
+  "bottom-left": "sm:top-auto sm:left-0 sm:bottom-0 sm:right-auto sm:w-auto sm:flex-col",
+  "top-right": "top-0 right-0 bottom-auto sm:top-0 sm:right-0 sm:bottom-auto sm:w-auto sm:flex-col",
+  "top-left": "top-0 left-0 right-auto bottom-auto sm:top-0 sm:left-0 sm:right-auto sm:bottom-auto sm:w-auto sm:flex-col",
+  "custom": "",
+}
+
+export { positionClassMap }
+
+// Maps pour les classes CSS
+const borderColorMap: Record<BorderColor, string> = {
+  "thai-orange": "border-thai-orange",
+  "thai-green": "border-thai-green",
+  "red": "border-red-500",
+  "blue": "border-blue-500",
+  "yellow": "border-yellow-500",
+  "purple": "border-purple-500",
+  "custom": "",
+}
+
+const shadowSizeMap: Record<ShadowSize, string> = {
+  "none": "shadow-none",
+  "sm": "shadow-sm",
+  "md": "shadow-md",
+  "lg": "shadow-lg",
+  "xl": "shadow-xl",
+  "2xl": "shadow-2xl",
+}
+
+const maxWidthMap: Record<MaxWidth, string> = {
+  "xs": "max-w-[280px]",
+  "sm": "max-w-[320px]",
+  "md": "max-w-[400px]",
+  "lg": "max-w-[500px]",
+  "xl": "max-w-[600px]",
+}
+
+const titleColorMap: Record<TitleColor, string> = {
+  "thai-green": "text-thai-green",
+  "thai-orange": "text-thai-orange",
+  "white": "text-white",
+  "black": "text-black",
+  "thai-gold": "text-thai-gold",
+  "inherit": "",
+}
+
+const descriptionColorMap: Record<DescriptionColor, string> = {
+  "thai-green": "text-thai-green",
+  "thai-orange": "text-thai-orange",
+  "gray": "text-gray-600",
+  "black": "text-black",
+  "inherit": "",
+}
+
+const fontWeightMap: Record<FontWeight, string> = {
+  "normal": "font-normal",
+  "medium": "font-medium",
+  "semibold": "font-semibold",
+  "bold": "font-bold",
+  "extrabold": "font-extrabold",
+}
+
 const Toast = React.forwardRef<
   React.ElementRef<typeof ToastPrimitives.Root>,
   React.ComponentPropsWithoutRef<typeof ToastPrimitives.Root> &
-    VariantProps<typeof toastVariants> & { tilted?: boolean | number }
->(({ className, variant, tilted, style, ...props }, ref) => {
+    VariantProps<typeof toastVariants> &
+    ToastExtendedProps
+>(({
+  className,
+  variant,
+  tilted,
+  borderColor = "thai-orange",
+  customBorderColor,
+  borderWidth = 2,
+  customBorderWidth,
+  shadowSize = "lg",
+  maxWidth = "lg",
+  animateBorder = false,
+  hoverScale = false,
+  style,
+  ...props
+}, ref) => {
   const angle = typeof tilted === "number" ? tilted : tilted ? -3 : 0
   const isTilted = angle !== 0
+
+  // Calcul des classes dynamiques
+  const borderColorClass = borderColor === "custom" && customBorderColor
+    ? customBorderColor
+    : borderColorMap[borderColor]
+
+  const borderWidthClass = borderWidth === "custom" && customBorderWidth
+    ? ""
+    : `border-${borderWidth}`
+
+  const borderWidthStyle = borderWidth === "custom" && customBorderWidth
+    ? { borderWidth: `${customBorderWidth}px` }
+    : {}
 
   return (
     <ToastPrimitives.Root
       ref={ref}
       className={cn(
         toastVariants({ variant }),
-        isTilted &&
-          "rotate-[var(--toast-angle)] transition-all duration-300 hover:scale-105 hover:rotate-0",
+        // Bordure
+        borderColorClass,
+        borderWidthClass,
+        // Ombre
+        shadowSizeMap[shadowSize],
+        // Largeur max
+        maxWidthMap[maxWidth],
+        // Largeur min
+        "min-w-[280px]",
+        // Animation bordure
+        animateBorder && "animate-moving-border",
+        // Hover scale
+        hoverScale && "hover:scale-105 transition-transform duration-300",
+        // Inclinaison
+        isTilted && "rotate-[var(--toast-angle)] transition-all duration-300 hover:scale-105 hover:rotate-0",
         className
       )}
       style={
         {
           ...style,
+          ...borderWidthStyle,
           "--toast-angle": `${angle}deg`,
-        } as React.CSSProperties
+        } as React.CSSProperties & { "--toast-angle": string }
       }
       {...props}
     />
   )
 })
 Toast.displayName = ToastPrimitives.Root.displayName
+
+export { titleColorMap, descriptionColorMap, fontWeightMap }
+export type { ToastExtendedProps, BorderColor, ShadowSize, MaxWidth, TitleColor, DescriptionColor, ToastPosition, FontWeight }
 
 const ToastAction = React.forwardRef<
   React.ElementRef<typeof ToastPrimitives.Action>,
