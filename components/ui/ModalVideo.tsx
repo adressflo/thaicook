@@ -37,6 +37,13 @@ interface ModalVideoProps {
 
   // Mode standalone pour aperçu
   standalone?: boolean
+
+  // Style Dialog - Nouvelles propriétés configurables
+  rotation?: boolean // Active l'animation rotate-[-2deg] hover:rotate-0 (comme modal "Installer l'Application")
+  maxWidth?: "sm" | "md" | "lg" | "xl" // Taille du modal
+  borderColor?: "thai-orange" | "thai-green" | "red" | "blue" // Couleur bordure
+  borderWidth?: number // Épaisseur bordure (1, 2, 4)
+  shadowSize?: "sm" | "lg" | "2xl" // Taille ombre
 }
 
 // Composant de contenu réutilisable (pour Dialog et Aperçu)
@@ -202,11 +209,52 @@ export function ModalVideo({
   onOpenChange,
   title,
   description,
+  rotation = true,
+  maxWidth = "md",
+  borderColor = "thai-orange",
+  borderWidth = 2,
+  shadowSize = "2xl",
   ...props
 }: ModalVideoProps) {
+  // Mapping des classes Tailwind
+  const maxWidthClass = {
+    "sm": "max-w-sm",
+    "md": "max-w-md",
+    "lg": "max-w-lg",
+    "xl": "max-w-xl"
+  }
+
+  const borderColorClass = {
+    "thai-orange": "border-thai-orange",
+    "thai-green": "border-thai-green",
+    "red": "border-red-500",
+    "blue": "border-blue-500"
+  }
+
+  const borderWidthClass = {
+    1: "border",
+    2: "border-2",
+    4: "border-4"
+  }
+
+  const shadowClass = {
+    "sm": "shadow-sm",
+    "lg": "shadow-lg",
+    "2xl": "shadow-2xl"
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md bg-white border-2 border-thai-orange shadow-2xl p-0 rotate-[-2deg] hover:rotate-0 transition-transform duration-300">
+      <DialogContent
+        className={cn(
+          maxWidthClass[maxWidth],
+          "bg-white p-0",
+          borderWidthClass[borderWidth as keyof typeof borderWidthClass] || "border-2",
+          borderColorClass[borderColor],
+          shadowClass[shadowSize],
+          rotation && "rotate-[-2deg] hover:rotate-0 transition-transform duration-300"
+        )}
+      >
         {/* Titres accessibles (cachés visuellement) */}
         <DialogTitle className="sr-only">{title || "Modal Vidéo"}</DialogTitle>
         <DialogDescription className="sr-only">{description || "Modal avec contenu vidéo ou image"}</DialogDescription>

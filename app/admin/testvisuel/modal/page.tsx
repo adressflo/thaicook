@@ -45,6 +45,11 @@ function ModalVideoPlayground() {
     loopCount: number
     cancelText: string
     confirmText: string
+    rotation: boolean
+    maxWidth: "sm" | "md" | "lg" | "xl"
+    borderColor: "thai-orange" | "thai-green" | "red" | "blue"
+    borderWidth: number
+    shadowSize: "sm" | "lg" | "2xl"
   }>({
     title: "Vidéo - Aperçu",
     description: "La vidéo tourne en boucle pour démonstration",
@@ -55,8 +60,50 @@ function ModalVideoPlayground() {
     scrollDuration: 10,
     loopCount: 0,
     cancelText: "Annuler",
-    confirmText: "Confirmer"
+    confirmText: "Confirmer",
+    rotation: true,
+    maxWidth: "md",
+    borderColor: "thai-orange",
+    borderWidth: 2,
+    shadowSize: "2xl"
   })
+
+  // Fonction pour générer le code JSX complet
+  const generateCode = () => {
+    return `<ModalVideo
+  isOpen={isModalOpen}
+  onOpenChange={setIsModalOpen}
+  title="${previewProps.title}"
+  description="${previewProps.description}"
+  media="${previewProps.media}"
+  aspectRatio="${previewProps.aspectRatio}"
+  polaroid={${previewProps.polaroid}}
+  scrollingText={${previewProps.scrollingText}}
+  scrollDuration={${previewProps.scrollDuration}}
+  loopCount={${previewProps.loopCount}}
+  cancelText="${previewProps.cancelText}"
+  confirmText="${previewProps.confirmText}"
+  rotation={${previewProps.rotation}}
+  maxWidth="${previewProps.maxWidth}"
+  borderColor="${previewProps.borderColor}"
+  borderWidth={${previewProps.borderWidth}}
+  shadowSize="${previewProps.shadowSize}"
+  onCancel={() => console.log("Annulé")}
+  onConfirm={() => console.log("Confirmé")}
+/>`
+  }
+
+  // Fonction pour copier le code dans le presse-papiers
+  const handleCopyCode = async () => {
+    const code = generateCode()
+    try {
+      await navigator.clipboard.writeText(code)
+      // TODO: Add toast notification "✅ Code copié !"
+      console.log("✅ Code copié dans le presse-papiers!")
+    } catch (err) {
+      console.error("Erreur lors de la copie:", err)
+    }
+  }
 
   return (
     <div className="space-y-4">
@@ -67,13 +114,22 @@ function ModalVideoPlayground() {
             <span className="text-xl">🎮</span>
             Contrôles Interactifs
           </h4>
-          <Button
-            size="lg"
-            onClick={() => setIsModalOpen(true)}
-            className="bg-thai-orange hover:bg-thai-orange/90 text-white shadow-lg hover:shadow-xl transition-all duration-200"
-          >
-            🎬 Ouvrir Modal Réel
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={handleCopyCode}
+              className="border-thai-green text-thai-green hover:bg-thai-green hover:text-white transition-all duration-200"
+            >
+              📋 Copier le Code
+            </Button>
+            <Button
+              size="lg"
+              onClick={() => setIsModalOpen(true)}
+              className="bg-thai-orange hover:bg-thai-orange/90 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+            >
+              🎬 Ouvrir Modal Réel
+            </Button>
+          </div>
         </div>
 
         {/* Section Contenu */}
@@ -94,32 +150,39 @@ function ModalVideoPlayground() {
               className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent resize-none"
               rows={3}
             />
-            <div className="space-y-2">
-              <input
-                type="text"
-                value={previewProps.media}
-                onChange={(e) => setPreviewProps({ ...previewProps, media: e.target.value })}
-                placeholder="URL média (.mp4, .webm, .jpg, .svg...)"
-                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent"
-              />
-              <div className="flex gap-2">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => setPreviewProps({ ...previewProps, media: "/media/avatars/phonevalid.svg" })}
-                  className="flex-1 border-thai-green/30 text-thai-green hover:bg-thai-green/10"
-                >
-                  🖼️ Image
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => setPreviewProps({ ...previewProps, media: "/media/animations/toasts/ajoutpaniernote.mp4" })}
-                  className="flex-1 border-thai-orange/30 text-thai-orange hover:bg-thai-orange/10"
-                >
-                  🎬 Vidéo
-                </Button>
-              </div>
+            <input
+              type="text"
+              value={previewProps.media}
+              onChange={(e) => {
+                let path = e.target.value
+                // Nettoyer le chemin : enlever "public/" ou "public\" du début
+                path = path.replace(/^public[\/\\]/, '/')
+                // S'assurer qu'il commence par /
+                if (path && !path.startsWith('/')) {
+                  path = '/' + path
+                }
+                setPreviewProps({ ...previewProps, media: path })
+              }}
+              placeholder="/media/avatars/phonevalid.svg (ou public/media/...)"
+              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent"
+            />
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setPreviewProps({ ...previewProps, media: "/media/avatars/phonevalid.svg" })}
+                className="flex-1 border-thai-green/30 text-thai-green hover:bg-thai-green/10"
+              >
+                🖼️ Image
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setPreviewProps({ ...previewProps, media: "/media/animations/toasts/ajoutpaniernote.mp4" })}
+                className="flex-1 border-thai-orange/30 text-thai-orange hover:bg-thai-orange/10"
+              >
+                🎬 Vidéo
+              </Button>
             </div>
           </div>
         </div>
@@ -227,6 +290,108 @@ function ModalVideoPlayground() {
             />
           </div>
         </div>
+
+        {/* Section Style Dialog */}
+        <div className="space-y-2">
+          <label className="text-xs font-medium text-gray-700">🎨 Style Dialog</label>
+          <div className="space-y-3">
+            {/* Animation rotation - CHECKBOX */}
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={previewProps.rotation}
+                onChange={(e) => setPreviewProps({ ...previewProps, rotation: e.target.checked })}
+                className="w-4 h-4 text-thai-orange border-gray-300 rounded focus:ring-thai-orange focus:ring-2"
+              />
+              <span className="text-sm text-gray-700">Animation rotation (rotate-[-2deg] hover:rotate-0)</span>
+            </label>
+
+            {/* Taille modal - BUTTON GROUP */}
+            <div>
+              <label className="text-xs text-gray-600">Taille modal</label>
+              <div className="flex gap-2">
+                {(["sm", "md", "lg", "xl"] as const).map((size) => (
+                  <Button
+                    key={size}
+                    size="sm"
+                    variant={previewProps.maxWidth === size ? "default" : "outline"}
+                    onClick={() => setPreviewProps({ ...previewProps, maxWidth: size })}
+                    className={previewProps.maxWidth === size
+                      ? "bg-thai-orange hover:bg-thai-orange/90"
+                      : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"}
+                  >
+                    {size}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            {/* Couleur bordure - BUTTON GROUP */}
+            <div>
+              <label className="text-xs text-gray-600">Couleur bordure</label>
+              <div className="flex gap-2 flex-wrap">
+                {[
+                  { label: "🟠 Orange", value: "thai-orange" as const },
+                  { label: "🟢 Vert", value: "thai-green" as const },
+                  { label: "🔴 Rouge", value: "red" as const },
+                  { label: "🔵 Bleu", value: "blue" as const }
+                ].map((color) => (
+                  <Button
+                    key={color.value}
+                    size="sm"
+                    variant={previewProps.borderColor === color.value ? "default" : "outline"}
+                    onClick={() => setPreviewProps({ ...previewProps, borderColor: color.value })}
+                    className={previewProps.borderColor === color.value
+                      ? "bg-thai-orange hover:bg-thai-orange/90"
+                      : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"}
+                  >
+                    {color.label}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            {/* Épaisseur bordure - BUTTON GROUP */}
+            <div>
+              <label className="text-xs text-gray-600">Épaisseur bordure</label>
+              <div className="flex gap-2">
+                {[1, 2, 4].map((width) => (
+                  <Button
+                    key={width}
+                    size="sm"
+                    variant={previewProps.borderWidth === width ? "default" : "outline"}
+                    onClick={() => setPreviewProps({ ...previewProps, borderWidth: width })}
+                    className={previewProps.borderWidth === width
+                      ? "bg-thai-orange hover:bg-thai-orange/90"
+                      : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"}
+                  >
+                    {width}px
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            {/* Ombre - BUTTON GROUP */}
+            <div>
+              <label className="text-xs text-gray-600">Ombre</label>
+              <div className="flex gap-2">
+                {(["sm", "lg", "2xl"] as const).map((shadow) => (
+                  <Button
+                    key={shadow}
+                    size="sm"
+                    variant={previewProps.shadowSize === shadow ? "default" : "outline"}
+                    onClick={() => setPreviewProps({ ...previewProps, shadowSize: shadow })}
+                    className={previewProps.shadowSize === shadow
+                      ? "bg-thai-orange hover:bg-thai-orange/90"
+                      : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"}
+                  >
+                    {shadow}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Modal Réel (avec backdrop et rotation) */}
@@ -243,6 +408,12 @@ function ModalVideoPlayground() {
         loopCount={previewProps.loopCount}
         cancelText={previewProps.cancelText}
         confirmText={previewProps.confirmText}
+        rotation={previewProps.rotation}
+        enableHoverAnimation={previewProps.enableHoverAnimation}
+        maxWidth={previewProps.maxWidth}
+        borderColor={previewProps.borderColor}
+        borderWidth={previewProps.borderWidth}
+        shadowSize={previewProps.shadowSize}
         onCancel={() => console.log("Annulé !")}
         onConfirm={() => console.log("Confirmé !")}
       />
