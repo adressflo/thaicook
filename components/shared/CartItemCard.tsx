@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Trash2 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { ModalVideo } from "@/components/ui/ModalVideo"
 
 interface CartItemCardProps {
   // Données du produit
@@ -53,6 +54,7 @@ export function CartItemCard({
   imageZoom = 1,
 }: CartItemCardProps) {
   const [imageError, setImageError] = useState(false)
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
   useEffect(() => {
     setImageError(false)
@@ -245,7 +247,7 @@ export function CartItemCard({
                 variant="ghost"
                 onClick={(e) => {
                   e.stopPropagation()
-                  onRemove()
+                  setIsModalOpen(true)
                 }}
                 className="h-8 w-8 text-gray-400 transition-all duration-200 hover:scale-110 hover:bg-red-50 hover:text-red-500 hover:shadow-lg hover:ring-2 hover:ring-red-300"
                 aria-label="Supprimer l'article"
@@ -288,6 +290,33 @@ export function CartItemCard({
           )}
         </div>
       </div>
+
+      {/* Modal de confirmation de suppression */}
+      <ModalVideo
+        isOpen={isModalOpen}
+        onOpenChange={setIsModalOpen}
+        title="<orange>Supprimer</orange> cette commande ?"
+        description="Êtes-vous sûr de vouloir <bold><orange>retirer</orange></bold> ce plat de votre <semi-bold><orange>panier</orange></semi-bold> ?"
+        media="/media/animations/toasts/ajoutpaniernote.mp4"
+        aspectRatio="1:1"
+        polaroid={true}
+        scrollingText={false}
+        scrollDuration={10}
+        loopCount={1}
+        autoClose={true}
+        buttonLayout="double"
+        cancelText="Annuler"
+        confirmText="Supprimer"
+        maxWidth="sm"
+        borderColor="thai-green"
+        borderWidth={2}
+        shadowSize="2xl"
+        onCancel={() => setIsModalOpen(false)}
+        onConfirm={() => {
+          onRemove()
+          setIsModalOpen(false)
+        }}
+      />
     </div>
   )
 }

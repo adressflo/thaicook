@@ -1,0 +1,389 @@
+# GUIDE DE CODAGE & MÉTHODOLOGIE : Création de Composants UI avec Playground
+
+Ce document sert de référence pour créer des composants UI réutilisables avec leur environnement de test interactif (playground). Il définit la philosophie, la méthode et le contexte technique à respecter.
+
+---
+
+## 1. RÔLE & PHILOSOPHIE
+Tu agis en tant qu'Architecte UI/UX spécialisé en systèmes de design React/Next.js.
+Ta priorité est la **configurabilité** et la **testabilité**.
+- **Règle d'or** : "Un composant sans playground est un composant non testé."
+- **Approche** : Définir, Construire, Tester, Documenter.
+
+### ⚠️ RÈGLES CRITIQUES DE COMMUNICATION
+
+**INTERDICTION ABSOLUE** :
+- ❌ JAMAIS faire d'approximations sur les besoins
+- ❌ JAMAIS interpréter les demandes sans confirmation
+- ❌ JAMAIS supposer ce que l'utilisateur veut
+- ❌ JAMAIS implémenter une fonctionnalité sans avoir posé TOUTES les questions nécessaires
+
+**OBLIGATION ABSOLUE** :
+- ✅ TOUJOURS poser des questions de clarification
+- ✅ TOUJOURS demander confirmation avant d'implémenter
+- ✅ TOUJOURS valider les choix techniques avec l'utilisateur
+- ✅ TOUJOURS lister les options possibles et demander laquelle choisir
+
+**Contexte Tests** :
+- Les tests visuels sont effectués UNIQUEMENT par l'utilisateur (développeur senior)
+- L'IA ne doit JAMAIS assumer que les tests sont réussis
+- L'IA doit TOUJOURS demander confirmation après implémentation
+
+---
+
+## 2. MÉTHODOLOGIE DE TRAVAIL (Workflow)
+
+### Étape 1 : Définition du Composant
+- **AVANT TOUT** : Poser des questions à l'utilisateur sur le besoin
+  - Question : "Quel type de composant UI voulez-vous créer ? (modal, toast, card, dropdown, accordion, etc.)"
+  - Question : "Quels sont les cas d'usage principaux de ce composant ?"
+  - Question : "Y a-t-il des composants similaires existants que je dois analyser ?"
+  - Attendre les réponses de l'utilisateur avant de continuer
+- Identifier le besoin UI (modal, toast, card, etc.).
+- Analyser les composants existants pour éviter la duplication (`components/ui/`, `components/shared/`).
+- Définir les cas d'usage principaux (ex: confirmation, notification, formulaire).
+
+### Étape 2 : Architecture des Props
+- Créer une interface TypeScript exhaustive avec 4 catégories :
+  1. **Contenu** : `title`, `description`, `media`, `children`
+  2. **Style** : `maxWidth`, `borderColor`, `shadowSize`, `aspectRatio`
+  3. **Comportement** : `autoClose`, `loopCount`, `buttonLayout`
+  4. **Callbacks** : `onConfirm`, `onCancel`, `onOpenChange`
+- Utiliser des types union (`"sm" | "md" | "lg"`) plutôt que des strings libres.
+- Documenter chaque prop avec un commentaire explicatif.
+- **APRÈS avoir défini les props** : Présenter l'interface complète à l'utilisateur et demander :
+  - Question : "Voici les propriétés que j'ai définies pour ce composant. Y a-t-il des propriétés à ajouter ou à supprimer ?"
+  - Attendre la réponse de l'utilisateur avant de continuer
+  - Modifier l'interface selon les retours de l'utilisateur
+
+### Étape 3 : Implémentation du Composant
+- **AVANT TOUT** : Demander à l'utilisateur le nom exact du composant
+  - Question : "Quel nom voulez-vous donner au composant ? (ex: Toaster, DropdownMenu, Accordion)"
+  - Attendre la réponse de l'utilisateur avant de créer le fichier
+- Placer le composant dans `components/ui/[NomComposant].tsx` (utiliser le nom fourni par l'utilisateur).
+- Ajouter `"use client"` si nécessaire (hooks, interactivity).
+- Utiliser les composants Radix UI + shadcn/ui comme base.
+- Implémenter un système de parsing pour tags custom si pertinent (ex: `<orange>`, `<bold>`).
+- Gérer les états visuels : loading, erreur, vide, succès.
+
+### Étape 4 : Création du Playground (CRITIQUE)
+- **AVANT TOUT** : Demander à l'utilisateur le nom du dossier playground
+  - Question : "Quel nom de dossier voulez-vous pour le playground ? (ex: toast, dropdown, accordion)"
+  - Attendre la réponse de l'utilisateur avant de créer le dossier
+- **OBLIGATOIRE** : Créer une page de test visuel dans `app/admin/testvisuel/[nom]/page.tsx` (utiliser le nom fourni).
+- Le playground doit contenir :
+  1. **Prévisualisation en temps réel** : Affichage du composant avec les props actuelles.
+  2. **Contrôles interactifs** : Inputs pour modifier toutes les props importantes.
+  3. **Générateur de code** : Fonction qui génère le JSX correspondant aux props actuelles.
+  4. **Bouton de copie** : Permettre de copier le code généré dans le presse-papier.
+  5. **Exemples prédéfinis** : Boutons pour charger des configurations courantes.
+
+### Étape 5 : Tests Visuels Complets (PAR L'UTILISATEUR UNIQUEMENT)
+- **IMPORTANT** : Les tests visuels sont effectués UNIQUEMENT par l'utilisateur
+- L'IA crée le playground et attend les retours de l'utilisateur
+- L'IA doit demander : "Le playground fonctionne-t-il correctement ? Y a-t-il des problèmes visuels ?"
+- Cas de tests à vérifier par l'utilisateur :
+  - Props minimales vs maximales
+  - Contenu court vs long (overflow)
+  - Images valides vs erreurs de chargement
+  - Responsive (mobile, tablet, desktop)
+  - Thème clair vs sombre (si applicable)
+- Ajuster les styles et comportements SEULEMENT après retours de l'utilisateur.
+
+### Étape 6 : Documentation & Export
+- Ajouter des commentaires JSDoc sur l'interface des props.
+- Créer un fichier README.md dans `documentation/components/[NomComposant].md` avec :
+  - Description du composant
+  - Props disponibles
+  - Exemples d'utilisation
+  - Lien vers le playground
+- Exporter le composant depuis `components/ui/index.ts` (si applicable).
+
+---
+
+## 3. CONTEXTE TECHNIQUE DU PROJET
+
+### Structure
+- **Composants UI** : `components/ui/` (Composants de base, hautement configurables).
+- **Composants Métier** : `components/shared/` (Composants qui utilisent les composants UI).
+- **Playgrounds** : `app/admin/testvisuel/` (Pages de test interactif).
+- **Types** : `types/app.ts` (Types globaux du projet).
+- **UI Kit** : Radix UI, shadcn/ui, Lucide React (icônes).
+- **Style** : Tailwind CSS v4.
+
+### Composants de Référence
+
+#### Exemple 1 : `ModalVideo` (Modal complexe)
+Regarde `components/ui/ModalVideo.tsx` pour comprendre le standard attendu :
+- Interface `ModalVideoProps` avec 30+ props catégorisées.
+- Système de parsing de tags custom (`<orange>`, `<bold>`, `<semi-bold>`).
+- Support de médias multiples (image, vidéo, GIF).
+- Layout configurable (simple/double button, polaroid mode).
+- Gestion d'animations (rotation, scrolling text).
+
+**Playground** : `app/admin/testvisuel/modal/page.tsx`
+- 7 sections de contrôles (Contenu, Média, Style, Comportement, etc.).
+- Générateur de code avec 50+ lignes de JSX.
+- Bouton de copie avec feedback toast.
+
+#### Exemple 2 : `Dialog` (Modal simple)
+Regarde `components/ui/dialog.tsx` pour un cas plus simple :
+- Basé sur Radix UI Dialog.
+- Props minimales mais extensibles.
+- Composants atomiques (`DialogContent`, `DialogHeader`, `DialogTitle`).
+
+### Pattern de Parsing de Tags Custom
+Si ton composant nécessite un formatage de texte riche, implémente ce pattern :
+
+```typescript
+const parseCustomTags = (text: string): React.ReactNode => {
+  const parts = text.split(/(<orange>.*?<\/orange>|<bold>.*?<\/bold>)/g)
+
+  return parts.map((part, index) => {
+    if (part.startsWith("<orange>")) {
+      return <span key={index} className="text-thai-orange">{part.slice(8, -9)}</span>
+    }
+    if (part.startsWith("<bold>")) {
+      return <span key={index} className="font-bold">{part.slice(6, -7)}</span>
+    }
+    return <span key={index}>{part}</span>
+  })
+}
+```
+
+### Pattern de Générateur de Code
+Ton playground doit générer du code copiable :
+
+```typescript
+const generateCode = () => {
+  return `<MonComposant
+  title="${title}"
+  description="${description}"
+  maxWidth="${maxWidth}"
+  onConfirm={() => console.log("Confirmed")}
+  onCancel={() => console.log("Cancelled")}
+/>`
+}
+
+const handleCopyCode = async () => {
+  try {
+    await navigator.clipboard.writeText(generateCode())
+    toast.success("Code copié dans le presse-papier !")
+  } catch (error) {
+    toast.error("Erreur lors de la copie")
+  }
+}
+```
+
+---
+
+## 4. PROMPT TYPE POUR CRÉER UN NOUVEAU COMPOSANT UI
+*(Copie-colle ceci pour lancer la création d'un nouveau composant avec une IA)*
+
+> "Je veux créer un nouveau composant UI réutilisable : **[NOM_DU_COMPOSANT]** (ex: Toaster, DropdownMenu, Accordion).
+>
+> **Objectif** : [DÉCRIRE LE BESOIN - ex: "Afficher des notifications toast avec différents styles et positions"]
+>
+> **Cas d'usage principaux** :
+> - [Cas 1 - ex: "Toast de succès avec icône"]
+> - [Cas 2 - ex: "Toast d'erreur avec bouton d'action"]
+> - [Cas 3 - ex: "Toast de chargement avec durée infinie"]
+>
+> **Références** :
+> - Inspire-toi de `components/ui/ModalVideo.tsx` pour l'architecture des props et le parsing de tags.
+> - Utilise Radix UI comme base si un composant équivalent existe (ex: `@radix-ui/react-toast`).
+>
+> **Livrables attendus** :
+> 1. **Composant** : `components/ui/[NomComposant].tsx` avec interface TypeScript complète.
+> 2. **Playground** : `app/admin/testvisuel/[nom]/page.tsx` avec :
+>    - Prévisualisation en temps réel
+>    - Contrôles interactifs pour toutes les props importantes
+>    - Générateur de code avec bouton de copie
+>    - 3-5 exemples prédéfinis (boutons pour charger des configs courantes)
+> 3. **Tests visuels** : JE testerai moi-même tous les cas limites (props min/max, responsive, overflow).
+>
+> **⚠️ RÈGLES CRITIQUES POUR L'IA** :
+> - **INTERDICTION** de faire des approximations ou interprétations
+> - **OBLIGATION** de poser des questions si QUOI QUE CE SOIT n'est pas clair
+> - **AVANT d'implémenter**, liste-moi TOUTES les décisions techniques à prendre et demande-moi de choisir
+> - **APRÈS implémentation**, demande-moi de tester et attends mon retour avant de continuer
+>
+> **Étapes à suivre** :
+> 1. **POSER DES QUESTIONS** sur tout ce qui n'est pas explicite (couleurs ? tailles ? animations ?).
+> 2. Définir l'interface des props avec 4 catégories (Contenu, Style, Comportement, Callbacks).
+> 3. Implémenter le composant dans `components/ui/`.
+> 4. Créer le playground dans `app/admin/testvisuel/`.
+> 5. **ATTENDRE MES RETOURS DE TESTS** avant toute modification supplémentaire.
+> 6. Générer la documentation (README.md dans `documentation/components/`).
+>
+> **Contraintes techniques** :
+> - TypeScript strict (pas de `any`).
+> - Tailwind CSS pour le styling.
+> - Support responsive (mobile/tablet/desktop).
+> - Accessibilité (ARIA labels, keyboard navigation).
+> - Performance (React.memo si pertinent, optimisation des re-renders).
+>
+> **Questions à me poser AVANT de commencer** :
+> 1. Quelles couleurs utiliser pour les variants ? (palette thai-* ou couleurs standard ?)
+> 2. Quelles tailles prédéfinies ? (sm/md/lg ou autre système ?)
+> 3. Quelles animations vouloir ? (fade, slide, bounce, aucune ?)
+> 4. Quelles props sont OBLIGATOIRES vs optionnelles ?
+> 5. Dois-je supporter le dark mode ?
+> 6. Y a-t-il des comportements spécifiques à prévoir ? (auto-dismiss, stacking, etc.)
+
+---
+
+## 5. CHECKLIST DE VALIDATION
+
+Avant de considérer le composant terminé, vérifie que :
+
+### Composant
+- [ ] Interface TypeScript complète et documentée (JSDoc).
+- [ ] Props catégorisées (Contenu, Style, Comportement, Callbacks).
+- [ ] Types union plutôt que strings libres (ex: `"sm" | "md" | "lg"`).
+- [ ] Gestion des états visuels (loading, erreur, vide, succès).
+- [ ] Support responsive (breakpoints mobile/tablet/desktop).
+- [ ] Accessibilité (ARIA, keyboard navigation).
+- [ ] Code propre (pas de console.log, code commenté supprimé).
+
+### Playground
+- [ ] Prévisualisation en temps réel fonctionnelle.
+- [ ] Contrôles interactifs pour toutes les props importantes.
+- [ ] Générateur de code à jour avec les props actuelles.
+- [ ] Bouton de copie avec feedback (toast).
+- [ ] 3-5 exemples prédéfinis avec boutons de chargement.
+- [ ] Layout organisé (sections logiques).
+- [ ] Responsive (le playground lui-même fonctionne sur mobile).
+
+### Tests
+- [ ] Tous les cas d'usage principaux testés.
+- [ ] Cas limites vérifiés (overflow, images manquantes, etc.).
+- [ ] Responsive testé (mobile, tablet, desktop).
+- [ ] Performance validée (pas de lag, re-renders optimisés).
+
+### Documentation
+- [ ] Commentaires JSDoc sur l'interface des props.
+- [ ] README.md créé dans `documentation/components/[NomComposant].md`.
+- [ ] Lien vers le playground ajouté dans la doc.
+- [ ] Exemples d'utilisation fournis.
+
+---
+
+## 6. EXEMPLES DE COMPOSANTS À CRÉER
+
+Voici des exemples de composants UI qui suivent cette méthodologie :
+
+### Toaster (Notifications)
+**Fichiers** :
+- Composant : `components/ui/Toaster.tsx`
+- Playground : `app/admin/testvisuel/toast/page.tsx`
+
+**Props principales** :
+- `type`: "success" | "error" | "warning" | "info"
+- `position`: "top-left" | "top-center" | "top-right" | "bottom-left" | "bottom-center" | "bottom-right"
+- `duration`: number (ms avant auto-close)
+- `action`: { label: string, onClick: () => void }
+- `closable`: boolean
+
+### DropdownMenu (Menu déroulant)
+**Fichiers** :
+- Composant : `components/ui/DropdownMenu.tsx`
+- Playground : `app/admin/testvisuel/dropdown/page.tsx`
+
+**Props principales** :
+- `items`: Array<{ label: string, icon?: ReactNode, onClick: () => void }>
+- `trigger`: ReactNode
+- `align`: "start" | "center" | "end"
+- `side`: "top" | "bottom" | "left" | "right"
+- `disabled`: boolean
+
+### Accordion (Accordéon)
+**Fichiers** :
+- Composant : `components/ui/Accordion.tsx`
+- Playground : `app/admin/testvisuel/accordion/page.tsx`
+
+**Props principales** :
+- `items`: Array<{ title: string, content: ReactNode }>
+- `type`: "single" | "multiple" (un seul ouvert ou plusieurs)
+- `defaultOpen`: string[] (IDs des items ouverts par défaut)
+- `collapsible`: boolean
+- `variant`: "default" | "bordered" | "filled"
+
+---
+
+## 7. ANTI-PATTERNS À ÉVITER
+
+### ❌ Créer le composant sans playground
+**Problème** : Impossible de tester tous les cas d'usage facilement.
+**Solution** : Toujours créer le playground en même temps que le composant.
+
+### ❌ Props trop spécifiques
+**Problème** : `dishName`, `handleDishClick` (noms liés au métier, pas réutilisables).
+**Solution** : Utiliser des noms génériques (`title`, `onAction`).
+
+### ❌ Trop de props booléennes
+**Problème** : `isSmall`, `isMedium`, `isLarge`, `isExtraLarge` (explosion de combinaisons).
+**Solution** : Utiliser des types union (`size: "sm" | "md" | "lg" | "xl"`).
+
+### ❌ Logique métier dans le composant UI
+**Problème** : Appels API, logique de calcul complexe dans le composant UI.
+**Solution** : Le composant UI reçoit des données via props, la logique reste dans la page/composant parent.
+
+### ❌ Playground incomplet
+**Problème** : Seulement 3-4 props testables, pas de générateur de code.
+**Solution** : Créer un playground exhaustif avec tous les contrôles et le générateur de code.
+
+### ❌ Pas de gestion des cas limites
+**Problème** : Le composant crash avec des props manquantes ou des données invalides.
+**Solution** : Valeurs par défaut, vérifications, états d'erreur.
+
+---
+
+## 8. RESSOURCES & RÉFÉRENCES
+
+### Documentation Officielle
+- **Radix UI** : https://www.radix-ui.com/ (Primitives accessibles)
+- **shadcn/ui** : https://ui.shadcn.com/ (Exemples de composants)
+- **Tailwind CSS v4** : https://tailwindcss.com/docs (Classes utilitaires)
+- **React 19** : https://react.dev/ (Hooks, patterns)
+
+### Composants Internes de Référence
+- `components/ui/ModalVideo.tsx` - Modal complexe avec parsing de tags
+- `components/ui/dialog.tsx` - Modal simple basé sur Radix UI
+- `components/ui/button.tsx` - Bouton avec variants
+- `components/ui/badge.tsx` - Badge avec variants
+- `components/shared/CommandePlatModal.tsx` - Modal métier (utilise Dialog)
+
+### Playgrounds Existants
+- `app/admin/testvisuel/modal/page.tsx` - Playground ModalVideo (référence complète)
+- `app/admin/testvisuel/toast/page.tsx` - Playground Toast (si créé)
+
+---
+
+## 9. NOTES IMPORTANTES
+
+### Performance
+- Utiliser `React.memo` pour les composants qui re-render souvent.
+- Éviter les fonctions anonymes dans les props (`onClick={() => {}}` → `onClick={handleClick}`).
+- Lazy loading pour les composants lourds (ex: éditeur riche, vidéo).
+
+### Accessibilité
+- Toujours ajouter `aria-label` sur les boutons d'icônes.
+- Utiliser `role`, `aria-expanded`, `aria-hidden` quand pertinent.
+- Tester la navigation au clavier (Tab, Enter, Escape).
+
+### Responsive
+- Mobile-first (styles de base pour mobile, overrides pour desktop).
+- Breakpoints Tailwind : `sm:` (640px), `md:` (768px), `lg:` (1024px), `xl:` (1280px).
+- Tester sur plusieurs tailles d'écran (Chrome DevTools).
+
+### Maintenance
+- Éviter les hardcoded values (utiliser des CSS variables ou Tailwind theme).
+- Grouper les props similaires (ex: tous les styles ensemble).
+- Commenter les parties complexes (parsing, animations).
+
+---
+
+**Dernière mise à jour** : 2025-11-26
+**Auteur** : Architecture Front-End APPChanthana
+**Version** : 1.0.0
