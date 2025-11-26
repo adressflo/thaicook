@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useRef, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import {
   Dialog,
   DialogContent,
@@ -28,6 +29,12 @@ interface ModalVideoProps {
 
   // Contrôle de lecture vidéo
   loopCount?: number // 0 = infini, 1 = une fois, n = n fois
+  autoClose?: boolean // Si true, affiche le bouton X de fermeture (défaut: true)
+
+  // Couleurs personnalisées (utiliser balises dans title et description)
+  // Balises couleur : <orange>, <green>, <white>, <gold>, <black>
+  // Balises style : <bold>, <semi-bold>
+  titleColor?: "thai-green" | "thai-orange" | "white" | "black" | "thai-gold" // Couleur par défaut du titre (défaut: "thai-green")
 
   // Boutons d'action
   buttonLayout?: "none" | "single" | "double" | "triple" // Layout des boutons (0, 1, 2, ou 3 boutons)
@@ -38,6 +45,11 @@ interface ModalVideoProps {
   onConfirm?: () => void
   onThirdButton?: () => void // Callback du 3ème bouton
 
+  // Navigation (redirection vers pages)
+  cancelLink?: string // URL de redirection pour le bouton Annuler
+  confirmLink?: string // URL de redirection pour le bouton Confirmer
+  thirdButtonLink?: string // URL de redirection pour le 3ème bouton
+
   // Mode standalone pour aperçu
   standalone?: boolean
 
@@ -46,9 +58,19 @@ interface ModalVideoProps {
   maxWidth?: "sm" | "md" | "lg" | "xl" | "custom" // Taille du modal
   customWidth?: string // Largeur personnalisée (ex: "600px", "90vw") - utilisé si maxWidth="custom"
   customHeight?: string // Hauteur personnalisée (ex: "400px", "80vh")
-  borderColor?: "thai-orange" | "thai-green" | "red" | "blue" // Couleur bordure
-  borderWidth?: number // Épaisseur bordure (1, 2, 4)
+  borderColor?: "thai-orange" | "thai-green" | "red" | "blue" | string // Couleur bordure (string pour custom)
+  borderWidth?: number // Épaisseur bordure (1, 2, 4, ou custom)
   shadowSize?: "sm" | "lg" | "2xl" // Taille ombre
+
+  // Polaroid cadre custom (padding)
+  polaroidPaddingSides?: number // Padding gauche/droite (défaut 3)
+  polaroidPaddingTop?: number // Padding haut (défaut 3)
+  polaroidPaddingBottom?: number // Padding bas (défaut 8)
+
+  // Position du modal
+  position?: "center" | "bottom-right" | "bottom-left" | "top-right" | "top-left" | "custom" // Position du modal (défaut: "center")
+  customX?: string // Position X custom (ex: "10px", "50%") - utilisé si position="custom"
+  customY?: string // Position Y custom (ex: "20px", "80vh") - utilisé si position="custom"
 }
 
 // Composant de contenu réutilisable (pour Dialog et Aperçu)
@@ -62,6 +84,7 @@ export function ModalVideoContent({
   scrollingText = false,
   scrollDuration = 10,
   loopCount = 1,
+  autoClose = true, // Par défaut, bouton X visible
   buttonLayout = "double",
   cancelText = "Annuler",
   confirmText = "Confirmer",
@@ -69,10 +92,18 @@ export function ModalVideoContent({
   onCancel,
   onConfirm,
   onThirdButton,
+  cancelLink,
+  confirmLink,
+  thirdButtonLink,
   standalone = false,
   borderColor = "thai-orange",
   borderWidth = 2,
-}: Omit<ModalVideoProps, 'isOpen'> & { onOpenChange: (open: boolean) => void; borderColor?: "thai-orange" | "thai-green" | "red" | "blue"; borderWidth?: number }) {
+  polaroidPaddingSides = 3,
+  polaroidPaddingTop = 3,
+  polaroidPaddingBottom = 8,
+  titleColor = "thai-green",
+}: Omit<ModalVideoProps, 'isOpen'> & { onOpenChange: (open: boolean) => void }) {
+  const router = useRouter()
   const videoRef = useRef<HTMLVideoElement>(null)
   const [playCount, setPlayCount] = useState(0)
 
@@ -82,6 +113,76 @@ export function ModalVideoContent({
     "4:5": "aspect-[4/5]",
     "1:1": "aspect-square",
     "auto": "", // Pas de contrainte d'aspect ratio
+  }
+
+  // Map title colors to Tailwind classes
+  const titleColorClass = {
+    "thai-green": "text-thai-green",
+    "thai-orange": "text-thai-orange",
+    "white": "text-white",
+    "black": "text-black",
+    "thai-gold": "text-thai-gold"
+  }
+
+  // Fonction pour parser les balises de couleur et style dans le texte (avec support imbriqué)
+  const parseColoredText = (text: string | React.ReactNode, depth: number = 0): React.ReactNode => {
+    if (typeof text !== 'string') return text
+
+    // Map des classes Tailwind pour couleurs et styles
+    const styleMap: Record<string, string> = {
+      // Couleurs
+      orange: "text-thai-orange",
+      green: "text-thai-green",
+      white: "text-white",
+      gold: "text-thai-gold",
+      black: "text-black",
+      // Styles
+      bold: "font-bold",
+      "semi-bold": "font-semibold"
+    }
+
+    // Regex pour trouver la PREMIÈRE balise (pas greedy pour supporter imbrication)
+    const regex = /<(orange|green|white|gold|black|bold|semi-bold)>(.*?)<\/\1>/
+    const match = text.match(regex)
+
+    if (!match) {
+      // Aucune balise trouvée, retourner le texte tel quel
+      return text
+    }
+
+    const [fullMatch, tag, content] = match
+    const beforeMatch = text.substring(0, match.index!)
+    const afterMatch = text.substring(match.index! + fullMatch.length)
+
+    // Construire le résultat avec récursion pour gérer les balises imbriquées
+    const parts: React.ReactNode[] = []
+
+    // Texte avant la balise
+    if (beforeMatch) {
+      parts.push(
+        <React.Fragment key={`before-${depth}-${match.index}`}>
+          {parseColoredText(beforeMatch, depth + 1)}
+        </React.Fragment>
+      )
+    }
+
+    // Contenu de la balise (parser récursivement pour balises imbriquées)
+    parts.push(
+      <span key={`tag-${depth}-${match.index}`} className={styleMap[tag]}>
+        {parseColoredText(content, depth + 1)}
+      </span>
+    )
+
+    // Texte après la balise (parser récursivement pour autres balises)
+    if (afterMatch) {
+      parts.push(
+        <React.Fragment key={`after-${depth}-${match.index}`}>
+          {parseColoredText(afterMatch, depth + 1)}
+        </React.Fragment>
+      )
+    }
+
+    return <>{parts}</>
   }
 
   const borderWidthClass = {
@@ -118,6 +219,9 @@ export function ModalVideoContent({
     if (onCancel) {
       onCancel()
     }
+    if (cancelLink) {
+      router.push(cancelLink as any)
+    }
     if (!standalone) {
       onOpenChange(false)
     }
@@ -127,6 +231,21 @@ export function ModalVideoContent({
     if (onConfirm) {
       onConfirm()
     }
+    if (confirmLink) {
+      router.push(confirmLink as any)
+    }
+    if (!standalone) {
+      onOpenChange(false)
+    }
+  }
+
+  const handleThirdButton = () => {
+    if (onThirdButton) {
+      onThirdButton()
+    }
+    if (thirdButtonLink) {
+      router.push(thirdButtonLink as any)
+    }
     if (!standalone) {
       onOpenChange(false)
     }
@@ -134,8 +253,8 @@ export function ModalVideoContent({
 
   return (
     <div className={cn("flex flex-col", standalone ? "h-full" : "")}>
-      {/* Bouton close (seulement si pas standalone) */}
-      {!standalone && (
+      {/* Bouton close (seulement si pas standalone ET si autoClose activé) */}
+      {!standalone && autoClose && (
         <button
           onClick={() => onOpenChange(false)}
           className="absolute right-4 top-4 z-20 rounded-full p-1.5 text-white/80 hover:text-white hover:bg-black/20 transition-all duration-200"
@@ -151,14 +270,22 @@ export function ModalVideoContent({
         <div className={cn("relative w-full", standalone && "flex-shrink-0")}>
           {polaroid ? (
             // Mode Polaroid : cadre blanc + bordure intérieure autour de la photo
-            <div className="bg-white p-3 pt-3 pb-8">
+            <div
+              className="bg-white"
+              style={{
+                padding: `${polaroidPaddingTop * 0.25}rem ${polaroidPaddingSides * 0.25}rem ${polaroidPaddingBottom * 0.25}rem ${polaroidPaddingSides * 0.25}rem`
+              }}
+            >
               <div
                 className={cn(
-                  "relative w-full overflow-hidden",
+                  "relative w-full overflow-hidden border-solid",
                   aspectRatioClass[aspectRatio],
-                  borderWidthClass[borderWidth as keyof typeof borderWidthClass],
-                  borderColorClass[borderColor]
+                  // Si borderColor est une clé connue, utiliser borderColorClass, sinon utiliser comme classe custom
+                  borderColor in borderColorClass ? borderColorClass[borderColor as keyof typeof borderColorClass] : borderColor
                 )}
+                style={{
+                  borderWidth: `${borderWidth}px`
+                }}
               >
                 {isVideo ? (
                   <video
@@ -213,15 +340,15 @@ export function ModalVideoContent({
       <div className={cn("p-6 space-y-4 bg-white", standalone && "flex-1 flex flex-col")}>
         <div className={cn("space-y-3", standalone && "flex-1")}>
           {title && (
-            <h3 className="text-2xl font-bold text-center text-thai-green">
-              {title}
+            <h3 className={cn("text-2xl font-bold text-center", titleColorClass[titleColor])}>
+              {parseColoredText(title)}
             </h3>
           )}
           {description && (
             <div className={cn("w-full", scrollingText && "overflow-hidden")}>
               <p
                 className={cn(
-                  "text-center text-base leading-relaxed text-thai-green/90",
+                  "text-center text-base leading-relaxed",
                   scrollingText && "animate-marquee inline-block whitespace-nowrap"
                 )}
                 style={
@@ -230,7 +357,7 @@ export function ModalVideoContent({
                     : undefined
                 }
               >
-                {description}
+                {parseColoredText(description)}
               </p>
             </div>
           )}
@@ -285,14 +412,7 @@ export function ModalVideoContent({
                   {confirmText}
                 </Button>
                 <Button
-                  onClick={() => {
-                    if (onThirdButton) {
-                      onThirdButton()
-                    }
-                    if (!standalone) {
-                      onOpenChange(false)
-                    }
-                  }}
+                  onClick={handleThirdButton}
                   className="flex-1 bg-thai-gold hover:bg-thai-gold/90 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
                 >
                   {thirdButtonText}
@@ -318,6 +438,9 @@ export function ModalVideo({
   borderColor = "thai-orange",
   borderWidth = 2,
   shadowSize = "2xl",
+  position = "center",
+  customX,
+  customY,
   ...props
 }: ModalVideoProps) {
   // Mapping des classes Tailwind
@@ -348,26 +471,63 @@ export function ModalVideo({
     "2xl": "shadow-2xl"
   }
 
+  // Mapping des positions
+  const positionClass = {
+    "center": "!left-[50%] !top-[50%] !translate-x-[-50%] !translate-y-[-50%]",
+    "bottom-right": "!left-auto !top-auto !right-4 !bottom-4 !translate-x-0 !translate-y-0",
+    "bottom-left": "!left-4 !top-auto !right-auto !bottom-4 !translate-x-0 !translate-y-0",
+    "top-right": "!left-auto !top-4 !right-4 !bottom-auto !translate-x-0 !translate-y-0",
+    "top-left": "!left-4 !top-4 !right-auto !bottom-auto !translate-x-0 !translate-y-0",
+    "custom": "!left-auto !top-auto !right-auto !bottom-auto !translate-x-0 !translate-y-0" // Classes custom via style inline
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent
         className={cn(
           maxWidthClass[maxWidth],
-          "bg-white p-0",
-          borderWidthClass[borderWidth as keyof typeof borderWidthClass] || "border-2",
-          borderColorClass[borderColor],
+          "bg-white p-0 border-solid fixed z-50 grid w-full gap-4",
+          // Utiliser classe Tailwind si borderWidth est dans borderWidthClass, sinon pas de classe (on utilisera style inline)
+          borderWidth in borderWidthClass ? borderWidthClass[borderWidth as keyof typeof borderWidthClass] : "",
+          // Si borderColor est dans borderColorClass, utiliser la classe, sinon utiliser comme classe custom
+          borderColor in borderColorClass ? borderColorClass[borderColor as keyof typeof borderColorClass] : borderColor,
           shadowClass[shadowSize],
-          rotation && "rotate-[-2deg] hover:rotate-0 transition-transform duration-300"
+          rotation && "rotate-[-2deg] hover:rotate-0 transition-transform duration-300",
+          // Position du modal
+          positionClass[position]
         )}
-        style={
-          maxWidth === "custom" && (customWidth || customHeight)
+        style={{
+          // Custom dimensions
+          ...(maxWidth === "custom" && (customWidth || customHeight)
             ? {
                 width: customWidth || undefined,
                 maxWidth: customWidth || undefined,
                 height: customHeight || undefined,
               }
-            : undefined
-        }
+            : {}),
+          // Custom borderWidth (si borderWidth n'est pas dans borderWidthClass)
+          ...(!(borderWidth in borderWidthClass) ? { borderWidth: `${borderWidth}px` } : {}),
+          // Custom position (si position="custom")
+          ...(position === "custom" && (customX || customY)
+            ? {
+                left: customX || undefined,
+                top: customY || undefined,
+                transform: "none", // Désactiver les transforms par défaut
+              }
+            : {})
+        }}
+        onInteractOutside={(e) => {
+          // Si autoClose est false, empêcher la fermeture au clic sur le backdrop
+          if (props.autoClose === false) {
+            e.preventDefault()
+          }
+        }}
+        onEscapeKeyDown={(e) => {
+          // Si autoClose est false, empêcher la fermeture avec Escape
+          if (props.autoClose === false) {
+            e.preventDefault()
+          }
+        }}
       >
         {/* Titres accessibles (cachés visuellement) */}
         <DialogTitle className="sr-only">{title || "Modal Vidéo"}</DialogTitle>
@@ -379,6 +539,7 @@ export function ModalVideo({
           description={description}
           borderColor={borderColor}
           borderWidth={borderWidth}
+          titleColor={props.titleColor}
           {...props}
         />
       </DialogContent>

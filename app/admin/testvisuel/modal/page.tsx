@@ -52,12 +52,30 @@ function ModalVideoPlayground() {
     maxWidth: "sm" | "md" | "lg" | "xl" | "custom"
     customWidth: string
     customHeight: string
-    borderColor: "thai-orange" | "thai-green" | "red" | "blue"
-    borderWidth: number
+    borderColor: "thai-orange" | "thai-green" | "red" | "blue" | "custom"
+    customBorderColor: string // Couleur Tailwind custom (ex: "border-purple-500")
+    borderWidth: number | "custom"
+    customBorderWidth: number // Épaisseur custom (ex: 3, 5, 8)
     shadowSize: "sm" | "lg" | "2xl"
+    // Polaroid cadre custom
+    polaroidPaddingSides: number // Padding gauche/droite (défaut 3 = p-3)
+    polaroidPaddingTop: number // Padding haut (défaut 3 = pt-3)
+    polaroidPaddingBottom: number // Padding bas (défaut 8 = pb-8)
+    // Toggle fermeture
+    autoClose: boolean // Si true, affiche le bouton X de fermeture (défaut: true)
+    // Navigation (liens de redirection)
+    cancelLink: string // URL de redirection pour le bouton Annuler
+    confirmLink: string // URL de redirection pour le bouton Confirmer
+    thirdButtonLink: string // URL de redirection pour le 3ème bouton
+    // Position du modal
+    position: "center" | "bottom-right" | "bottom-left" | "top-right" | "top-left" | "custom"
+    customX: string // Position X custom
+    customY: string // Position Y custom
+    // Couleurs personnalisées
+    titleColor: "thai-green" | "thai-orange" | "white" | "black" | "thai-gold"
   }>({
-    title: "Vidéo - Aperçu",
-    description: "La vidéo tourne en boucle pour démonstration",
+    title: "Vidéo - <orange>Aperçu</orange>",
+    description: "La <bold><orange>vidéo</orange></bold> tourne en boucle pour <semi-bold><green>démonstration</green></semi-bold>",
     media: "/media/animations/toasts/ajoutpaniernote.mp4",
     aspectRatio: "16:9",
     polaroid: false,
@@ -73,8 +91,21 @@ function ModalVideoPlayground() {
     customWidth: "600px",
     customHeight: "",
     borderColor: "thai-orange",
+    customBorderColor: "border-purple-500",
     borderWidth: 2,
-    shadowSize: "2xl"
+    customBorderWidth: 3,
+    shadowSize: "2xl",
+    polaroidPaddingSides: 3,
+    polaroidPaddingTop: 3,
+    polaroidPaddingBottom: 8,
+    autoClose: true,
+    cancelLink: "",
+    confirmLink: "",
+    thirdButtonLink: "",
+    position: "center",
+    customX: "50%",
+    customY: "50%",
+    titleColor: "thai-green"
   })
 
   // Fonction pour générer le code JSX complet
@@ -90,15 +121,16 @@ function ModalVideoPlayground() {
   scrollingText={${previewProps.scrollingText}}
   scrollDuration={${previewProps.scrollDuration}}
   loopCount={${previewProps.loopCount}}
+  autoClose={${previewProps.autoClose}}
   buttonLayout="${previewProps.buttonLayout}"
   cancelText="${previewProps.cancelText}"
   confirmText="${previewProps.confirmText}"
-  thirdButtonText="${previewProps.thirdButtonText}"
+  thirdButtonText="${previewProps.thirdButtonText}"${previewProps.cancelLink ? `\n  cancelLink="${previewProps.cancelLink}"` : ''}${previewProps.confirmLink ? `\n  confirmLink="${previewProps.confirmLink}"` : ''}${previewProps.thirdButtonLink ? `\n  thirdButtonLink="${previewProps.thirdButtonLink}"` : ''}
   rotation={${previewProps.rotation}}
   maxWidth="${previewProps.maxWidth}"${previewProps.maxWidth === "custom" && previewProps.customWidth ? `\n  customWidth="${previewProps.customWidth}"` : ''}${previewProps.maxWidth === "custom" && previewProps.customHeight ? `\n  customHeight="${previewProps.customHeight}"` : ''}
   borderColor="${previewProps.borderColor}"
   borderWidth={${previewProps.borderWidth}}
-  shadowSize="${previewProps.shadowSize}"
+  shadowSize="${previewProps.shadowSize}"${previewProps.position !== "center" ? `\n  position="${previewProps.position}"` : ''}${previewProps.position === "custom" && previewProps.customX ? `\n  customX="${previewProps.customX}"` : ''}${previewProps.position === "custom" && previewProps.customY ? `\n  customY="${previewProps.customY}"` : ''}${previewProps.titleColor !== "thai-green" ? `\n  titleColor="${previewProps.titleColor}"` : ''}
   onCancel={() => console.log("Annulé")}
   onConfirm={() => console.log("Confirmé")}
   onThirdButton={() => console.log("Troisième action")}
@@ -152,16 +184,19 @@ function ModalVideoPlayground() {
               type="text"
               value={previewProps.title}
               onChange={(e) => setPreviewProps({ ...previewProps, title: e.target.value })}
-              placeholder="Titre du modal"
+              placeholder="Titre du modal (balises : <orange>, <bold>, etc.)"
               className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent"
             />
             <textarea
               value={previewProps.description}
               onChange={(e) => setPreviewProps({ ...previewProps, description: e.target.value })}
-              placeholder="Description"
+              placeholder="Description (balises : <orange>, <green>, <bold>, <semi-bold>, etc.)"
               className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent resize-none"
               rows={3}
             />
+            <p className="text-xs text-gray-500 italic">
+              💡 Astuce : Utilisez des balises pour styliser le texte : <code className="bg-gray-100 px-1 rounded">&lt;orange&gt;mot&lt;/orange&gt;</code> <code className="bg-gray-100 px-1 rounded">&lt;bold&gt;mot&lt;/bold&gt;</code>
+            </p>
             <input
               type="text"
               value={previewProps.media}
@@ -199,9 +234,151 @@ function ModalVideoPlayground() {
           </div>
         </div>
 
+        {/* Section Couleurs */}
+        <div className="space-y-2">
+          <label className="text-xs font-medium text-gray-700">🎨 Couleurs du Texte</label>
+          <div className="space-y-3">
+            {/* Couleur du titre */}
+            <div>
+              <label className="text-xs text-gray-600">Couleur du titre</label>
+              <div className="flex gap-2 flex-wrap">
+                {[
+                  { label: "🟢 Vert", value: "thai-green" as const },
+                  { label: "🟠 Orange", value: "thai-orange" as const },
+                  { label: "⚪ Blanc", value: "white" as const },
+                  { label: "⚫ Noir", value: "black" as const },
+                  { label: "🟡 Or", value: "thai-gold" as const }
+                ].map((color) => (
+                  <Button
+                    key={color.value}
+                    size="sm"
+                    variant={previewProps.titleColor === color.value ? "default" : "outline"}
+                    onClick={() => setPreviewProps({ ...previewProps, titleColor: color.value })}
+                    className={previewProps.titleColor === color.value
+                      ? "bg-thai-orange hover:bg-thai-orange/90"
+                      : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"}
+                  >
+                    {color.label}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            {/* Info balises - Bouton dialog */}
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full border-thai-orange/30 text-thai-green hover:bg-thai-orange/10 gap-2"
+                >
+                  <Info className="h-4 w-4" />
+                  💡 Comment colorer le texte ?
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl bg-white border-2 border-thai-orange shadow-2xl">
+                <DialogHeader>
+                  <DialogTitle className="text-2xl font-bold text-thai-green">
+                    🎨 Balises de Coloration et Style
+                  </DialogTitle>
+                  <DialogDescription className="text-thai-green/80">
+                    Utilisez ces balises dans le titre et la description pour personnaliser le texte
+                  </DialogDescription>
+                </DialogHeader>
+
+                <div className="space-y-6">
+                  {/* Balises couleur */}
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-semibold text-thai-orange">🌈 Balises Couleur</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center gap-2">
+                        <code className="bg-gray-100 px-2 py-1 rounded border text-xs flex-shrink-0">&lt;orange&gt;texte&lt;/orange&gt;</code>
+                        <span className="text-gray-400">→</span>
+                        <span className="text-thai-orange font-medium">texte en orange</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <code className="bg-gray-100 px-2 py-1 rounded border text-xs flex-shrink-0">&lt;green&gt;texte&lt;/green&gt;</code>
+                        <span className="text-gray-400">→</span>
+                        <span className="text-thai-green font-medium">texte en vert</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <code className="bg-gray-100 px-2 py-1 rounded border text-xs flex-shrink-0">&lt;gold&gt;texte&lt;/gold&gt;</code>
+                        <span className="text-gray-400">→</span>
+                        <span className="text-thai-gold font-medium">texte en or</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <code className="bg-gray-100 px-2 py-1 rounded border text-xs flex-shrink-0">&lt;white&gt;texte&lt;/white&gt;</code>
+                        <span className="text-gray-400">→</span>
+                        <span className="text-white font-medium bg-gray-800 px-2 py-0.5 rounded">texte en blanc</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <code className="bg-gray-100 px-2 py-1 rounded border text-xs flex-shrink-0">&lt;black&gt;texte&lt;/black&gt;</code>
+                        <span className="text-gray-400">→</span>
+                        <span className="text-black font-medium">texte en noir</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Balises style */}
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-semibold text-thai-orange">✨ Balises Style</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center gap-2">
+                        <code className="bg-gray-100 px-2 py-1 rounded border text-xs flex-shrink-0">&lt;bold&gt;texte&lt;/bold&gt;</code>
+                        <span className="text-gray-400">→</span>
+                        <span className="font-bold">texte en gras</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <code className="bg-gray-100 px-2 py-1 rounded border text-xs flex-shrink-0">&lt;semi-bold&gt;texte&lt;/semi-bold&gt;</code>
+                        <span className="text-gray-400">→</span>
+                        <span className="font-semibold">texte semi-gras</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Exemples */}
+                  <div className="space-y-3 p-4 bg-thai-cream/30 border border-thai-orange/20 rounded-lg">
+                    <h4 className="text-sm font-semibold text-thai-green">📝 Exemples</h4>
+                    <div className="space-y-2 text-xs">
+                      <div>
+                        <p className="text-gray-600 mb-1">Code :</p>
+                        <code className="bg-white px-2 py-1 rounded border block">
+                          "La &lt;orange&gt;vidéo&lt;/orange&gt; tourne en &lt;green&gt;boucle&lt;/green&gt;"
+                        </code>
+                        <p className="text-gray-600 mt-1 mb-1">Résultat :</p>
+                        <p className="text-base">
+                          La <span className="text-thai-orange">vidéo</span> tourne en <span className="text-thai-green">boucle</span>
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-gray-600 mb-1">Code :</p>
+                        <code className="bg-white px-2 py-1 rounded border block">
+                          "Découvrez nos &lt;bold&gt;&lt;orange&gt;plats&lt;/orange&gt;&lt;/bold&gt; authentiques"
+                        </code>
+                        <p className="text-gray-600 mt-1 mb-1">Résultat :</p>
+                        <p className="text-base">
+                          Découvrez nos <span className="font-bold text-thai-orange">plats</span> authentiques
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <DialogFooter>
+                  <Button
+                    className="bg-thai-orange hover:bg-thai-orange/90 text-white"
+                  >
+                    Compris !
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
+        </div>
+
         {/* Section Style */}
         <div className="space-y-2">
-          <label className="text-xs font-medium text-gray-700">🎨 Style</label>
+          <label className="text-xs font-medium text-gray-700">🖼️ Style Visuel</label>
           <div className="space-y-2">
             <label className="flex items-center gap-2 cursor-pointer">
               <input
@@ -282,6 +459,25 @@ function ModalVideoPlayground() {
           </div>
         </div>
 
+        {/* Section Fermeture du modal */}
+        <div className="space-y-2">
+          <label className="text-xs font-medium text-gray-700">🔒 Fermeture du modal</label>
+          <div className="space-y-2">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={previewProps.autoClose}
+                onChange={(e) => setPreviewProps({ ...previewProps, autoClose: e.target.checked })}
+                className="w-4 h-4 text-thai-orange border-gray-300 rounded focus:ring-thai-orange focus:ring-2"
+              />
+              <span className="text-sm text-gray-700">Afficher le bouton X de fermeture (croix)</span>
+            </label>
+            <p className="text-xs text-gray-500 italic ml-6">
+              Si décoché, l'utilisateur devra utiliser les boutons d'action pour fermer le modal
+            </p>
+          </div>
+        </div>
+
         {/* Section Boutons d'action */}
         <div className="space-y-2">
           <label className="text-xs font-medium text-gray-700">🔘 Layout des boutons</label>
@@ -337,6 +533,41 @@ function ModalVideoPlayground() {
                   className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent"
                 />
               )}
+
+              {/* Champs de liens de redirection */}
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <label className="text-xs font-medium text-gray-700">🔗 Liens de redirection (optionnels)</label>
+                <div className="grid grid-cols-2 gap-2 mt-2">
+                  {previewProps.buttonLayout !== "single" && (
+                    <input
+                      type="text"
+                      value={previewProps.cancelLink}
+                      onChange={(e) => setPreviewProps({ ...previewProps, cancelLink: e.target.value })}
+                      placeholder="URL Annuler (ex: /accueil)"
+                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent"
+                    />
+                  )}
+                  <input
+                    type="text"
+                    value={previewProps.confirmLink}
+                    onChange={(e) => setPreviewProps({ ...previewProps, confirmLink: e.target.value })}
+                    placeholder="URL Confirmer (ex: /confirmation)"
+                    className={cn(
+                      "w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent",
+                      previewProps.buttonLayout === "single" && "col-span-2"
+                    )}
+                  />
+                </div>
+                {previewProps.buttonLayout === "triple" && (
+                  <input
+                    type="text"
+                    value={previewProps.thirdButtonLink}
+                    onChange={(e) => setPreviewProps({ ...previewProps, thirdButtonLink: e.target.value })}
+                    placeholder="URL 3ème bouton (ex: /autre-page)"
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent mt-2"
+                  />
+                )}
+              </div>
             </div>
           )}
         </div>
@@ -402,7 +633,8 @@ function ModalVideoPlayground() {
                   { label: "🟠 Orange", value: "thai-orange" as const },
                   { label: "🟢 Vert", value: "thai-green" as const },
                   { label: "🔴 Rouge", value: "red" as const },
-                  { label: "🔵 Bleu", value: "blue" as const }
+                  { label: "🔵 Bleu", value: "blue" as const },
+                  { label: "🎨 Custom", value: "custom" as const }
                 ].map((color) => (
                   <Button
                     key={color.value}
@@ -417,26 +649,46 @@ function ModalVideoPlayground() {
                   </Button>
                 ))}
               </div>
+              {previewProps.borderColor === "custom" && (
+                <input
+                  type="text"
+                  value={previewProps.customBorderColor}
+                  onChange={(e) => setPreviewProps({ ...previewProps, customBorderColor: e.target.value })}
+                  placeholder="ex: border-purple-500, border-pink-600"
+                  className="w-full mt-2 px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent"
+                />
+              )}
             </div>
 
             {/* Épaisseur bordure - BUTTON GROUP */}
             <div>
               <label className="text-xs text-gray-600">Épaisseur bordure</label>
               <div className="flex gap-2">
-                {[1, 2, 4].map((width) => (
+                {[1, 2, 4, "custom"].map((width) => (
                   <Button
                     key={width}
                     size="sm"
                     variant={previewProps.borderWidth === width ? "default" : "outline"}
-                    onClick={() => setPreviewProps({ ...previewProps, borderWidth: width })}
+                    onClick={() => setPreviewProps({ ...previewProps, borderWidth: width as number | "custom" })}
                     className={previewProps.borderWidth === width
                       ? "bg-thai-orange hover:bg-thai-orange/90"
                       : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"}
                   >
-                    {width}px
+                    {width === "custom" ? "🎨 Custom" : `${width}px`}
                   </Button>
                 ))}
               </div>
+              {previewProps.borderWidth === "custom" && (
+                <input
+                  type="number"
+                  value={previewProps.customBorderWidth}
+                  onChange={(e) => setPreviewProps({ ...previewProps, customBorderWidth: Number(e.target.value) })}
+                  placeholder="ex: 3, 5, 8"
+                  min={1}
+                  max={20}
+                  className="w-full mt-2 px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent"
+                />
+              )}
             </div>
 
             {/* Ombre - BUTTON GROUP */}
@@ -458,6 +710,96 @@ function ModalVideoPlayground() {
                 ))}
               </div>
             </div>
+
+            {/* Position du modal - BUTTON GROUP */}
+            <div>
+              <label className="text-xs text-gray-600">📍 Position du modal</label>
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { label: "🎯 Centre", value: "center" as const },
+                  { label: "↘️ Bas droite", value: "bottom-right" as const },
+                  { label: "↙️ Bas gauche", value: "bottom-left" as const },
+                  { label: "↗️ Haut droite", value: "top-right" as const },
+                  { label: "↖️ Haut gauche", value: "top-left" as const },
+                  { label: "🎨 Custom", value: "custom" as const }
+                ].map((pos) => (
+                  <Button
+                    key={pos.value}
+                    size="sm"
+                    variant={previewProps.position === pos.value ? "default" : "outline"}
+                    onClick={() => setPreviewProps({ ...previewProps, position: pos.value })}
+                    className={previewProps.position === pos.value
+                      ? "bg-thai-orange hover:bg-thai-orange/90"
+                      : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"}
+                  >
+                    {pos.label}
+                  </Button>
+                ))}
+              </div>
+              {previewProps.position === "custom" && (
+                <div className="grid grid-cols-2 gap-2 mt-2">
+                  <input
+                    type="text"
+                    value={previewProps.customX}
+                    onChange={(e) => setPreviewProps({ ...previewProps, customX: e.target.value })}
+                    placeholder="Position X (ex: 50%, 100px)"
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent"
+                  />
+                  <input
+                    type="text"
+                    value={previewProps.customY}
+                    onChange={(e) => setPreviewProps({ ...previewProps, customY: e.target.value })}
+                    placeholder="Position Y (ex: 50%, 100px)"
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent"
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Taille cadre Polaroid - CUSTOM INPUTS */}
+            {previewProps.polaroid && (
+              <div className="space-y-2 p-3 border-2 border-thai-green/30 rounded-lg bg-thai-cream/20">
+                <label className="text-xs font-medium text-thai-green">📐 Taille cadre Polaroid (padding)</label>
+                <div className="grid grid-cols-3 gap-2">
+                  <div>
+                    <label className="text-xs text-gray-600">Côtés (p-x)</label>
+                    <input
+                      type="number"
+                      value={previewProps.polaroidPaddingSides}
+                      onChange={(e) => setPreviewProps({ ...previewProps, polaroidPaddingSides: Number(e.target.value) })}
+                      min={0}
+                      max={20}
+                      className="w-full px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-600">Haut (pt-x)</label>
+                    <input
+                      type="number"
+                      value={previewProps.polaroidPaddingTop}
+                      onChange={(e) => setPreviewProps({ ...previewProps, polaroidPaddingTop: Number(e.target.value) })}
+                      min={0}
+                      max={20}
+                      className="w-full px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-600">Bas (pb-x)</label>
+                    <input
+                      type="number"
+                      value={previewProps.polaroidPaddingBottom}
+                      onChange={(e) => setPreviewProps({ ...previewProps, polaroidPaddingBottom: Number(e.target.value) })}
+                      min={0}
+                      max={20}
+                      className="w-full px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent"
+                    />
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 italic">
+                  Valeurs Tailwind : 0-20 correspondent à p-0 jusqu'à p-20 (ex: 3 = 0.75rem)
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -482,9 +824,20 @@ function ModalVideoPlayground() {
         maxWidth={previewProps.maxWidth}
         customWidth={previewProps.maxWidth === "custom" ? previewProps.customWidth : undefined}
         customHeight={previewProps.maxWidth === "custom" ? previewProps.customHeight : undefined}
-        borderColor={previewProps.borderColor}
-        borderWidth={previewProps.borderWidth}
+        titleColor={previewProps.titleColor}
+        borderColor={previewProps.borderColor === "custom" ? previewProps.customBorderColor : previewProps.borderColor}
+        borderWidth={previewProps.borderWidth === "custom" ? previewProps.customBorderWidth : previewProps.borderWidth}
         shadowSize={previewProps.shadowSize}
+        position={previewProps.position}
+        customX={previewProps.position === "custom" ? previewProps.customX : undefined}
+        customY={previewProps.position === "custom" ? previewProps.customY : undefined}
+        polaroidPaddingSides={previewProps.polaroidPaddingSides}
+        polaroidPaddingTop={previewProps.polaroidPaddingTop}
+        polaroidPaddingBottom={previewProps.polaroidPaddingBottom}
+        autoClose={previewProps.autoClose}
+        cancelLink={previewProps.cancelLink}
+        confirmLink={previewProps.confirmLink}
+        thirdButtonLink={previewProps.thirdButtonLink}
         onCancel={() => console.log("Annulé !")}
         onConfirm={() => console.log("Confirmé !")}
         onThirdButton={() => console.log("Troisième bouton cliqué !")}
