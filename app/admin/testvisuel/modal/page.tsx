@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { CheckCircle2, Trash2, Settings, User, CreditCard, Info } from "lucide-react"
 import { CommandePlatModal, CommandePlatContent } from "@/components/shared/CommandePlatModal"
-import { ModalVideoContent, ModalVideo } from "@/components/ui/ModalVideo"
+import { ModalVideo } from "@/components/ui/ModalVideo"
 import { useData } from "@/contexts/DataContext"
 
 // Composant Playground interactif pour ModalVideo
@@ -59,13 +59,22 @@ function ModalVideoPlayground() {
   })
 
   return (
-    <div className="grid gap-6 md:grid-cols-2">
-      {/* Contrôles Interactifs - Colonne Gauche */}
-      <div className="space-y-4 rounded-lg border border-thai-orange/20 bg-white p-4 shadow-sm">
-        <h4 className="font-semibold text-sm text-thai-green flex items-center gap-2">
-          <span className="text-lg">🎮</span>
-          Contrôles Interactifs
-        </h4>
+    <div className="space-y-4">
+      {/* Contrôles Interactifs */}
+      <div className="space-y-4 rounded-lg border border-thai-orange/20 bg-white p-6 shadow-sm">
+        <div className="flex items-center justify-between">
+          <h4 className="font-semibold text-lg text-thai-green flex items-center gap-2">
+            <span className="text-xl">🎮</span>
+            Contrôles Interactifs
+          </h4>
+          <Button
+            size="lg"
+            onClick={() => setIsModalOpen(true)}
+            className="bg-thai-orange hover:bg-thai-orange/90 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+          >
+            🎬 Ouvrir Modal Réel
+          </Button>
+        </div>
 
         {/* Section Contenu */}
         <div className="space-y-2">
@@ -217,39 +226,6 @@ function ModalVideoPlayground() {
               className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent"
             />
           </div>
-        </div>
-      </div>
-
-      {/* Aperçu Visuel - Colonne Droite */}
-      <div>
-        <div className="flex h-6 items-center justify-between gap-2 mb-2">
-          <span className="pl-2 text-sm font-medium text-gray-600">Aperçu Visuel</span>
-          <Button
-            size="sm"
-            onClick={() => setIsModalOpen(true)}
-            className="bg-thai-orange hover:bg-thai-orange/90 text-white"
-          >
-            🎬 Ouvrir Modal Réel
-          </Button>
-        </div>
-        <div className="relative mx-auto flex h-[600px] w-full max-w-sm flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl">
-          <div className="absolute top-2 right-2 z-10 rounded bg-black/50 px-2 py-1 text-xs text-white">
-            Mode Aperçu
-          </div>
-          <ModalVideoContent
-            onOpenChange={() => console.log("Close requested")}
-            title={previewProps.title}
-            description={previewProps.description}
-            media={previewProps.media}
-            aspectRatio={previewProps.aspectRatio}
-            polaroid={previewProps.polaroid}
-            scrollingText={previewProps.scrollingText}
-            scrollDuration={previewProps.scrollDuration}
-            loopCount={previewProps.loopCount}
-            cancelText={previewProps.cancelText}
-            confirmText={previewProps.confirmText}
-            standalone={true}
-          />
         </div>
       </div>
 
