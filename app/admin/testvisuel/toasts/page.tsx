@@ -26,6 +26,7 @@ import type {
   DescriptionColor,
   ToastPosition,
   FontWeight,
+  RedirectBehavior,
 } from "@/components/ui/toast"
 
 // ============================================================================
@@ -55,6 +56,8 @@ function ToasterPlayground() {
     position: ToastPosition
     customX: string
     customY: string
+    redirectUrl: string
+    redirectBehavior: RedirectBehavior
   }>({
     title: "Notification",
     description: "Ceci est un message de notification",
@@ -77,6 +80,8 @@ function ToasterPlayground() {
     position: "bottom-right",
     customX: "50%",
     customY: "50%",
+    redirectUrl: "",
+    redirectBehavior: "auto",
   })
 
   const handleShowToast = () => {
@@ -101,6 +106,8 @@ function ToasterPlayground() {
       position: props.position,
       customX: props.position === "custom" ? props.customX : undefined,
       customY: props.position === "custom" ? props.customY : undefined,
+      redirectUrl: props.redirectUrl || undefined,
+      redirectBehavior: props.redirectUrl ? props.redirectBehavior : undefined,
     })
   }
 
@@ -138,6 +145,10 @@ function ToasterPlayground() {
     if (props.descriptionFontWeight !== "semibold") lines.push(`  descriptionFontWeight: "${props.descriptionFontWeight}",`)
     if (props.animateBorder) lines.push(`  animateBorder: true,`)
     if (props.hoverScale) lines.push(`  hoverScale: true,`)
+    if (props.redirectUrl) {
+      lines.push(`  redirectUrl: "${props.redirectUrl}",`)
+      lines.push(`  redirectBehavior: "${props.redirectBehavior}",`)
+    }
     lines.push(`})`)
     return lines.join("\n")
   }
@@ -194,6 +205,9 @@ function ToasterPlayground() {
               className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent resize-none"
               rows={2}
             />
+            <p className="text-xs text-gray-500 italic">
+              Balises disponibles : &lt;orange&gt;, &lt;green&gt;, &lt;white&gt;, &lt;gold&gt;, &lt;black&gt;, &lt;bold&gt;, &lt;semi-bold&gt;, &lt;italic&gt;, &lt;underline&gt;, &lt;small&gt;
+            </p>
           </div>
         </div>
 
@@ -516,6 +530,42 @@ function ToasterPlayground() {
             <span className="text-sm text-gray-600 w-16">{props.duration}ms</span>
           </div>
         </div>
+
+        {/* Section Redirection */}
+        <div className="space-y-2">
+          <label className="text-xs font-medium text-gray-700">Redirection (optionnel)</label>
+          <input
+            type="text"
+            value={props.redirectUrl}
+            onChange={(e) => setProps({ ...props, redirectUrl: e.target.value })}
+            placeholder="/commander"
+            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent"
+          />
+          {props.redirectUrl && (
+            <div className="flex gap-2 mt-2">
+              {([
+                { label: "Auto", value: "auto" as const, desc: "Redirige a la fermeture" },
+                { label: "Nouvel onglet", value: "new-tab" as const, desc: "Ouvre dans un nouvel onglet" },
+                { label: "Bouton", value: "button" as const, desc: "Affiche un bouton 'Voir'" },
+              ]).map((behavior) => (
+                <Button
+                  key={behavior.value}
+                  size="sm"
+                  variant={props.redirectBehavior === behavior.value ? "default" : "outline"}
+                  onClick={() => setProps({ ...props, redirectBehavior: behavior.value })}
+                  className={cn(
+                    props.redirectBehavior === behavior.value
+                      ? "bg-thai-orange hover:bg-thai-orange/90"
+                      : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
+                  )}
+                  title={behavior.desc}
+                >
+                  {behavior.label}
+                </Button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
@@ -547,7 +597,13 @@ function ToasterVideoPlayground() {
     descriptionColor: DescriptionColor
     animateBorder: boolean
     hoverScale: boolean
-    loopVideo: boolean
+    // Lecture video (remplace loopVideo)
+    playCount: 1 | 2 | "custom"
+    customPlayCount: number
+    customDuration: number
+    // Redirection
+    redirectUrl: string
+    redirectBehavior: RedirectBehavior
     showCloseButton: boolean
   }>({
     title: "Plat ajoute !",
@@ -570,7 +626,13 @@ function ToasterVideoPlayground() {
     descriptionColor: "thai-green",
     animateBorder: false,
     hoverScale: false,
-    loopVideo: false,
+    // Lecture video
+    playCount: 1,
+    customPlayCount: 3,
+    customDuration: 0,
+    // Redirection
+    redirectUrl: "",
+    redirectBehavior: "auto",
     showCloseButton: true,
   })
 
@@ -596,7 +658,13 @@ function ToasterVideoPlayground() {
       descriptionColor: props.descriptionColor,
       animateBorder: props.animateBorder,
       hoverScale: props.hoverScale,
-      loopVideo: props.loopVideo,
+      // Lecture video
+      playCount: props.playCount,
+      customPlayCount: props.playCount === "custom" ? props.customPlayCount : undefined,
+      customDuration: props.customDuration > 0 ? props.customDuration : undefined,
+      // Redirection
+      redirectUrl: props.redirectUrl || undefined,
+      redirectBehavior: props.redirectUrl ? props.redirectBehavior : undefined,
       showCloseButton: props.showCloseButton,
     })
   }
@@ -637,7 +705,19 @@ function ToasterVideoPlayground() {
     if (props.descriptionColor !== "thai-green") lines.push(`  descriptionColor: "${props.descriptionColor}",`)
     if (props.animateBorder) lines.push(`  animateBorder: true,`)
     if (props.hoverScale) lines.push(`  hoverScale: true,`)
-    if (props.loopVideo) lines.push(`  loopVideo: true,`)
+    // Lecture video
+    if (props.playCount !== 1) {
+      lines.push(`  playCount: ${props.playCount === "custom" ? `"custom"` : props.playCount},`)
+      if (props.playCount === "custom") {
+        lines.push(`  customPlayCount: ${props.customPlayCount},`)
+      }
+    }
+    if (props.customDuration > 0) lines.push(`  customDuration: ${props.customDuration},`)
+    // Redirection
+    if (props.redirectUrl) {
+      lines.push(`  redirectUrl: "${props.redirectUrl}",`)
+      lines.push(`  redirectBehavior: "${props.redirectBehavior}",`)
+    }
     if (!props.showCloseButton) lines.push(`  showCloseButton: false,`)
     lines.push(`})`)
     return lines.join("\n")
@@ -727,6 +807,9 @@ function ToasterVideoPlayground() {
                 Video MP4
               </Button>
             </div>
+            <p className="text-xs text-gray-500 italic">
+              Balises disponibles : &lt;orange&gt;, &lt;green&gt;, &lt;white&gt;, &lt;gold&gt;, &lt;black&gt;, &lt;bold&gt;, &lt;semi-bold&gt;, &lt;italic&gt;, &lt;underline&gt;, &lt;small&gt;
+            </p>
           </div>
         </div>
 
@@ -1014,15 +1097,6 @@ function ToasterVideoPlayground() {
             <label className="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
-                checked={props.loopVideo}
-                onChange={(e) => setProps({ ...props, loopVideo: e.target.checked })}
-                className="w-4 h-4 text-thai-orange border-gray-300 rounded focus:ring-thai-orange focus:ring-2"
-              />
-              <span className="text-sm text-gray-700">Boucle video (loop)</span>
-            </label>
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
                 checked={props.showCloseButton}
                 onChange={(e) => setProps({ ...props, showCloseButton: e.target.checked })}
                 className="w-4 h-4 text-thai-orange border-gray-300 rounded focus:ring-thai-orange focus:ring-2"
@@ -1030,6 +1104,96 @@ function ToasterVideoPlayground() {
               <span className="text-sm text-gray-700">Afficher bouton fermeture (X)</span>
             </label>
           </div>
+        </div>
+
+        {/* Section Lecture Video (playCount) */}
+        <div className="space-y-2">
+          <label className="text-xs font-medium text-gray-700">Fermeture video (nombre de lectures)</label>
+          <div className="flex gap-2">
+            {([
+              { label: "×1", value: 1 as const },
+              { label: "×2", value: 2 as const },
+              { label: "Custom", value: "custom" as const },
+            ]).map((option) => (
+              <Button
+                key={String(option.value)}
+                size="sm"
+                variant={props.playCount === option.value ? "default" : "outline"}
+                onClick={() => setProps({ ...props, playCount: option.value })}
+                className={props.playCount === option.value
+                  ? "bg-thai-orange hover:bg-thai-orange/90"
+                  : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"}
+              >
+                {option.label}
+              </Button>
+            ))}
+          </div>
+          {props.playCount === "custom" && (
+            <div className="flex items-center gap-2 mt-2">
+              <label className="text-xs text-gray-600">Nombre de lectures:</label>
+              <input
+                type="number"
+                value={props.customPlayCount}
+                onChange={(e) => setProps({ ...props, customPlayCount: Number(e.target.value) })}
+                className="w-16 px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange"
+                min="1"
+                max="10"
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Section Duree personnalisee */}
+        <div className="space-y-2">
+          <label className="text-xs font-medium text-gray-700">Duree personnalisee (override - images ET videos)</label>
+          <div className="flex items-center gap-2">
+            <input
+              type="number"
+              value={props.customDuration}
+              onChange={(e) => setProps({ ...props, customDuration: Number(e.target.value) })}
+              placeholder="0"
+              className="w-20 px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent"
+              min="0"
+              max="60"
+            />
+            <span className="text-xs text-gray-600">secondes (0 = desactive)</span>
+          </div>
+        </div>
+
+        {/* Section Redirection */}
+        <div className="space-y-2">
+          <label className="text-xs font-medium text-gray-700">Redirection (optionnel)</label>
+          <input
+            type="text"
+            value={props.redirectUrl}
+            onChange={(e) => setProps({ ...props, redirectUrl: e.target.value })}
+            placeholder="/commander"
+            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent"
+          />
+          {props.redirectUrl && (
+            <div className="flex gap-2 mt-2">
+              {([
+                { label: "Auto", value: "auto" as const, desc: "Redirige a la fermeture" },
+                { label: "Nouvel onglet", value: "new-tab" as const, desc: "Ouvre dans un nouvel onglet" },
+                { label: "Bouton", value: "button" as const, desc: "Affiche un bouton 'Voir'" },
+              ]).map((behavior) => (
+                <Button
+                  key={behavior.value}
+                  size="sm"
+                  variant={props.redirectBehavior === behavior.value ? "default" : "outline"}
+                  onClick={() => setProps({ ...props, redirectBehavior: behavior.value })}
+                  className={cn(
+                    props.redirectBehavior === behavior.value
+                      ? "bg-thai-orange hover:bg-thai-orange/90"
+                      : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
+                  )}
+                  title={behavior.desc}
+                >
+                  {behavior.label}
+                </Button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

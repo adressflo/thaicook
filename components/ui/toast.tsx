@@ -5,6 +5,81 @@ import { X } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
+// ============================================================================
+// FONCTION DE PARSING DE BALISES CUSTOM
+// ============================================================================
+
+/**
+ * Parse le texte avec balises custom et retourne du JSX formaté
+ * Balises supportées :
+ * - Couleurs : <orange>, <green>, <white>, <gold>, <black>
+ * - Styles : <bold>, <semi-bold>, <italic>, <underline>, <small>
+ */
+const parseColoredText = (text: string | React.ReactNode, depth: number = 0): React.ReactNode => {
+  if (typeof text !== 'string') return text
+
+  // Map des classes Tailwind pour couleurs et styles
+  const styleMap: Record<string, string> = {
+    // Couleurs
+    orange: "text-thai-orange",
+    green: "text-thai-green",
+    white: "text-white",
+    gold: "text-thai-gold",
+    black: "text-black",
+    // Styles
+    bold: "font-bold",
+    "semi-bold": "font-semibold",
+    italic: "italic",
+    underline: "underline",
+    small: "text-sm"
+  }
+
+  // Regex pour trouver la PREMIÈRE balise (pas greedy pour supporter imbrication)
+  const regex = /<(orange|green|white|gold|black|bold|semi-bold|italic|underline|small)>(.*?)<\/\1>/
+  const match = text.match(regex)
+
+  if (!match) {
+    // Aucune balise trouvée, retourner le texte tel quel
+    return text
+  }
+
+  const [fullMatch, tag, content] = match
+  const beforeMatch = text.substring(0, match.index!)
+  const afterMatch = text.substring(match.index! + fullMatch.length)
+
+  // Construire le résultat avec récursion pour gérer les balises imbriquées
+  const parts: React.ReactNode[] = []
+
+  // Texte avant la balise
+  if (beforeMatch) {
+    parts.push(
+      <React.Fragment key={`before-${depth}-${match.index}`}>
+        {parseColoredText(beforeMatch, depth + 1)}
+      </React.Fragment>
+    )
+  }
+
+  // Contenu de la balise (parser récursivement pour balises imbriquées)
+  parts.push(
+    <span key={`tag-${depth}-${match.index}`} className={styleMap[tag]}>
+      {parseColoredText(content, depth + 1)}
+    </span>
+  )
+
+  // Texte après la balise (parser récursivement pour autres balises)
+  if (afterMatch) {
+    parts.push(
+      <React.Fragment key={`after-${depth}-${match.index}`}>
+        {parseColoredText(afterMatch, depth + 1)}
+      </React.Fragment>
+    )
+  }
+
+  return <>{parts}</>
+}
+
+export { parseColoredText }
+
 const ToastProvider = ToastPrimitives.Provider
 
 const ToastViewport = React.forwardRef<
@@ -54,6 +129,7 @@ type TitleColor = "thai-green" | "thai-orange" | "white" | "black" | "thai-gold"
 type DescriptionColor = "thai-green" | "thai-orange" | "gray" | "black" | "inherit"
 type ToastPosition = "center" | "bottom-right" | "bottom-left" | "top-right" | "top-left" | "custom"
 type FontWeight = "normal" | "medium" | "semibold" | "bold" | "extrabold"
+type RedirectBehavior = "auto" | "new-tab" | "button"
 
 interface ToastExtendedProps {
   /** Inclinaison du toast (boolean ou angle en degrés) */
@@ -88,6 +164,10 @@ interface ToastExtendedProps {
   customX?: string
   /** Position Y custom (si position="custom") */
   customY?: string
+  /** URL de redirection à la fermeture du toast */
+  redirectUrl?: string
+  /** Comportement de la redirection */
+  redirectBehavior?: RedirectBehavior
 }
 
 // Map des classes CSS pour les positions du Viewport
@@ -173,6 +253,16 @@ const Toast = React.forwardRef<
   animateBorder = false,
   hoverScale = false,
   style,
+  // Props qui ne doivent PAS être passées au DOM
+  titleColor: _titleColor,
+  titleFontWeight: _titleFontWeight,
+  descriptionColor: _descriptionColor,
+  descriptionFontWeight: _descriptionFontWeight,
+  position: _position,
+  customX: _customX,
+  customY: _customY,
+  redirectUrl: _redirectUrl,
+  redirectBehavior: _redirectBehavior,
   ...props
 }, ref) => {
   const angle = typeof tilted === "number" ? tilted : tilted ? -3 : 0
@@ -227,7 +317,7 @@ const Toast = React.forwardRef<
 Toast.displayName = ToastPrimitives.Root.displayName
 
 export { titleColorMap, descriptionColorMap, fontWeightMap }
-export type { ToastExtendedProps, BorderColor, ShadowSize, MaxWidth, TitleColor, DescriptionColor, ToastPosition, FontWeight }
+export type { ToastExtendedProps, BorderColor, ShadowSize, MaxWidth, TitleColor, DescriptionColor, ToastPosition, FontWeight, RedirectBehavior }
 
 const ToastAction = React.forwardRef<
   React.ElementRef<typeof ToastPrimitives.Action>,

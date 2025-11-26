@@ -12,7 +12,8 @@ import type {
   TitleColor,
   DescriptionColor,
   ToastPosition,
-  FontWeight
+  FontWeight,
+  RedirectBehavior
 } from "@/components/ui/toast"
 
 const TOAST_LIMIT = 1
@@ -39,7 +40,7 @@ type ToasterToast = ToastProps & ToastExtendedProps & {
   customY?: string
 }
 
-export type { BorderColor, ShadowSize, MaxWidth, TitleColor, DescriptionColor, ToastPosition, FontWeight }
+export type { BorderColor, ShadowSize, MaxWidth, TitleColor, DescriptionColor, ToastPosition, FontWeight, RedirectBehavior }
 
 const actionTypes = {
   ADD_TOAST: "ADD_TOAST",

@@ -10,7 +10,8 @@ import type {
   TitleColor,
   DescriptionColor,
   ToastPosition,
-  FontWeight
+  FontWeight,
+  RedirectBehavior
 } from "@/components/ui/toast"
 
 const TOAST_LIMIT = 1
@@ -42,11 +43,17 @@ type ToasterToastVideo = ToastProps & {
   descriptionFontWeight?: FontWeight
   animateBorder?: boolean
   hoverScale?: boolean
-  loopVideo?: boolean
+  // Lecture video (remplace loopVideo)
+  playCount?: 1 | 2 | "custom"
+  customPlayCount?: number
+  customDuration?: number
+  // Redirection
+  redirectUrl?: string
+  redirectBehavior?: RedirectBehavior
   showCloseButton?: boolean
 }
 
-export type { BorderColor, ShadowSize, MaxWidth, TitleColor, DescriptionColor, ToastPosition, FontWeight }
+export type { BorderColor, ShadowSize, MaxWidth, TitleColor, DescriptionColor, ToastPosition, FontWeight, RedirectBehavior }
 
 const actionTypes = {
   ADD_TOAST: "ADD_TOAST",

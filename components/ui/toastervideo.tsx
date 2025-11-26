@@ -8,10 +8,12 @@ import {
   ToastProvider,
   ToastTitle,
   ToastViewport,
+  ToastAction,
   titleColorMap,
   descriptionColorMap,
   fontWeightMap,
   positionClassMap,
+  parseColoredText,
   type BorderColor,
   type ShadowSize,
   type MaxWidth,
@@ -19,8 +21,11 @@ import {
   type DescriptionColor,
   type ToastPosition,
   type FontWeight,
+  type RedirectBehavior,
 } from "@/components/ui/toast"
 import { useEffect, useRef } from "react"
+import { useRouter } from "next/navigation"
+import Link from "next/link"
 
 import { cn } from "@/lib/utils"
 
@@ -148,7 +153,13 @@ interface ToastVideoItemProps {
   descriptionFontWeight?: FontWeight
   animateBorder?: boolean
   hoverScale?: boolean
-  loopVideo?: boolean
+  // Lecture video (remplace loopVideo)
+  playCount?: 1 | 2 | "custom"
+  customPlayCount?: number
+  customDuration?: number
+  // Redirection
+  redirectUrl?: string
+  redirectBehavior?: RedirectBehavior
   showCloseButton?: boolean
   className?: string
   [key: string]: unknown
@@ -178,21 +189,61 @@ function ToastVideoItem({
   descriptionFontWeight = "semibold",
   animateBorder = false,
   hoverScale = false,
-  loopVideo = false,
+  // Lecture video
+  playCount = 1,
+  customPlayCount,
+  customDuration,
+  // Redirection
+  redirectUrl,
+  redirectBehavior = "auto",
   showCloseButton = true,
   ...props
 }: ToastVideoItemProps) {
   const mediaRef = useRef<HTMLImageElement | HTMLVideoElement>(null)
+  const playCountRef = useRef(0)
+  const router = useRouter()
+
+  // Calculer le nombre de lectures cible
+  const targetPlayCount = playCount === "custom" && customPlayCount
+    ? customPlayCount
+    : playCount === "custom"
+      ? 1
+      : playCount
+
+  // Fonction de fermeture avec redirection
+  const handleDismiss = () => {
+    dismiss(id)
+
+    if (redirectUrl) {
+      if (redirectBehavior === "auto") {
+        router.push(redirectUrl as "/")
+      } else if (redirectBehavior === "new-tab") {
+        window.open(redirectUrl, "_blank")
+      }
+      // Pour "button", la redirection est gérée par le bouton
+    }
+  }
 
   useEffect(() => {
     if (!media || !mediaRef.current) return
 
     const element = mediaRef.current
 
-    // Pour les videos : detection automatique de la fin (si pas de loop)
-    if (element instanceof HTMLVideoElement && !loopVideo) {
+    // Si customDuration est défini, utiliser un timer fixe (pour images ET videos)
+    if (customDuration && customDuration > 0) {
+      const timer = setTimeout(() => {
+        handleDismiss()
+      }, customDuration * 1000)
+      return () => clearTimeout(timer)
+    }
+
+    // Pour les videos : compter les lectures
+    if (element instanceof HTMLVideoElement) {
       const handleVideoEnd = () => {
-        dismiss(id)
+        playCountRef.current += 1
+        if (playCountRef.current >= targetPlayCount) {
+          handleDismiss()
+        }
       }
       element.addEventListener("ended", handleVideoEnd)
       return () => element.removeEventListener("ended", handleVideoEnd)
@@ -206,11 +257,11 @@ function ToastVideoItem({
       const delay = isGif ? 3000 : 1000
 
       const timer = setTimeout(() => {
-        dismiss(id)
+        handleDismiss()
       }, delay)
       return () => clearTimeout(timer)
     }
-  }, [media, id, dismiss, loopVideo])
+  }, [media, id, customDuration, targetPlayCount])
 
   // Map aspect ratio to Tailwind classes
   const aspectRatioClass = {
@@ -274,7 +325,7 @@ function ToastVideoItem({
               ref={mediaRef as React.RefObject<HTMLVideoElement>}
               src={media}
               autoPlay
-              loop={loopVideo}
+              loop={targetPlayCount > 1 || playCount === "custom"}
               muted
               className="h-full w-full object-cover"
             />
@@ -304,7 +355,7 @@ function ToastVideoItem({
               fontWeightMap[titleFontWeight]
             )}
           >
-            {title}
+            {parseColoredText(title)}
           </ToastTitle>
         )}
         {description && (
@@ -322,11 +373,23 @@ function ToastVideoItem({
                   : undefined
               }
             >
-              {description}
+              {parseColoredText(description)}
             </ToastDescription>
           </div>
         )}
         {action}
+        {/* Bouton de redirection si behavior = button */}
+        {redirectUrl && redirectBehavior === "button" && (
+          <Link
+            href={redirectUrl as "/"}
+            className={cn(
+              "mt-2 inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors",
+              "bg-thai-orange text-white hover:bg-thai-orange/90"
+            )}
+          >
+            Voir
+          </Link>
+        )}
       </div>
 
       {showCloseButton && (
