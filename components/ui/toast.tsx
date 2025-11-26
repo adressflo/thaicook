@@ -42,12 +42,27 @@ const toastVariants = cva(
 
 const Toast = React.forwardRef<
   React.ElementRef<typeof ToastPrimitives.Root>,
-  React.ComponentPropsWithoutRef<typeof ToastPrimitives.Root> & VariantProps<typeof toastVariants>
->(({ className, variant, ...props }, ref) => {
+  React.ComponentPropsWithoutRef<typeof ToastPrimitives.Root> &
+    VariantProps<typeof toastVariants> & { tilted?: boolean | number }
+>(({ className, variant, tilted, style, ...props }, ref) => {
+  const angle = typeof tilted === "number" ? tilted : tilted ? -3 : 0
+  const isTilted = angle !== 0
+
   return (
     <ToastPrimitives.Root
       ref={ref}
-      className={cn(toastVariants({ variant }), className)}
+      className={cn(
+        toastVariants({ variant }),
+        isTilted &&
+          "rotate-[var(--toast-angle)] transition-all duration-300 hover:scale-105 hover:rotate-0",
+        className
+      )}
+      style={
+        {
+          ...style,
+          "--toast-angle": `${angle}deg`,
+        } as React.CSSProperties
+      }
       {...props}
     />
   )

@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { FileText, Plus, Minus, ShoppingCart } from "lucide-react"
 import type { PlatUI as Plat } from "@/types/app"
-import { SmartSpice } from "@/components/shared/SmartSpice"
+
 import { Spice } from "@/components/shared/Spice"
 import { getDistributionText } from "@/lib/spice-helpers"
 

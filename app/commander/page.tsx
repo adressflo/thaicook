@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { useToast } from "@/hooks/use-toast"
 import { toastVideo } from "@/hooks/use-toast-video"
-import { toastVideoCenter } from "@/hooks/use-toast-video-center"
+
 import { TypingAnimation } from "@/components/ui/typing-animation"
 import { useOnlineStatus } from "@/hooks/useOnlineStatus"
 import { OfflineBannerCompact } from "@/components/pwa/OfflineBanner"
@@ -1043,11 +1043,12 @@ const Commander = memo(() => {
                                               onClick={(e) => {
                                                 e.stopPropagation()
                                                 supprimerDuPanier(item.uniqueId!)
-                                                toastVideoCenter({
+                                                toastVideo({
                                                   title: "Plat supprimé",
                                                   description: `${item.nom} a été retiré de votre panier.`,
                                                   media:
                                                     "/media/animations/toasts/ajoutpaniernote.mp4",
+                                                  position: "center",
                                                 })
                                               }}
                                               className="h-7 w-7 p-0 text-gray-400 transition-all duration-200 hover:bg-red-50 hover:text-red-500"
@@ -1099,21 +1100,6 @@ const Commander = memo(() => {
                                         <div className="mb-3 text-lg font-bold text-gray-400">
                                           {formatPrix(parseFloat(item.prix) * item.quantite)}
                                         </div>
-                                        <Button
-                                          size="icon"
-                                          variant="ghost"
-                                          onClick={() => {
-                                            supprimerDuPanier(item.uniqueId!)
-                                            toastVideoCenter({
-                                              title: "Plat supprimé",
-                                              description: `${item.nom} a été retiré de votre panier.`,
-                                              media: "/media/animations/toasts/ajoutpaniernote.mp4",
-                                            })
-                                          }}
-                                          className="h-6 w-6 text-gray-400 hover:bg-red-50 hover:text-red-500"
-                                        >
-                                          <Trash2 className="h-3 w-3" />
-                                        </Button>
                                       </div>
                                     </div>
                                   )
@@ -1372,11 +1358,12 @@ const Commander = memo(() => {
                                             onClick={(e) => {
                                               e.stopPropagation()
                                               supprimerDuPanier(item.uniqueId!)
-                                              toastVideoCenter({
+                                              toastVideo({
                                                 title: "Plat supprimé",
                                                 description: `${item.nom} retiré du panier.`,
                                                 media:
                                                   "/media/animations/toasts/ajoutpaniernote.mp4",
+                                                position: "center",
                                               })
                                             }}
                                             className="h-8 w-8 p-0 text-gray-400 hover:text-red-500"
@@ -1401,10 +1388,11 @@ const Commander = memo(() => {
                                           variant="ghost"
                                           onClick={() => {
                                             supprimerDuPanier(item.uniqueId!)
-                                            toastVideoCenter({
+                                            toastVideo({
                                               title: "Plat supprimé",
                                               description: `${item.nom} retiré du panier.`,
                                               media: "/media/animations/toasts/ajoutpaniernote.mp4",
+                                              position: "center",
                                             })
                                           }}
                                           className="h-8 w-8 p-0 text-gray-400 hover:text-red-500"

@@ -12,6 +12,11 @@ type ToasterToastVideo = ToastProps & {
   description?: React.ReactNode
   action?: ToastActionElement
   media?: string // URL de l'image ou vidéo
+  position?: "bottom-right" | "center" | "bottom-left"
+  scrollingText?: boolean
+  scrollDuration?: number
+  polaroid?: boolean
+  aspectRatio?: "16:9" | "4:5" | "1:1"
 }
 
 const actionTypes = {
