@@ -30,6 +30,7 @@ import { CheckCircle2, Trash2, Settings, User, CreditCard, Info } from "lucide-r
 import { CommandePlatModal, CommandePlatContent } from "@/components/shared/CommandePlatModal"
 import { ModalVideo } from "@/components/ui/ModalVideo"
 import { useData } from "@/contexts/DataContext"
+import { cn } from "@/lib/utils"
 
 // Composant Playground interactif pour ModalVideo
 function ModalVideoPlayground() {
@@ -38,15 +39,19 @@ function ModalVideoPlayground() {
     title: string
     description: string
     media: string
-    aspectRatio: "16:9" | "4:5" | "1:1"
+    aspectRatio: "16:9" | "4:5" | "1:1" | "auto"
     polaroid: boolean
     scrollingText: boolean
     scrollDuration: number
     loopCount: number
+    buttonLayout: "none" | "single" | "double" | "triple"
     cancelText: string
     confirmText: string
+    thirdButtonText: string
     rotation: boolean
-    maxWidth: "sm" | "md" | "lg" | "xl"
+    maxWidth: "sm" | "md" | "lg" | "xl" | "custom"
+    customWidth: string
+    customHeight: string
     borderColor: "thai-orange" | "thai-green" | "red" | "blue"
     borderWidth: number
     shadowSize: "sm" | "lg" | "2xl"
@@ -59,10 +64,14 @@ function ModalVideoPlayground() {
     scrollingText: false,
     scrollDuration: 10,
     loopCount: 0,
+    buttonLayout: "double",
     cancelText: "Annuler",
     confirmText: "Confirmer",
+    thirdButtonText: "Action",
     rotation: true,
     maxWidth: "md",
+    customWidth: "600px",
+    customHeight: "",
     borderColor: "thai-orange",
     borderWidth: 2,
     shadowSize: "2xl"
@@ -81,15 +90,18 @@ function ModalVideoPlayground() {
   scrollingText={${previewProps.scrollingText}}
   scrollDuration={${previewProps.scrollDuration}}
   loopCount={${previewProps.loopCount}}
+  buttonLayout="${previewProps.buttonLayout}"
   cancelText="${previewProps.cancelText}"
   confirmText="${previewProps.confirmText}"
+  thirdButtonText="${previewProps.thirdButtonText}"
   rotation={${previewProps.rotation}}
-  maxWidth="${previewProps.maxWidth}"
+  maxWidth="${previewProps.maxWidth}"${previewProps.maxWidth === "custom" && previewProps.customWidth ? `\n  customWidth="${previewProps.customWidth}"` : ''}${previewProps.maxWidth === "custom" && previewProps.customHeight ? `\n  customHeight="${previewProps.customHeight}"` : ''}
   borderColor="${previewProps.borderColor}"
   borderWidth={${previewProps.borderWidth}}
   shadowSize="${previewProps.shadowSize}"
   onCancel={() => console.log("Annulé")}
   onConfirm={() => console.log("Confirmé")}
+  onThirdButton={() => console.log("Troisième action")}
 />`
   }
 
@@ -198,7 +210,7 @@ function ModalVideoPlayground() {
                 onChange={(e) => setPreviewProps({ ...previewProps, polaroid: e.target.checked })}
                 className="w-4 h-4 text-thai-orange border-gray-300 rounded focus:ring-thai-orange focus:ring-2"
               />
-              <span className="text-sm text-gray-700">Polaroid (bordure verte)</span>
+              <span className="text-sm text-gray-700">Polaroid (cadre blanc + bordure configurée)</span>
             </label>
             <label className="flex items-center gap-2 cursor-pointer">
               <input
@@ -230,7 +242,7 @@ function ModalVideoPlayground() {
         <div className="space-y-2">
           <label className="text-xs font-medium text-gray-700">📐 Format d'image</label>
           <div className="flex gap-2">
-            {(["16:9", "4:5", "1:1"] as const).map((ratio) => (
+            {(["16:9", "4:5", "1:1", "auto"] as const).map((ratio) => (
               <Button
                 key={ratio}
                 size="sm"
@@ -272,23 +284,61 @@ function ModalVideoPlayground() {
 
         {/* Section Boutons d'action */}
         <div className="space-y-2">
-          <label className="text-xs font-medium text-gray-700">🔘 Textes des boutons</label>
-          <div className="grid grid-cols-2 gap-2">
-            <input
-              type="text"
-              value={previewProps.cancelText}
-              onChange={(e) => setPreviewProps({ ...previewProps, cancelText: e.target.value })}
-              placeholder="Texte bouton Annuler"
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent"
-            />
-            <input
-              type="text"
-              value={previewProps.confirmText}
-              onChange={(e) => setPreviewProps({ ...previewProps, confirmText: e.target.value })}
-              placeholder="Texte bouton Confirmer"
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent"
-            />
+          <label className="text-xs font-medium text-gray-700">🔘 Layout des boutons</label>
+          <div className="flex gap-2">
+            {[
+              { label: "Aucun", value: "none" as const },
+              { label: "1 bouton", value: "single" as const },
+              { label: "2 boutons", value: "double" as const },
+              { label: "3 boutons", value: "triple" as const }
+            ].map((layout) => (
+              <Button
+                key={layout.value}
+                size="sm"
+                variant={previewProps.buttonLayout === layout.value ? "default" : "outline"}
+                onClick={() => setPreviewProps({ ...previewProps, buttonLayout: layout.value })}
+                className={previewProps.buttonLayout === layout.value
+                  ? "bg-thai-orange hover:bg-thai-orange/90"
+                  : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"}
+              >
+                {layout.label}
+              </Button>
+            ))}
           </div>
+          {previewProps.buttonLayout !== "none" && (
+            <div className="space-y-2 mt-3">
+              <div className="grid grid-cols-2 gap-2">
+                {previewProps.buttonLayout !== "single" && (
+                  <input
+                    type="text"
+                    value={previewProps.cancelText}
+                    onChange={(e) => setPreviewProps({ ...previewProps, cancelText: e.target.value })}
+                    placeholder="Texte bouton Annuler"
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent"
+                  />
+                )}
+                <input
+                  type="text"
+                  value={previewProps.confirmText}
+                  onChange={(e) => setPreviewProps({ ...previewProps, confirmText: e.target.value })}
+                  placeholder="Texte bouton Confirmer"
+                  className={cn(
+                    "w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent",
+                    previewProps.buttonLayout === "single" && "col-span-2"
+                  )}
+                />
+              </div>
+              {previewProps.buttonLayout === "triple" && (
+                <input
+                  type="text"
+                  value={previewProps.thirdButtonText}
+                  onChange={(e) => setPreviewProps({ ...previewProps, thirdButtonText: e.target.value })}
+                  placeholder="Texte 3ème bouton"
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent"
+                />
+              )}
+            </div>
+          )}
         </div>
 
         {/* Section Style Dialog */}
@@ -310,7 +360,7 @@ function ModalVideoPlayground() {
             <div>
               <label className="text-xs text-gray-600">Taille modal</label>
               <div className="flex gap-2">
-                {(["sm", "md", "lg", "xl"] as const).map((size) => (
+                {(["sm", "md", "lg", "xl", "custom"] as const).map((size) => (
                   <Button
                     key={size}
                     size="sm"
@@ -324,6 +374,24 @@ function ModalVideoPlayground() {
                   </Button>
                 ))}
               </div>
+              {previewProps.maxWidth === "custom" && (
+                <div className="grid grid-cols-2 gap-2 mt-2">
+                  <input
+                    type="text"
+                    value={previewProps.customWidth}
+                    onChange={(e) => setPreviewProps({ ...previewProps, customWidth: e.target.value })}
+                    placeholder="Largeur (ex: 600px, 90vw)"
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent"
+                  />
+                  <input
+                    type="text"
+                    value={previewProps.customHeight}
+                    onChange={(e) => setPreviewProps({ ...previewProps, customHeight: e.target.value })}
+                    placeholder="Hauteur (ex: 400px, 80vh)"
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent"
+                  />
+                </div>
+              )}
             </div>
 
             {/* Couleur bordure - BUTTON GROUP */}
@@ -406,16 +474,20 @@ function ModalVideoPlayground() {
         scrollingText={previewProps.scrollingText}
         scrollDuration={previewProps.scrollDuration}
         loopCount={previewProps.loopCount}
+        buttonLayout={previewProps.buttonLayout}
         cancelText={previewProps.cancelText}
         confirmText={previewProps.confirmText}
+        thirdButtonText={previewProps.thirdButtonText}
         rotation={previewProps.rotation}
-        enableHoverAnimation={previewProps.enableHoverAnimation}
         maxWidth={previewProps.maxWidth}
+        customWidth={previewProps.maxWidth === "custom" ? previewProps.customWidth : undefined}
+        customHeight={previewProps.maxWidth === "custom" ? previewProps.customHeight : undefined}
         borderColor={previewProps.borderColor}
         borderWidth={previewProps.borderWidth}
         shadowSize={previewProps.shadowSize}
         onCancel={() => console.log("Annulé !")}
         onConfirm={() => console.log("Confirmé !")}
+        onThirdButton={() => console.log("Troisième bouton cliqué !")}
       />
     </div>
   )

@@ -21,7 +21,7 @@ interface ModalVideoProps {
   media?: string // URL vidéo (.mp4/.webm) ou image
 
   // Propriétés de style vidéo
-  aspectRatio?: "16:9" | "4:5" | "1:1"
+  aspectRatio?: "16:9" | "4:5" | "1:1" | "auto"
   polaroid?: boolean
   scrollingText?: boolean
   scrollDuration?: number
@@ -30,17 +30,22 @@ interface ModalVideoProps {
   loopCount?: number // 0 = infini, 1 = une fois, n = n fois
 
   // Boutons d'action
+  buttonLayout?: "none" | "single" | "double" | "triple" // Layout des boutons (0, 1, 2, ou 3 boutons)
   cancelText?: string
   confirmText?: string
+  thirdButtonText?: string // Texte du 3ème bouton (pour layout "triple")
   onCancel?: () => void
   onConfirm?: () => void
+  onThirdButton?: () => void // Callback du 3ème bouton
 
   // Mode standalone pour aperçu
   standalone?: boolean
 
   // Style Dialog - Nouvelles propriétés configurables
   rotation?: boolean // Active l'animation rotate-[-2deg] hover:rotate-0 (comme modal "Installer l'Application")
-  maxWidth?: "sm" | "md" | "lg" | "xl" // Taille du modal
+  maxWidth?: "sm" | "md" | "lg" | "xl" | "custom" // Taille du modal
+  customWidth?: string // Largeur personnalisée (ex: "600px", "90vw") - utilisé si maxWidth="custom"
+  customHeight?: string // Hauteur personnalisée (ex: "400px", "80vh")
   borderColor?: "thai-orange" | "thai-green" | "red" | "blue" // Couleur bordure
   borderWidth?: number // Épaisseur bordure (1, 2, 4)
   shadowSize?: "sm" | "lg" | "2xl" // Taille ombre
@@ -57,12 +62,17 @@ export function ModalVideoContent({
   scrollingText = false,
   scrollDuration = 10,
   loopCount = 1,
+  buttonLayout = "double",
   cancelText = "Annuler",
   confirmText = "Confirmer",
+  thirdButtonText = "Action",
   onCancel,
   onConfirm,
+  onThirdButton,
   standalone = false,
-}: Omit<ModalVideoProps, 'isOpen'> & { onOpenChange: (open: boolean) => void }) {
+  borderColor = "thai-orange",
+  borderWidth = 2,
+}: Omit<ModalVideoProps, 'isOpen'> & { onOpenChange: (open: boolean) => void; borderColor?: "thai-orange" | "thai-green" | "red" | "blue"; borderWidth?: number }) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const [playCount, setPlayCount] = useState(0)
 
@@ -71,6 +81,20 @@ export function ModalVideoContent({
     "16:9": "aspect-video",
     "4:5": "aspect-[4/5]",
     "1:1": "aspect-square",
+    "auto": "", // Pas de contrainte d'aspect ratio
+  }
+
+  const borderWidthClass = {
+    1: "border",
+    2: "border-2",
+    4: "border-4"
+  }
+
+  const borderColorClass = {
+    "thai-orange": "border-thai-orange",
+    "thai-green": "border-thai-green",
+    "red": "border-red-500",
+    "blue": "border-blue-500"
   }
 
   // Détection du type de média
@@ -124,42 +148,72 @@ export function ModalVideoContent({
 
       {/* Section image/vidéo */}
       {media && (
-        <div
-          className={cn(
-            "relative w-full overflow-hidden",
-            polaroid ? "border-thai-green border-4 p-2" : "",
-            aspectRatioClass[aspectRatio],
-            standalone && "flex-shrink-0"
-          )}
-        >
-          {isVideo ? (
-            <video
-              ref={videoRef}
-              src={media}
-              autoPlay
-              muted
-              loop={loopCount === 0}
-              onEnded={handleVideoEnded}
-              className="h-full w-full object-cover"
-            />
+        <div className={cn("relative w-full", standalone && "flex-shrink-0")}>
+          {polaroid ? (
+            // Mode Polaroid : cadre blanc + bordure intérieure autour de la photo
+            <div className="bg-white p-3 pt-3 pb-8">
+              <div
+                className={cn(
+                  "relative w-full overflow-hidden",
+                  aspectRatioClass[aspectRatio],
+                  borderWidthClass[borderWidth as keyof typeof borderWidthClass],
+                  borderColorClass[borderColor]
+                )}
+              >
+                {isVideo ? (
+                  <video
+                    ref={videoRef}
+                    src={media}
+                    autoPlay
+                    muted
+                    loop={loopCount === 0}
+                    onEnded={handleVideoEnded}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <img
+                    src={media}
+                    alt="Modal media"
+                    className="h-full w-full object-cover"
+                  />
+                )}
+              </div>
+            </div>
           ) : (
-            <img
-              src={media}
-              alt="Modal media"
-              className="h-full w-full object-cover"
-            />
+            // Mode normal : pas de cadre Polaroid
+            <div
+              className={cn(
+                "relative w-full overflow-hidden",
+                aspectRatioClass[aspectRatio]
+              )}
+            >
+              {isVideo ? (
+                <video
+                  ref={videoRef}
+                  src={media}
+                  autoPlay
+                  muted
+                  loop={loopCount === 0}
+                  onEnded={handleVideoEnded}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <img
+                  src={media}
+                  alt="Modal media"
+                  className="h-full w-full object-cover"
+                />
+              )}
+            </div>
           )}
         </div>
       )}
 
       {/* Section contenu */}
-      <div className={cn("p-6 space-y-4", polaroid && "bg-white", standalone && "flex-1 flex flex-col")}>
+      <div className={cn("p-6 space-y-4 bg-white", standalone && "flex-1 flex flex-col")}>
         <div className={cn("space-y-3", standalone && "flex-1")}>
           {title && (
-            <h3 className={cn(
-              "text-2xl font-bold text-center",
-              polaroid ? "text-thai-green" : "text-thai-green"
-            )}>
+            <h3 className="text-2xl font-bold text-center text-thai-green">
               {title}
             </h3>
           )}
@@ -167,8 +221,7 @@ export function ModalVideoContent({
             <div className={cn("w-full", scrollingText && "overflow-hidden")}>
               <p
                 className={cn(
-                  "text-center text-base leading-relaxed",
-                  polaroid ? "text-thai-green/90 font-semibold" : "text-thai-green/90",
+                  "text-center text-base leading-relaxed text-thai-green/90",
                   scrollingText && "animate-marquee inline-block whitespace-nowrap"
                 )}
                 style={
@@ -183,22 +236,71 @@ export function ModalVideoContent({
           )}
         </div>
 
-        {/* Boutons d'action */}
-        <div className="flex gap-3">
-          <Button
-            onClick={handleCancel}
-            variant="outline"
-            className="flex-1 rounded-lg border-2 border-thai-green text-thai-green hover:bg-thai-green hover:text-white transition-all duration-200"
-          >
-            {cancelText}
-          </Button>
-          <Button
-            onClick={handleConfirm}
-            className="flex-1 bg-thai-orange hover:bg-thai-orange/90 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
-          >
-            {confirmText}
-          </Button>
-        </div>
+        {/* Boutons d'action (selon buttonLayout) */}
+        {buttonLayout !== "none" && (
+          <div className={cn("flex gap-3", buttonLayout === "single" && "justify-center")}>
+            {/* Layout "single" : 1 bouton centré (Confirmer) */}
+            {buttonLayout === "single" && (
+              <Button
+                onClick={handleConfirm}
+                className="bg-thai-orange hover:bg-thai-orange/90 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 px-8"
+              >
+                {confirmText}
+              </Button>
+            )}
+
+            {/* Layout "double" : 2 boutons (Annuler + Confirmer) */}
+            {buttonLayout === "double" && (
+              <>
+                <Button
+                  onClick={handleCancel}
+                  variant="outline"
+                  className="flex-1 rounded-lg border-2 border-thai-green text-thai-green hover:bg-thai-green hover:text-white transition-all duration-200"
+                >
+                  {cancelText}
+                </Button>
+                <Button
+                  onClick={handleConfirm}
+                  className="flex-1 bg-thai-orange hover:bg-thai-orange/90 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
+                >
+                  {confirmText}
+                </Button>
+              </>
+            )}
+
+            {/* Layout "triple" : 3 boutons (Annuler + Confirmer + 3ème) */}
+            {buttonLayout === "triple" && (
+              <>
+                <Button
+                  onClick={handleCancel}
+                  variant="outline"
+                  className="flex-1 rounded-lg border-2 border-thai-green text-thai-green hover:bg-thai-green hover:text-white transition-all duration-200"
+                >
+                  {cancelText}
+                </Button>
+                <Button
+                  onClick={handleConfirm}
+                  className="flex-1 bg-thai-orange hover:bg-thai-orange/90 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
+                >
+                  {confirmText}
+                </Button>
+                <Button
+                  onClick={() => {
+                    if (onThirdButton) {
+                      onThirdButton()
+                    }
+                    if (!standalone) {
+                      onOpenChange(false)
+                    }
+                  }}
+                  className="flex-1 bg-thai-gold hover:bg-thai-gold/90 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
+                >
+                  {thirdButtonText}
+                </Button>
+              </>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )
@@ -211,6 +313,8 @@ export function ModalVideo({
   description,
   rotation = true,
   maxWidth = "md",
+  customWidth,
+  customHeight,
   borderColor = "thai-orange",
   borderWidth = 2,
   shadowSize = "2xl",
@@ -221,7 +325,8 @@ export function ModalVideo({
     "sm": "max-w-sm",
     "md": "max-w-md",
     "lg": "max-w-lg",
-    "xl": "max-w-xl"
+    "xl": "max-w-xl",
+    "custom": "" // Pas de classe max-w si custom
   }
 
   const borderColorClass = {
@@ -254,6 +359,15 @@ export function ModalVideo({
           shadowClass[shadowSize],
           rotation && "rotate-[-2deg] hover:rotate-0 transition-transform duration-300"
         )}
+        style={
+          maxWidth === "custom" && (customWidth || customHeight)
+            ? {
+                width: customWidth || undefined,
+                maxWidth: customWidth || undefined,
+                height: customHeight || undefined,
+              }
+            : undefined
+        }
       >
         {/* Titres accessibles (cachés visuellement) */}
         <DialogTitle className="sr-only">{title || "Modal Vidéo"}</DialogTitle>
@@ -263,6 +377,8 @@ export function ModalVideo({
           onOpenChange={onOpenChange}
           title={title}
           description={description}
+          borderColor={borderColor}
+          borderWidth={borderWidth}
           {...props}
         />
       </DialogContent>
