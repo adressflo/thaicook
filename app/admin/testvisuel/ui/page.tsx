@@ -2,10 +2,16 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardFooter,
+} from "@/components/ui/card"
 import { useToast } from "@/hooks/use-toast"
-import { toastVideo } from "@/hooks/use-toast-video"
-import { toastVideoCenter } from "@/hooks/use-toast-video-center"
+import { toastVideo, toastVideoCenter } from "@/hooks/use-toast-video"
 import {
   Dialog,
   DialogContent,
@@ -92,8 +98,24 @@ import {
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card"
-import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer"
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer"
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import {
   Trash2,
@@ -132,9 +154,13 @@ export default function TestVisuelPage() {
       <div className="mx-auto max-w-6xl space-y-8">
         {/* En-tête */}
         <div className="text-center">
-          <h1 className="text-thai-green mb-2 text-4xl font-bold">🎨 Page de Test Visuel Complète</h1>
-          <p className="text-gray-600">Testez TOUS vos composants UI et design tokens en un seul endroit</p>
-          <Badge variant="outline" className="mt-2 border-thai-orange text-thai-orange">
+          <h1 className="text-thai-green mb-2 text-4xl font-bold">
+            🎨 Page de Test Visuel Complète
+          </h1>
+          <p className="text-gray-600">
+            Testez TOUS vos composants UI et design tokens en un seul endroit
+          </p>
+          <Badge variant="outline" className="border-thai-orange text-thai-orange mt-2">
             56+ Composants Testés
           </Badge>
         </div>
@@ -173,7 +199,9 @@ export default function TestVisuelPage() {
               <Separator />
               <div className="space-y-2">
                 <NumberBadge number={7} />
-                <p className="text-base">Body text - Texte de paragraphe standard avec taille normale</p>
+                <p className="text-base">
+                  Body text - Texte de paragraphe standard avec taille normale
+                </p>
               </div>
               <div className="space-y-2">
                 <NumberBadge number={8} />
@@ -181,7 +209,7 @@ export default function TestVisuelPage() {
               </div>
               <div className="space-y-2">
                 <NumberBadge number={9} />
-                <p className="text-gradient bg-gradient-to-r from-thai-orange to-thai-gold bg-clip-text text-3xl font-bold text-transparent">
+                <p className="text-gradient from-thai-orange to-thai-gold bg-gradient-to-r bg-clip-text text-3xl font-bold text-transparent">
                   Gradient Text - Orange to Gold
                 </p>
               </div>
@@ -312,14 +340,14 @@ export default function TestVisuelPage() {
                   <Checkbox id="terms" />
                   <label
                     htmlFor="terms"
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    className="text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                   >
                     Accepter les conditions générales
                   </label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Checkbox id="newsletter" />
-                  <label htmlFor="newsletter" className="text-sm font-medium leading-none">
+                  <label htmlFor="newsletter" className="text-sm leading-none font-medium">
                     Recevoir la newsletter
                   </label>
                 </div>
@@ -594,7 +622,7 @@ export default function TestVisuelPage() {
                       <CardDescription>Salade de papaye verte épicée</CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-2xl font-bold text-thai-green">8.50€</p>
+                      <p className="text-thai-green text-2xl font-bold">8.50€</p>
                     </CardContent>
                   </Card>
                 </TabsContent>
@@ -605,7 +633,7 @@ export default function TestVisuelPage() {
                       <CardDescription>Nouilles sautées aux crevettes</CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-2xl font-bold text-thai-green">12.90€</p>
+                      <p className="text-thai-green text-2xl font-bold">12.90€</p>
                     </CardContent>
                   </Card>
                 </TabsContent>
@@ -616,7 +644,7 @@ export default function TestVisuelPage() {
                       <CardDescription>Riz gluant à la mangue et lait de coco</CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-2xl font-bold text-thai-green">6.50€</p>
+                      <p className="text-thai-green text-2xl font-bold">6.50€</p>
                     </CardContent>
                   </Card>
                 </TabsContent>
@@ -637,13 +665,15 @@ export default function TestVisuelPage() {
                 <AccordionItem value="item-2">
                   <AccordionTrigger>Livraison disponible ?</AccordionTrigger>
                   <AccordionContent>
-                    Oui, nous livrons dans un rayon de 5km autour du restaurant via notre système de commande en ligne.
+                    Oui, nous livrons dans un rayon de 5km autour du restaurant via notre système de
+                    commande en ligne.
                   </AccordionContent>
                 </AccordionItem>
                 <AccordionItem value="item-3">
                   <AccordionTrigger>Options végétariennes ?</AccordionTrigger>
                   <AccordionContent>
-                    Nous proposons de nombreux plats végétariens et végans. Consultez notre menu pour plus de détails.
+                    Nous proposons de nombreux plats végétariens et végans. Consultez notre menu
+                    pour plus de détails.
                   </AccordionContent>
                 </AccordionItem>
               </Accordion>
@@ -657,7 +687,8 @@ export default function TestVisuelPage() {
                 {Array.from({ length: 20 }).map((_, i) => (
                   <div key={i} className="border-b py-2">
                     <p className="text-sm">
-                      <span className="text-thai-orange font-medium">Plat #{i + 1}</span> - Délicieux plat thaïlandais
+                      <span className="text-thai-orange font-medium">Plat #{i + 1}</span> -
+                      Délicieux plat thaïlandais
                     </p>
                   </div>
                 ))}
@@ -798,9 +829,9 @@ export default function TestVisuelPage() {
                   <AvatarImage src="/media/avatars/default.svg" alt="Avatar" />
                   <AvatarFallback className="bg-thai-orange text-white">CH</AvatarFallback>
                 </Avatar>
-                <Avatar className="h-20 w-20 border-4 border-thai-green">
+                <Avatar className="border-thai-green h-20 w-20 border-4">
                   <AvatarImage src="/media/avatars/default.svg" alt="Avatar" />
-                  <AvatarFallback className="bg-thai-green text-white text-2xl">TC</AvatarFallback>
+                  <AvatarFallback className="bg-thai-green text-2xl text-white">TC</AvatarFallback>
                 </Avatar>
               </div>
             </div>
@@ -1052,8 +1083,8 @@ export default function TestVisuelPage() {
                       <DialogTitle>Confirmer la suppression</DialogTitle>
                       <DialogDescription>
                         Êtes-vous sûr de vouloir supprimer{" "}
-                        <span className="text-thai-orange font-semibold">Pad Thai</span> de votre panier
-                        ?
+                        <span className="text-thai-orange font-semibold">Pad Thai</span> de votre
+                        panier ?
                       </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
@@ -1093,7 +1124,8 @@ export default function TestVisuelPage() {
                     </DrawerHeader>
                     <div className="p-4">
                       <p className="text-gray-600">
-                        Nouilles de riz sautées avec crevettes, œufs, tofu, cacahuètes et germes de soja
+                        Nouilles de riz sautées avec crevettes, œufs, tofu, cacahuètes et germes de
+                        soja
                       </p>
                     </div>
                     <DrawerFooter>
@@ -1155,7 +1187,7 @@ export default function TestVisuelPage() {
                   </PopoverTrigger>
                   <PopoverContent className="w-80">
                     <div className="space-y-2">
-                      <h4 className="text-thai-orange font-medium leading-none">
+                      <h4 className="text-thai-orange leading-none font-medium">
                         Informations Nutritionnelles
                       </h4>
                       <p className="text-sm text-gray-600">
@@ -1229,7 +1261,8 @@ export default function TestVisuelPage() {
                     <div className="space-y-1">
                       <h4 className="text-thai-green text-sm font-semibold">Chanthana Thai Cook</h4>
                       <p className="text-sm">
-                        Restaurant thaïlandais authentique depuis 2020. Spécialités: Pad Thai, Tom Yum, Curry.
+                        Restaurant thaïlandais authentique depuis 2020. Spécialités: Pad Thai, Tom
+                        Yum, Curry.
                       </p>
                       <div className="flex items-center pt-2">
                         <CalendarIcon className="mr-2 h-4 w-4 opacity-70" />
@@ -1252,63 +1285,63 @@ export default function TestVisuelPage() {
             <div className="grid gap-4 md:grid-cols-3">
               <div className="flex flex-col gap-2">
                 <NumberBadge number={1} />
-                <div className="animate-fadeIn flex h-24 items-center justify-center rounded-lg border bg-thai-cream/20">
+                <div className="animate-fadeIn bg-thai-cream/20 flex h-24 items-center justify-center rounded-lg border">
                   <p className="text-sm font-medium">animate-fadeIn</p>
                 </div>
               </div>
 
               <div className="flex flex-col gap-2">
                 <NumberBadge number={2} />
-                <div className="animate-slideInFromLeft flex h-24 items-center justify-center rounded-lg border bg-thai-cream/20">
+                <div className="animate-slideInFromLeft bg-thai-cream/20 flex h-24 items-center justify-center rounded-lg border">
                   <p className="text-sm font-medium">animate-slideInFromLeft</p>
                 </div>
               </div>
 
               <div className="flex flex-col gap-2">
                 <NumberBadge number={3} />
-                <div className="animate-slideInFromRight flex h-24 items-center justify-center rounded-lg border bg-thai-cream/20">
+                <div className="animate-slideInFromRight bg-thai-cream/20 flex h-24 items-center justify-center rounded-lg border">
                   <p className="text-sm font-medium">animate-slideInFromRight</p>
                 </div>
               </div>
 
               <div className="flex flex-col gap-2">
                 <NumberBadge number={4} />
-                <div className="animate-scaleIn flex h-24 items-center justify-center rounded-lg border bg-thai-cream/20">
+                <div className="animate-scaleIn bg-thai-cream/20 flex h-24 items-center justify-center rounded-lg border">
                   <p className="text-sm font-medium">animate-scaleIn</p>
                 </div>
               </div>
 
               <div className="flex flex-col gap-2">
                 <NumberBadge number={5} />
-                <div className="animate-bounce-subtle flex h-24 items-center justify-center rounded-lg border bg-thai-cream/20">
+                <div className="animate-bounce-subtle bg-thai-cream/20 flex h-24 items-center justify-center rounded-lg border">
                   <p className="text-sm font-medium">animate-bounce-subtle</p>
                 </div>
               </div>
 
               <div className="flex flex-col gap-2">
                 <NumberBadge number={6} />
-                <div className="animate-pulse-soft flex h-24 items-center justify-center rounded-lg border bg-thai-cream/20">
+                <div className="animate-pulse-soft bg-thai-cream/20 flex h-24 items-center justify-center rounded-lg border">
                   <p className="text-sm font-medium">animate-pulse-soft</p>
                 </div>
               </div>
 
               <div className="flex flex-col gap-2">
                 <NumberBadge number={7} />
-                <div className="animate-shimmer flex h-24 items-center justify-center rounded-lg border bg-gradient-to-r from-thai-cream via-thai-gold/30 to-thai-cream bg-[length:200%_100%]">
+                <div className="animate-shimmer from-thai-cream via-thai-gold/30 to-thai-cream flex h-24 items-center justify-center rounded-lg border bg-gradient-to-r bg-[length:200%_100%]">
                   <p className="text-sm font-medium">animate-shimmer</p>
                 </div>
               </div>
 
               <div className="flex flex-col gap-2">
                 <NumberBadge number={8} />
-                <div className="animate-glow-pulse flex h-24 items-center justify-center rounded-lg border bg-thai-orange/10">
+                <div className="animate-glow-pulse bg-thai-orange/10 flex h-24 items-center justify-center rounded-lg border">
                   <p className="text-thai-orange text-sm font-medium">animate-glow-pulse</p>
                 </div>
               </div>
 
               <div className="flex flex-col gap-2">
                 <NumberBadge number={9} />
-                <div className="animate-thai-ripple relative flex h-24 items-center justify-center overflow-hidden rounded-lg border bg-thai-green/10">
+                <div className="animate-thai-ripple bg-thai-green/10 relative flex h-24 items-center justify-center overflow-hidden rounded-lg border">
                   <p className="text-thai-green text-sm font-medium">animate-thai-ripple</p>
                 </div>
               </div>
@@ -1406,7 +1439,7 @@ export default function TestVisuelPage() {
                   backgroundPosition: "center",
                 }}
               >
-                <div className="absolute inset-0 bg-gradient-to-br from-thai-orange/20 to-thai-green/20"></div>
+                <div className="from-thai-orange/20 to-thai-green/20 absolute inset-0 bg-gradient-to-br"></div>
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="rounded-2xl border border-white/20 bg-white/10 p-8 backdrop-blur-xl">
                     <h3 className="mb-2 text-2xl font-bold text-white drop-shadow-lg">
@@ -1541,7 +1574,7 @@ export default function TestVisuelPage() {
         </Card>
 
         {/* Footer - Stats */}
-        <Card className="border-thai-green/20 bg-gradient-to-r from-thai-cream/30 to-thai-gold/10">
+        <Card className="border-thai-green/20 from-thai-cream/30 to-thai-gold/10 bg-gradient-to-r">
           <CardHeader>
             <CardTitle className="text-thai-green text-center">📊 Statistiques</CardTitle>
           </CardHeader>

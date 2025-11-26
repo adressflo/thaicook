@@ -188,4 +188,8 @@ function useToastVideo() {
   }
 }
 
-export { useToastVideo, toastVideo }
+function toastVideoCenter(props: ToastVideo) {
+  return toastVideo({ ...props, position: "center" })
+}
+
+export { useToastVideo, toastVideo, toastVideoCenter }
