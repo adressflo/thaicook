@@ -26,13 +26,256 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { CheckCircle2, Trash2, Settings, User, Mail, CreditCard, Eye, Info } from "lucide-react"
+import { CheckCircle2, Trash2, Settings, User, CreditCard, Info } from "lucide-react"
 import { CommandePlatModal, CommandePlatContent } from "@/components/shared/CommandePlatModal"
+import { ModalVideoContent, ModalVideo } from "@/components/ui/ModalVideo"
 import { useData } from "@/contexts/DataContext"
+
+// Composant Playground interactif pour ModalVideo
+function ModalVideoPlayground() {
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [previewProps, setPreviewProps] = useState<{
+    title: string
+    description: string
+    media: string
+    aspectRatio: "16:9" | "4:5" | "1:1"
+    polaroid: boolean
+    scrollingText: boolean
+    scrollDuration: number
+    loopCount: number
+    cancelText: string
+    confirmText: string
+  }>({
+    title: "Vidéo - Aperçu",
+    description: "La vidéo tourne en boucle pour démonstration",
+    media: "/media/animations/toasts/ajoutpaniernote.mp4",
+    aspectRatio: "16:9",
+    polaroid: false,
+    scrollingText: false,
+    scrollDuration: 10,
+    loopCount: 0,
+    cancelText: "Annuler",
+    confirmText: "Confirmer"
+  })
+
+  return (
+    <div className="grid gap-6 md:grid-cols-2">
+      {/* Contrôles Interactifs - Colonne Gauche */}
+      <div className="space-y-4 rounded-lg border border-thai-orange/20 bg-white p-4 shadow-sm">
+        <h4 className="font-semibold text-sm text-thai-green flex items-center gap-2">
+          <span className="text-lg">🎮</span>
+          Contrôles Interactifs
+        </h4>
+
+        {/* Section Contenu */}
+        <div className="space-y-2">
+          <label className="text-xs font-medium text-gray-700">📝 Contenu</label>
+          <div className="space-y-2">
+            <input
+              type="text"
+              value={previewProps.title}
+              onChange={(e) => setPreviewProps({ ...previewProps, title: e.target.value })}
+              placeholder="Titre du modal"
+              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent"
+            />
+            <textarea
+              value={previewProps.description}
+              onChange={(e) => setPreviewProps({ ...previewProps, description: e.target.value })}
+              placeholder="Description"
+              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent resize-none"
+              rows={3}
+            />
+            <div className="space-y-2">
+              <input
+                type="text"
+                value={previewProps.media}
+                onChange={(e) => setPreviewProps({ ...previewProps, media: e.target.value })}
+                placeholder="URL média (.mp4, .webm, .jpg, .svg...)"
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent"
+              />
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setPreviewProps({ ...previewProps, media: "/media/avatars/phonevalid.svg" })}
+                  className="flex-1 border-thai-green/30 text-thai-green hover:bg-thai-green/10"
+                >
+                  🖼️ Image
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setPreviewProps({ ...previewProps, media: "/media/animations/toasts/ajoutpaniernote.mp4" })}
+                  className="flex-1 border-thai-orange/30 text-thai-orange hover:bg-thai-orange/10"
+                >
+                  🎬 Vidéo
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Section Style */}
+        <div className="space-y-2">
+          <label className="text-xs font-medium text-gray-700">🎨 Style</label>
+          <div className="space-y-2">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={previewProps.polaroid}
+                onChange={(e) => setPreviewProps({ ...previewProps, polaroid: e.target.checked })}
+                className="w-4 h-4 text-thai-orange border-gray-300 rounded focus:ring-thai-orange focus:ring-2"
+              />
+              <span className="text-sm text-gray-700">Polaroid (bordure verte)</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={previewProps.scrollingText}
+                onChange={(e) => setPreviewProps({ ...previewProps, scrollingText: e.target.checked })}
+                className="w-4 h-4 text-thai-orange border-gray-300 rounded focus:ring-thai-orange focus:ring-2"
+              />
+              <span className="text-sm text-gray-700">Texte défilant (animation marquee)</span>
+            </label>
+            {previewProps.scrollingText && (
+              <div className="flex items-center gap-2 ml-6">
+                <label className="text-xs text-gray-600">Durée:</label>
+                <input
+                  type="number"
+                  value={previewProps.scrollDuration}
+                  onChange={(e) => setPreviewProps({ ...previewProps, scrollDuration: parseInt(e.target.value) || 10 })}
+                  className="w-16 px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange"
+                  min="1"
+                  max="60"
+                />
+                <span className="text-xs text-gray-600">secondes</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Section Format */}
+        <div className="space-y-2">
+          <label className="text-xs font-medium text-gray-700">📐 Format d'image</label>
+          <div className="flex gap-2">
+            {(["16:9", "4:5", "1:1"] as const).map((ratio) => (
+              <Button
+                key={ratio}
+                size="sm"
+                variant={previewProps.aspectRatio === ratio ? "default" : "outline"}
+                onClick={() => setPreviewProps({ ...previewProps, aspectRatio: ratio })}
+                className={previewProps.aspectRatio === ratio
+                  ? "bg-thai-orange hover:bg-thai-orange/90"
+                  : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"}
+              >
+                {ratio}
+              </Button>
+            ))}
+          </div>
+        </div>
+
+        {/* Section Lecture */}
+        <div className="space-y-2">
+          <label className="text-xs font-medium text-gray-700">🎬 Nombre de lectures</label>
+          <div className="flex gap-2">
+            {[
+              { label: "∞ Infini", value: 0 },
+              { label: "1x", value: 1 },
+              { label: "3x", value: 3 }
+            ].map((loop) => (
+              <Button
+                key={loop.value}
+                size="sm"
+                variant={previewProps.loopCount === loop.value ? "default" : "outline"}
+                onClick={() => setPreviewProps({ ...previewProps, loopCount: loop.value })}
+                className={previewProps.loopCount === loop.value
+                  ? "bg-thai-orange hover:bg-thai-orange/90"
+                  : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"}
+              >
+                {loop.label}
+              </Button>
+            ))}
+          </div>
+        </div>
+
+        {/* Section Boutons d'action */}
+        <div className="space-y-2">
+          <label className="text-xs font-medium text-gray-700">🔘 Textes des boutons</label>
+          <div className="grid grid-cols-2 gap-2">
+            <input
+              type="text"
+              value={previewProps.cancelText}
+              onChange={(e) => setPreviewProps({ ...previewProps, cancelText: e.target.value })}
+              placeholder="Texte bouton Annuler"
+              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent"
+            />
+            <input
+              type="text"
+              value={previewProps.confirmText}
+              onChange={(e) => setPreviewProps({ ...previewProps, confirmText: e.target.value })}
+              placeholder="Texte bouton Confirmer"
+              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Aperçu Visuel - Colonne Droite */}
+      <div>
+        <div className="flex h-6 items-center justify-between gap-2 mb-2">
+          <span className="pl-2 text-sm font-medium text-gray-600">Aperçu Visuel</span>
+          <Button
+            size="sm"
+            onClick={() => setIsModalOpen(true)}
+            className="bg-thai-orange hover:bg-thai-orange/90 text-white"
+          >
+            🎬 Ouvrir Modal Réel
+          </Button>
+        </div>
+        <div className="relative mx-auto flex h-[600px] w-full max-w-sm flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl">
+          <div className="absolute top-2 right-2 z-10 rounded bg-black/50 px-2 py-1 text-xs text-white">
+            Mode Aperçu
+          </div>
+          <ModalVideoContent
+            onOpenChange={() => console.log("Close requested")}
+            title={previewProps.title}
+            description={previewProps.description}
+            media={previewProps.media}
+            aspectRatio={previewProps.aspectRatio}
+            polaroid={previewProps.polaroid}
+            scrollingText={previewProps.scrollingText}
+            scrollDuration={previewProps.scrollDuration}
+            loopCount={previewProps.loopCount}
+            cancelText={previewProps.cancelText}
+            confirmText={previewProps.confirmText}
+            standalone={true}
+          />
+        </div>
+      </div>
+
+      {/* Modal Réel (avec backdrop et rotation) */}
+      <ModalVideo
+        isOpen={isModalOpen}
+        onOpenChange={setIsModalOpen}
+        title={previewProps.title}
+        description={previewProps.description}
+        media={previewProps.media}
+        aspectRatio={previewProps.aspectRatio}
+        polaroid={previewProps.polaroid}
+        scrollingText={previewProps.scrollingText}
+        scrollDuration={previewProps.scrollDuration}
+        loopCount={previewProps.loopCount}
+        cancelText={previewProps.cancelText}
+        confirmText={previewProps.confirmText}
+        onCancel={() => console.log("Annulé !")}
+        onConfirm={() => console.log("Confirmé !")}
+      />
+    </div>
+  )
+}
 
 export default function ModalsTestPage() {
   const { plats, isLoading } = useData()
-  const [open, setOpen] = useState(false)
 
   const NumberBadge = ({ number }: { number: number }) => (
     <span className="bg-thai-orange mb-1 inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold text-white shadow-sm">
@@ -450,6 +693,78 @@ export default function ModalsTestPage() {
               ) : null}
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Section 4: Modal Vidéo */}
+      <Card className="border-thai-orange/20">
+        <CardHeader className="flex flex-row items-start justify-between space-y-0">
+          <div>
+            <CardTitle className="text-thai-green">4. Modal Vidéo</CardTitle>
+            <CardDescription className="mt-1.5">
+              Modal personnalisé avec support vidéo/image et propriétés configurables
+              <br />
+              <code className="text-xs text-gray-500">components\ui\ModalVideo.tsx</code>
+            </CardDescription>
+          </div>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-2">
+                <Info className="h-4 w-4" />
+                Props
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Propriétés de ModalVideo</DialogTitle>
+                <DialogDescription>Documentation des propriétés du composant.</DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <ul className="list-disc space-y-2 pl-5 text-sm text-gray-600">
+                  <li>
+                    <strong>title</strong> (string): Titre du modal
+                  </li>
+                  <li>
+                    <strong>description</strong> (string | ReactNode): Texte explicatif
+                  </li>
+                  <li>
+                    <strong>media</strong> (string): URL .mp4, .webm, .gif, .jpg, .png, .svg
+                  </li>
+                  <li>
+                    <strong>aspectRatio</strong> ("16:9" | "4:5" | "1:1"): Format de l'image/vidéo
+                  </li>
+                  <li>
+                    <strong>polaroid</strong> (boolean): Style Polaroid avec bordure verte
+                  </li>
+                  <li>
+                    <strong>scrollingText</strong> (boolean): Active animation marquee
+                  </li>
+                  <li>
+                    <strong>scrollDuration</strong> (number): Durée scroll en secondes
+                  </li>
+                  <li>
+                    <strong>loopCount</strong> (number): 0 = infini, 1 = une fois, n = n fois
+                  </li>
+                  <li>
+                    <strong>cancelText</strong> (string): Texte bouton Annuler (défaut: "Annuler")
+                  </li>
+                  <li>
+                    <strong>confirmText</strong> (string): Texte bouton Confirmer (défaut: "Confirmer")
+                  </li>
+                  <li>
+                    <strong>onCancel</strong> (function): Callback bouton Annuler
+                  </li>
+                  <li>
+                    <strong>onConfirm</strong> (function): Callback bouton Confirmer
+                  </li>
+                </ul>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </CardHeader>
+        <CardContent>
+          {/* Playground avec Aperçu Visuel + Contrôles Interactifs */}
+          <ModalVideoPlayground />
         </CardContent>
       </Card>
     </div>
