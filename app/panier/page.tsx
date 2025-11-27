@@ -275,8 +275,8 @@ export default function PanierPage() {
   }
 
   return (
-    <div className="bg-gradient-thai min-h-screen px-2 py-8">
-      <div className="container mx-auto max-w-6xl">
+    <div className="bg-gradient-thai min-h-screen px-0 py-4 sm:px-2 sm:py-8">
+      <div className="w-full sm:container sm:mx-auto sm:max-w-6xl">
         {!currentUser || !clientFirebaseUID ? (
           <Alert className="mb-6 border-blue-200 bg-blue-50 text-blue-800">
             <AlertCircle className="h-4 w-4" />
@@ -291,10 +291,10 @@ export default function PanierPage() {
         ) : null}
 
         <Card
-          className="border-thai-orange/20 shadow-xl"
+          className="border-thai-orange/20 min-h-screen rounded-xl border-x-0 border-t-0 border-b-0 shadow-none sm:min-h-fit sm:rounded-lg sm:border sm:shadow-xl"
           style={{ position: "relative", zIndex: 1 }}
         >
-          <CardHeader className="from-thai-orange to-thai-gold relative rounded-t-lg bg-gradient-to-r py-8 text-white">
+          <CardHeader className="from-thai-orange to-thai-gold relative rounded-t-xl bg-gradient-to-r py-4 text-white sm:rounded-t-lg sm:py-8">
             <div className="flex items-center justify-center gap-2">
               <ShoppingCart className="h-7 w-7" />
               <CardTitle className="text-2xl font-bold">Mon Panier</CardTitle>
@@ -311,7 +311,7 @@ export default function PanierPage() {
             </div>
           </CardHeader>
 
-          <CardContent className="p-6 md:p-8" style={{ position: "relative", zIndex: 1 }}>
+          <CardContent className="p-3 sm:p-6 md:p-8" style={{ position: "relative", zIndex: 1 }}>
             {panier.length === 0 ? (
               <div className="py-12 text-center">
                 <ShoppingCart className="text-thai-orange/30 mx-auto mb-4 h-16 w-16" />
