@@ -1269,89 +1269,11 @@ export default function CardsTestPage() {
         </div>
       </div>
 
-      {/* Section 1: Cards Simples */}
-      <Card className="border-thai-orange/20">
-        <CardHeader>
-          <CardTitle className="text-thai-green">1. Cards de Base</CardTitle>
-          <CardDescription>
-            Structures simples pour afficher du texte ou des informations
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {/* Simple Card */}
-            <div className="flex flex-col gap-1">
-              <NumberBadge number={1} />
-              <Card>
-                <CardHeader>
-                  <CardTitle>Titre de la carte</CardTitle>
-                  <CardDescription>Description courte de la carte</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p>
-                    Contenu principal de la carte. Peut contenir du texte, des images ou d'autres
-                    composants.
-                  </p>
-                </CardContent>
-                <CardFooter>
-                  <p className="text-sm text-gray-500">Pied de page de la carte</p>
-                </CardFooter>
-              </Card>
-            </div>
-
-            {/* Bordered Card */}
-            <div className="flex flex-col gap-1">
-              <NumberBadge number={2} />
-              <Card className="border-thai-green/50 bg-thai-cream/10">
-                <CardHeader>
-                  <CardTitle className="text-thai-green">Carte Stylisée</CardTitle>
-                  <CardDescription>Avec bordure verte et fond crème léger</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p>Utilisée pour mettre en avant du contenu spécifique ou thématique.</p>
-                </CardContent>
-                <CardFooter>
-                  <Button
-                    variant="outline"
-                    className="border-thai-green text-thai-green hover:bg-thai-green/10 w-full"
-                  >
-                    Action
-                  </Button>
-                </CardFooter>
-              </Card>
-            </div>
-
-            {/* Gradient Card */}
-            <div className="flex flex-col gap-1">
-              <NumberBadge number={3} />
-              <Card className="from-thai-orange to-thai-gold border-none bg-gradient-to-br text-white">
-                <CardHeader>
-                  <CardTitle className="text-white">Carte Gradient</CardTitle>
-                  <CardDescription className="text-white/80">
-                    Pour les appels à l'action
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p>
-                    Ce style attire l'attention de l'utilisateur sur une offre ou une information
-                    importante.
-                  </p>
-                </CardContent>
-                <CardFooter>
-                  <Button variant="secondary" className="w-full">
-                    En savoir plus
-                  </Button>
-                </CardFooter>
-              </Card>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
       {/* Section 2: Cards Produit (Composant ProductCard) */}
       <Card className="border-thai-orange/20">
         <CardHeader className="flex flex-row items-start justify-between space-y-0">
           <div>
-            <CardTitle className="text-thai-green">2. Cards Produit (ProductCard)</CardTitle>
+            <CardTitle className="text-thai-green">1. ProductCard</CardTitle>
             <CardDescription className="mt-1.5">
               Composant <code>&lt;ProductCard /&gt;</code> (Données réelles via useData)
               <br />
@@ -1446,7 +1368,7 @@ export default function CardsTestPage() {
       <Card className="border-thai-orange/20">
         <CardHeader className="flex flex-row items-start justify-between space-y-0">
           <div>
-            <CardTitle className="text-thai-green">2.5. Cards Panier (CartItemCard)</CardTitle>
+            <CardTitle className="text-thai-green">2. CartItemCard</CardTitle>
             <CardDescription className="mt-1.5">
               Composant <code>&lt;CartItemCard /&gt;</code> (Design validé page Panier)
               <br />
@@ -1524,74 +1446,11 @@ export default function CardsTestPage() {
         </CardContent>
       </Card>
 
-      {/* Section 3: Cards Dashboard (StatCard) */}
-      <Card className="border-thai-orange/20">
-        <CardHeader>
-          <CardTitle className="text-thai-green">3. Cards Dashboard (StatCard)</CardTitle>
-          <CardDescription>
-            Composant <code>&lt;StatCard /&gt;</code> standardisé
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {/* Stat Card 1 */}
-            <div className="flex flex-col gap-1">
-              <NumberBadge number={7} />
-              <StatCard
-                title="Revenu Total"
-                value="45,231.89 €"
-                icon={DollarSign}
-                trend="+20.1%"
-                trendUp={true}
-                description="par rapport au mois dernier"
-              />
-            </div>
-
-            {/* Stat Card 2 */}
-            <div className="flex flex-col gap-1">
-              <NumberBadge number={8} />
-              <StatCard
-                title="Commandes"
-                value="+2350"
-                icon={ShoppingCart}
-                description="+180 depuis la dernière heure"
-              />
-            </div>
-
-            {/* Stat Card 3 */}
-            <div className="flex flex-col gap-1">
-              <NumberBadge number={9} />
-              <StatCard
-                title="Clients Actifs"
-                value="+12,234"
-                icon={Users}
-                trend="+19%"
-                trendUp={true}
-                description="de nouveaux clients"
-              />
-            </div>
-
-            {/* Stat Card 4 */}
-            <div className="flex flex-col gap-1">
-              <NumberBadge number={10} />
-              <StatCard
-                title="Taux de Conversion"
-                value="5.4%"
-                icon={TrendingUp}
-                trend="+2.1%"
-                trendUp={true}
-                description="cette semaine"
-              />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Section 4: Composants Spéciaux - Playground PolaroidPhoto */}
       <Card className="border-thai-orange/20">
         <CardHeader className="flex flex-row items-start justify-between space-y-0">
           <div>
-            <CardTitle className="text-thai-green">4. Composants Spéciaux</CardTitle>
+            <CardTitle className="text-thai-green">3. PolaroidPhoto</CardTitle>
             <CardDescription className="mt-1.5">
               Composants visuels uniques comme l'effet Polaroid
               <br />
