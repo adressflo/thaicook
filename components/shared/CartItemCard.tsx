@@ -35,6 +35,7 @@ interface CartItemCardProps {
   imageZoom?: number
   imageWidth?: number
   imageHeight?: number
+  desktopImageWidth?: string
 }
 
 export function CartItemCard({
@@ -57,6 +58,7 @@ export function CartItemCard({
   imageZoom = 1,
   imageWidth,
   imageHeight,
+  desktopImageWidth = "w-24",
 }: CartItemCardProps) {
   const [imageError, setImageError] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -110,7 +112,7 @@ export function CartItemCard({
             <div
               className={cn(
                 "relative overflow-hidden rounded-t-lg sm:rounded-lg",
-                !imageWidth && "w-full sm:w-24",
+                !imageWidth && `w-full sm:${desktopImageWidth}`,
                 !imageHeight && aspectRatioClass
               )}
               style={{

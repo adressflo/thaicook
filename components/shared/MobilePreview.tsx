@@ -124,8 +124,12 @@ export function MobilePreview({
   const [_popupWindow, setPopupWindow] = useState<Window | null>(null)
 
   // State interne pour la largeur si pas de callback externe
-  const [internalMobileWidth, setInternalMobileWidth] = useState(customMobileWidth || mobileSizes[mobileSize])
-  const [internalTabletWidth, setInternalTabletWidth] = useState(customTabletWidth || tabletSizes[tabletSize])
+  const [internalMobileWidth, setInternalMobileWidth] = useState(
+    customMobileWidth || mobileSizes[mobileSize]
+  )
+  const [internalTabletWidth, setInternalTabletWidth] = useState(
+    customTabletWidth || tabletSizes[tabletSize]
+  )
 
   // Utiliser les valeurs contrôlées ou internes
   const mobileWidth = customMobileWidth ?? internalMobileWidth
@@ -184,9 +188,11 @@ export function MobilePreview({
   }
 
   return (
-    <div className={cn("relative w-full rounded-lg border border-dashed bg-gray-50 p-4", className)}>
+    <div
+      className={cn("relative w-full rounded-lg border border-dashed bg-blue-50 p-4", className)}
+    >
       {/* Header avec titre et toggle */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <p className="text-sm font-medium text-gray-500">{title}</p>
           {/* Bouton Détacher */}
@@ -195,7 +201,7 @@ export function MobilePreview({
               size="sm"
               variant="outline"
               onClick={openPreviewPopup}
-              className="h-6 px-2 text-xs border-thai-orange/50 text-thai-orange hover:bg-thai-orange hover:text-white"
+              className="border-thai-orange/50 text-thai-orange hover:bg-thai-orange h-6 px-2 text-xs hover:text-white"
               title="Ouvrir dans une fenêtre séparée"
             >
               🔗 Détacher
@@ -252,12 +258,12 @@ export function MobilePreview({
         {showSizeControls && isDevice && (
           <div className="flex flex-col items-center gap-2 py-2">
             {/* Valeur en haut */}
-            <span className="text-xs font-bold text-thai-green whitespace-nowrap">
+            <span className="text-thai-green text-xs font-bold whitespace-nowrap">
               {currentWidth}px
             </span>
 
             {/* Slider vertical */}
-            <div className="relative flex-1 flex items-center justify-center min-h-[200px]">
+            <div className="relative flex min-h-[200px] flex-1 items-center justify-center">
               <input
                 type="range"
                 min={mode === "mobile" ? 240 : 480}
@@ -271,7 +277,7 @@ export function MobilePreview({
                     handleTabletWidthChange(width)
                   }
                 }}
-                className="h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-thai-green"
+                className="accent-thai-green h-2 cursor-pointer appearance-none rounded-lg bg-gray-200"
                 style={{
                   writingMode: "vertical-lr",
                   direction: "rtl",
@@ -412,61 +418,59 @@ export function MobilePreview({
         )}
 
         {/* Container de prévisualisation */}
-      <div
-        className={cn(
-          "mx-auto transition-all duration-300",
-          isDevice && [
-            "border-[3px] rounded-[1.5rem] p-1.5 shadow-lg",
-            colors.border,
-            colors.bg,
-          ],
-          !isDevice && "w-full"
-        )}
-        style={isDevice ? { maxWidth: `${currentWidth}px` } : undefined}
-      >
-        {/* Encoche (notch) - uniquement mobile */}
-        {mode === "mobile" && showNotch && (
-          <div className="flex justify-center mb-1">
-            <div className={cn("w-16 h-3 rounded-b-lg relative", colors.notch)}>
+        <div
+          className={cn(
+            "mx-auto transition-all duration-300",
+            isDevice && ["rounded-[1.5rem] border-[3px] p-1.5 shadow-lg", colors.border, colors.bg],
+            !isDevice && "w-full"
+          )}
+          style={isDevice ? { maxWidth: `${currentWidth}px` } : undefined}
+        >
+          {/* Encoche (notch) - uniquement mobile */}
+          {mode === "mobile" && showNotch && (
+            <div className="mb-1 flex justify-center">
+              <div className={cn("relative h-3 w-16 rounded-b-lg", colors.notch)}>
+                <div
+                  className={cn(
+                    "absolute top-0.5 left-1/2 h-2 w-8 -translate-x-1/2 rounded-full",
+                    colors.notchInner
+                  )}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Barre supérieure tablette (caméra) */}
+          {mode === "tablet" && showNotch && (
+            <div className="mb-1 flex justify-center">
+              <div className={cn("h-2 w-2 rounded-full", colors.notchInner)} />
+            </div>
+          )}
+
+          {/* Contenu */}
+          <div
+            className={cn(
+              "bg-white",
+              isDevice && "min-h-[200px] overflow-hidden rounded-2xl",
+              contentClassName
+            )}
+          >
+            {displayContent}
+          </div>
+
+          {/* Barre home */}
+          {isDevice && showHomeBar && (
+            <div className="mt-2 flex justify-center">
               <div
                 className={cn(
-                  "absolute top-0.5 left-1/2 -translate-x-1/2 w-8 h-2 rounded-full",
-                  colors.notchInner
+                  "h-1 rounded-full",
+                  colors.homeBar,
+                  mode === "mobile" ? "w-32" : "w-40"
                 )}
               />
             </div>
-          </div>
-        )}
-
-        {/* Barre supérieure tablette (caméra) */}
-        {mode === "tablet" && showNotch && (
-          <div className="flex justify-center mb-1">
-            <div className={cn("w-2 h-2 rounded-full", colors.notchInner)} />
-          </div>
-        )}
-
-        {/* Contenu */}
-        <div
-          className={cn(
-            "bg-white",
-            isDevice && "rounded-2xl overflow-hidden min-h-[200px]",
-            contentClassName
           )}
-        >
-          {displayContent}
         </div>
-
-        {/* Barre home */}
-        {isDevice && showHomeBar && (
-          <div className="flex justify-center mt-2">
-            <div className={cn(
-              "h-1 rounded-full",
-              colors.homeBar,
-              mode === "mobile" ? "w-32" : "w-40"
-            )} />
-          </div>
-        )}
-      </div>
       </div>
     </div>
   )

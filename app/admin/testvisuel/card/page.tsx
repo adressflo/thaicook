@@ -923,6 +923,7 @@ function CartItemCardPlayground() {
     imageWidth: number | undefined
     imageHeight: number | undefined
     useCustomDimensions: boolean
+    desktopImageWidth: string
   }>({
     quantity: 2,
     isVegetarian: false,
@@ -932,9 +933,10 @@ function CartItemCardPlayground() {
     imageObjectPosition: "center",
     imageZoom: 1,
     showSpiceSelector: false,
-    imageWidth: 96,
-    imageHeight: 96,
+    imageWidth: undefined,
+    imageHeight: undefined,
     useCustomDimensions: false,
+    desktopImageWidth: "w-24",
   })
 
   // Sélectionner "Oeuf Vapeur Thaï" par défaut quand les plats sont chargés
@@ -1408,6 +1410,29 @@ function CartItemCardPlayground() {
               </div>
             </div>
           )}
+        </div>
+
+        {/* Section Largeur Desktop */}
+        <div className="space-y-2">
+          <label className="text-xs font-medium text-gray-700">🖥️ Largeur Desktop (sm:)</label>
+          <div className="flex flex-wrap gap-2">
+            {["w-16", "w-20", "w-24", "w-32", "w-40", "w-48"].map((width) => (
+              <Button
+                key={width}
+                size="sm"
+                variant={props.desktopImageWidth === width ? "default" : "outline"}
+                onClick={() => setProps({ ...props, desktopImageWidth: width })}
+                className={
+                  props.desktopImageWidth === width
+                    ? "bg-thai-orange hover:bg-thai-orange/90"
+                    : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
+                }
+                disabled={props.useCustomDimensions}
+              >
+                {width}
+              </Button>
+            ))}
+          </div>
         </div>
 
         {/* Section Position image */}
