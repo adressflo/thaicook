@@ -59,7 +59,7 @@ export function CartItemCard({
   imageZoom = 1,
   imageWidth,
   imageHeight,
-  desktopImageWidth = "w-24",
+  desktopImageWidth = "w-22",
   customImageObjectPosition,
 }: CartItemCardProps) {
   const [imageError, setImageError] = useState(false)
@@ -68,6 +68,11 @@ export function CartItemCard({
   useEffect(() => {
     setImageError(false)
   }, [imageUrl])
+
+  // Utiliser la position personnalisée par défaut (20% 50%) si aucune position n'est spécifiée
+  // et que la position standard est "center" (valeur par défaut)
+  const effectiveCustomPosition =
+    customImageObjectPosition ?? (imageObjectPosition === "center" ? "20% 50%" : undefined)
 
   const formatPrix = (prix: number): string => {
     if (prix % 1 === 0) {
@@ -143,12 +148,12 @@ export function CartItemCard({
                   onError={() => setImageError(true)}
                   style={{
                     transform: `scale(${imageZoom})`,
-                    objectPosition: customImageObjectPosition,
+                    objectPosition: effectiveCustomPosition,
                   }}
                   className={cn(
                     "cursor-pointer transition-opacity duration-200 hover:opacity-80",
                     objectFitClass,
-                    !customImageObjectPosition && objectPositionClass,
+                    !effectiveCustomPosition && objectPositionClass,
                     imageClassName
                   )}
                 />

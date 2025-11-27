@@ -132,7 +132,9 @@ function ToasterPlayground() {
       }
     }
     if (props.borderWidth !== 2) {
-      lines.push(`  borderWidth: ${props.borderWidth === "custom" ? `"custom"` : props.borderWidth},`)
+      lines.push(
+        `  borderWidth: ${props.borderWidth === "custom" ? `"custom"` : props.borderWidth},`
+      )
       if (props.borderWidth === "custom") {
         lines.push(`  customBorderWidth: ${props.customBorderWidth},`)
       }
@@ -140,9 +142,12 @@ function ToasterPlayground() {
     if (props.shadowSize !== "lg") lines.push(`  shadowSize: "${props.shadowSize}",`)
     if (props.maxWidth !== "lg") lines.push(`  maxWidth: "${props.maxWidth}",`)
     if (props.titleColor !== "thai-green") lines.push(`  titleColor: "${props.titleColor}",`)
-    if (props.titleFontWeight !== "bold") lines.push(`  titleFontWeight: "${props.titleFontWeight}",`)
-    if (props.descriptionColor !== "thai-green") lines.push(`  descriptionColor: "${props.descriptionColor}",`)
-    if (props.descriptionFontWeight !== "semibold") lines.push(`  descriptionFontWeight: "${props.descriptionFontWeight}",`)
+    if (props.titleFontWeight !== "bold")
+      lines.push(`  titleFontWeight: "${props.titleFontWeight}",`)
+    if (props.descriptionColor !== "thai-green")
+      lines.push(`  descriptionColor: "${props.descriptionColor}",`)
+    if (props.descriptionFontWeight !== "semibold")
+      lines.push(`  descriptionFontWeight: "${props.descriptionFontWeight}",`)
     if (props.animateBorder) lines.push(`  animateBorder: true,`)
     if (props.hoverScale) lines.push(`  hoverScale: true,`)
     if (props.redirectUrl) {
@@ -158,29 +163,77 @@ function ToasterPlayground() {
       await navigator.clipboard.writeText(generateCode())
       toast({ title: "Code copie !", description: "Le code a ete copie dans le presse-papier" })
     } catch {
-      toast({ title: "Erreur", description: "Impossible de copier le code", variant: "destructive" })
+      toast({
+        title: "Erreur",
+        description: "Impossible de copier le code",
+        variant: "destructive",
+      })
     }
   }
 
   return (
     <div className="space-y-4">
-      <div className="space-y-4 rounded-lg border border-thai-orange/20 bg-white p-6 shadow-sm">
+      <div className="border-thai-orange/20 space-y-4 rounded-lg border bg-white p-6 shadow-sm">
         <div className="flex items-center justify-between">
-          <h4 className="font-semibold text-lg text-thai-green flex items-center gap-2">
+          <h4 className="text-thai-green flex items-center gap-2 text-lg font-semibold">
             Controles Interactifs - Toaster
           </h4>
           <div className="flex gap-2">
             <Button
               variant="outline"
+              onClick={() => {
+                const params = new URLSearchParams()
+                params.set("component", "Toaster")
+                params.set("title", props.title)
+                params.set("description", props.description)
+                params.set("variant", props.variant)
+                params.set("tilted", props.tilted.toString())
+                params.set("tiltedAngle", props.tiltedAngle.toString())
+                params.set("duration", props.duration.toString())
+                params.set("borderColor", props.borderColor)
+                params.set("customBorderColor", props.customBorderColor)
+                params.set("borderWidth", props.borderWidth.toString())
+                params.set("customBorderWidth", props.customBorderWidth.toString())
+                params.set("shadowSize", props.shadowSize)
+                params.set("maxWidth", props.maxWidth)
+                params.set("titleColor", props.titleColor)
+                params.set("titleFontWeight", props.titleFontWeight)
+                params.set("descriptionColor", props.descriptionColor)
+                params.set("descriptionFontWeight", props.descriptionFontWeight)
+                params.set("animateBorder", props.animateBorder.toString())
+                params.set("hoverScale", props.hoverScale.toString())
+                params.set("position", props.position)
+                params.set("customX", props.customX)
+                params.set("customY", props.customY)
+                params.set("redirectUrl", props.redirectUrl)
+                params.set("redirectBehavior", props.redirectBehavior)
+
+                const channel = new BroadcastChannel("preview_channel")
+                channel.postMessage({
+                  type: "UPDATE_PROPS",
+                  payload: {
+                    component: "Toaster",
+                    ...props,
+                  },
+                })
+
+                window.open(`/preview?${params.toString()}`, "_blank", "width=500,height=600")
+              }}
+              className="border-blue-500 text-blue-500 transition-all duration-200 hover:bg-blue-500 hover:text-white"
+            >
+              Visualisation
+            </Button>
+            <Button
+              variant="outline"
               onClick={handleCopyCode}
-              className="border-thai-green text-thai-green hover:bg-thai-green hover:text-white transition-all duration-200"
+              className="border-thai-green text-thai-green hover:bg-thai-green transition-all duration-200 hover:text-white"
             >
               Copier le Code
             </Button>
             <Button
               size="lg"
               onClick={handleShowToast}
-              className="bg-thai-orange hover:bg-thai-orange/90 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+              className="bg-thai-orange hover:bg-thai-orange/90 text-white shadow-lg transition-all duration-200 hover:shadow-xl"
             >
               Afficher Toast
             </Button>
@@ -196,17 +249,19 @@ function ToasterPlayground() {
               value={props.title}
               onChange={(e) => setProps({ ...props, title: e.target.value })}
               placeholder="Titre du toast"
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent"
+              className="focus:ring-thai-orange w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:outline-none"
             />
             <textarea
               value={props.description}
               onChange={(e) => setProps({ ...props, description: e.target.value })}
               placeholder="Description du toast"
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent resize-none"
+              className="focus:ring-thai-orange w-full resize-none rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:outline-none"
               rows={2}
             />
             <p className="text-xs text-gray-500 italic">
-              Balises disponibles : &lt;orange&gt;, &lt;green&gt;, &lt;white&gt;, &lt;gold&gt;, &lt;black&gt;, &lt;bold&gt;, &lt;semi-bold&gt;, &lt;italic&gt;, &lt;underline&gt;, &lt;small&gt;
+              Balises disponibles : &lt;orange&gt;, &lt;green&gt;, &lt;white&gt;, &lt;gold&gt;,
+              &lt;black&gt;, &lt;bold&gt;, &lt;semi-bold&gt;, &lt;italic&gt;, &lt;underline&gt;,
+              &lt;small&gt;
             </p>
           </div>
         </div>
@@ -214,43 +269,49 @@ function ToasterPlayground() {
         {/* Section Variant */}
         <div className="space-y-2">
           <label className="text-xs font-medium text-gray-700">Variant</label>
-          <div className="flex gap-2 flex-wrap">
-            {(["default", "destructive", "polaroid", "success", "warning", "info"] as const).map((v) => (
-              <Button
-                key={v}
-                size="sm"
-                variant={props.variant === v ? "default" : "outline"}
-                onClick={() => setProps({ ...props, variant: v })}
-                className={props.variant === v
-                  ? "bg-thai-orange hover:bg-thai-orange/90"
-                  : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"}
-              >
-                {v}
-              </Button>
-            ))}
+          <div className="flex flex-wrap gap-2">
+            {(["default", "destructive", "polaroid", "success", "warning", "info"] as const).map(
+              (v) => (
+                <Button
+                  key={v}
+                  size="sm"
+                  variant={props.variant === v ? "default" : "outline"}
+                  onClick={() => setProps({ ...props, variant: v })}
+                  className={
+                    props.variant === v
+                      ? "bg-thai-orange hover:bg-thai-orange/90"
+                      : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
+                  }
+                >
+                  {v}
+                </Button>
+              )
+            )}
           </div>
         </div>
 
         {/* Section Position */}
         <div className="space-y-2">
           <label className="text-xs font-medium text-gray-700">Position du toast</label>
-          <div className="flex gap-2 flex-wrap">
-            {([
+          <div className="flex flex-wrap gap-2">
+            {[
               { label: "Bas droite", value: "bottom-right" as const },
               { label: "Bas gauche", value: "bottom-left" as const },
               { label: "Haut droite", value: "top-right" as const },
               { label: "Haut gauche", value: "top-left" as const },
               { label: "Centre", value: "center" as const },
               { label: "Custom", value: "custom" as const },
-            ]).map((pos) => (
+            ].map((pos) => (
               <Button
                 key={pos.value}
                 size="sm"
                 variant={props.position === pos.value ? "default" : "outline"}
                 onClick={() => setProps({ ...props, position: pos.value })}
-                className={props.position === pos.value
-                  ? "bg-thai-orange hover:bg-thai-orange/90"
-                  : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"}
+                className={
+                  props.position === pos.value
+                    ? "bg-thai-orange hover:bg-thai-orange/90"
+                    : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
+                }
               >
                 {pos.label}
               </Button>
@@ -265,7 +326,7 @@ function ToasterPlayground() {
                   value={props.customX}
                   onChange={(e) => setProps({ ...props, customX: e.target.value })}
                   placeholder="ex: 50%, 100px, 10vw"
-                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent"
+                  className="focus:ring-thai-orange w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:outline-none"
                 />
               </div>
               <div className="space-y-1">
@@ -275,7 +336,7 @@ function ToasterPlayground() {
                   value={props.customY}
                   onChange={(e) => setProps({ ...props, customY: e.target.value })}
                   placeholder="ex: 50%, 100px, 10vh"
-                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent"
+                  className="focus:ring-thai-orange w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:outline-none"
                 />
               </div>
             </div>
@@ -285,8 +346,8 @@ function ToasterPlayground() {
         {/* Section Couleur Bordure */}
         <div className="space-y-2">
           <label className="text-xs font-medium text-gray-700">Couleur bordure</label>
-          <div className="flex gap-2 flex-wrap">
-            {([
+          <div className="flex flex-wrap gap-2">
+            {[
               { label: "Orange", value: "thai-orange" as const },
               { label: "Vert", value: "thai-green" as const },
               { label: "Rouge", value: "red" as const },
@@ -294,15 +355,17 @@ function ToasterPlayground() {
               { label: "Jaune", value: "yellow" as const },
               { label: "Violet", value: "purple" as const },
               { label: "Custom", value: "custom" as const },
-            ]).map((color) => (
+            ].map((color) => (
               <Button
                 key={color.value}
                 size="sm"
                 variant={props.borderColor === color.value ? "default" : "outline"}
                 onClick={() => setProps({ ...props, borderColor: color.value })}
-                className={props.borderColor === color.value
-                  ? "bg-thai-orange hover:bg-thai-orange/90"
-                  : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"}
+                className={
+                  props.borderColor === color.value
+                    ? "bg-thai-orange hover:bg-thai-orange/90"
+                    : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
+                }
               >
                 {color.label}
               </Button>
@@ -314,7 +377,7 @@ function ToasterPlayground() {
               value={props.customBorderColor}
               onChange={(e) => setProps({ ...props, customBorderColor: e.target.value })}
               placeholder="ex: border-purple-500"
-              className="w-full mt-2 px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent"
+              className="focus:ring-thai-orange mt-2 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:outline-none"
             />
           )}
         </div>
@@ -329,9 +392,11 @@ function ToasterPlayground() {
                 size="sm"
                 variant={props.borderWidth === w ? "default" : "outline"}
                 onClick={() => setProps({ ...props, borderWidth: w })}
-                className={props.borderWidth === w
-                  ? "bg-thai-orange hover:bg-thai-orange/90"
-                  : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"}
+                className={
+                  props.borderWidth === w
+                    ? "bg-thai-orange hover:bg-thai-orange/90"
+                    : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
+                }
               >
                 {w === "custom" ? "Custom" : `${w}px`}
               </Button>
@@ -344,7 +409,7 @@ function ToasterPlayground() {
               onChange={(e) => setProps({ ...props, customBorderWidth: Number(e.target.value) })}
               min={1}
               max={20}
-              className="w-full mt-2 px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent"
+              className="focus:ring-thai-orange mt-2 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:outline-none"
             />
           )}
         </div>
@@ -352,16 +417,18 @@ function ToasterPlayground() {
         {/* Section Ombre */}
         <div className="space-y-2">
           <label className="text-xs font-medium text-gray-700">Ombre</label>
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex flex-wrap gap-2">
             {(["none", "sm", "md", "lg", "xl", "2xl"] as const).map((s) => (
               <Button
                 key={s}
                 size="sm"
                 variant={props.shadowSize === s ? "default" : "outline"}
                 onClick={() => setProps({ ...props, shadowSize: s })}
-                className={props.shadowSize === s
-                  ? "bg-thai-orange hover:bg-thai-orange/90"
-                  : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"}
+                className={
+                  props.shadowSize === s
+                    ? "bg-thai-orange hover:bg-thai-orange/90"
+                    : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
+                }
               >
                 {s}
               </Button>
@@ -379,9 +446,11 @@ function ToasterPlayground() {
                 size="sm"
                 variant={props.maxWidth === w ? "default" : "outline"}
                 onClick={() => setProps({ ...props, maxWidth: w })}
-                className={props.maxWidth === w
-                  ? "bg-thai-orange hover:bg-thai-orange/90"
-                  : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"}
+                className={
+                  props.maxWidth === w
+                    ? "bg-thai-orange hover:bg-thai-orange/90"
+                    : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
+                }
               >
                 {w}
               </Button>
@@ -392,35 +461,41 @@ function ToasterPlayground() {
         {/* Section Couleurs Texte */}
         <div className="space-y-2">
           <label className="text-xs font-medium text-gray-700">Couleur du titre</label>
-          <div className="flex gap-2 flex-wrap">
-            {(["thai-green", "thai-orange", "white", "black", "thai-gold", "inherit"] as const).map((c) => (
-              <Button
-                key={c}
-                size="sm"
-                variant={props.titleColor === c ? "default" : "outline"}
-                onClick={() => setProps({ ...props, titleColor: c })}
-                className={props.titleColor === c
-                  ? "bg-thai-orange hover:bg-thai-orange/90"
-                  : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"}
-              >
-                {c}
-              </Button>
-            ))}
+          <div className="flex flex-wrap gap-2">
+            {(["thai-green", "thai-orange", "white", "black", "thai-gold", "inherit"] as const).map(
+              (c) => (
+                <Button
+                  key={c}
+                  size="sm"
+                  variant={props.titleColor === c ? "default" : "outline"}
+                  onClick={() => setProps({ ...props, titleColor: c })}
+                  className={
+                    props.titleColor === c
+                      ? "bg-thai-orange hover:bg-thai-orange/90"
+                      : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
+                  }
+                >
+                  {c}
+                </Button>
+              )
+            )}
           </div>
         </div>
 
         <div className="space-y-2">
           <label className="text-xs font-medium text-gray-700">Poids du titre</label>
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex flex-wrap gap-2">
             {(["normal", "medium", "semibold", "bold", "extrabold"] as const).map((w) => (
               <Button
                 key={w}
                 size="sm"
                 variant={props.titleFontWeight === w ? "default" : "outline"}
                 onClick={() => setProps({ ...props, titleFontWeight: w })}
-                className={props.titleFontWeight === w
-                  ? "bg-thai-orange hover:bg-thai-orange/90"
-                  : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"}
+                className={
+                  props.titleFontWeight === w
+                    ? "bg-thai-orange hover:bg-thai-orange/90"
+                    : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
+                }
               >
                 {w}
               </Button>
@@ -430,16 +505,18 @@ function ToasterPlayground() {
 
         <div className="space-y-2">
           <label className="text-xs font-medium text-gray-700">Couleur de la description</label>
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex flex-wrap gap-2">
             {(["thai-green", "thai-orange", "gray", "black", "inherit"] as const).map((c) => (
               <Button
                 key={c}
                 size="sm"
                 variant={props.descriptionColor === c ? "default" : "outline"}
                 onClick={() => setProps({ ...props, descriptionColor: c })}
-                className={props.descriptionColor === c
-                  ? "bg-thai-orange hover:bg-thai-orange/90"
-                  : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"}
+                className={
+                  props.descriptionColor === c
+                    ? "bg-thai-orange hover:bg-thai-orange/90"
+                    : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
+                }
               >
                 {c}
               </Button>
@@ -449,16 +526,18 @@ function ToasterPlayground() {
 
         <div className="space-y-2">
           <label className="text-xs font-medium text-gray-700">Poids de la description</label>
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex flex-wrap gap-2">
             {(["normal", "medium", "semibold", "bold", "extrabold"] as const).map((w) => (
               <Button
                 key={w}
                 size="sm"
                 variant={props.descriptionFontWeight === w ? "default" : "outline"}
                 onClick={() => setProps({ ...props, descriptionFontWeight: w })}
-                className={props.descriptionFontWeight === w
-                  ? "bg-thai-orange hover:bg-thai-orange/90"
-                  : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"}
+                className={
+                  props.descriptionFontWeight === w
+                    ? "bg-thai-orange hover:bg-thai-orange/90"
+                    : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
+                }
               >
                 {w}
               </Button>
@@ -470,44 +549,44 @@ function ToasterPlayground() {
         <div className="space-y-2">
           <label className="text-xs font-medium text-gray-700">Animations & Effets</label>
           <div className="space-y-2">
-            <label className="flex items-center gap-2 cursor-pointer">
+            <label className="flex cursor-pointer items-center gap-2">
               <input
                 type="checkbox"
                 checked={props.tilted}
                 onChange={(e) => setProps({ ...props, tilted: e.target.checked })}
-                className="w-4 h-4 text-thai-orange border-gray-300 rounded focus:ring-thai-orange focus:ring-2"
+                className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
               />
               <span className="text-sm text-gray-700">Inclinaison (tilted)</span>
             </label>
             {props.tilted && (
-              <div className="flex items-center gap-2 ml-6">
+              <div className="ml-6 flex items-center gap-2">
                 <label className="text-xs text-gray-600">Angle:</label>
                 <input
                   type="number"
                   value={props.tiltedAngle}
                   onChange={(e) => setProps({ ...props, tiltedAngle: Number(e.target.value) })}
-                  className="w-20 px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange"
+                  className="focus:ring-thai-orange w-20 rounded-md border border-gray-300 px-2 py-1 text-sm focus:ring-2 focus:outline-none"
                   min="-15"
                   max="15"
                 />
                 <span className="text-xs text-gray-600">deg</span>
               </div>
             )}
-            <label className="flex items-center gap-2 cursor-pointer">
+            <label className="flex cursor-pointer items-center gap-2">
               <input
                 type="checkbox"
                 checked={props.animateBorder}
                 onChange={(e) => setProps({ ...props, animateBorder: e.target.checked })}
-                className="w-4 h-4 text-thai-orange border-gray-300 rounded focus:ring-thai-orange focus:ring-2"
+                className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
               />
               <span className="text-sm text-gray-700">Animation bordure (moving-border)</span>
             </label>
-            <label className="flex items-center gap-2 cursor-pointer">
+            <label className="flex cursor-pointer items-center gap-2">
               <input
                 type="checkbox"
                 checked={props.hoverScale}
                 onChange={(e) => setProps({ ...props, hoverScale: e.target.checked })}
-                className="w-4 h-4 text-thai-orange border-gray-300 rounded focus:ring-thai-orange focus:ring-2"
+                className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
               />
               <span className="text-sm text-gray-700">Effet scale au hover</span>
             </label>
@@ -527,7 +606,7 @@ function ToasterPlayground() {
               onChange={(e) => setProps({ ...props, duration: Number(e.target.value) })}
               className="flex-1"
             />
-            <span className="text-sm text-gray-600 w-16">{props.duration}ms</span>
+            <span className="w-16 text-sm text-gray-600">{props.duration}ms</span>
           </div>
         </div>
 
@@ -539,15 +618,19 @@ function ToasterPlayground() {
             value={props.redirectUrl}
             onChange={(e) => setProps({ ...props, redirectUrl: e.target.value })}
             placeholder="/commander"
-            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent"
+            className="focus:ring-thai-orange w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:outline-none"
           />
           {props.redirectUrl && (
-            <div className="flex gap-2 mt-2">
-              {([
+            <div className="mt-2 flex gap-2">
+              {[
                 { label: "Auto", value: "auto" as const, desc: "Redirige a la fermeture" },
-                { label: "Nouvel onglet", value: "new-tab" as const, desc: "Ouvre dans un nouvel onglet" },
+                {
+                  label: "Nouvel onglet",
+                  value: "new-tab" as const,
+                  desc: "Ouvre dans un nouvel onglet",
+                },
                 { label: "Bouton", value: "button" as const, desc: "Affiche un bouton 'Voir'" },
-              ]).map((behavior) => (
+              ].map((behavior) => (
                 <Button
                   key={behavior.value}
                   size="sm"
@@ -694,7 +777,9 @@ function ToasterVideoPlayground() {
       }
     }
     if (props.borderWidth !== 2) {
-      lines.push(`  borderWidth: ${props.borderWidth === "custom" ? `"custom"` : props.borderWidth},`)
+      lines.push(
+        `  borderWidth: ${props.borderWidth === "custom" ? `"custom"` : props.borderWidth},`
+      )
       if (props.borderWidth === "custom") {
         lines.push(`  customBorderWidth: ${props.customBorderWidth},`)
       }
@@ -702,7 +787,8 @@ function ToasterVideoPlayground() {
     if (props.shadowSize !== "2xl") lines.push(`  shadowSize: "${props.shadowSize}",`)
     if (props.maxWidth !== "md") lines.push(`  maxWidth: "${props.maxWidth}",`)
     if (props.titleColor !== "thai-green") lines.push(`  titleColor: "${props.titleColor}",`)
-    if (props.descriptionColor !== "thai-green") lines.push(`  descriptionColor: "${props.descriptionColor}",`)
+    if (props.descriptionColor !== "thai-green")
+      lines.push(`  descriptionColor: "${props.descriptionColor}",`)
     if (props.animateBorder) lines.push(`  animateBorder: true,`)
     if (props.hoverScale) lines.push(`  hoverScale: true,`)
     // Lecture video
@@ -728,29 +814,80 @@ function ToasterVideoPlayground() {
       await navigator.clipboard.writeText(generateCode())
       toast({ title: "Code copie !", description: "Le code a ete copie dans le presse-papier" })
     } catch {
-      toast({ title: "Erreur", description: "Impossible de copier le code", variant: "destructive" })
+      toast({
+        title: "Erreur",
+        description: "Impossible de copier le code",
+        variant: "destructive",
+      })
     }
   }
 
   return (
     <div className="space-y-4">
-      <div className="space-y-4 rounded-lg border border-thai-orange/20 bg-white p-6 shadow-sm">
+      <div className="border-thai-orange/20 space-y-4 rounded-lg border bg-white p-6 shadow-sm">
         <div className="flex items-center justify-between">
-          <h4 className="font-semibold text-lg text-thai-green flex items-center gap-2">
+          <h4 className="text-thai-green flex items-center gap-2 text-lg font-semibold">
             Controles Interactifs - ToasterVideo
           </h4>
           <div className="flex gap-2">
             <Button
               variant="outline"
+              onClick={() => {
+                const params = new URLSearchParams()
+                params.set("component", "ToasterVideo")
+                params.set("title", props.title)
+                params.set("description", props.description)
+                params.set("media", props.media)
+                params.set("position", props.position)
+                params.set("customX", props.customX)
+                params.set("customY", props.customY)
+                params.set("aspectRatio", props.aspectRatio || "")
+                params.set("polaroid", props.polaroid.toString())
+                params.set("scrollingText", props.scrollingText.toString())
+                params.set("scrollDuration", props.scrollDuration.toString())
+                params.set("borderColor", props.borderColor)
+                params.set("customBorderColor", props.customBorderColor)
+                params.set("borderWidth", props.borderWidth.toString())
+                params.set("customBorderWidth", props.customBorderWidth.toString())
+                params.set("shadowSize", props.shadowSize)
+                params.set("maxWidth", props.maxWidth)
+                params.set("titleColor", props.titleColor)
+                params.set("descriptionColor", props.descriptionColor)
+                params.set("animateBorder", props.animateBorder.toString())
+                params.set("hoverScale", props.hoverScale.toString())
+                params.set("playCount", props.playCount.toString())
+                params.set("customPlayCount", props.customPlayCount.toString())
+                params.set("customDuration", props.customDuration.toString())
+                params.set("redirectUrl", props.redirectUrl)
+                params.set("redirectBehavior", props.redirectBehavior)
+                params.set("showCloseButton", props.showCloseButton.toString())
+
+                const channel = new BroadcastChannel("preview_channel")
+                channel.postMessage({
+                  type: "UPDATE_PROPS",
+                  payload: {
+                    component: "ToasterVideo",
+                    ...props,
+                  },
+                })
+
+                window.open(`/preview?${params.toString()}`, "_blank", "width=500,height=600")
+              }}
+              className="border-blue-500 text-blue-500 transition-all duration-200 hover:bg-blue-500 hover:text-white"
+            >
+              Visualisation
+            </Button>
+            <Button
+              variant="outline"
               onClick={handleCopyCode}
-              className="border-thai-green text-thai-green hover:bg-thai-green hover:text-white transition-all duration-200"
+              className="border-thai-green text-thai-green hover:bg-thai-green transition-all duration-200 hover:text-white"
             >
               Copier le Code
             </Button>
             <Button
               size="lg"
               onClick={handleShowToast}
-              className="bg-thai-orange hover:bg-thai-orange/90 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+              className="bg-thai-orange hover:bg-thai-orange/90 text-white shadow-lg transition-all duration-200 hover:shadow-xl"
             >
               Afficher Toast Video
             </Button>
@@ -766,13 +903,13 @@ function ToasterVideoPlayground() {
               value={props.title}
               onChange={(e) => setProps({ ...props, title: e.target.value })}
               placeholder="Titre du toast"
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent"
+              className="focus:ring-thai-orange w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:outline-none"
             />
             <textarea
               value={props.description}
               onChange={(e) => setProps({ ...props, description: e.target.value })}
               placeholder="Description du toast"
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent resize-none"
+              className="focus:ring-thai-orange w-full resize-none rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:outline-none"
               rows={2}
             />
             <input
@@ -780,35 +917,39 @@ function ToasterVideoPlayground() {
               value={props.media}
               onChange={(e) => {
                 let path = e.target.value
-                path = path.replace(/^public[\/\\]/, '/')
-                if (path && !path.startsWith('/')) {
-                  path = '/' + path
+                path = path.replace(/^public[\/\\]/, "/")
+                if (path && !path.startsWith("/")) {
+                  path = "/" + path
                 }
                 setProps({ ...props, media: path })
               }}
               placeholder="/media/animations/toasts/ajoutpaniernote.mp4"
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent"
+              className="focus:ring-thai-orange w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:outline-none"
             />
             <div className="flex gap-2">
               <Button
                 size="sm"
                 variant="outline"
                 onClick={() => setProps({ ...props, media: "/media/avatars/default.svg" })}
-                className="flex-1 border-thai-green/30 text-thai-green hover:bg-thai-green/10"
+                className="border-thai-green/30 text-thai-green hover:bg-thai-green/10 flex-1"
               >
                 Image SVG
               </Button>
               <Button
                 size="sm"
                 variant="outline"
-                onClick={() => setProps({ ...props, media: "/media/animations/toasts/ajoutpaniernote.mp4" })}
-                className="flex-1 border-thai-orange/30 text-thai-orange hover:bg-thai-orange/10"
+                onClick={() =>
+                  setProps({ ...props, media: "/media/animations/toasts/ajoutpaniernote.mp4" })
+                }
+                className="border-thai-orange/30 text-thai-orange hover:bg-thai-orange/10 flex-1"
               >
                 Video MP4
               </Button>
             </div>
             <p className="text-xs text-gray-500 italic">
-              Balises disponibles : &lt;orange&gt;, &lt;green&gt;, &lt;white&gt;, &lt;gold&gt;, &lt;black&gt;, &lt;bold&gt;, &lt;semi-bold&gt;, &lt;italic&gt;, &lt;underline&gt;, &lt;small&gt;
+              Balises disponibles : &lt;orange&gt;, &lt;green&gt;, &lt;white&gt;, &lt;gold&gt;,
+              &lt;black&gt;, &lt;bold&gt;, &lt;semi-bold&gt;, &lt;italic&gt;, &lt;underline&gt;,
+              &lt;small&gt;
             </p>
           </div>
         </div>
@@ -816,23 +957,25 @@ function ToasterVideoPlayground() {
         {/* Section Position */}
         <div className="space-y-2">
           <label className="text-xs font-medium text-gray-700">Position du toast</label>
-          <div className="flex gap-2 flex-wrap">
-            {([
+          <div className="flex flex-wrap gap-2">
+            {[
               { label: "Bas droite", value: "bottom-right" as const },
               { label: "Bas gauche", value: "bottom-left" as const },
               { label: "Haut droite", value: "top-right" as const },
               { label: "Haut gauche", value: "top-left" as const },
               { label: "Centre", value: "center" as const },
               { label: "Custom", value: "custom" as const },
-            ]).map((pos) => (
+            ].map((pos) => (
               <Button
                 key={pos.value}
                 size="sm"
                 variant={props.position === pos.value ? "default" : "outline"}
                 onClick={() => setProps({ ...props, position: pos.value })}
-                className={props.position === pos.value
-                  ? "bg-thai-orange hover:bg-thai-orange/90"
-                  : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"}
+                className={
+                  props.position === pos.value
+                    ? "bg-thai-orange hover:bg-thai-orange/90"
+                    : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
+                }
               >
                 {pos.label}
               </Button>
@@ -847,7 +990,7 @@ function ToasterVideoPlayground() {
                   value={props.customX}
                   onChange={(e) => setProps({ ...props, customX: e.target.value })}
                   placeholder="ex: 50%, 100px, 10vw"
-                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent"
+                  className="focus:ring-thai-orange w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:outline-none"
                 />
               </div>
               <div className="space-y-1">
@@ -857,7 +1000,7 @@ function ToasterVideoPlayground() {
                   value={props.customY}
                   onChange={(e) => setProps({ ...props, customY: e.target.value })}
                   placeholder="ex: 50%, 100px, 10vh"
-                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent"
+                  className="focus:ring-thai-orange w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:outline-none"
                 />
               </div>
             </div>
@@ -874,9 +1017,11 @@ function ToasterVideoPlayground() {
                 size="sm"
                 variant={props.aspectRatio === ratio ? "default" : "outline"}
                 onClick={() => setProps({ ...props, aspectRatio: ratio })}
-                className={props.aspectRatio === ratio
-                  ? "bg-thai-orange hover:bg-thai-orange/90"
-                  : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"}
+                className={
+                  props.aspectRatio === ratio
+                    ? "bg-thai-orange hover:bg-thai-orange/90"
+                    : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
+                }
               >
                 {ratio}
               </Button>
@@ -885,9 +1030,11 @@ function ToasterVideoPlayground() {
               size="sm"
               variant={!props.aspectRatio ? "default" : "outline"}
               onClick={() => setProps({ ...props, aspectRatio: undefined })}
-              className={!props.aspectRatio
-                ? "bg-thai-orange hover:bg-thai-orange/90"
-                : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"}
+              className={
+                !props.aspectRatio
+                  ? "bg-thai-orange hover:bg-thai-orange/90"
+                  : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
+              }
             >
               Auto
             </Button>
@@ -897,8 +1044,8 @@ function ToasterVideoPlayground() {
         {/* Section Couleur Bordure */}
         <div className="space-y-2">
           <label className="text-xs font-medium text-gray-700">Couleur bordure</label>
-          <div className="flex gap-2 flex-wrap">
-            {([
+          <div className="flex flex-wrap gap-2">
+            {[
               { label: "Orange", value: "thai-orange" as const },
               { label: "Vert", value: "thai-green" as const },
               { label: "Rouge", value: "red" as const },
@@ -906,15 +1053,17 @@ function ToasterVideoPlayground() {
               { label: "Jaune", value: "yellow" as const },
               { label: "Violet", value: "purple" as const },
               { label: "Custom", value: "custom" as const },
-            ]).map((color) => (
+            ].map((color) => (
               <Button
                 key={color.value}
                 size="sm"
                 variant={props.borderColor === color.value ? "default" : "outline"}
                 onClick={() => setProps({ ...props, borderColor: color.value })}
-                className={props.borderColor === color.value
-                  ? "bg-thai-orange hover:bg-thai-orange/90"
-                  : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"}
+                className={
+                  props.borderColor === color.value
+                    ? "bg-thai-orange hover:bg-thai-orange/90"
+                    : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
+                }
               >
                 {color.label}
               </Button>
@@ -926,7 +1075,7 @@ function ToasterVideoPlayground() {
               value={props.customBorderColor}
               onChange={(e) => setProps({ ...props, customBorderColor: e.target.value })}
               placeholder="ex: border-purple-500"
-              className="w-full mt-2 px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent"
+              className="focus:ring-thai-orange mt-2 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:outline-none"
             />
           )}
         </div>
@@ -941,9 +1090,11 @@ function ToasterVideoPlayground() {
                 size="sm"
                 variant={props.borderWidth === w ? "default" : "outline"}
                 onClick={() => setProps({ ...props, borderWidth: w })}
-                className={props.borderWidth === w
-                  ? "bg-thai-orange hover:bg-thai-orange/90"
-                  : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"}
+                className={
+                  props.borderWidth === w
+                    ? "bg-thai-orange hover:bg-thai-orange/90"
+                    : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
+                }
               >
                 {w === "custom" ? "Custom" : `${w}px`}
               </Button>
@@ -956,7 +1107,7 @@ function ToasterVideoPlayground() {
               onChange={(e) => setProps({ ...props, customBorderWidth: Number(e.target.value) })}
               min={1}
               max={20}
-              className="w-full mt-2 px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent"
+              className="focus:ring-thai-orange mt-2 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:outline-none"
             />
           )}
         </div>
@@ -964,16 +1115,18 @@ function ToasterVideoPlayground() {
         {/* Section Ombre */}
         <div className="space-y-2">
           <label className="text-xs font-medium text-gray-700">Ombre</label>
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex flex-wrap gap-2">
             {(["none", "sm", "md", "lg", "xl", "2xl"] as const).map((s) => (
               <Button
                 key={s}
                 size="sm"
                 variant={props.shadowSize === s ? "default" : "outline"}
                 onClick={() => setProps({ ...props, shadowSize: s })}
-                className={props.shadowSize === s
-                  ? "bg-thai-orange hover:bg-thai-orange/90"
-                  : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"}
+                className={
+                  props.shadowSize === s
+                    ? "bg-thai-orange hover:bg-thai-orange/90"
+                    : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
+                }
               >
                 {s}
               </Button>
@@ -991,9 +1144,11 @@ function ToasterVideoPlayground() {
                 size="sm"
                 variant={props.maxWidth === w ? "default" : "outline"}
                 onClick={() => setProps({ ...props, maxWidth: w })}
-                className={props.maxWidth === w
-                  ? "bg-thai-orange hover:bg-thai-orange/90"
-                  : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"}
+                className={
+                  props.maxWidth === w
+                    ? "bg-thai-orange hover:bg-thai-orange/90"
+                    : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
+                }
               >
                 {w}
               </Button>
@@ -1004,35 +1159,41 @@ function ToasterVideoPlayground() {
         {/* Section Couleurs Texte */}
         <div className="space-y-2">
           <label className="text-xs font-medium text-gray-700">Couleur du titre</label>
-          <div className="flex gap-2 flex-wrap">
-            {(["thai-green", "thai-orange", "white", "black", "thai-gold", "inherit"] as const).map((c) => (
-              <Button
-                key={c}
-                size="sm"
-                variant={props.titleColor === c ? "default" : "outline"}
-                onClick={() => setProps({ ...props, titleColor: c })}
-                className={props.titleColor === c
-                  ? "bg-thai-orange hover:bg-thai-orange/90"
-                  : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"}
-              >
-                {c}
-              </Button>
-            ))}
+          <div className="flex flex-wrap gap-2">
+            {(["thai-green", "thai-orange", "white", "black", "thai-gold", "inherit"] as const).map(
+              (c) => (
+                <Button
+                  key={c}
+                  size="sm"
+                  variant={props.titleColor === c ? "default" : "outline"}
+                  onClick={() => setProps({ ...props, titleColor: c })}
+                  className={
+                    props.titleColor === c
+                      ? "bg-thai-orange hover:bg-thai-orange/90"
+                      : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
+                  }
+                >
+                  {c}
+                </Button>
+              )
+            )}
           </div>
         </div>
 
         <div className="space-y-2">
           <label className="text-xs font-medium text-gray-700">Couleur de la description</label>
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex flex-wrap gap-2">
             {(["thai-green", "thai-orange", "gray", "black", "inherit"] as const).map((c) => (
               <Button
                 key={c}
                 size="sm"
                 variant={props.descriptionColor === c ? "default" : "outline"}
                 onClick={() => setProps({ ...props, descriptionColor: c })}
-                className={props.descriptionColor === c
-                  ? "bg-thai-orange hover:bg-thai-orange/90"
-                  : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"}
+                className={
+                  props.descriptionColor === c
+                    ? "bg-thai-orange hover:bg-thai-orange/90"
+                    : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
+                }
               >
                 {c}
               </Button>
@@ -1044,62 +1205,62 @@ function ToasterVideoPlayground() {
         <div className="space-y-2">
           <label className="text-xs font-medium text-gray-700">Style & Animation</label>
           <div className="space-y-2">
-            <label className="flex items-center gap-2 cursor-pointer">
+            <label className="flex cursor-pointer items-center gap-2">
               <input
                 type="checkbox"
                 checked={props.polaroid}
                 onChange={(e) => setProps({ ...props, polaroid: e.target.checked })}
-                className="w-4 h-4 text-thai-orange border-gray-300 rounded focus:ring-thai-orange focus:ring-2"
+                className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
               />
               <span className="text-sm text-gray-700">Style Polaroid</span>
             </label>
-            <label className="flex items-center gap-2 cursor-pointer">
+            <label className="flex cursor-pointer items-center gap-2">
               <input
                 type="checkbox"
                 checked={props.scrollingText}
                 onChange={(e) => setProps({ ...props, scrollingText: e.target.checked })}
-                className="w-4 h-4 text-thai-orange border-gray-300 rounded focus:ring-thai-orange focus:ring-2"
+                className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
               />
               <span className="text-sm text-gray-700">Texte defilant (marquee)</span>
             </label>
             {props.scrollingText && (
-              <div className="flex items-center gap-2 ml-6">
+              <div className="ml-6 flex items-center gap-2">
                 <label className="text-xs text-gray-600">Duree:</label>
                 <input
                   type="number"
                   value={props.scrollDuration}
                   onChange={(e) => setProps({ ...props, scrollDuration: Number(e.target.value) })}
-                  className="w-16 px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange"
+                  className="focus:ring-thai-orange w-16 rounded-md border border-gray-300 px-2 py-1 text-sm focus:ring-2 focus:outline-none"
                   min="1"
                   max="60"
                 />
                 <span className="text-xs text-gray-600">secondes</span>
               </div>
             )}
-            <label className="flex items-center gap-2 cursor-pointer">
+            <label className="flex cursor-pointer items-center gap-2">
               <input
                 type="checkbox"
                 checked={props.animateBorder}
                 onChange={(e) => setProps({ ...props, animateBorder: e.target.checked })}
-                className="w-4 h-4 text-thai-orange border-gray-300 rounded focus:ring-thai-orange focus:ring-2"
+                className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
               />
               <span className="text-sm text-gray-700">Animation bordure (moving-border)</span>
             </label>
-            <label className="flex items-center gap-2 cursor-pointer">
+            <label className="flex cursor-pointer items-center gap-2">
               <input
                 type="checkbox"
                 checked={props.hoverScale}
                 onChange={(e) => setProps({ ...props, hoverScale: e.target.checked })}
-                className="w-4 h-4 text-thai-orange border-gray-300 rounded focus:ring-thai-orange focus:ring-2"
+                className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
               />
               <span className="text-sm text-gray-700">Effet scale au hover</span>
             </label>
-            <label className="flex items-center gap-2 cursor-pointer">
+            <label className="flex cursor-pointer items-center gap-2">
               <input
                 type="checkbox"
                 checked={props.showCloseButton}
                 onChange={(e) => setProps({ ...props, showCloseButton: e.target.checked })}
-                className="w-4 h-4 text-thai-orange border-gray-300 rounded focus:ring-thai-orange focus:ring-2"
+                className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
               />
               <span className="text-sm text-gray-700">Afficher bouton fermeture (X)</span>
             </label>
@@ -1108,34 +1269,38 @@ function ToasterVideoPlayground() {
 
         {/* Section Lecture Video (playCount) */}
         <div className="space-y-2">
-          <label className="text-xs font-medium text-gray-700">Fermeture video (nombre de lectures)</label>
+          <label className="text-xs font-medium text-gray-700">
+            Fermeture video (nombre de lectures)
+          </label>
           <div className="flex gap-2">
-            {([
+            {[
               { label: "×1", value: 1 as const },
               { label: "×2", value: 2 as const },
               { label: "Custom", value: "custom" as const },
-            ]).map((option) => (
+            ].map((option) => (
               <Button
                 key={String(option.value)}
                 size="sm"
                 variant={props.playCount === option.value ? "default" : "outline"}
                 onClick={() => setProps({ ...props, playCount: option.value })}
-                className={props.playCount === option.value
-                  ? "bg-thai-orange hover:bg-thai-orange/90"
-                  : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"}
+                className={
+                  props.playCount === option.value
+                    ? "bg-thai-orange hover:bg-thai-orange/90"
+                    : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
+                }
               >
                 {option.label}
               </Button>
             ))}
           </div>
           {props.playCount === "custom" && (
-            <div className="flex items-center gap-2 mt-2">
+            <div className="mt-2 flex items-center gap-2">
               <label className="text-xs text-gray-600">Nombre de lectures:</label>
               <input
                 type="number"
                 value={props.customPlayCount}
                 onChange={(e) => setProps({ ...props, customPlayCount: Number(e.target.value) })}
-                className="w-16 px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange"
+                className="focus:ring-thai-orange w-16 rounded-md border border-gray-300 px-2 py-1 text-sm focus:ring-2 focus:outline-none"
                 min="1"
                 max="10"
               />
@@ -1145,14 +1310,16 @@ function ToasterVideoPlayground() {
 
         {/* Section Duree personnalisee */}
         <div className="space-y-2">
-          <label className="text-xs font-medium text-gray-700">Duree personnalisee (override - images ET videos)</label>
+          <label className="text-xs font-medium text-gray-700">
+            Duree personnalisee (override - images ET videos)
+          </label>
           <div className="flex items-center gap-2">
             <input
               type="number"
               value={props.customDuration}
               onChange={(e) => setProps({ ...props, customDuration: Number(e.target.value) })}
               placeholder="0"
-              className="w-20 px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent"
+              className="focus:ring-thai-orange w-20 rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:outline-none"
               min="0"
               max="60"
             />
@@ -1168,15 +1335,19 @@ function ToasterVideoPlayground() {
             value={props.redirectUrl}
             onChange={(e) => setProps({ ...props, redirectUrl: e.target.value })}
             placeholder="/commander"
-            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent"
+            className="focus:ring-thai-orange w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:outline-none"
           />
           {props.redirectUrl && (
-            <div className="flex gap-2 mt-2">
-              {([
+            <div className="mt-2 flex gap-2">
+              {[
                 { label: "Auto", value: "auto" as const, desc: "Redirige a la fermeture" },
-                { label: "Nouvel onglet", value: "new-tab" as const, desc: "Ouvre dans un nouvel onglet" },
+                {
+                  label: "Nouvel onglet",
+                  value: "new-tab" as const,
+                  desc: "Ouvre dans un nouvel onglet",
+                },
                 { label: "Bouton", value: "button" as const, desc: "Affiche un bouton 'Voir'" },
-              ]).map((behavior) => (
+              ].map((behavior) => (
                 <Button
                   key={behavior.value}
                   size="sm"
@@ -1220,9 +1391,7 @@ export default function ToastsPlaygroundPage() {
           <Badge variant="outline" className="border-thai-green text-thai-green">
             ToasterVideo
           </Badge>
-          <Badge className="bg-thai-green">
-            Playground Interactif
-          </Badge>
+          <Badge className="bg-thai-green">Playground Interactif</Badge>
         </div>
       </div>
 
@@ -1234,7 +1403,9 @@ export default function ToastsPlaygroundPage() {
             <CardDescription className="mt-1.5">
               Notifications textuelles avec style configurable
               <br />
-              <code className="text-xs text-gray-500">components/ui/toaster.tsx + hooks/use-toast.ts</code>
+              <code className="text-xs text-gray-500">
+                components/ui/toaster.tsx + hooks/use-toast.ts
+              </code>
             </CardDescription>
           </div>
           <Dialog>
@@ -1247,40 +1418,78 @@ export default function ToastsPlaygroundPage() {
             <DialogContent className="max-w-2xl">
               <DialogHeader>
                 <DialogTitle>Proprietes de toast()</DialogTitle>
-                <DialogDescription>Documentation complete des proprietes disponibles</DialogDescription>
+                <DialogDescription>
+                  Documentation complete des proprietes disponibles
+                </DialogDescription>
               </DialogHeader>
-              <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto">
+              <div className="grid max-h-[60vh] gap-4 overflow-y-auto py-4">
                 <div className="space-y-2">
-                  <h4 className="font-semibold text-thai-orange">Contenu</h4>
+                  <h4 className="text-thai-orange font-semibold">Contenu</h4>
                   <ul className="list-disc space-y-1 pl-5 text-sm text-gray-600">
-                    <li><strong>title</strong> (string): Titre du toast</li>
-                    <li><strong>description</strong> (string | ReactNode): Contenu</li>
-                    <li><strong>action</strong> (ToastAction): Bouton d'action optionnel</li>
+                    <li>
+                      <strong>title</strong> (string): Titre du toast
+                    </li>
+                    <li>
+                      <strong>description</strong> (string | ReactNode): Contenu
+                    </li>
+                    <li>
+                      <strong>action</strong> (ToastAction): Bouton d'action optionnel
+                    </li>
                   </ul>
                 </div>
                 <Separator />
                 <div className="space-y-2">
-                  <h4 className="font-semibold text-thai-orange">Style</h4>
+                  <h4 className="text-thai-orange font-semibold">Style</h4>
                   <ul className="list-disc space-y-1 pl-5 text-sm text-gray-600">
-                    <li><strong>variant</strong>: "default" | "destructive" | "polaroid" | "success" | "warning" | "info"</li>
-                    <li><strong>borderColor</strong>: "thai-orange" | "thai-green" | "red" | "blue" | "yellow" | "purple" | "custom"</li>
-                    <li><strong>customBorderColor</strong> (string): Classe Tailwind custom</li>
-                    <li><strong>borderWidth</strong>: 1 | 2 | 4 | "custom"</li>
-                    <li><strong>customBorderWidth</strong> (number): Epaisseur en px</li>
-                    <li><strong>shadowSize</strong>: "none" | "sm" | "md" | "lg" | "xl" | "2xl"</li>
-                    <li><strong>maxWidth</strong>: "xs" | "sm" | "md" | "lg" | "xl"</li>
-                    <li><strong>titleColor</strong>: "thai-green" | "thai-orange" | "white" | "black" | "thai-gold" | "inherit"</li>
-                    <li><strong>descriptionColor</strong>: "thai-green" | "thai-orange" | "gray" | "black" | "inherit"</li>
+                    <li>
+                      <strong>variant</strong>: "default" | "destructive" | "polaroid" | "success" |
+                      "warning" | "info"
+                    </li>
+                    <li>
+                      <strong>borderColor</strong>: "thai-orange" | "thai-green" | "red" | "blue" |
+                      "yellow" | "purple" | "custom"
+                    </li>
+                    <li>
+                      <strong>customBorderColor</strong> (string): Classe Tailwind custom
+                    </li>
+                    <li>
+                      <strong>borderWidth</strong>: 1 | 2 | 4 | "custom"
+                    </li>
+                    <li>
+                      <strong>customBorderWidth</strong> (number): Epaisseur en px
+                    </li>
+                    <li>
+                      <strong>shadowSize</strong>: "none" | "sm" | "md" | "lg" | "xl" | "2xl"
+                    </li>
+                    <li>
+                      <strong>maxWidth</strong>: "xs" | "sm" | "md" | "lg" | "xl"
+                    </li>
+                    <li>
+                      <strong>titleColor</strong>: "thai-green" | "thai-orange" | "white" | "black"
+                      | "thai-gold" | "inherit"
+                    </li>
+                    <li>
+                      <strong>descriptionColor</strong>: "thai-green" | "thai-orange" | "gray" |
+                      "black" | "inherit"
+                    </li>
                   </ul>
                 </div>
                 <Separator />
                 <div className="space-y-2">
-                  <h4 className="font-semibold text-thai-orange">Animation</h4>
+                  <h4 className="text-thai-orange font-semibold">Animation</h4>
                   <ul className="list-disc space-y-1 pl-5 text-sm text-gray-600">
-                    <li><strong>tilted</strong> (boolean | number): Inclinaison</li>
-                    <li><strong>animateBorder</strong> (boolean): Animation moving-border</li>
-                    <li><strong>hoverScale</strong> (boolean): Effet scale au hover</li>
-                    <li><strong>duration</strong> (number): Duree en ms (defaut: 5000)</li>
+                    <li>
+                      <strong>tilted</strong> (boolean | number): Inclinaison
+                    </li>
+                    <li>
+                      <strong>animateBorder</strong> (boolean): Animation moving-border
+                    </li>
+                    <li>
+                      <strong>hoverScale</strong> (boolean): Effet scale au hover
+                    </li>
+                    <li>
+                      <strong>duration</strong> (number): Duree en ms (defaut: 5000)
+                    </li>
                   </ul>
                 </div>
               </div>
@@ -1303,7 +1512,9 @@ export default function ToastsPlaygroundPage() {
             <CardDescription className="mt-1.5">
               Notifications avec media (image/video) et style avance
               <br />
-              <code className="text-xs text-gray-500">components/ui/toastervideo.tsx + hooks/use-toast-video.ts</code>
+              <code className="text-xs text-gray-500">
+                components/ui/toastervideo.tsx + hooks/use-toast-video.ts
+              </code>
             </CardDescription>
           </div>
           <Dialog>
@@ -1316,47 +1527,85 @@ export default function ToastsPlaygroundPage() {
             <DialogContent className="max-w-2xl">
               <DialogHeader>
                 <DialogTitle>Proprietes de toastVideo()</DialogTitle>
-                <DialogDescription>Documentation complete des proprietes disponibles</DialogDescription>
+                <DialogDescription>
+                  Documentation complete des proprietes disponibles
+                </DialogDescription>
               </DialogHeader>
-              <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto">
+              <div className="grid max-h-[60vh] gap-4 overflow-y-auto py-4">
                 <div className="space-y-2">
-                  <h4 className="font-semibold text-thai-orange">Contenu</h4>
+                  <h4 className="text-thai-orange font-semibold">Contenu</h4>
                   <ul className="list-disc space-y-1 pl-5 text-sm text-gray-600">
-                    <li><strong>title</strong> (string): Titre du toast</li>
-                    <li><strong>description</strong> (string | ReactNode): Contenu</li>
-                    <li><strong>media</strong> (string): URL de l'image ou video (.mp4, .webm, .gif, .jpg, .png, .svg)</li>
+                    <li>
+                      <strong>title</strong> (string): Titre du toast
+                    </li>
+                    <li>
+                      <strong>description</strong> (string | ReactNode): Contenu
+                    </li>
+                    <li>
+                      <strong>media</strong> (string): URL de l'image ou video (.mp4, .webm, .gif,
+                      .jpg, .png, .svg)
+                    </li>
                   </ul>
                 </div>
                 <Separator />
                 <div className="space-y-2">
-                  <h4 className="font-semibold text-thai-orange">Position & Format</h4>
+                  <h4 className="text-thai-orange font-semibold">Position & Format</h4>
                   <ul className="list-disc space-y-1 pl-5 text-sm text-gray-600">
-                    <li><strong>position</strong>: "bottom-right" | "center" | "bottom-left"</li>
-                    <li><strong>aspectRatio</strong>: "16:9" | "4:5" | "1:1"</li>
+                    <li>
+                      <strong>position</strong>: "bottom-right" | "center" | "bottom-left"
+                    </li>
+                    <li>
+                      <strong>aspectRatio</strong>: "16:9" | "4:5" | "1:1"
+                    </li>
                   </ul>
                 </div>
                 <Separator />
                 <div className="space-y-2">
-                  <h4 className="font-semibold text-thai-orange">Style</h4>
+                  <h4 className="text-thai-orange font-semibold">Style</h4>
                   <ul className="list-disc space-y-1 pl-5 text-sm text-gray-600">
-                    <li><strong>polaroid</strong> (boolean): Style Polaroid</li>
-                    <li><strong>borderColor</strong>: "thai-orange" | "thai-green" | "red" | "blue" | "yellow" | "purple" | "custom"</li>
-                    <li><strong>borderWidth</strong>: 1 | 2 | 4 | "custom"</li>
-                    <li><strong>shadowSize</strong>: "none" | "sm" | "md" | "lg" | "xl" | "2xl"</li>
-                    <li><strong>maxWidth</strong>: "xs" | "sm" | "md" | "lg" | "xl"</li>
-                    <li><strong>titleColor / descriptionColor</strong>: Couleurs du texte</li>
+                    <li>
+                      <strong>polaroid</strong> (boolean): Style Polaroid
+                    </li>
+                    <li>
+                      <strong>borderColor</strong>: "thai-orange" | "thai-green" | "red" | "blue" |
+                      "yellow" | "purple" | "custom"
+                    </li>
+                    <li>
+                      <strong>borderWidth</strong>: 1 | 2 | 4 | "custom"
+                    </li>
+                    <li>
+                      <strong>shadowSize</strong>: "none" | "sm" | "md" | "lg" | "xl" | "2xl"
+                    </li>
+                    <li>
+                      <strong>maxWidth</strong>: "xs" | "sm" | "md" | "lg" | "xl"
+                    </li>
+                    <li>
+                      <strong>titleColor / descriptionColor</strong>: Couleurs du texte
+                    </li>
                   </ul>
                 </div>
                 <Separator />
                 <div className="space-y-2">
-                  <h4 className="font-semibold text-thai-orange">Animation & Comportement</h4>
+                  <h4 className="text-thai-orange font-semibold">Animation & Comportement</h4>
                   <ul className="list-disc space-y-1 pl-5 text-sm text-gray-600">
-                    <li><strong>scrollingText</strong> (boolean): Texte defilant</li>
-                    <li><strong>scrollDuration</strong> (number): Duree du defilement en secondes</li>
-                    <li><strong>animateBorder</strong> (boolean): Animation moving-border</li>
-                    <li><strong>hoverScale</strong> (boolean): Effet scale au hover</li>
-                    <li><strong>loopVideo</strong> (boolean): Boucle video</li>
-                    <li><strong>showCloseButton</strong> (boolean): Afficher bouton X</li>
+                    <li>
+                      <strong>scrollingText</strong> (boolean): Texte defilant
+                    </li>
+                    <li>
+                      <strong>scrollDuration</strong> (number): Duree du defilement en secondes
+                    </li>
+                    <li>
+                      <strong>animateBorder</strong> (boolean): Animation moving-border
+                    </li>
+                    <li>
+                      <strong>hoverScale</strong> (boolean): Effet scale au hover
+                    </li>
+                    <li>
+                      <strong>loopVideo</strong> (boolean): Boucle video
+                    </li>
+                    <li>
+                      <strong>showCloseButton</strong> (boolean): Afficher bouton X
+                    </li>
                   </ul>
                 </div>
               </div>

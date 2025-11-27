@@ -10,6 +10,9 @@ import { Spice } from "@/components/shared/Spice"
 import { SmartSpice } from "@/components/shared/SmartSpice"
 import { cn } from "@/lib/utils"
 import { TrendingUp } from "lucide-react"
+import { toast } from "@/hooks/use-toast"
+import { toastVideo } from "@/hooks/use-toast-video"
+import { Button } from "@/components/ui/button"
 
 // Composant wrapper pour Suspense
 function RenderContent() {
@@ -68,6 +71,29 @@ function RenderContent() {
     customBorderWidth: parseInt(searchParams.get("customBorderWidth") || "3"),
     animateBorder: searchParams.get("animateBorder") === "true",
     hoverScale: searchParams.get("hoverScale") !== "false", // Default true
+    // Props spécifiques Toaster
+    variant: searchParams.get("variant") || "default",
+    tilted: searchParams.get("tilted") === "true",
+    tiltedAngle: parseInt(searchParams.get("tiltedAngle") || "-3"),
+    duration: parseInt(searchParams.get("duration") || "5000"),
+    shadowSize: searchParams.get("shadowSize") || "lg",
+    maxWidth: searchParams.get("maxWidth") || "lg",
+    titleFontWeight: searchParams.get("titleFontWeight") || "bold",
+    descriptionColor: searchParams.get("descriptionColor") || "thai-green",
+    descriptionFontWeight: searchParams.get("descriptionFontWeight") || "semibold",
+    redirectUrl: searchParams.get("redirectUrl") || "",
+    redirectBehavior: searchParams.get("redirectBehavior") || "auto",
+    // Props spécifiques ToasterVideo
+    media: searchParams.get("media") || "",
+    aspectRatio: searchParams.get("aspectRatio") || "16:9",
+    polaroid: searchParams.get("polaroid") === "true",
+    playCount:
+      searchParams.get("playCount") === "custom"
+        ? "custom"
+        : parseInt(searchParams.get("playCount") || "1"),
+    customPlayCount: parseInt(searchParams.get("customPlayCount") || "3"),
+    customDuration: parseInt(searchParams.get("customDuration") || "0"),
+    showCloseButton: searchParams.get("showCloseButton") !== "false",
   })
 
   // État local pour la distribution des épices
@@ -79,14 +105,145 @@ function RenderContent() {
 
     channel.onmessage = (event) => {
       if (event.data.type === "UPDATE_PROPS") {
-        setProps((prev: any) => ({ ...prev, ...event.data.payload }))
-        // Si le payload contient une distribution d'épices (à implémenter côté playground si nécessaire)
-        // Pour l'instant on garde l'état local ou on pourrait le synchroniser
+        setProps((prev: any) => {
+          const newProps = { ...prev, ...event.data.payload }
+
+          // Déclencher le toast automatiquement si on est sur le composant Toaster ou ToasterVideo
+          if (newProps.component === "Toaster") {
+            setTimeout(() => {
+              toast({
+                title: newProps.title,
+                description: newProps.description,
+                variant: newProps.variant,
+                tilted: newProps.tilted ? newProps.tiltedAngle : false,
+                duration: newProps.duration,
+                borderColor: newProps.borderColor === "custom" ? "custom" : newProps.borderColor,
+                customBorderColor:
+                  newProps.borderColor === "custom" ? newProps.customBorderColor : undefined,
+                borderWidth: newProps.borderWidth,
+                customBorderWidth:
+                  newProps.borderWidth === "custom" ? newProps.customBorderWidth : undefined,
+                shadowSize: newProps.shadowSize,
+                maxWidth: newProps.maxWidth,
+                titleColor: newProps.titleColor,
+                titleFontWeight: newProps.titleFontWeight,
+                descriptionColor: newProps.descriptionColor,
+                descriptionFontWeight: newProps.descriptionFontWeight,
+                animateBorder: newProps.animateBorder,
+                hoverScale: newProps.hoverScale,
+                position: newProps.position,
+                customX: newProps.position === "custom" ? newProps.customX : undefined,
+                customY: newProps.position === "custom" ? newProps.customY : undefined,
+                redirectUrl: newProps.redirectUrl || undefined,
+                redirectBehavior: newProps.redirectUrl ? newProps.redirectBehavior : undefined,
+              })
+            }, 100)
+          } else if (newProps.component === "ToasterVideo") {
+            setTimeout(() => {
+              toastVideo({
+                title: newProps.title,
+                description: newProps.description,
+                media: newProps.media,
+                position: newProps.position,
+                customX: newProps.position === "custom" ? newProps.customX : undefined,
+                customY: newProps.position === "custom" ? newProps.customY : undefined,
+                aspectRatio: newProps.aspectRatio,
+                polaroid: newProps.polaroid,
+                scrollingText: newProps.scrollingText,
+                scrollDuration: newProps.scrollDuration,
+                borderColor: newProps.borderColor === "custom" ? "custom" : newProps.borderColor,
+                customBorderColor:
+                  newProps.borderColor === "custom" ? newProps.customBorderColor : undefined,
+                borderWidth: newProps.borderWidth,
+                customBorderWidth:
+                  newProps.borderWidth === "custom" ? newProps.customBorderWidth : undefined,
+                shadowSize: newProps.shadowSize,
+                maxWidth: newProps.maxWidth,
+                titleColor: newProps.titleColor,
+                descriptionColor: newProps.descriptionColor,
+                animateBorder: newProps.animateBorder,
+                hoverScale: newProps.hoverScale,
+                playCount: newProps.playCount,
+                customPlayCount:
+                  newProps.playCount === "custom" ? newProps.customPlayCount : undefined,
+                customDuration: newProps.customDuration > 0 ? newProps.customDuration : undefined,
+                redirectUrl: newProps.redirectUrl || undefined,
+                redirectBehavior: newProps.redirectUrl ? newProps.redirectBehavior : undefined,
+                showCloseButton: newProps.showCloseButton,
+              })
+            }, 100)
+          }
+
+          return newProps
+        })
       }
     }
 
     return () => {
       channel.close()
+    }
+  }, [])
+
+  // Déclenchement initial au montage si c'est un toast
+  useEffect(() => {
+    if (props.component === "Toaster") {
+      setTimeout(() => {
+        toast({
+          title: props.title,
+          description: props.description,
+          variant: props.variant,
+          tilted: props.tilted ? props.tiltedAngle : false,
+          duration: props.duration,
+          borderColor: props.borderColor === "custom" ? "custom" : props.borderColor,
+          customBorderColor: props.borderColor === "custom" ? props.customBorderColor : undefined,
+          borderWidth: props.borderWidth,
+          customBorderWidth: props.borderWidth === "custom" ? props.customBorderWidth : undefined,
+          shadowSize: props.shadowSize,
+          maxWidth: props.maxWidth,
+          titleColor: props.titleColor,
+          titleFontWeight: props.titleFontWeight,
+          descriptionColor: props.descriptionColor,
+          descriptionFontWeight: props.descriptionFontWeight,
+          animateBorder: props.animateBorder,
+          hoverScale: props.hoverScale,
+          position: props.position,
+          customX: props.position === "custom" ? props.customX : undefined,
+          customY: props.position === "custom" ? props.customY : undefined,
+          redirectUrl: props.redirectUrl || undefined,
+          redirectBehavior: props.redirectUrl ? props.redirectBehavior : undefined,
+        })
+      }, 500)
+    } else if (props.component === "ToasterVideo") {
+      setTimeout(() => {
+        toastVideo({
+          title: props.title,
+          description: props.description,
+          media: props.media,
+          position: props.position,
+          customX: props.position === "custom" ? props.customX : undefined,
+          customY: props.position === "custom" ? props.customY : undefined,
+          aspectRatio: props.aspectRatio,
+          polaroid: props.polaroid,
+          scrollingText: props.scrollingText,
+          scrollDuration: props.scrollDuration,
+          borderColor: props.borderColor === "custom" ? "custom" : props.borderColor,
+          customBorderColor: props.borderColor === "custom" ? props.customBorderColor : undefined,
+          borderWidth: props.borderWidth,
+          customBorderWidth: props.borderWidth === "custom" ? props.customBorderWidth : undefined,
+          shadowSize: props.shadowSize,
+          maxWidth: props.maxWidth,
+          titleColor: props.titleColor,
+          descriptionColor: props.descriptionColor,
+          animateBorder: props.animateBorder,
+          hoverScale: props.hoverScale,
+          playCount: props.playCount,
+          customPlayCount: props.playCount === "custom" ? props.customPlayCount : undefined,
+          customDuration: props.customDuration > 0 ? props.customDuration : undefined,
+          redirectUrl: props.redirectUrl || undefined,
+          redirectBehavior: props.redirectUrl ? props.redirectBehavior : undefined,
+          showCloseButton: props.showCloseButton,
+        })
+      }, 500)
     }
   }, [])
 
@@ -167,6 +324,94 @@ function RenderContent() {
         return (
           <div className="max-w-sm p-4">
             <StatCard title={props.name} value={String(props.price)} icon={TrendingUp} />
+          </div>
+        )
+      case "Toaster":
+        return (
+          <div className="flex h-screen w-full flex-col items-center justify-center bg-gray-50 p-4">
+            <Button
+              size="lg"
+              onClick={() => {
+                toast({
+                  title: props.title,
+                  description: props.description,
+                  variant: props.variant,
+                  tilted: props.tilted ? props.tiltedAngle : false,
+                  duration: props.duration,
+                  borderColor: props.borderColor === "custom" ? "custom" : props.borderColor,
+                  customBorderColor:
+                    props.borderColor === "custom" ? props.customBorderColor : undefined,
+                  borderWidth: props.borderWidth,
+                  customBorderWidth:
+                    props.borderWidth === "custom" ? props.customBorderWidth : undefined,
+                  shadowSize: props.shadowSize,
+                  maxWidth: props.maxWidth,
+                  titleColor: props.titleColor,
+                  titleFontWeight: props.titleFontWeight,
+                  descriptionColor: props.descriptionColor,
+                  descriptionFontWeight: props.descriptionFontWeight,
+                  animateBorder: props.animateBorder,
+                  hoverScale: props.hoverScale,
+                  position: props.position,
+                  customX: props.position === "custom" ? props.customX : undefined,
+                  customY: props.position === "custom" ? props.customY : undefined,
+                  redirectUrl: props.redirectUrl || undefined,
+                  redirectBehavior: props.redirectUrl ? props.redirectBehavior : undefined,
+                })
+              }}
+              className="bg-thai-orange hover:bg-thai-orange/90 text-white shadow-lg transition-all duration-200 hover:shadow-xl"
+            >
+              Afficher le Toast
+            </Button>
+            <p className="mt-4 text-sm text-gray-500">
+              Le toast s'affiche automatiquement lors des modifications.
+            </p>
+          </div>
+        )
+      case "ToasterVideo":
+        return (
+          <div className="flex h-screen w-full flex-col items-center justify-center bg-gray-50 p-4">
+            <Button
+              size="lg"
+              onClick={() => {
+                toastVideo({
+                  title: props.title,
+                  description: props.description,
+                  media: props.media,
+                  position: props.position,
+                  customX: props.position === "custom" ? props.customX : undefined,
+                  customY: props.position === "custom" ? props.customY : undefined,
+                  aspectRatio: props.aspectRatio,
+                  polaroid: props.polaroid,
+                  scrollingText: props.scrollingText,
+                  scrollDuration: props.scrollDuration,
+                  borderColor: props.borderColor === "custom" ? "custom" : props.borderColor,
+                  customBorderColor:
+                    props.borderColor === "custom" ? props.customBorderColor : undefined,
+                  borderWidth: props.borderWidth,
+                  customBorderWidth:
+                    props.borderWidth === "custom" ? props.customBorderWidth : undefined,
+                  shadowSize: props.shadowSize,
+                  maxWidth: props.maxWidth,
+                  titleColor: props.titleColor,
+                  descriptionColor: props.descriptionColor,
+                  animateBorder: props.animateBorder,
+                  hoverScale: props.hoverScale,
+                  playCount: props.playCount,
+                  customPlayCount: props.playCount === "custom" ? props.customPlayCount : undefined,
+                  customDuration: props.customDuration > 0 ? props.customDuration : undefined,
+                  redirectUrl: props.redirectUrl || undefined,
+                  redirectBehavior: props.redirectUrl ? props.redirectBehavior : undefined,
+                  showCloseButton: props.showCloseButton,
+                })
+              }}
+              className="bg-thai-orange hover:bg-thai-orange/90 text-white shadow-lg transition-all duration-200 hover:shadow-xl"
+            >
+              Afficher le Toast Vidéo
+            </Button>
+            <p className="mt-4 text-sm text-gray-500">
+              Le toast s'affiche automatiquement lors des modifications.
+            </p>
           </div>
         )
       default:
