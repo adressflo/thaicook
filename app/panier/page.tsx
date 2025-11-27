@@ -304,8 +304,8 @@ export default function PanierPage() {
             <PolaroidPhoto
               src="/media/avatars/panier1.svg"
               alt="Avatar Chanthana"
-              caption="panier"
-              position="right"
+              title="panier"
+              position="bottom-right"
               size={128}
               rotation={3}
             />

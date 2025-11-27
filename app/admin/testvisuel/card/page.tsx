@@ -36,6 +36,529 @@ import { CartItemCard } from "@/components/shared/CartItemCard"
 import { SmartSpice } from "@/components/shared/SmartSpice"
 import { useData } from "@/contexts/DataContext"
 import { useState } from "react"
+import { toast } from "@/hooks/use-toast"
+
+// ============================================================================
+// PLAYGROUND POLAROID PHOTO
+// ============================================================================
+
+function PolaroidPhotoPlayground() {
+  const [props, setProps] = useState<{
+    src: string
+    alt: string
+    // Contenu (comme ModalVideo)
+    title: string
+    description: string
+    titleColor: "thai-green" | "thai-orange" | "white" | "black"
+    scrollingText: boolean
+    scrollDuration: number
+    // Position
+    position: "bottom-right" | "bottom-left" | "top-right" | "top-left" | "center" | "custom"
+    customX: string
+    customY: string
+    // Taille
+    size: "sm" | "md" | "lg" | "xl" | "custom"
+    customSize: number
+    rotation: number
+    aspectRatio: "16:9" | "4:5" | "1:1" | "auto"
+    // Bordure
+    borderColor: "thai-orange" | "thai-green" | "red" | "blue" | "custom"
+    customBorderColor: string
+    borderWidth: 1 | 2 | 4 | "custom"
+    customBorderWidth: number
+    // Animations
+    animateBorder: boolean
+    hoverScale: boolean
+  }>({
+    src: "/media/avatars/panier1.svg",
+    alt: "Avatar Panier",
+    // Contenu
+    title: "Photo Seule",
+    description: "",
+    titleColor: "thai-green",
+    scrollingText: false,
+    scrollDuration: 10,
+    // Position
+    position: "center",
+    customX: "50%",
+    customY: "50%",
+    // Taille
+    size: "md",
+    customSize: 150,
+    rotation: -3,
+    aspectRatio: "1:1",
+    // Bordure
+    borderColor: "thai-green",
+    customBorderColor: "border-purple-500",
+    borderWidth: 1,
+    customBorderWidth: 3,
+    // Animations
+    animateBorder: false,
+    hoverScale: true,
+  })
+
+  const generateCode = () => {
+    const lines = [`<PolaroidPhoto`]
+    lines.push(`  src="${props.src}"`)
+    lines.push(`  alt="${props.alt}"`)
+    // Contenu
+    if (props.title) lines.push(`  title="${props.title}"`)
+    if (props.description) lines.push(`  description="${props.description}"`)
+    if (props.titleColor !== "thai-green") lines.push(`  titleColor="${props.titleColor}"`)
+    if (props.scrollingText) {
+      lines.push(`  scrollingText={true}`)
+      if (props.scrollDuration !== 10) lines.push(`  scrollDuration={${props.scrollDuration}}`)
+    }
+    // Position
+    if (props.position !== "bottom-right") {
+      lines.push(`  position="${props.position}"`)
+      if (props.position === "custom") {
+        lines.push(`  customX="${props.customX}"`)
+        lines.push(`  customY="${props.customY}"`)
+      }
+    }
+    // Taille
+    if (props.size !== "md") {
+      lines.push(`  size="${props.size}"`)
+      if (props.size === "custom") {
+        lines.push(`  customSize={${props.customSize}}`)
+      }
+    }
+    if (props.rotation !== 3) lines.push(`  rotation={${props.rotation}}`)
+    if (props.aspectRatio !== "1:1") lines.push(`  aspectRatio="${props.aspectRatio}"`)
+    // Bordure
+    if (props.borderColor !== "thai-green") {
+      lines.push(`  borderColor="${props.borderColor}"`)
+      if (props.borderColor === "custom") {
+        lines.push(`  customBorderColor="${props.customBorderColor}"`)
+      }
+    }
+    if (props.borderWidth !== 1) {
+      lines.push(`  borderWidth={${props.borderWidth === "custom" ? `"custom"` : props.borderWidth}}`)
+      if (props.borderWidth === "custom") {
+        lines.push(`  customBorderWidth={${props.customBorderWidth}}`)
+      }
+    }
+    // Animations
+    if (props.animateBorder) lines.push(`  animateBorder={true}`)
+    if (!props.hoverScale) lines.push(`  hoverScale={false}`)
+    lines.push(`/>`)
+    return lines.join("\n")
+  }
+
+  const handleCopyCode = async () => {
+    try {
+      await navigator.clipboard.writeText(generateCode())
+      toast({ title: "Code copié !", description: "Le code a été copié dans le presse-papier" })
+    } catch {
+      toast({ title: "Erreur", description: "Impossible de copier le code", variant: "destructive" })
+    }
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="space-y-4 rounded-lg border border-thai-orange/20 bg-white p-6 shadow-sm">
+        <div className="flex items-center justify-between">
+          <h4 className="font-semibold text-lg text-thai-green flex items-center gap-2">
+            Contrôles Interactifs - PolaroidPhoto
+          </h4>
+          <Button
+            variant="outline"
+            onClick={handleCopyCode}
+            className="border-thai-green text-thai-green hover:bg-thai-green hover:text-white transition-all duration-200"
+          >
+            Copier le Code
+          </Button>
+        </div>
+
+        {/* Zone de prévisualisation */}
+        <div className="relative flex h-[320px] w-full items-center justify-center rounded-lg border border-dashed bg-gray-50 p-4">
+          <p className="absolute top-4 left-4 text-sm font-medium text-gray-500">
+            Prévisualisation
+          </p>
+          <PolaroidPhoto
+            src={props.src}
+            alt={props.alt}
+            title={props.title}
+            description={props.description}
+            titleColor={props.titleColor}
+            scrollingText={props.scrollingText}
+            scrollDuration={props.scrollDuration}
+            position={props.position}
+            customX={props.position === "custom" ? props.customX : undefined}
+            customY={props.position === "custom" ? props.customY : undefined}
+            size={props.size}
+            customSize={props.size === "custom" ? props.customSize : undefined}
+            rotation={props.rotation}
+            aspectRatio={props.aspectRatio}
+            borderColor={props.borderColor}
+            customBorderColor={props.borderColor === "custom" ? props.customBorderColor : undefined}
+            borderWidth={props.borderWidth}
+            customBorderWidth={props.borderWidth === "custom" ? props.customBorderWidth : undefined}
+            animateBorder={props.animateBorder}
+            hoverScale={props.hoverScale}
+          />
+        </div>
+
+        {/* Section Image */}
+        <div className="space-y-2">
+          <label className="text-xs font-medium text-gray-700">🖼️ Image source</label>
+          <input
+            type="text"
+            value={props.src}
+            onChange={(e) => setProps({ ...props, src: e.target.value })}
+            placeholder="/media/avatars/..."
+            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent"
+          />
+
+          {/* Presets rapides */}
+          <div className="flex gap-2 flex-wrap">
+            {[
+              { label: "🛒 Panier", value: "/media/avatars/panier1.svg" },
+              { label: "👤 Default", value: "/media/avatars/default.svg" },
+              { label: "📱 Phone", value: "/media/avatars/phonevalid.svg" },
+              { label: "🍜 Logo", value: "/logo.svg" },
+            ].map((preset) => (
+              <Button
+                key={preset.value}
+                size="sm"
+                variant={props.src === preset.value ? "default" : "outline"}
+                onClick={() => setProps({ ...props, src: preset.value })}
+                className={props.src === preset.value
+                  ? "bg-thai-orange hover:bg-thai-orange/90"
+                  : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"}
+              >
+                {preset.label}
+              </Button>
+            ))}
+          </div>
+
+          {/* Sélecteur toutes les images */}
+          <div className="space-y-1">
+            <label className="text-xs text-gray-500">📂 Parcourir toutes les images</label>
+            <select
+              value={props.src}
+              onChange={(e) => setProps({ ...props, src: e.target.value })}
+              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent bg-white"
+            >
+              <optgroup label="🎨 Avatars">
+                <option value="/media/avatars/panier1.svg">panier1.svg</option>
+                <option value="/media/avatars/default.svg">default.svg</option>
+                <option value="/media/avatars/phonevalid.svg">phonevalid.svg</option>
+              </optgroup>
+              <optgroup label="🖼️ Illustrations">
+                <option value="/illustrations/apropos.svg">apropos.svg</option>
+                <option value="/illustrations/nous trouver.svg">nous trouver.svg</option>
+                <option value="/illustrations/suivihistorique.svg">suivihistorique.svg</option>
+                <option value="/illustrations/pourcommander.svg">pourcommander.svg</option>
+                <option value="/illustrations/pourvosevenement.svg">pourvosevenement.svg</option>
+                <option value="/illustrations/installapp.svg">installapp.svg</option>
+              </optgroup>
+              <optgroup label="🏷️ Logos">
+                <option value="/logo.svg">logo.svg</option>
+                <option value="/logo.png">logo.png</option>
+                <option value="/chanthana.svg">chanthana.svg</option>
+              </optgroup>
+              <optgroup label="🎌 Drapeaux">
+                <option value="/flags/fr.webp">fr.webp (France)</option>
+                <option value="/flags/nl.webp">nl.webp (Pays-Bas)</option>
+                <option value="/flags/th.webp">th.webp (Thaïlande)</option>
+                <option value="/flags/gb.webp">gb.webp (UK)</option>
+              </optgroup>
+              <optgroup label="🎬 Animations">
+                <option value="/media/animations/ui/Sawadee.gif">Sawadee.gif</option>
+              </optgroup>
+              <optgroup label="📱 Icons PWA">
+                <option value="/icons/icon-72x72.png">icon-72x72.png</option>
+                <option value="/icons/icon-96x96.png">icon-96x96.png</option>
+                <option value="/icons/icon-128x128.png">icon-128x128.png</option>
+                <option value="/icons/icon-192x192.png">icon-192x192.png</option>
+                <option value="/icons/icon-512x512.png">icon-512x512.png</option>
+              </optgroup>
+            </select>
+          </div>
+        </div>
+
+        {/* Section Contenu (titre + description) */}
+        <div className="space-y-2">
+          <label className="text-xs font-medium text-gray-700">📝 Contenu</label>
+          <input
+            type="text"
+            value={props.title}
+            onChange={(e) => setProps({ ...props, title: e.target.value })}
+            placeholder="Titre"
+            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent"
+          />
+          <textarea
+            value={props.description}
+            onChange={(e) => setProps({ ...props, description: e.target.value })}
+            placeholder="Description (optionnel)"
+            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent resize-none"
+            rows={2}
+          />
+          <p className="text-xs text-gray-500 italic">
+            Balises : &lt;orange&gt;, &lt;green&gt;, &lt;white&gt;, &lt;gold&gt;, &lt;black&gt;, &lt;bold&gt;, &lt;semi-bold&gt;, &lt;italic&gt;, &lt;underline&gt;, &lt;small&gt;
+          </p>
+        </div>
+
+        {/* Section Couleur titre */}
+        <div className="space-y-2">
+          <label className="text-xs font-medium text-gray-700">🎨 Couleur du texte</label>
+          <div className="flex gap-2 flex-wrap">
+            {([
+              { label: "🟢 Vert", value: "thai-green" as const },
+              { label: "🟠 Orange", value: "thai-orange" as const },
+              { label: "⚪ Blanc", value: "white" as const },
+              { label: "⚫ Noir", value: "black" as const },
+            ]).map((color) => (
+              <Button
+                key={color.value}
+                size="sm"
+                variant={props.titleColor === color.value ? "default" : "outline"}
+                onClick={() => setProps({ ...props, titleColor: color.value })}
+                className={props.titleColor === color.value
+                  ? "bg-thai-orange hover:bg-thai-orange/90"
+                  : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"}
+              >
+                {color.label}
+              </Button>
+            ))}
+          </div>
+        </div>
+
+        {/* Section Position */}
+        <div className="space-y-2">
+          <label className="text-xs font-medium text-gray-700">📍 Position</label>
+          <div className="grid grid-cols-3 gap-2">
+            {([
+              { label: "↘️ Bas droite", value: "bottom-right" as const },
+              { label: "↙️ Bas gauche", value: "bottom-left" as const },
+              { label: "↗️ Haut droite", value: "top-right" as const },
+              { label: "↖️ Haut gauche", value: "top-left" as const },
+              { label: "🎯 Centre", value: "center" as const },
+              { label: "🎨 Custom", value: "custom" as const },
+            ]).map((pos) => (
+              <Button
+                key={pos.value}
+                size="sm"
+                variant={props.position === pos.value ? "default" : "outline"}
+                onClick={() => setProps({ ...props, position: pos.value })}
+                className={props.position === pos.value
+                  ? "bg-thai-orange hover:bg-thai-orange/90"
+                  : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"}
+              >
+                {pos.label}
+              </Button>
+            ))}
+          </div>
+          {props.position === "custom" && (
+            <div className="grid grid-cols-2 gap-2 mt-2">
+              <input
+                type="text"
+                value={props.customX}
+                onChange={(e) => setProps({ ...props, customX: e.target.value })}
+                placeholder="Position X (ex: 50%, 100px)"
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent"
+              />
+              <input
+                type="text"
+                value={props.customY}
+                onChange={(e) => setProps({ ...props, customY: e.target.value })}
+                placeholder="Position Y (ex: 50%, 100px)"
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent"
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Section Taille */}
+        <div className="space-y-2">
+          <label className="text-xs font-medium text-gray-700">📏 Taille</label>
+          <div className="flex gap-2">
+            {(["sm", "md", "lg", "xl", "custom"] as const).map((s) => (
+              <Button
+                key={s}
+                size="sm"
+                variant={props.size === s ? "default" : "outline"}
+                onClick={() => setProps({ ...props, size: s })}
+                className={props.size === s
+                  ? "bg-thai-orange hover:bg-thai-orange/90"
+                  : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"}
+              >
+                {s}
+              </Button>
+            ))}
+          </div>
+          {props.size === "custom" && (
+            <div className="flex items-center gap-2 mt-2">
+              <input
+                type="range"
+                min="64"
+                max="300"
+                step="8"
+                value={props.customSize}
+                onChange={(e) => setProps({ ...props, customSize: Number(e.target.value) })}
+                className="flex-1"
+              />
+              <span className="text-sm text-gray-600 w-16">{props.customSize}px</span>
+            </div>
+          )}
+        </div>
+
+        {/* Section Format d'image */}
+        <div className="space-y-2">
+          <label className="text-xs font-medium text-gray-700">📐 Format d'image</label>
+          <div className="flex gap-2">
+            {(["16:9", "4:5", "1:1", "auto"] as const).map((ratio) => (
+              <Button
+                key={ratio}
+                size="sm"
+                variant={props.aspectRatio === ratio ? "default" : "outline"}
+                onClick={() => setProps({ ...props, aspectRatio: ratio })}
+                className={props.aspectRatio === ratio
+                  ? "bg-thai-orange hover:bg-thai-orange/90"
+                  : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"}
+              >
+                {ratio}
+              </Button>
+            ))}
+          </div>
+        </div>
+
+        {/* Section Couleur bordure */}
+        <div className="space-y-2">
+          <label className="text-xs font-medium text-gray-700">🎨 Couleur bordure</label>
+          <div className="flex gap-2 flex-wrap">
+            {([
+              { label: "🟠 Orange", value: "thai-orange" as const },
+              { label: "🟢 Vert", value: "thai-green" as const },
+              { label: "🔴 Rouge", value: "red" as const },
+              { label: "🔵 Bleu", value: "blue" as const },
+              { label: "🎨 Custom", value: "custom" as const },
+            ]).map((color) => (
+              <Button
+                key={color.value}
+                size="sm"
+                variant={props.borderColor === color.value ? "default" : "outline"}
+                onClick={() => setProps({ ...props, borderColor: color.value })}
+                className={props.borderColor === color.value
+                  ? "bg-thai-orange hover:bg-thai-orange/90"
+                  : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"}
+              >
+                {color.label}
+              </Button>
+            ))}
+          </div>
+          {props.borderColor === "custom" && (
+            <input
+              type="text"
+              value={props.customBorderColor}
+              onChange={(e) => setProps({ ...props, customBorderColor: e.target.value })}
+              placeholder="ex: border-purple-500, border-pink-600"
+              className="w-full mt-2 px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent"
+            />
+          )}
+        </div>
+
+        {/* Section Épaisseur bordure */}
+        <div className="space-y-2">
+          <label className="text-xs font-medium text-gray-700">📏 Épaisseur bordure</label>
+          <div className="flex gap-2">
+            {([1, 2, 4, "custom"] as const).map((width) => (
+              <Button
+                key={String(width)}
+                size="sm"
+                variant={props.borderWidth === width ? "default" : "outline"}
+                onClick={() => setProps({ ...props, borderWidth: width })}
+                className={props.borderWidth === width
+                  ? "bg-thai-orange hover:bg-thai-orange/90"
+                  : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"}
+              >
+                {width === "custom" ? "🎨 Custom" : `${width}px`}
+              </Button>
+            ))}
+          </div>
+          {props.borderWidth === "custom" && (
+            <input
+              type="number"
+              value={props.customBorderWidth}
+              onChange={(e) => setProps({ ...props, customBorderWidth: Number(e.target.value) })}
+              placeholder="ex: 3, 5, 8"
+              min={1}
+              max={20}
+              className="w-full mt-2 px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent"
+            />
+          )}
+        </div>
+
+        {/* Section Rotation */}
+        <div className="space-y-2">
+          <label className="text-xs font-medium text-gray-700">🔄 Rotation (degrés)</label>
+          <div className="flex items-center gap-2">
+            <input
+              type="range"
+              min="-15"
+              max="15"
+              step="1"
+              value={props.rotation}
+              onChange={(e) => setProps({ ...props, rotation: Number(e.target.value) })}
+              className="flex-1"
+            />
+            <span className="text-sm text-gray-600 w-16">{props.rotation}°</span>
+          </div>
+        </div>
+
+        {/* Section Style & Animation */}
+        <div className="space-y-2">
+          <label className="text-xs font-medium text-gray-700">✨ Style & Animation</label>
+          <div className="flex flex-col gap-2">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={props.scrollingText}
+                onChange={(e) => setProps({ ...props, scrollingText: e.target.checked })}
+                className="w-4 h-4 text-thai-orange border-gray-300 rounded focus:ring-thai-orange focus:ring-2"
+              />
+              <span className="text-sm text-gray-700">Texte défilant (marquee)</span>
+            </label>
+            {props.scrollingText && (
+              <div className="flex items-center gap-2 ml-6">
+                <label className="text-xs text-gray-600">Durée:</label>
+                <input
+                  type="number"
+                  value={props.scrollDuration}
+                  onChange={(e) => setProps({ ...props, scrollDuration: Number(e.target.value) })}
+                  className="w-16 px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange"
+                  min="1"
+                  max="30"
+                />
+                <span className="text-xs text-gray-500">secondes</span>
+              </div>
+            )}
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={props.animateBorder}
+                onChange={(e) => setProps({ ...props, animateBorder: e.target.checked })}
+                className="w-4 h-4 text-thai-orange border-gray-300 rounded focus:ring-thai-orange focus:ring-2"
+              />
+              <span className="text-sm text-gray-700">Animation bordure (moving-border)</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={props.hoverScale}
+                onChange={(e) => setProps({ ...props, hoverScale: e.target.checked })}
+                className="w-4 h-4 text-thai-orange border-gray-300 rounded focus:ring-thai-orange focus:ring-2"
+              />
+              <span className="text-sm text-gray-700">Effet scale au hover</span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 export default function CardsTestPage() {
   const { plats, isLoading } = useData()
@@ -525,7 +1048,7 @@ export default function CardsTestPage() {
         </CardContent>
       </Card>
 
-      {/* Section 4: Composants Spéciaux */}
+      {/* Section 4: Composants Spéciaux - Playground PolaroidPhoto */}
       <Card className="border-thai-orange/20">
         <CardHeader className="flex flex-row items-start justify-between space-y-0">
           <div>
@@ -533,7 +1056,7 @@ export default function CardsTestPage() {
             <CardDescription className="mt-1.5">
               Composants visuels uniques comme l'effet Polaroid
               <br />
-              <code className="text-xs text-gray-500">components\shared\PolaroidCard.tsx</code>
+              <code className="text-xs text-gray-500">components/shared/PolaroidPhoto.tsx</code>
             </CardDescription>
           </div>
           <Dialog>
@@ -545,37 +1068,85 @@ export default function CardsTestPage() {
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Propriétés de PolaroidCard</DialogTitle>
+                <DialogTitle>Propriétés de PolaroidPhoto</DialogTitle>
                 <DialogDescription>Documentation des propriétés du composant.</DialogDescription>
               </DialogHeader>
-              <div className="grid gap-4 py-4">
+              <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto">
                 <ul className="list-disc space-y-2 pl-5 text-sm text-gray-600">
                   <li>
-                    <strong>title</strong> (string): Titre de la carte
+                    <strong>src</strong> (string): URL de l'image (Requis)
                   </li>
                   <li>
-                    <strong>description</strong> (string): Description de la carte
+                    <strong>alt</strong> (string): Texte alternatif (Requis)
+                  </li>
+                  <li className="pt-2 border-t border-gray-200">
+                    <strong className="text-thai-green">Contenu</strong>
                   </li>
                   <li>
-                    <strong>photoSrc</strong> (string): URL de la photo (Requis)
+                    <strong>title</strong> (string): Titre sous l'image
                   </li>
                   <li>
-                    <strong>photoAlt</strong> (string): Texte alternatif de la photo (Requis)
+                    <strong>description</strong> (string): Description sous le titre (supporte balises couleur/style)
                   </li>
                   <li>
-                    <strong>photoCaption</strong> (string): Légende manuscrite sous la photo
+                    <strong>titleColor</strong> ("thai-green" | "thai-orange" | "white" | "black"): Couleur du texte (défaut: "thai-green")
                   </li>
                   <li>
-                    <strong>photoRotation</strong> (number): Rotation en degrés (défaut: -6)
+                    <strong>scrollingText</strong> (boolean): Active le défilement marquee (défaut: false)
                   </li>
                   <li>
-                    <strong>photoSize</strong> (number): Taille de la photo en px (défaut: 140)
+                    <strong>scrollDuration</strong> (number): Durée du défilement en secondes (défaut: 10)
+                  </li>
+                  <li className="pt-2 border-t border-gray-200">
+                    <strong className="text-thai-green">Position</strong>
+                  </li>
+                  <li>
+                    <strong>position</strong> ("bottom-right" | "bottom-left" | "top-right" | "top-left" | "center" | "custom"): Position (défaut: "bottom-right")
+                  </li>
+                  <li>
+                    <strong>customX / customY</strong> (string): Position custom (si position="custom")
+                  </li>
+                  <li className="pt-2 border-t border-gray-200">
+                    <strong className="text-thai-green">Taille</strong>
+                  </li>
+                  <li>
+                    <strong>size</strong> ("sm" | "md" | "lg" | "xl" | "custom"): Taille prédéfinie (défaut: "md")
+                  </li>
+                  <li>
+                    <strong>customSize</strong> (number): Taille custom en px (si size="custom")
+                  </li>
+                  <li>
+                    <strong>rotation</strong> (number): Rotation en degrés (défaut: 3)
+                  </li>
+                  <li>
+                    <strong>aspectRatio</strong> ("16:9" | "4:5" | "1:1" | "auto"): Format de l'image (défaut: "1:1")
+                  </li>
+                  <li className="pt-2 border-t border-gray-200">
+                    <strong className="text-thai-green">Bordure</strong>
+                  </li>
+                  <li>
+                    <strong>borderColor</strong> ("thai-orange" | "thai-green" | "red" | "blue" | "custom"): Couleur bordure (défaut: "thai-green")
+                  </li>
+                  <li>
+                    <strong>customBorderColor</strong> (string): Classe Tailwind custom (si borderColor="custom")
+                  </li>
+                  <li>
+                    <strong>borderWidth</strong> (1 | 2 | 4 | "custom"): Épaisseur bordure (défaut: 1)
+                  </li>
+                  <li>
+                    <strong>customBorderWidth</strong> (number): Épaisseur custom en px (si borderWidth="custom")
+                  </li>
+                  <li className="pt-2 border-t border-gray-200">
+                    <strong className="text-thai-green">Animations</strong>
+                  </li>
+                  <li>
+                    <strong>animateBorder</strong> (boolean): Bordure qui pulse (défaut: false)
+                  </li>
+                  <li>
+                    <strong>hoverScale</strong> (boolean): Effet scale au hover (défaut: true)
                   </li>
                   <li>
                     <strong>className</strong> (string): Classes CSS additionnelles
-                  </li>
-                  <li>
-                    <strong>children</strong> (ReactNode): Contenu libre dans la carte
                   </li>
                 </ul>
               </div>
@@ -583,34 +1154,7 @@ export default function CardsTestPage() {
           </Dialog>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {/* Polaroid Example - Version Simplifiée */}
-            {plats &&
-              plats.length > 0 &&
-              (() => {
-                const platExemple =
-                  plats.find((p) => p.plat.toLowerCase().includes("nems")) || plats[0]
-                return (
-                  <div className="flex flex-col gap-1">
-                    <NumberBadge number={11} />
-                    <div className="relative flex h-[320px] w-full items-center justify-center rounded-lg border border-dashed bg-gray-50 p-4">
-                      <p className="absolute top-4 left-4 text-sm font-medium text-gray-500">
-                        Composant PolaroidPhoto seul
-                      </p>
-                      <PolaroidPhoto
-                        src="/media/avatars/panier1.svg"
-                        alt="Avatar Panier"
-                        caption="Photo Seule"
-                        position="center"
-                        size={140}
-                        rotation={-3}
-                        className="bottom-12"
-                      />
-                    </div>
-                  </div>
-                )
-              })()}
-          </div>
+          <PolaroidPhotoPlayground />
         </CardContent>
       </Card>
     </div>
