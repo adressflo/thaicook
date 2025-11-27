@@ -299,14 +299,16 @@ export default function PanierPage() {
               <ShoppingCart className="h-7 w-7" />
               <CardTitle className="text-2xl font-bold">Mon Panier</CardTitle>
             </div>
-            <PolaroidPhoto
-              src="/media/avatars/panier1.svg"
-              alt="Avatar Chanthana"
-              title="panier"
-              position="bottom-right"
-              size={128}
-              rotation={3}
-            />
+            <div className="hidden sm:block">
+              <PolaroidPhoto
+                src="/media/avatars/panier1.svg"
+                alt="Avatar Chanthana"
+                title="panier"
+                position="bottom-right"
+                size={128}
+                rotation={3}
+              />
+            </div>
           </CardHeader>
 
           <CardContent className="p-6 md:p-8" style={{ position: "relative", zIndex: 1 }}>
