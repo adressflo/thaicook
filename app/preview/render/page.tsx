@@ -7,6 +7,7 @@ import { ProductCard } from "@/components/shared/ProductCard"
 import { PolaroidPhoto } from "@/components/shared/PolaroidPhoto"
 import { StatCard } from "@/components/shared/StatCard"
 import { Spice } from "@/components/shared/Spice"
+import { SmartSpice } from "@/components/shared/SmartSpice"
 import { cn } from "@/lib/utils"
 import { TrendingUp } from "lucide-react"
 
@@ -69,6 +70,9 @@ function RenderContent() {
     hoverScale: searchParams.get("hoverScale") !== "false", // Default true
   })
 
+  // État local pour la distribution des épices
+  const [spiceDistribution, setSpiceDistribution] = useState<number[]>([0, 1, 1, 0])
+
   // Écouter le canal de diffusion pour les mises à jour en temps réel
   useEffect(() => {
     const channel = new BroadcastChannel("preview_channel")
@@ -76,6 +80,8 @@ function RenderContent() {
     channel.onmessage = (event) => {
       if (event.data.type === "UPDATE_PROPS") {
         setProps((prev: any) => ({ ...prev, ...event.data.payload }))
+        // Si le payload contient une distribution d'épices (à implémenter côté playground si nécessaire)
+        // Pour l'instant on garde l'état local ou on pourrait le synchroniser
       }
     }
 
@@ -104,7 +110,13 @@ function RenderContent() {
               imageHeight={props.imageHeight}
               desktopImageWidth={props.desktopImageWidth}
               customImageObjectPosition={props.customImageObjectPosition}
-              spiceSelectorSlot={<Spice distribution={[0, 0, 1, 0]} readOnly />}
+              spiceSelectorSlot={
+                <SmartSpice
+                  quantity={props.quantity}
+                  distribution={spiceDistribution}
+                  onDistributionChange={setSpiceDistribution}
+                />
+              }
               onQuantityChange={() => {}}
               onRemove={() => {}}
             />
