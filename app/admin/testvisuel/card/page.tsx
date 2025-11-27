@@ -639,8 +639,271 @@ function PolaroidPhotoPlayground() {
 }
 
 // ============================================================================
-// PLAYGROUND CART ITEM CARD
+// PLAYGROUND PRODUCT CARD
 // ============================================================================
+
+function ProductCardPlayground() {
+  const { plats, isLoading } = useData()
+  const [selectedPlatId, setSelectedPlatId] = useState<number | null>(null)
+  const [props, setProps] = useState<{
+    title: string
+    description: string
+    price: number
+    imageSrc: string
+    isVegetarian: boolean
+    isSpicy: boolean
+    quantityInCart: number
+  }>({
+    title: "Exemple de Plat",
+    description: "Une délicieuse description pour ce plat incroyable.",
+    price: 12.9,
+    imageSrc: "/media/avatars/panier1.svg",
+    isVegetarian: false,
+    isSpicy: false,
+    quantityInCart: 0,
+  })
+
+  // Sélectionner un plat par défaut
+  useEffect(() => {
+    if (plats && plats.length > 0 && selectedPlatId === null) {
+      const defaultPlat = plats.find((p) => p.plat?.toLowerCase().includes("nems")) || plats[0]
+      if (defaultPlat) {
+        setSelectedPlatId(defaultPlat.id)
+        setProps({
+          title: defaultPlat.plat || "",
+          description: defaultPlat.description || "",
+          price: parseFloat(defaultPlat.prix?.toString() || "0"),
+          imageSrc: defaultPlat.photo_du_plat || "",
+          isVegetarian: !!defaultPlat.est_vegetarien,
+          isSpicy: (defaultPlat.niveau_epice ?? 0) > 0,
+          quantityInCart: 0,
+        })
+      }
+    }
+  }, [plats, selectedPlatId])
+
+  // Synchronisation temps réel
+  useEffect(() => {
+    const channel = new BroadcastChannel("preview_channel")
+    channel.postMessage({
+      type: "UPDATE_PROPS",
+      payload: {
+        component: "ProductCard",
+        name: props.title, // Mapping vers name pour RenderPage
+        imageUrl: props.imageSrc, // Mapping vers imageUrl
+        price: props.price,
+        description: props.description,
+        isVegetarian: props.isVegetarian,
+        quantity: props.quantityInCart, // Mapping vers quantity
+        // isSpicy n'est pas géré explicitement dans RenderPage pour ProductCard mais on peut l'ajouter si besoin
+      },
+    })
+    return () => channel.close()
+  }, [props])
+
+  const handleOpenPreview = () => {
+    const params = new URLSearchParams()
+    params.set("component", "ProductCard")
+    params.set("name", props.title)
+    params.set("imageUrl", props.imageSrc)
+    params.set("price", props.price.toString())
+    params.set("description", props.description)
+    params.set("isVegetarian", props.isVegetarian.toString())
+    params.set("quantity", props.quantityInCart.toString())
+
+    const url = `/preview?${params.toString()}`
+    window.open(url, "_blank", "width=1200,height=800")
+  }
+
+  const generateCode = () => {
+    const lines = [`<ProductCard`]
+    lines.push(`  title="${props.title}"`)
+    lines.push(`  description="${props.description}"`)
+    lines.push(`  price={${props.price}}`)
+    lines.push(`  imageSrc="${props.imageSrc}"`)
+    if (props.isVegetarian) lines.push(`  isVegetarian={true}`)
+    if (props.isSpicy) lines.push(`  isSpicy={true}`)
+    if (props.quantityInCart > 0) lines.push(`  quantityInCart={${props.quantityInCart}}`)
+    lines.push(`  onAdd={() => console.log("Ajouté")}`)
+    lines.push(`/>`)
+    return lines.join("\n")
+  }
+
+  const handleCopyCode = async () => {
+    try {
+      await navigator.clipboard.writeText(generateCode())
+      toast({ title: "Code copié !", description: "Le code a été copié dans le presse-papier" })
+    } catch {
+      toast({
+        title: "Erreur",
+        description: "Impossible de copier le code",
+        variant: "destructive",
+      })
+    }
+  }
+
+  if (isLoading) return <div className="py-8 text-center text-gray-500">Chargement...</div>
+
+  return (
+    <div className="space-y-4">
+      <div className="border-thai-orange/20 space-y-4 rounded-lg border bg-white p-6 shadow-sm">
+        <div className="flex items-center justify-between">
+          <h4 className="text-thai-green flex items-center gap-2 text-lg font-semibold">
+            Contrôles Interactifs - ProductCard
+          </h4>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={handleOpenPreview}
+              className="border-thai-orange text-thai-orange hover:bg-thai-orange transition-all duration-200 hover:text-white"
+            >
+              <ExternalLink className="mr-2 h-4 w-4" />
+              Détacher
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleCopyCode}
+              className="border-thai-green text-thai-green hover:bg-thai-green transition-all duration-200 hover:text-white"
+            >
+              Copier le Code
+            </Button>
+          </div>
+        </div>
+
+        {/* Zone de prévisualisation */}
+        <div className="relative flex min-h-[320px] w-full items-center justify-center rounded-lg border border-dashed bg-gray-50 p-4">
+          <p className="absolute top-4 left-4 text-sm font-medium text-gray-500">
+            Prévisualisation
+          </p>
+          <div className="w-full max-w-xs">
+            <ProductCard
+              title={props.title}
+              description={props.description}
+              price={props.price}
+              imageSrc={props.imageSrc}
+              isVegetarian={props.isVegetarian}
+              isSpicy={props.isSpicy}
+              quantityInCart={props.quantityInCart}
+              onAdd={() => toast({ title: "Ajouté", description: `Ajout de ${props.title}` })}
+            />
+          </div>
+        </div>
+
+        {/* Sélecteur de Plat */}
+        <div className="space-y-2">
+          <label className="text-xs font-medium text-gray-700">
+            🍜 Sélectionner un plat (données réelles)
+          </label>
+          <select
+            value={selectedPlatId || ""}
+            onChange={(e) => {
+              const platId = Number(e.target.value)
+              setSelectedPlatId(platId)
+              const plat = plats?.find((p) => p.id === platId)
+              if (plat) {
+                setProps({
+                  title: plat.plat || "",
+                  description: plat.description || "",
+                  price: parseFloat(plat.prix?.toString() || "0"),
+                  imageSrc: plat.photo_du_plat || "",
+                  isVegetarian: !!plat.est_vegetarien,
+                  isSpicy: (plat.niveau_epice ?? 0) > 0,
+                  quantityInCart: 0,
+                })
+              }
+            }}
+            className="focus:ring-thai-orange w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:outline-none"
+          >
+            {plats?.map((plat) => (
+              <option key={plat.id} value={plat.id}>
+                {plat.plat}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Contrôles Manuels */}
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-gray-700">Titre</label>
+            <input
+              type="text"
+              value={props.title}
+              onChange={(e) => setProps({ ...props, title: e.target.value })}
+              className="focus:ring-thai-orange w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:outline-none"
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-gray-700">Prix (€)</label>
+            <input
+              type="number"
+              value={props.price}
+              onChange={(e) => setProps({ ...props, price: parseFloat(e.target.value) })}
+              step="0.1"
+              className="focus:ring-thai-orange w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:outline-none"
+            />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-xs font-medium text-gray-700">Description</label>
+          <textarea
+            value={props.description}
+            onChange={(e) => setProps({ ...props, description: e.target.value })}
+            rows={2}
+            className="focus:ring-thai-orange w-full resize-none rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:outline-none"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-xs font-medium text-gray-700">Image URL</label>
+          <input
+            type="text"
+            value={props.imageSrc}
+            onChange={(e) => setProps({ ...props, imageSrc: e.target.value })}
+            className="focus:ring-thai-orange w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:outline-none"
+          />
+        </div>
+
+        <div className="flex flex-wrap gap-4">
+          <label className="flex cursor-pointer items-center gap-2">
+            <input
+              type="checkbox"
+              checked={props.isVegetarian}
+              onChange={(e) => setProps({ ...props, isVegetarian: e.target.checked })}
+              className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
+            />
+            <span className="text-sm text-gray-700">🌱 Végétarien</span>
+          </label>
+          <label className="flex cursor-pointer items-center gap-2">
+            <input
+              type="checkbox"
+              checked={props.isSpicy}
+              onChange={(e) => setProps({ ...props, isSpicy: e.target.checked })}
+              className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
+            />
+            <span className="text-sm text-gray-700">🌶️ Épicé</span>
+          </label>
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-xs font-medium text-gray-700">Quantité dans le panier</label>
+          <div className="flex items-center gap-2">
+            <input
+              type="range"
+              min="0"
+              max="10"
+              value={props.quantityInCart}
+              onChange={(e) => setProps({ ...props, quantityInCart: parseInt(e.target.value) })}
+              className="flex-1"
+            />
+            <span className="w-8 text-sm text-gray-600">{props.quantityInCart}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 function CartItemCardPlayground() {
   const { plats, isLoading } = useData()
@@ -820,6 +1083,7 @@ function CartItemCardPlayground() {
           mode={previewMode}
           onModeChange={setPreviewMode}
           showSizeControls={true}
+          showToggle={false}
           showTabletToggle={true}
           showPopupButton={true}
           componentName="CartItemCard"
@@ -1066,26 +1330,34 @@ function CartItemCardPlayground() {
             📐 Dimension de l'image (ratio)
           </label>
           <div className="flex flex-wrap gap-2">
-            {(["square", "video", "auto", "square-contain", "video-contain"] as const).map(
-              (ratio) => (
-                <Button
-                  key={ratio}
-                  size="sm"
-                  variant={props.imageAspectRatio === ratio ? "default" : "outline"}
-                  onClick={() =>
-                    setProps({ ...props, imageAspectRatio: ratio, useCustomDimensions: false })
-                  }
-                  className={
-                    props.imageAspectRatio === ratio && !props.useCustomDimensions
-                      ? "bg-thai-orange hover:bg-thai-orange/90"
-                      : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
-                  }
-                  disabled={props.useCustomDimensions}
-                >
-                  {ratio}
-                </Button>
-              )
-            )}
+            {[
+              { value: "square", label: "1:1 (Carré)" },
+              { value: "video", label: "16:9 (Vidéo)" },
+              { value: "auto", label: "Auto" },
+              { value: "square-contain", label: "1:1 (Entier)" },
+              { value: "video-contain", label: "16:9 (Entier)" },
+            ].map((option) => (
+              <Button
+                key={option.value}
+                size="sm"
+                variant={props.imageAspectRatio === option.value ? "default" : "outline"}
+                onClick={() =>
+                  setProps({
+                    ...props,
+                    imageAspectRatio: option.value as any,
+                    useCustomDimensions: false,
+                  })
+                }
+                className={
+                  props.imageAspectRatio === option.value && !props.useCustomDimensions
+                    ? "bg-thai-orange hover:bg-thai-orange/90"
+                    : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
+                }
+                disabled={props.useCustomDimensions}
+              >
+                {option.label}
+              </Button>
+            ))}
           </div>
         </div>
 
@@ -1327,40 +1599,7 @@ export default function CardsTestPage() {
           </Dialog>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {/* Product Card - Exemple Dynamique (Données réelles) */}
-            {isLoading ? (
-              <div className="flex h-[300px] w-full items-center justify-center rounded-lg border border-dashed p-8 text-gray-400">
-                Chargement des données réelles...
-              </div>
-            ) : plats && plats.length > 0 ? (
-              (() => {
-                // Essayer de trouver les nems, sinon prendre le premier plat
-                const platExemple =
-                  plats.find((p) => p.plat.toLowerCase().includes("nems")) || plats[0]
-                return (
-                  <div className="flex flex-col gap-1">
-                    <NumberBadge number={4} />
-                    <ProductCard
-                      title={platExemple.plat}
-                      description={platExemple.description || "Aucune description disponible."}
-                      price={parseFloat(platExemple.prix?.toString() || "0")}
-                      isVegetarian={!!platExemple.est_vegetarien}
-                      isSpicy={(platExemple.niveau_epice ?? 0) > 0}
-                      quantityInCart={0}
-                      imageSrc={platExemple.photo_du_plat || "/media/avatars/panier1.svg"}
-                      onAdd={() => console.log(`Ajout de ${platExemple.plat}`)}
-                    />
-                    <p className="mt-2 text-xs text-gray-500 italic">
-                      * Données réelles récupérées depuis la base de données via useData()
-                    </p>
-                  </div>
-                )
-              })()
-            ) : (
-              <div className="text-red-500">Aucun plat trouvé dans la base de données.</div>
-            )}
-          </div>
+          <ProductCardPlayground />
         </CardContent>
       </Card>
 

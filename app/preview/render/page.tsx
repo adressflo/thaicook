@@ -21,6 +21,7 @@ function RenderContent() {
     imageUrl: searchParams.get("imageUrl") || "",
     price: parseFloat(searchParams.get("price") || "0"),
     quantity: parseInt(searchParams.get("quantity") || "1"),
+    description: searchParams.get("description") || "",
     isVegetarian: searchParams.get("isVegetarian") === "true",
     readOnly: searchParams.get("readOnly") === "true",
     imageAspectRatio: (searchParams.get("imageAspectRatio") || "square") as
@@ -45,7 +46,7 @@ function RenderContent() {
       : undefined,
     // Props spécifiques Polaroid
     title: searchParams.get("title") || "",
-    description: searchParams.get("description") || "",
+    // description déjà définie plus haut
     titleColor: searchParams.get("titleColor") || "thai-green",
     scrollingText: searchParams.get("scrollingText") === "true",
     scrollDuration: parseInt(searchParams.get("scrollDuration") || "10"),
@@ -111,8 +112,10 @@ function RenderContent() {
             <ProductCard
               title={props.name}
               price={props.price}
-              description="Description du produit"
+              description={props.description || "Description du produit"}
               imageSrc={props.imageUrl}
+              isVegetarian={props.isVegetarian}
+              quantityInCart={props.quantity}
             />
           </div>
         )
