@@ -27,6 +27,7 @@ import {
   DollarSign,
   ArrowRight,
   Info,
+  ExternalLink,
 } from "lucide-react"
 
 import { PolaroidPhoto } from "@/components/shared/PolaroidPhoto"
@@ -34,8 +35,9 @@ import { ProductCard } from "@/components/shared/ProductCard"
 import { StatCard } from "@/components/shared/StatCard"
 import { CartItemCard } from "@/components/shared/CartItemCard"
 import { SmartSpice } from "@/components/shared/SmartSpice"
+import { MobilePreview, usePreviewMode, type PreviewMode } from "@/components/shared/MobilePreview"
 import { useData } from "@/contexts/DataContext"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { toast } from "@/hooks/use-toast"
 
 // ============================================================================
@@ -134,7 +136,9 @@ function PolaroidPhotoPlayground() {
       }
     }
     if (props.borderWidth !== 1) {
-      lines.push(`  borderWidth={${props.borderWidth === "custom" ? `"custom"` : props.borderWidth}}`)
+      lines.push(
+        `  borderWidth={${props.borderWidth === "custom" ? `"custom"` : props.borderWidth}}`
+      )
       if (props.borderWidth === "custom") {
         lines.push(`  customBorderWidth={${props.customBorderWidth}}`)
       }
@@ -151,24 +155,83 @@ function PolaroidPhotoPlayground() {
       await navigator.clipboard.writeText(generateCode())
       toast({ title: "Code copié !", description: "Le code a été copié dans le presse-papier" })
     } catch {
-      toast({ title: "Erreur", description: "Impossible de copier le code", variant: "destructive" })
+      toast({
+        title: "Erreur",
+        description: "Impossible de copier le code",
+        variant: "destructive",
+      })
     }
+  }
+
+  // Synchronisation temps réel avec la fenêtre détachée
+  useEffect(() => {
+    const channel = new BroadcastChannel("preview_channel")
+    channel.postMessage({
+      type: "UPDATE_PROPS",
+      payload: {
+        component: "PolaroidPhoto",
+        imageUrl: props.src,
+        name: props.alt,
+        title: props.title,
+        description: props.description,
+        titleColor: props.titleColor,
+        scrollingText: props.scrollingText,
+        scrollDuration: props.scrollDuration,
+        position: props.position,
+        customX: props.customX,
+        customY: props.customY,
+        size: props.size,
+        customSize: props.customSize,
+        rotation: props.rotation,
+        imageAspectRatio: props.aspectRatio, // Mapping vers imageAspectRatio pour uniformité
+        borderColor: props.borderColor,
+        customBorderColor: props.customBorderColor,
+        borderWidth: props.borderWidth,
+        customBorderWidth: props.customBorderWidth,
+        animateBorder: props.animateBorder,
+        hoverScale: props.hoverScale,
+      },
+    })
+    return () => channel.close()
+  }, [props])
+
+  const handleOpenPreview = () => {
+    const params = new URLSearchParams()
+    params.set("component", "PolaroidPhoto")
+    params.set("imageUrl", props.src)
+    params.set("name", props.alt)
+    // On pourrait ajouter d'autres props si PreviewPage les supportait,
+    // mais pour l'instant PreviewPage est assez basique pour PolaroidPhoto.
+    // On passe quand même tout ce qu'on peut via l'URL si on étend PreviewPage plus tard.
+
+    const url = `/preview?${params.toString()}`
+    window.open(url, "_blank", "width=1200,height=800")
   }
 
   return (
     <div className="space-y-4">
-      <div className="space-y-4 rounded-lg border border-thai-orange/20 bg-white p-6 shadow-sm">
+      <div className="border-thai-orange/20 space-y-4 rounded-lg border bg-white p-6 shadow-sm">
         <div className="flex items-center justify-between">
-          <h4 className="font-semibold text-lg text-thai-green flex items-center gap-2">
+          <h4 className="text-thai-green flex items-center gap-2 text-lg font-semibold">
             Contrôles Interactifs - PolaroidPhoto
           </h4>
-          <Button
-            variant="outline"
-            onClick={handleCopyCode}
-            className="border-thai-green text-thai-green hover:bg-thai-green hover:text-white transition-all duration-200"
-          >
-            Copier le Code
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={handleOpenPreview}
+              className="border-thai-orange text-thai-orange hover:bg-thai-orange transition-all duration-200 hover:text-white"
+            >
+              <ExternalLink className="mr-2 h-4 w-4" />
+              Détacher
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleCopyCode}
+              className="border-thai-green text-thai-green hover:bg-thai-green transition-all duration-200 hover:text-white"
+            >
+              Copier le Code
+            </Button>
+          </div>
         </div>
 
         {/* Zone de prévisualisation */}
@@ -208,11 +271,11 @@ function PolaroidPhotoPlayground() {
             value={props.src}
             onChange={(e) => setProps({ ...props, src: e.target.value })}
             placeholder="/media/avatars/..."
-            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent"
+            className="focus:ring-thai-orange w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:outline-none"
           />
 
           {/* Presets rapides */}
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex flex-wrap gap-2">
             {[
               { label: "🛒 Panier", value: "/media/avatars/panier1.svg" },
               { label: "👤 Default", value: "/media/avatars/default.svg" },
@@ -224,9 +287,11 @@ function PolaroidPhotoPlayground() {
                 size="sm"
                 variant={props.src === preset.value ? "default" : "outline"}
                 onClick={() => setProps({ ...props, src: preset.value })}
-                className={props.src === preset.value
-                  ? "bg-thai-orange hover:bg-thai-orange/90"
-                  : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"}
+                className={
+                  props.src === preset.value
+                    ? "bg-thai-orange hover:bg-thai-orange/90"
+                    : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
+                }
               >
                 {preset.label}
               </Button>
@@ -239,7 +304,7 @@ function PolaroidPhotoPlayground() {
             <select
               value={props.src}
               onChange={(e) => setProps({ ...props, src: e.target.value })}
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent bg-white"
+              className="focus:ring-thai-orange w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:outline-none"
             >
               <optgroup label="🎨 Avatars">
                 <option value="/media/avatars/panier1.svg">panier1.svg</option>
@@ -287,38 +352,41 @@ function PolaroidPhotoPlayground() {
             value={props.title}
             onChange={(e) => setProps({ ...props, title: e.target.value })}
             placeholder="Titre"
-            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent"
+            className="focus:ring-thai-orange w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:outline-none"
           />
           <textarea
             value={props.description}
             onChange={(e) => setProps({ ...props, description: e.target.value })}
             placeholder="Description (optionnel)"
-            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent resize-none"
+            className="focus:ring-thai-orange w-full resize-none rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:outline-none"
             rows={2}
           />
           <p className="text-xs text-gray-500 italic">
-            Balises : &lt;orange&gt;, &lt;green&gt;, &lt;white&gt;, &lt;gold&gt;, &lt;black&gt;, &lt;bold&gt;, &lt;semi-bold&gt;, &lt;italic&gt;, &lt;underline&gt;, &lt;small&gt;
+            Balises : &lt;orange&gt;, &lt;green&gt;, &lt;white&gt;, &lt;gold&gt;, &lt;black&gt;,
+            &lt;bold&gt;, &lt;semi-bold&gt;, &lt;italic&gt;, &lt;underline&gt;, &lt;small&gt;
           </p>
         </div>
 
         {/* Section Couleur titre */}
         <div className="space-y-2">
           <label className="text-xs font-medium text-gray-700">🎨 Couleur du texte</label>
-          <div className="flex gap-2 flex-wrap">
-            {([
+          <div className="flex flex-wrap gap-2">
+            {[
               { label: "🟢 Vert", value: "thai-green" as const },
               { label: "🟠 Orange", value: "thai-orange" as const },
               { label: "⚪ Blanc", value: "white" as const },
               { label: "⚫ Noir", value: "black" as const },
-            ]).map((color) => (
+            ].map((color) => (
               <Button
                 key={color.value}
                 size="sm"
                 variant={props.titleColor === color.value ? "default" : "outline"}
                 onClick={() => setProps({ ...props, titleColor: color.value })}
-                className={props.titleColor === color.value
-                  ? "bg-thai-orange hover:bg-thai-orange/90"
-                  : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"}
+                className={
+                  props.titleColor === color.value
+                    ? "bg-thai-orange hover:bg-thai-orange/90"
+                    : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
+                }
               >
                 {color.label}
               </Button>
@@ -330,42 +398,44 @@ function PolaroidPhotoPlayground() {
         <div className="space-y-2">
           <label className="text-xs font-medium text-gray-700">📍 Position</label>
           <div className="grid grid-cols-3 gap-2">
-            {([
+            {[
               { label: "↘️ Bas droite", value: "bottom-right" as const },
               { label: "↙️ Bas gauche", value: "bottom-left" as const },
               { label: "↗️ Haut droite", value: "top-right" as const },
               { label: "↖️ Haut gauche", value: "top-left" as const },
               { label: "🎯 Centre", value: "center" as const },
               { label: "🎨 Custom", value: "custom" as const },
-            ]).map((pos) => (
+            ].map((pos) => (
               <Button
                 key={pos.value}
                 size="sm"
                 variant={props.position === pos.value ? "default" : "outline"}
                 onClick={() => setProps({ ...props, position: pos.value })}
-                className={props.position === pos.value
-                  ? "bg-thai-orange hover:bg-thai-orange/90"
-                  : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"}
+                className={
+                  props.position === pos.value
+                    ? "bg-thai-orange hover:bg-thai-orange/90"
+                    : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
+                }
               >
                 {pos.label}
               </Button>
             ))}
           </div>
           {props.position === "custom" && (
-            <div className="grid grid-cols-2 gap-2 mt-2">
+            <div className="mt-2 grid grid-cols-2 gap-2">
               <input
                 type="text"
                 value={props.customX}
                 onChange={(e) => setProps({ ...props, customX: e.target.value })}
                 placeholder="Position X (ex: 50%, 100px)"
-                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent"
+                className="focus:ring-thai-orange w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:outline-none"
               />
               <input
                 type="text"
                 value={props.customY}
                 onChange={(e) => setProps({ ...props, customY: e.target.value })}
                 placeholder="Position Y (ex: 50%, 100px)"
-                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent"
+                className="focus:ring-thai-orange w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:outline-none"
               />
             </div>
           )}
@@ -381,16 +451,18 @@ function PolaroidPhotoPlayground() {
                 size="sm"
                 variant={props.size === s ? "default" : "outline"}
                 onClick={() => setProps({ ...props, size: s })}
-                className={props.size === s
-                  ? "bg-thai-orange hover:bg-thai-orange/90"
-                  : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"}
+                className={
+                  props.size === s
+                    ? "bg-thai-orange hover:bg-thai-orange/90"
+                    : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
+                }
               >
                 {s}
               </Button>
             ))}
           </div>
           {props.size === "custom" && (
-            <div className="flex items-center gap-2 mt-2">
+            <div className="mt-2 flex items-center gap-2">
               <input
                 type="range"
                 min="64"
@@ -400,7 +472,7 @@ function PolaroidPhotoPlayground() {
                 onChange={(e) => setProps({ ...props, customSize: Number(e.target.value) })}
                 className="flex-1"
               />
-              <span className="text-sm text-gray-600 w-16">{props.customSize}px</span>
+              <span className="w-16 text-sm text-gray-600">{props.customSize}px</span>
             </div>
           )}
         </div>
@@ -415,9 +487,11 @@ function PolaroidPhotoPlayground() {
                 size="sm"
                 variant={props.aspectRatio === ratio ? "default" : "outline"}
                 onClick={() => setProps({ ...props, aspectRatio: ratio })}
-                className={props.aspectRatio === ratio
-                  ? "bg-thai-orange hover:bg-thai-orange/90"
-                  : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"}
+                className={
+                  props.aspectRatio === ratio
+                    ? "bg-thai-orange hover:bg-thai-orange/90"
+                    : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
+                }
               >
                 {ratio}
               </Button>
@@ -428,22 +502,24 @@ function PolaroidPhotoPlayground() {
         {/* Section Couleur bordure */}
         <div className="space-y-2">
           <label className="text-xs font-medium text-gray-700">🎨 Couleur bordure</label>
-          <div className="flex gap-2 flex-wrap">
-            {([
+          <div className="flex flex-wrap gap-2">
+            {[
               { label: "🟠 Orange", value: "thai-orange" as const },
               { label: "🟢 Vert", value: "thai-green" as const },
               { label: "🔴 Rouge", value: "red" as const },
               { label: "🔵 Bleu", value: "blue" as const },
               { label: "🎨 Custom", value: "custom" as const },
-            ]).map((color) => (
+            ].map((color) => (
               <Button
                 key={color.value}
                 size="sm"
                 variant={props.borderColor === color.value ? "default" : "outline"}
                 onClick={() => setProps({ ...props, borderColor: color.value })}
-                className={props.borderColor === color.value
-                  ? "bg-thai-orange hover:bg-thai-orange/90"
-                  : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"}
+                className={
+                  props.borderColor === color.value
+                    ? "bg-thai-orange hover:bg-thai-orange/90"
+                    : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
+                }
               >
                 {color.label}
               </Button>
@@ -455,7 +531,7 @@ function PolaroidPhotoPlayground() {
               value={props.customBorderColor}
               onChange={(e) => setProps({ ...props, customBorderColor: e.target.value })}
               placeholder="ex: border-purple-500, border-pink-600"
-              className="w-full mt-2 px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent"
+              className="focus:ring-thai-orange mt-2 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:outline-none"
             />
           )}
         </div>
@@ -470,9 +546,11 @@ function PolaroidPhotoPlayground() {
                 size="sm"
                 variant={props.borderWidth === width ? "default" : "outline"}
                 onClick={() => setProps({ ...props, borderWidth: width })}
-                className={props.borderWidth === width
-                  ? "bg-thai-orange hover:bg-thai-orange/90"
-                  : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"}
+                className={
+                  props.borderWidth === width
+                    ? "bg-thai-orange hover:bg-thai-orange/90"
+                    : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
+                }
               >
                 {width === "custom" ? "🎨 Custom" : `${width}px`}
               </Button>
@@ -486,7 +564,7 @@ function PolaroidPhotoPlayground() {
               placeholder="ex: 3, 5, 8"
               min={1}
               max={20}
-              className="w-full mt-2 px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent"
+              className="focus:ring-thai-orange mt-2 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:outline-none"
             />
           )}
         </div>
@@ -504,7 +582,7 @@ function PolaroidPhotoPlayground() {
               onChange={(e) => setProps({ ...props, rotation: Number(e.target.value) })}
               className="flex-1"
             />
-            <span className="text-sm text-gray-600 w-16">{props.rotation}°</span>
+            <span className="w-16 text-sm text-gray-600">{props.rotation}°</span>
           </div>
         </div>
 
@@ -512,46 +590,649 @@ function PolaroidPhotoPlayground() {
         <div className="space-y-2">
           <label className="text-xs font-medium text-gray-700">✨ Style & Animation</label>
           <div className="flex flex-col gap-2">
-            <label className="flex items-center gap-2 cursor-pointer">
+            <label className="flex cursor-pointer items-center gap-2">
               <input
                 type="checkbox"
                 checked={props.scrollingText}
                 onChange={(e) => setProps({ ...props, scrollingText: e.target.checked })}
-                className="w-4 h-4 text-thai-orange border-gray-300 rounded focus:ring-thai-orange focus:ring-2"
+                className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
               />
               <span className="text-sm text-gray-700">Texte défilant (marquee)</span>
             </label>
             {props.scrollingText && (
-              <div className="flex items-center gap-2 ml-6">
+              <div className="ml-6 flex items-center gap-2">
                 <label className="text-xs text-gray-600">Durée:</label>
                 <input
                   type="number"
                   value={props.scrollDuration}
                   onChange={(e) => setProps({ ...props, scrollDuration: Number(e.target.value) })}
-                  className="w-16 px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange"
+                  className="focus:ring-thai-orange w-16 rounded-md border border-gray-300 px-2 py-1 text-sm focus:ring-2 focus:outline-none"
                   min="1"
                   max="30"
                 />
                 <span className="text-xs text-gray-500">secondes</span>
               </div>
             )}
-            <label className="flex items-center gap-2 cursor-pointer">
+            <label className="flex cursor-pointer items-center gap-2">
               <input
                 type="checkbox"
                 checked={props.animateBorder}
                 onChange={(e) => setProps({ ...props, animateBorder: e.target.checked })}
-                className="w-4 h-4 text-thai-orange border-gray-300 rounded focus:ring-thai-orange focus:ring-2"
+                className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
               />
               <span className="text-sm text-gray-700">Animation bordure (moving-border)</span>
             </label>
-            <label className="flex items-center gap-2 cursor-pointer">
+            <label className="flex cursor-pointer items-center gap-2">
               <input
                 type="checkbox"
                 checked={props.hoverScale}
                 onChange={(e) => setProps({ ...props, hoverScale: e.target.checked })}
-                className="w-4 h-4 text-thai-orange border-gray-300 rounded focus:ring-thai-orange focus:ring-2"
+                className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
               />
               <span className="text-sm text-gray-700">Effet scale au hover</span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ============================================================================
+// PLAYGROUND CART ITEM CARD
+// ============================================================================
+
+function CartItemCardPlayground() {
+  const { plats, isLoading } = useData()
+
+  const [selectedPlatId, setSelectedPlatId] = useState<number | null>(null)
+  const [spiceDistribution, setSpiceDistribution] = useState<number[]>([0, 1, 1, 0]) // Distribution par défaut
+  const { mode: previewMode, setMode: setPreviewMode } = usePreviewMode("desktop")
+  const [props, setProps] = useState<{
+    quantity: number
+    isVegetarian: boolean
+    isSpicy: boolean
+    readOnly: boolean
+    imageAspectRatio: "square" | "video" | "auto" | "square-contain" | "video-contain"
+    imageObjectPosition: "center" | "top" | "bottom" | "left" | "right"
+    imageZoom: number
+    showSpiceSelector: boolean
+    imageWidth: number | undefined
+    imageHeight: number | undefined
+    useCustomDimensions: boolean
+  }>({
+    quantity: 2,
+    isVegetarian: false,
+    isSpicy: false,
+    readOnly: false,
+    imageAspectRatio: "square",
+    imageObjectPosition: "center",
+    imageZoom: 1,
+    showSpiceSelector: false,
+    imageWidth: 96,
+    imageHeight: 96,
+    useCustomDimensions: false,
+  })
+
+  // Sélectionner "Oeuf Vapeur Thaï" par défaut quand les plats sont chargés
+  useEffect(() => {
+    if (plats && plats.length > 0 && selectedPlatId === null) {
+      const defaultPlat =
+        plats.find((p) => p.plat?.toLowerCase().includes("oeuf vapeur")) || plats[0]
+      if (defaultPlat) {
+        setSelectedPlatId(defaultPlat.id)
+        setProps((prev) => ({
+          ...prev,
+          isVegetarian: defaultPlat.est_vegetarien || false,
+          isSpicy: (defaultPlat.niveau_epice ?? 0) > 0,
+        }))
+      }
+    }
+  }, [plats, selectedPlatId])
+
+  // Obtenir le plat sélectionné
+  const selectedPlat = plats?.find((p) => p.id === selectedPlatId)
+
+  // Afficher loading si pas de plats
+  if (isLoading || !plats || plats.length === 0) {
+    return <div className="py-8 text-center text-gray-500">Chargement des plats...</div>
+  }
+
+  const generateCode = () => {
+    if (!selectedPlat) return "// Aucun plat sélectionné"
+    const lines = [`<CartItemCard`]
+    lines.push(`  name="${selectedPlat.plat}"`)
+    if (selectedPlat.photo_du_plat) lines.push(`  imageUrl="${selectedPlat.photo_du_plat}"`)
+    lines.push(`  unitPrice={${parseFloat(selectedPlat.prix || "0")}}`)
+    lines.push(`  quantity={${props.quantity}}`)
+    if (props.isVegetarian) lines.push(`  isVegetarian={true}`)
+    if (props.isSpicy) lines.push(`  isSpicy={true}`)
+    if (props.readOnly) lines.push(`  readOnly={true}`)
+    if (props.imageAspectRatio !== "square")
+      lines.push(`  imageAspectRatio="${props.imageAspectRatio}"`)
+    if (props.imageObjectPosition !== "center")
+      lines.push(`  imageObjectPosition="${props.imageObjectPosition}"`)
+    if (props.imageZoom !== 1) lines.push(`  imageZoom={${props.imageZoom}}`)
+    if (props.useCustomDimensions && props.imageWidth)
+      lines.push(`  imageWidth={${props.imageWidth}}`)
+    if (props.useCustomDimensions && props.imageHeight)
+      lines.push(`  imageHeight={${props.imageHeight}}`)
+    if (props.showSpiceSelector) lines.push(`  showSpiceSelector={true}`)
+    lines.push(`  onQuantityChange={(qty) => setQuantity(qty)}`)
+    lines.push(`  onRemove={() => console.log("Supprimé")}`)
+    lines.push(`/>`)
+    return lines.join("\n")
+  }
+
+  const handleCopyCode = async () => {
+    try {
+      await navigator.clipboard.writeText(generateCode())
+      toast({ title: "Code copié !", description: "Le code a été copié dans le presse-papier" })
+    } catch {
+      toast({
+        title: "Erreur",
+        description: "Impossible de copier le code",
+        variant: "destructive",
+      })
+    }
+  }
+
+  // Synchronisation temps réel avec la fenêtre détachée
+  useEffect(() => {
+    if (!selectedPlat) return
+
+    const channel = new BroadcastChannel("preview_channel")
+    channel.postMessage({
+      type: "UPDATE_PROPS",
+      payload: {
+        component: "CartItemCard",
+        name: selectedPlat.plat || "",
+        imageUrl: selectedPlat.photo_du_plat || "",
+        price: parseFloat(selectedPlat.prix || "0"),
+        quantity: props.quantity,
+        isVegetarian: props.isVegetarian,
+        readOnly: props.readOnly,
+        imageAspectRatio: props.imageAspectRatio,
+        imageObjectPosition: props.imageObjectPosition,
+        imageZoom: props.imageZoom,
+        showSpiceSelector: props.showSpiceSelector,
+        imageWidth: props.useCustomDimensions ? props.imageWidth : undefined,
+        imageHeight: props.useCustomDimensions ? props.imageHeight : undefined,
+      },
+    })
+    return () => channel.close()
+  }, [props, selectedPlat])
+
+  const handleOpenPreview = () => {
+    if (!selectedPlat) return
+
+    const params = new URLSearchParams()
+    params.set("component", "CartItemCard")
+    params.set("name", selectedPlat.plat || "")
+    params.set("imageUrl", selectedPlat.photo_du_plat || "")
+    params.set("price", selectedPlat.prix?.toString() || "0")
+    params.set("quantity", props.quantity.toString())
+    params.set("isVegetarian", props.isVegetarian.toString())
+    params.set("readOnly", props.readOnly.toString())
+    params.set("imageAspectRatio", props.imageAspectRatio)
+    params.set("imageObjectPosition", props.imageObjectPosition)
+    params.set("imageZoom", props.imageZoom.toString())
+    params.set("showSpiceSelector", props.showSpiceSelector.toString())
+    if (props.useCustomDimensions && props.imageWidth) {
+      params.set("imageWidth", props.imageWidth.toString())
+    }
+    if (props.useCustomDimensions && props.imageHeight) {
+      params.set("imageHeight", props.imageHeight.toString())
+    }
+
+    const url = `/preview?${params.toString()}`
+    window.open(url, "_blank", "width=1200,height=800")
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="border-thai-orange/20 space-y-4 rounded-lg border bg-white p-6 shadow-sm">
+        <div className="flex items-center justify-between">
+          <h4 className="text-thai-green flex items-center gap-2 text-lg font-semibold">
+            Contrôles Interactifs - CartItemCard
+          </h4>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={handleOpenPreview}
+              className="border-thai-orange text-thai-orange hover:bg-thai-orange transition-all duration-200 hover:text-white"
+            >
+              <ExternalLink className="mr-2 h-4 w-4" />
+              Détacher
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleCopyCode}
+              className="border-thai-green text-thai-green hover:bg-thai-green transition-all duration-200 hover:text-white"
+            >
+              Copier le Code
+            </Button>
+          </div>
+        </div>
+
+        {/* Zone de prévisualisation avec MobilePreview */}
+        <MobilePreview
+          mode={previewMode}
+          onModeChange={setPreviewMode}
+          showSizeControls={true}
+          showTabletToggle={true}
+          showPopupButton={true}
+          componentName="CartItemCard"
+          previewProps={{
+            name: selectedPlat?.plat || "Sans nom",
+            imageUrl: selectedPlat?.photo_du_plat || "",
+            price: parseFloat(selectedPlat?.prix || "0"),
+            quantity: props.quantity,
+            isVegetarian: props.isVegetarian,
+            readOnly: props.readOnly,
+            imageAspectRatio: props.imageAspectRatio,
+            imageZoom: props.imageZoom,
+          }}
+          mobileContent={
+            selectedPlat ? (
+              // Mode Mobile/Tablette : Forcer le layout vertical comme sur mobile
+              <div className="p-0">
+                <div className="hover:bg-thai-cream/20 hover:border-thai-orange hover:ring-thai-orange/30 transform rounded-lg border border-gray-200 bg-white p-0 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:ring-2">
+                  {/* Layout Mobile : Colonne */}
+                  <div className="flex flex-col gap-0">
+                    {/* Image pleine largeur */}
+                    <div className="w-full">
+                      <div className="relative">
+                        <div className="overflow-hidden rounded-t-lg">
+                          {selectedPlat.photo_du_plat ? (
+                            <img
+                              src={selectedPlat.photo_du_plat}
+                              alt={selectedPlat.plat || ""}
+                              style={{
+                                transform: `scale(${props.imageZoom})`,
+                                ...(props.useCustomDimensions && props.imageWidth
+                                  ? { width: `${props.imageWidth}px` }
+                                  : {}),
+                                ...(props.useCustomDimensions && props.imageHeight
+                                  ? { height: `${props.imageHeight}px` }
+                                  : {}),
+                              }}
+                              className={`w-full cursor-pointer rounded-t-lg transition-opacity duration-200 hover:opacity-80 ${
+                                props.imageAspectRatio === "square"
+                                  ? "aspect-square"
+                                  : props.imageAspectRatio === "video"
+                                    ? "aspect-video"
+                                    : props.imageAspectRatio === "square-contain"
+                                      ? "aspect-square bg-gray-50 object-contain"
+                                      : props.imageAspectRatio === "video-contain"
+                                        ? "aspect-video bg-gray-50 object-contain"
+                                        : ""
+                              } ${
+                                props.imageAspectRatio.endsWith("-contain")
+                                  ? "object-contain"
+                                  : "object-cover"
+                              } object-${props.imageObjectPosition}`}
+                            />
+                          ) : (
+                            <div className="bg-thai-cream/30 border-thai-orange/20 flex aspect-square w-full cursor-pointer items-center justify-center rounded-t-lg border-b">
+                              <span className="text-thai-orange text-xl">🍽️</span>
+                            </div>
+                          )}
+                        </div>
+                        {/* Badges Mobile */}
+                        <div className="absolute top-2 left-2">
+                          <span className="bg-thai-green rounded-full px-2 py-0.5 text-[10px] font-semibold text-white shadow-md">
+                            Disponible
+                          </span>
+                        </div>
+                        <div className="absolute top-2 right-2">
+                          <span className="bg-thai-orange rounded-full px-2 py-0.5 text-[10px] font-semibold text-white shadow-md">
+                            Panier {props.quantity}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Infos du plat - centré */}
+                    <div className="flex flex-col items-center gap-2 p-3">
+                      {/* Nom du plat */}
+                      <h4 className="text-thai-green max-w-[90%] text-center text-base font-medium">
+                        {selectedPlat.plat}
+                      </h4>
+
+                      {/* Prix unitaire */}
+                      <div className="flex items-center justify-center text-xs text-gray-600">
+                        <span className="font-semibold text-gray-700">Prix unitaire:</span>
+                        <span className="bg-secondary text-secondary-foreground ml-1 rounded px-2 py-0.5 text-xs font-bold">
+                          {parseFloat(selectedPlat.prix || "0") % 1 === 0
+                            ? `${parseFloat(selectedPlat.prix || "0").toFixed(0)}€`
+                            : `${parseFloat(selectedPlat.prix || "0")
+                                .toFixed(2)
+                                .replace(".", ",")}€`}
+                        </span>
+                      </div>
+
+                      {/* Sélecteur épicé (Mobile) */}
+                      {props.showSpiceSelector && (
+                        <div className="mt-1 flex justify-center">
+                          <div className="origin-center scale-90">
+                            <SmartSpice
+                              quantity={props.quantity}
+                              distribution={spiceDistribution}
+                              onDistributionChange={setSpiceDistribution}
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Badge Végétarien */}
+                      {props.isVegetarian && (
+                        <div className="mt-1">
+                          <span className="h-5 rounded-full border border-green-300 bg-green-50 px-1.5 py-0 text-[10px] text-green-700">
+                            🌱 Végétarien
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Contrôles quantité + Prix total */}
+                      {!props.readOnly && (
+                        <div className="mt-2 flex w-full items-center justify-center gap-2">
+                          {/* Poubelle */}
+                          <button
+                            className="flex h-8 w-8 items-center justify-center rounded-md text-gray-400 hover:bg-red-50 hover:text-red-500"
+                            onClick={() =>
+                              toast({
+                                title: "Supprimé (simulation)",
+                                description: "L'article serait supprimé",
+                              })
+                            }
+                          >
+                            🗑️
+                          </button>
+
+                          {/* Moins */}
+                          <button
+                            className="border-thai-orange text-thai-orange hover:bg-thai-orange flex h-8 w-8 items-center justify-center rounded-md border bg-white font-bold hover:text-white"
+                            onClick={() =>
+                              setProps({ ...props, quantity: Math.max(1, props.quantity - 1) })
+                            }
+                          >
+                            -
+                          </button>
+
+                          {/* Quantité */}
+                          <span className="w-8 text-center font-medium">{props.quantity}</span>
+
+                          {/* Plus */}
+                          <button
+                            className="border-thai-orange text-thai-orange hover:bg-thai-orange flex h-8 w-8 items-center justify-center rounded-md border bg-white font-bold hover:text-white"
+                            onClick={() => setProps({ ...props, quantity: props.quantity + 1 })}
+                          >
+                            +
+                          </button>
+
+                          {/* Prix Total */}
+                          <div className="text-thai-orange ml-2 text-lg font-bold">
+                            {(parseFloat(selectedPlat.prix || "0") * props.quantity) % 1 === 0
+                              ? `${(parseFloat(selectedPlat.prix || "0") * props.quantity).toFixed(0)}€`
+                              : `${(parseFloat(selectedPlat.prix || "0") * props.quantity).toFixed(2).replace(".", ",")}€`}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="py-8 text-center text-gray-500">Chargement des plats...</div>
+            )
+          }
+        >
+          {/* Mode Desktop : Utiliser le composant normal */}
+          {selectedPlat ? (
+            <CartItemCard
+              name={selectedPlat.plat || "Sans nom"}
+              imageUrl={selectedPlat.photo_du_plat || ""}
+              unitPrice={parseFloat(selectedPlat.prix || "0")}
+              quantity={props.quantity}
+              isVegetarian={props.isVegetarian}
+              isSpicy={props.isSpicy}
+              readOnly={props.readOnly}
+              imageAspectRatio={props.imageAspectRatio}
+              imageObjectPosition={props.imageObjectPosition}
+              imageZoom={props.imageZoom}
+              imageWidth={props.useCustomDimensions ? props.imageWidth : undefined}
+              imageHeight={props.useCustomDimensions ? props.imageHeight : undefined}
+              showSpiceSelector={props.showSpiceSelector}
+              spiceSelectorSlot={
+                props.showSpiceSelector ? (
+                  <SmartSpice
+                    quantity={props.quantity}
+                    distribution={spiceDistribution}
+                    onDistributionChange={setSpiceDistribution}
+                  />
+                ) : undefined
+              }
+              onQuantityChange={(qty) => setProps({ ...props, quantity: qty })}
+              onRemove={() =>
+                toast({ title: "Supprimé (simulation)", description: "L'article serait supprimé" })
+              }
+              onClick={() =>
+                toast({ title: "Clic !", description: `Clic sur ${selectedPlat.plat}` })
+              }
+            />
+          ) : (
+            <div className="py-8 text-center text-gray-500">Chargement des plats...</div>
+          )}
+        </MobilePreview>
+
+        {/* Section Sélecteur de Plat */}
+        <div className="space-y-2">
+          <label className="text-xs font-medium text-gray-700">
+            🍜 Sélectionner un plat (données réelles)
+          </label>
+          <select
+            value={selectedPlatId || ""}
+            onChange={(e) => {
+              const platId = Number(e.target.value)
+              setSelectedPlatId(platId)
+              const plat = plats.find((p) => p.id === platId)
+              if (plat) {
+                setProps((prev) => ({
+                  ...prev,
+                  isVegetarian: plat.est_vegetarien || false,
+                  isSpicy: (plat.niveau_epice ?? 0) > 0,
+                }))
+              }
+            }}
+            className="focus:ring-thai-orange w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:outline-none"
+          >
+            {plats.length === 0 ? (
+              <option value="">Chargement des plats...</option>
+            ) : (
+              plats.map((plat) => (
+                <option key={plat.id} value={plat.id}>
+                  {plat.plat} - {plat.prix}€ {plat.est_vegetarien ? "🌱" : ""}{" "}
+                  {(plat.niveau_epice ?? 0) > 0 ? "🌶️" : ""}
+                </option>
+              ))
+            )}
+          </select>
+        </div>
+
+        {/* Section Dimension image */}
+        <div className="space-y-2">
+          <label className="text-xs font-medium text-gray-700">
+            📐 Dimension de l'image (ratio)
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {(["square", "video", "auto", "square-contain", "video-contain"] as const).map(
+              (ratio) => (
+                <Button
+                  key={ratio}
+                  size="sm"
+                  variant={props.imageAspectRatio === ratio ? "default" : "outline"}
+                  onClick={() =>
+                    setProps({ ...props, imageAspectRatio: ratio, useCustomDimensions: false })
+                  }
+                  className={
+                    props.imageAspectRatio === ratio && !props.useCustomDimensions
+                      ? "bg-thai-orange hover:bg-thai-orange/90"
+                      : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
+                  }
+                  disabled={props.useCustomDimensions}
+                >
+                  {ratio}
+                </Button>
+              )
+            )}
+          </div>
+        </div>
+
+        {/* Section Dimensions personnalisées */}
+        <div className="space-y-2">
+          <label className="flex cursor-pointer items-center gap-2">
+            <input
+              type="checkbox"
+              checked={props.useCustomDimensions}
+              onChange={(e) => setProps({ ...props, useCustomDimensions: e.target.checked })}
+              className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
+            />
+            <span className="text-xs font-medium text-gray-700">
+              📏 Dimensions personnalisées (px)
+            </span>
+          </label>
+          {props.useCustomDimensions && (
+            <div className="mt-2 grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <label className="text-xs text-gray-600">Largeur</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="range"
+                    min="48"
+                    max="300"
+                    step="8"
+                    value={props.imageWidth || 96}
+                    onChange={(e) => setProps({ ...props, imageWidth: Number(e.target.value) })}
+                    className="flex-1"
+                  />
+                  <span className="w-14 text-sm text-gray-600">{props.imageWidth}px</span>
+                </div>
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs text-gray-600">Hauteur</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="range"
+                    min="48"
+                    max="300"
+                    step="8"
+                    value={props.imageHeight || 96}
+                    onChange={(e) => setProps({ ...props, imageHeight: Number(e.target.value) })}
+                    className="flex-1"
+                  />
+                  <span className="w-14 text-sm text-gray-600">{props.imageHeight}px</span>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Section Position image */}
+        <div className="space-y-2">
+          <label className="text-xs font-medium text-gray-700">🎯 Position de l'image</label>
+          <div className="flex flex-wrap gap-2">
+            {(["center", "top", "bottom", "left", "right"] as const).map((pos) => (
+              <Button
+                key={pos}
+                size="sm"
+                variant={props.imageObjectPosition === pos ? "default" : "outline"}
+                onClick={() => setProps({ ...props, imageObjectPosition: pos })}
+                className={
+                  props.imageObjectPosition === pos
+                    ? "bg-thai-orange hover:bg-thai-orange/90"
+                    : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
+                }
+              >
+                {pos}
+              </Button>
+            ))}
+          </div>
+        </div>
+
+        {/* Section Zoom */}
+        <div className="space-y-2">
+          <label className="text-xs font-medium text-gray-700">🔍 Zoom image</label>
+          <div className="flex items-center gap-2">
+            <input
+              type="range"
+              min="0.5"
+              max="2"
+              step="0.1"
+              value={props.imageZoom}
+              onChange={(e) => setProps({ ...props, imageZoom: Number(e.target.value) })}
+              className="flex-1"
+            />
+            <span className="w-12 text-sm text-gray-600">{props.imageZoom}x</span>
+          </div>
+        </div>
+
+        {/* Section Quantité */}
+        <div className="space-y-2">
+          <label className="text-xs font-medium text-gray-700">🔢 Quantité</label>
+          <div className="flex items-center gap-2">
+            <input
+              type="range"
+              min="1"
+              max="10"
+              step="1"
+              value={props.quantity}
+              onChange={(e) => setProps({ ...props, quantity: Number(e.target.value) })}
+              className="flex-1"
+            />
+            <span className="w-8 text-sm text-gray-600">{props.quantity}</span>
+          </div>
+        </div>
+
+        {/* Section Badges */}
+        <div className="space-y-2">
+          <label className="text-xs font-medium text-gray-700">🏷️ Badges</label>
+          <div className="flex flex-col gap-2">
+            <label className="flex cursor-pointer items-center gap-2">
+              <input
+                type="checkbox"
+                checked={props.isVegetarian}
+                onChange={(e) => setProps({ ...props, isVegetarian: e.target.checked })}
+                className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
+              />
+              <span className="text-sm text-gray-700">🌱 Végétarien</span>
+            </label>
+          </div>
+        </div>
+
+        {/* Section Options */}
+        <div className="space-y-2">
+          <label className="text-xs font-medium text-gray-700">⚙️ Options</label>
+          <div className="flex flex-col gap-2">
+            <label className="flex cursor-pointer items-center gap-2">
+              <input
+                type="checkbox"
+                checked={props.readOnly}
+                onChange={(e) => setProps({ ...props, readOnly: e.target.checked })}
+                className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
+              />
+              <span className="text-sm text-gray-700">Mode lecture seule (readOnly)</span>
+            </label>
+            <label className="flex cursor-pointer items-center gap-2">
+              <input
+                type="checkbox"
+                checked={props.showSpiceSelector}
+                onChange={(e) => setProps({ ...props, showSpiceSelector: e.target.checked })}
+                className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
+              />
+              <span className="text-sm text-gray-700">
+                Afficher emplacement épices (showSpiceSelector)
+              </span>
             </label>
           </div>
         </div>
@@ -839,149 +1520,7 @@ export default function CardsTestPage() {
           </Dialog>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {/* Cart Item 1 - Avec données réelles */}
-            {isLoading ? (
-              <div className="flex h-[100px] w-full items-center justify-center rounded-lg border border-dashed p-8 text-gray-400">
-                Chargement...
-              </div>
-            ) : plats && plats.length > 0 ? (
-              (() => {
-                const platExemple =
-                  plats.find((p) => p.plat.toLowerCase().includes("nems")) || plats[0]
-                return (
-                  <div className="flex flex-col gap-1">
-                    <NumberBadge number={5} />
-                    <CartItemCard
-                      name={platExemple.plat}
-                      imageUrl={platExemple.photo_du_plat || "/media/avatars/panier1.svg"}
-                      unitPrice={parseFloat(platExemple.prix?.toString() || "0")}
-                      quantity={quantity}
-                      isVegetarian={!!platExemple.est_vegetarien}
-                      isSpicy={(platExemple.niveau_epice ?? 0) > 0}
-                      onQuantityChange={setQuantity}
-                      onRemove={() => console.log("Suppression")}
-                      onClick={() => console.log("Clic sur l'item")}
-                      showSpiceSelector={(platExemple.niveau_epice ?? 0) > 0}
-                      spiceSelectorSlot={
-                        <SmartSpice
-                          quantity={quantity}
-                          distribution={spiceDistribution}
-                          onDistributionChange={setSpiceDistribution}
-                        />
-                      }
-                    />
-                    <p className="mt-2 text-xs text-gray-500 italic">
-                      * Données réelles avec quantité simulée à {quantity}
-                    </p>
-                  </div>
-                )
-              })()
-            ) : (
-              <div className="text-red-500">Aucun plat trouvé.</div>
-            )}
-
-            {/* Cart Item 2 - Lecture Seule (Récapitulatif) */}
-            {plats &&
-              plats.length > 0 &&
-              (() => {
-                const platExemple =
-                  plats.find((p) => p.plat.toLowerCase().includes("ailes")) || plats[1] || plats[0]
-                return (
-                  <div className="flex flex-col gap-1 border-t border-dashed border-gray-200 pt-8">
-                    <div className="mb-2 flex items-center gap-2">
-                      <NumberBadge number={6} />
-                      <span className="text-sm font-medium text-gray-500">
-                        Mode Lecture Seule (Récapitulatif commande)
-                      </span>
-                    </div>
-                    <CartItemCard
-                      name={platExemple.plat}
-                      imageUrl={platExemple.photo_du_plat || "/media/avatars/panier1.svg"}
-                      unitPrice={parseFloat(platExemple.prix?.toString() || "0")}
-                      quantity={2}
-                      isVegetarian={!!platExemple.est_vegetarien}
-                      isSpicy={(platExemple.niveau_epice ?? 0) > 0}
-                      onQuantityChange={() => {}}
-                      onRemove={() => {}}
-                      readOnly={true}
-                      showSpiceSelector={(platExemple.niveau_epice ?? 0) > 0}
-                      spiceSelectorSlot={
-                        <SmartSpice
-                          quantity={2}
-                          distribution={[0, 0, 1, 1]} // Exemple fixe
-                          onDistributionChange={() => {}}
-                        />
-                      }
-                    />
-                    <p className="mt-2 text-xs text-gray-500 italic">
-                      * <code>readOnly={`{true}`}</code> : Cache les boutons +/-, la poubelle et
-                      affiche "Quantité: 2"
-                    </p>
-                  </div>
-                )
-              })()}
-
-            {/* Cart Item 3 - Aspect Ratio Square */}
-            {plats &&
-              plats.length > 0 &&
-              (() => {
-                const platExemple =
-                  plats.find((p) => p.plat.toLowerCase().includes("brochette")) ||
-                  plats[2] ||
-                  plats[0]
-                return (
-                  <div className="flex flex-col gap-1 border-t border-dashed border-gray-200 pt-8">
-                    <div className="mb-2 flex items-center gap-2">
-                      <NumberBadge number={6.1} />
-                      <span className="text-sm font-medium text-gray-500">
-                        Format Carré (imageAspectRatio="square")
-                      </span>
-                    </div>
-                    <CartItemCard
-                      name={platExemple.plat}
-                      imageUrl={platExemple.photo_du_plat || "/media/avatars/panier1.svg"}
-                      unitPrice={parseFloat(platExemple.prix?.toString() || "0")}
-                      quantity={1}
-                      isVegetarian={!!platExemple.est_vegetarien}
-                      isSpicy={(platExemple.niveau_epice ?? 0) > 0}
-                      onQuantityChange={() => {}}
-                      onRemove={() => {}}
-                      imageAspectRatio="square"
-                    />
-                  </div>
-                )
-              })()}
-
-            {/* Cart Item 4 - Aspect Ratio Auto */}
-            {plats &&
-              plats.length > 0 &&
-              (() => {
-                const platExemple =
-                  plats.find((p) => p.plat.toLowerCase().includes("riz")) || plats[3] || plats[0]
-                return (
-                  <div className="flex flex-col gap-1 border-t border-dashed border-gray-200 pt-8">
-                    <div className="mb-2 flex items-center gap-2">
-                      <NumberBadge number={6.2} />
-                      <span className="text-sm font-medium text-gray-500">
-                        Format Auto (imageAspectRatio="auto")
-                      </span>
-                    </div>
-                    <CartItemCard
-                      name={platExemple.plat}
-                      imageUrl={platExemple.photo_du_plat || "/media/avatars/panier1.svg"}
-                      unitPrice={parseFloat(platExemple.prix?.toString() || "0")}
-                      quantity={1}
-                      isVegetarian={!!platExemple.est_vegetarien}
-                      isSpicy={(platExemple.niveau_epice ?? 0) > 0}
-                      onQuantityChange={() => {}}
-                      onRemove={() => {}}
-                      imageAspectRatio="auto"
-                    />
-                  </div>
-                )
-              })()}
-          </div>
+          <CartItemCardPlayground />
         </CardContent>
       </Card>
 
@@ -1071,7 +1610,7 @@ export default function CardsTestPage() {
                 <DialogTitle>Propriétés de PolaroidPhoto</DialogTitle>
                 <DialogDescription>Documentation des propriétés du composant.</DialogDescription>
               </DialogHeader>
-              <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto">
+              <div className="grid max-h-[60vh] gap-4 overflow-y-auto py-4">
                 <ul className="list-disc space-y-2 pl-5 text-sm text-gray-600">
                   <li>
                     <strong>src</strong> (string): URL de l'image (Requis)
@@ -1079,38 +1618,45 @@ export default function CardsTestPage() {
                   <li>
                     <strong>alt</strong> (string): Texte alternatif (Requis)
                   </li>
-                  <li className="pt-2 border-t border-gray-200">
+                  <li className="border-t border-gray-200 pt-2">
                     <strong className="text-thai-green">Contenu</strong>
                   </li>
                   <li>
                     <strong>title</strong> (string): Titre sous l'image
                   </li>
                   <li>
-                    <strong>description</strong> (string): Description sous le titre (supporte balises couleur/style)
+                    <strong>description</strong> (string): Description sous le titre (supporte
+                    balises couleur/style)
                   </li>
                   <li>
-                    <strong>titleColor</strong> ("thai-green" | "thai-orange" | "white" | "black"): Couleur du texte (défaut: "thai-green")
+                    <strong>titleColor</strong> ("thai-green" | "thai-orange" | "white" | "black"):
+                    Couleur du texte (défaut: "thai-green")
                   </li>
                   <li>
-                    <strong>scrollingText</strong> (boolean): Active le défilement marquee (défaut: false)
+                    <strong>scrollingText</strong> (boolean): Active le défilement marquee (défaut:
+                    false)
                   </li>
                   <li>
-                    <strong>scrollDuration</strong> (number): Durée du défilement en secondes (défaut: 10)
+                    <strong>scrollDuration</strong> (number): Durée du défilement en secondes
+                    (défaut: 10)
                   </li>
-                  <li className="pt-2 border-t border-gray-200">
+                  <li className="border-t border-gray-200 pt-2">
                     <strong className="text-thai-green">Position</strong>
                   </li>
                   <li>
-                    <strong>position</strong> ("bottom-right" | "bottom-left" | "top-right" | "top-left" | "center" | "custom"): Position (défaut: "bottom-right")
+                    <strong>position</strong> ("bottom-right" | "bottom-left" | "top-right" |
+                    "top-left" | "center" | "custom"): Position (défaut: "bottom-right")
                   </li>
                   <li>
-                    <strong>customX / customY</strong> (string): Position custom (si position="custom")
+                    <strong>customX / customY</strong> (string): Position custom (si
+                    position="custom")
                   </li>
-                  <li className="pt-2 border-t border-gray-200">
+                  <li className="border-t border-gray-200 pt-2">
                     <strong className="text-thai-green">Taille</strong>
                   </li>
                   <li>
-                    <strong>size</strong> ("sm" | "md" | "lg" | "xl" | "custom"): Taille prédéfinie (défaut: "md")
+                    <strong>size</strong> ("sm" | "md" | "lg" | "xl" | "custom"): Taille prédéfinie
+                    (défaut: "md")
                   </li>
                   <li>
                     <strong>customSize</strong> (number): Taille custom en px (si size="custom")
@@ -1119,24 +1665,29 @@ export default function CardsTestPage() {
                     <strong>rotation</strong> (number): Rotation en degrés (défaut: 3)
                   </li>
                   <li>
-                    <strong>aspectRatio</strong> ("16:9" | "4:5" | "1:1" | "auto"): Format de l'image (défaut: "1:1")
+                    <strong>aspectRatio</strong> ("16:9" | "4:5" | "1:1" | "auto"): Format de
+                    l'image (défaut: "1:1")
                   </li>
-                  <li className="pt-2 border-t border-gray-200">
+                  <li className="border-t border-gray-200 pt-2">
                     <strong className="text-thai-green">Bordure</strong>
                   </li>
                   <li>
-                    <strong>borderColor</strong> ("thai-orange" | "thai-green" | "red" | "blue" | "custom"): Couleur bordure (défaut: "thai-green")
+                    <strong>borderColor</strong> ("thai-orange" | "thai-green" | "red" | "blue" |
+                    "custom"): Couleur bordure (défaut: "thai-green")
                   </li>
                   <li>
-                    <strong>customBorderColor</strong> (string): Classe Tailwind custom (si borderColor="custom")
+                    <strong>customBorderColor</strong> (string): Classe Tailwind custom (si
+                    borderColor="custom")
                   </li>
                   <li>
-                    <strong>borderWidth</strong> (1 | 2 | 4 | "custom"): Épaisseur bordure (défaut: 1)
+                    <strong>borderWidth</strong> (1 | 2 | 4 | "custom"): Épaisseur bordure (défaut:
+                    1)
                   </li>
                   <li>
-                    <strong>customBorderWidth</strong> (number): Épaisseur custom en px (si borderWidth="custom")
+                    <strong>customBorderWidth</strong> (number): Épaisseur custom en px (si
+                    borderWidth="custom")
                   </li>
-                  <li className="pt-2 border-t border-gray-200">
+                  <li className="border-t border-gray-200 pt-2">
                     <strong className="text-thai-green">Animations</strong>
                   </li>
                   <li>

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Trash2 } from "lucide-react"
@@ -32,6 +33,8 @@ interface CartItemCardProps {
   imageAspectRatio?: "square" | "video" | "auto" | "square-contain" | "video-contain"
   imageObjectPosition?: "center" | "top" | "bottom" | "left" | "right"
   imageZoom?: number
+  imageWidth?: number
+  imageHeight?: number
 }
 
 export function CartItemCard({
@@ -52,6 +55,8 @@ export function CartItemCard({
   imageAspectRatio = "square",
   imageObjectPosition = "center",
   imageZoom = 1,
+  imageWidth,
+  imageHeight,
 }: CartItemCardProps) {
   const [imageError, setImageError] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -102,16 +107,31 @@ export function CartItemCard({
         {/* Image du plat */}
         <div className="w-full sm:w-auto sm:flex-shrink-0">
           <div className="relative" onClick={onClick}>
-            <div className="overflow-hidden rounded-t-lg sm:rounded-lg">
+            <div
+              className={cn(
+                "relative overflow-hidden rounded-t-lg sm:rounded-lg",
+                !imageWidth && "w-full sm:w-24",
+                !imageHeight && aspectRatioClass
+              )}
+              style={{
+                ...(imageWidth ? { width: `${imageWidth}px` } : {}),
+                ...(imageHeight ? { height: `${imageHeight}px` } : {}),
+              }}
+            >
               {imageUrl && !imageError ? (
-                <img
+                <Image
                   src={imageUrl}
                   alt={name}
+                  fill={!imageWidth && !imageHeight}
+                  width={imageWidth}
+                  height={imageHeight}
+                  sizes="(max-width: 640px) 100vw, 96px"
                   onError={() => setImageError(true)}
-                  style={{ transform: `scale(${imageZoom})` }}
+                  style={{
+                    transform: `scale(${imageZoom})`,
+                  }}
                   className={cn(
-                    "w-full cursor-pointer rounded-t-lg transition-opacity duration-200 hover:opacity-80 sm:w-24 sm:rounded-lg",
-                    aspectRatioClass,
+                    "cursor-pointer transition-opacity duration-200 hover:opacity-80",
                     objectFitClass,
                     objectPositionClass,
                     imageClassName
@@ -120,8 +140,7 @@ export function CartItemCard({
               ) : (
                 <div
                   className={cn(
-                    "bg-thai-cream/30 border-thai-orange/20 hover:bg-thai-cream/50 flex w-full cursor-pointer items-center justify-center rounded-t-lg border-b transition-colors duration-200 sm:w-24 sm:rounded-lg sm:border",
-                    aspectRatioClass
+                    "bg-thai-cream/30 border-thai-orange/20 hover:bg-thai-cream/50 flex h-full w-full cursor-pointer items-center justify-center transition-colors duration-200"
                   )}
                 >
                   <span className="text-thai-orange text-xl sm:text-lg">🍽️</span>

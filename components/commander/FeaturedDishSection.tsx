@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import Image from "next/image"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Star } from "lucide-react"
@@ -16,10 +17,7 @@ interface FeaturedDishSectionProps {
   featuredDay?: string // Jour actuellement sélectionné
 }
 
-export function FeaturedDishSection({
-  onScrollToDays,
-  featuredDay,
-}: FeaturedDishSectionProps) {
+export function FeaturedDishSection({ onScrollToDays, featuredDay }: FeaturedDishSectionProps) {
   const [featuredDish, setFeaturedDish] = useState<FeaturedDish | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
@@ -57,15 +55,13 @@ export function FeaturedDishSection({
   }
 
   const getJoursDisponiblesLabels = () => {
-    return featuredDish.joursDisponibles
-      .map((jour) => joursLabels[jour])
-      .join(", ")
+    return featuredDish.joursDisponibles.map((jour) => joursLabels[jour]).join(", ")
   }
 
   return (
-    <Card className="mb-6 overflow-hidden shadow-lg border-2 border-thai-gold/30 bg-gradient-to-br from-white to-amber-50/30">
+    <Card className="border-thai-gold/30 mb-6 overflow-hidden border-2 bg-gradient-to-br from-white to-amber-50/30 shadow-lg">
       <div className="p-6">
-        <div className="flex flex-col md:flex-row items-center gap-6">
+        <div className="flex flex-col items-center gap-6 md:flex-row">
           {/* Vidéo Chanthana + Bulle dialogue */}
           <div className="relative flex-shrink-0">
             <video
@@ -74,12 +70,12 @@ export function FeaturedDishSection({
               loop
               muted
               playsInline
-              className="w-32 h-32 md:w-40 md:h-40 rounded-lg object-cover"
+              className="h-32 w-32 rounded-lg object-cover md:h-40 md:w-40"
             />
             {/* Bulle de dialogue */}
-            <div className="absolute -top-2 -right-2 md:-right-4 bg-white rounded-2xl px-4 py-2 shadow-xl border-2 border-thai-gold animate-bounce">
-              <div className="absolute -bottom-2 left-8 w-0 h-0 border-l-8 border-l-transparent border-r-8 border-r-transparent border-t-8 border-t-white" />
-              <p className="text-sm font-bold text-thai-orange whitespace-nowrap">
+            <div className="border-thai-gold absolute -top-2 -right-2 animate-bounce rounded-2xl border-2 bg-white px-4 py-2 shadow-xl md:-right-4">
+              <div className="absolute -bottom-2 left-8 h-0 w-0 border-t-8 border-r-8 border-l-8 border-t-white border-r-transparent border-l-transparent" />
+              <p className="text-thai-orange text-sm font-bold whitespace-nowrap">
                 Au menu cette semaine !
               </p>
             </div>
@@ -88,59 +84,60 @@ export function FeaturedDishSection({
           {/* Polaroid Plat Vedette */}
           <div
             onClick={onScrollToDays}
-            className="group cursor-pointer transform hover:scale-105 transition-all duration-300 flex-1 max-w-sm"
+            className="group max-w-sm flex-1 transform cursor-pointer transition-all duration-300 hover:scale-105"
           >
-            <div className="bg-white p-4 shadow-2xl rounded-lg border-4 border-white transform hover:rotate-1 transition-transform">
+            <div className="transform rounded-lg border-4 border-white bg-white p-4 shadow-2xl transition-transform hover:rotate-1">
               {/* Badge étoile */}
-              <div className="absolute -top-2 -left-2 bg-thai-gold rounded-full p-2 shadow-lg z-10 group-hover:scale-110 transition-transform">
-                <Star className="w-6 h-6 text-white fill-white" />
+              <div className="bg-thai-gold absolute -top-2 -left-2 z-10 rounded-full p-2 shadow-lg transition-transform group-hover:scale-110">
+                <Star className="h-6 w-6 fill-white text-white" />
               </div>
 
               {/* Image du plat */}
-              <div className="relative aspect-square overflow-hidden rounded-md mb-3">
-                <img
+              <div className="relative mb-3 aspect-square overflow-hidden rounded-md">
+                <Image
                   src={
                     featuredDish.photo_du_plat ||
                     "https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/default.png"
                   }
                   alt={featuredDish.plat}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                  fill
+                  sizes="(max-width: 768px) 100vw, 400px"
+                  className="object-cover transition-transform duration-300 group-hover:scale-110"
+                  priority
                 />
                 {/* Overlay au hover */}
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
-                  <p className="text-white font-bold text-lg opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-colors group-hover:bg-black/10">
+                  <p className="text-lg font-bold text-white opacity-0 transition-opacity group-hover:opacity-100">
                     Voir les jours
                   </p>
                 </div>
               </div>
 
               {/* Nom + Prix sur même ligne */}
-              <div className="flex items-center justify-between mb-2 px-2">
-                <h3 className="font-semibold text-thai-green line-clamp-1">
-                  {featuredDish.plat}
-                </h3>
-                <Badge variant="secondary" className="shrink-0 ml-2">
-                  {featuredDish.prix ? `${parseFloat(featuredDish.prix.toString()).toFixed(2).replace('.', ',')}€` : "Prix sur demande"}
+              <div className="mb-2 flex items-center justify-between px-2">
+                <h3 className="text-thai-green line-clamp-1 font-semibold">{featuredDish.plat}</h3>
+                <Badge variant="secondary" className="ml-2 shrink-0">
+                  {featuredDish.prix
+                    ? `${parseFloat(featuredDish.prix.toString()).toFixed(2).replace(".", ",")}€`
+                    : "Prix sur demande"}
                 </Badge>
               </div>
 
               {/* Description du plat - scrollable si longue */}
               <div
-                className="max-h-20 overflow-y-auto px-2 mb-2"
+                className="mb-2 max-h-20 overflow-y-auto px-2"
                 style={{
-                  scrollbarWidth: 'thin',
-                  scrollbarColor: '#9ca3af #f3f4f6'
+                  scrollbarWidth: "thin",
+                  scrollbarColor: "#9ca3af #f3f4f6",
                 }}
               >
-                <p className="text-xs text-gray-600 leading-relaxed">
-                  {featuredDish.description}
-                </p>
+                <p className="text-xs leading-relaxed text-gray-600">{featuredDish.description}</p>
               </div>
 
               {/* Jours disponibles */}
               <div className="text-center">
-                <p className="text-xs text-thai-green font-semibold mb-1">Disponible</p>
-                <div className="flex flex-wrap gap-1 justify-center">
+                <p className="text-thai-green mb-1 text-xs font-semibold">Disponible</p>
+                <div className="flex flex-wrap justify-center gap-1">
                   {featuredDish.joursDisponibles.map((jour) => (
                     <Badge
                       key={jour}
@@ -148,7 +145,7 @@ export function FeaturedDishSection({
                       className={cn(
                         "text-xs",
                         featuredDay === jour
-                          ? "bg-thai-gold text-white border-thai-gold"
+                          ? "bg-thai-gold border-thai-gold text-white"
                           : "border-thai-gold/30 text-thai-gold"
                       )}
                     >
@@ -159,21 +156,21 @@ export function FeaturedDishSection({
               </div>
 
               {/* Indication */}
-              <p className="text-xs text-center text-gray-400 mt-3 italic">
+              <p className="mt-3 text-center text-xs text-gray-400 italic">
                 Cliquez pour choisir votre jour
               </p>
             </div>
           </div>
 
           {/* Message d'encouragement (mobile/desktop) */}
-          <div className="hidden md:block text-center max-w-xs">
-            <p className="text-thai-green font-semibold text-lg mb-2">
+          <div className="hidden max-w-xs text-center md:block">
+            <p className="text-thai-green mb-2 text-lg font-semibold">
               Notre suggestion de la semaine !
             </p>
-            <p className="text-gray-600 text-sm">
+            <p className="text-sm text-gray-600">
               Découvrez notre plat vedette, spécialement sélectionné pour vous.
             </p>
-            <p className="text-thai-orange text-xs mt-2 font-medium">
+            <p className="text-thai-orange mt-2 text-xs font-medium">
               {getJoursDisponiblesLabels()}
             </p>
           </div>

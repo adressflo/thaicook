@@ -34,6 +34,7 @@ import { memo, useEffect, useMemo, useRef, useState, Suspense } from "react"
 import { flushSync } from "react-dom"
 import Link from "next/link"
 import type { Route } from "next"
+import Image from "next/image"
 import { useQueryState, parseAsString } from "nuqs"
 
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -56,6 +57,7 @@ import { useCart } from "@/contexts/CartContext"
 import { usePrismaCreateCommande } from "@/hooks/usePrismaData"
 import type { PlatUI as Plat, PlatPanier } from "@/types/app"
 import { CommandePlatModal } from "@/components/shared/CommandePlatModal"
+import { CartItemCard } from "@/components/shared/CartItemCard"
 import { FeaturedDishSection } from "@/components/commander/FeaturedDishSection"
 import { PolaroidThankYouModal } from "@/components/commander/PolaroidThankYouModal"
 import { spiceTextToLevel } from "@/lib/spice-helpers"
@@ -115,6 +117,7 @@ const Commander = memo(() => {
   const isMobile = useIsMobile()
   const platsSectionRef = useRef<HTMLDivElement>(null)
   const dayButtonsSectionRef = useRef<HTMLDivElement>(null)
+  const hasAutoSelected = useRef(false)
 
   // États pour la sidebar mobile
   const [highlightedPlatId, setHighlightedPlatId] = useState<string | null>(null)
@@ -239,15 +242,17 @@ const Commander = memo(() => {
 
   // Auto-sélection de la dernière commande au chargement
   useEffect(() => {
-    if (panier.length > 0 && !dateRetrait && !jourSelectionne) {
+    if (!hasAutoSelected.current && panier.length > 0) {
       const lastItem = panier[panier.length - 1]
       if (lastItem.jourCommande && lastItem.dateRetrait) {
+        const date = new Date(lastItem.dateRetrait)
         setJourSelectionne(lastItem.jourCommande)
-        setDateRetrait(lastItem.dateRetrait)
-        setHeureRetrait(format(lastItem.dateRetrait, "HH:mm"))
+        setDateRetrait(date)
+        setHeureRetrait(format(date, "HH:mm"))
+        hasAutoSelected.current = true
       }
     }
-  }, [panier, dateRetrait, jourSelectionne, setJourSelectionne])
+  }, [panier, setJourSelectionne])
 
   // Scroll automatique vers la section des plats
   useEffect(() => {
@@ -671,13 +676,16 @@ const Commander = memo(() => {
 
                           {/* Image du plat */}
                           <div className="relative mb-3 aspect-square overflow-hidden rounded-md">
-                            <img
+                            <Image
                               src={
                                 featuredDish.photo_du_plat ||
                                 "https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/default.png"
                               }
                               alt={featuredDish.plat}
-                              className="h-full w-full object-cover"
+                              fill
+                              sizes="(max-width: 768px) 100vw, 300px"
+                              className="object-cover"
+                              priority
                             />
                           </div>
 
@@ -784,10 +792,12 @@ const Commander = memo(() => {
                         >
                           {plat.photo_du_plat && (
                             <div className="relative aspect-video overflow-hidden rounded-t-lg">
-                              <img
+                              <Image
                                 src={plat.photo_du_plat}
                                 alt={plat.plat}
-                                className="h-full w-full object-cover transition-transform duration-300 hover:scale-110"
+                                fill
+                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                className="object-cover transition-transform duration-300 hover:scale-110"
                               />
                               {/* Badge Disponible en haut à gauche */}
                               <div className="absolute top-2 left-2">
@@ -932,13 +942,32 @@ const Commander = memo(() => {
                             )}
 
                             <div className="space-y-3">
-                              {items.map((item) => {
+                              {items.map((item, index) => {
                                 const platData = plats?.find((p) => p.id.toString() === item.id)
                                 const imageUrl = platData?.photo_du_plat
+                                const itemKey = item.uniqueId || `cart-item-${index}`
 
                                 return platData ? (
-                                  <div
-                                    key={item.uniqueId}
+                                  <CartItemCard
+                                    key={itemKey}
+                                    name={item.nom}
+                                    imageUrl={imageUrl || undefined}
+                                    unitPrice={parseFloat(item.prix)}
+                                    quantity={item.quantite}
+                                    isVegetarian={!!platData.est_vegetarien}
+                                    isSpicy={(platData.niveau_epice ?? 0) > 0}
+                                    onQuantityChange={(qty) =>
+                                      modifierQuantite(item.uniqueId!, qty)
+                                    }
+                                    onRemove={() => {
+                                      supprimerDuPanier(item.uniqueId!)
+                                      toastVideo({
+                                        title: "Plat supprimé",
+                                        description: `${item.nom} retiré du panier.`,
+                                        media: "/media/animations/toasts/ajoutpaniernote.mp4",
+                                        position: "center",
+                                      })
+                                    }}
                                     onClick={() =>
                                       setModalContext({
                                         plat: platData,
@@ -947,105 +976,30 @@ const Commander = memo(() => {
                                         uniqueId: item.uniqueId,
                                       })
                                     }
-                                    className="hover:bg-thai-cream/20 hover:border-thai-orange hover:ring-thai-orange/30 flex transform cursor-pointer items-start gap-3 rounded-lg border border-gray-200 bg-white p-3 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:ring-2"
-                                  >
-                                    {/* Photo 18x18 avec badge quantité */}
-                                    <div className="relative flex-shrink-0">
-                                      <div className="bg-thai-orange absolute -top-2 -right-2 z-10 flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold text-white shadow-md">
-                                        {item.quantite}
-                                      </div>
-                                      {imageUrl ? (
-                                        <img
-                                          src={imageUrl}
-                                          alt={item.nom}
-                                          className="h-[72px] w-[72px] rounded-lg object-cover"
+                                    showSpiceSelector={
+                                      !!(
+                                        item.demandeSpeciale &&
+                                        item.demandeSpeciale.includes("épicé")
+                                      )
+                                    }
+                                    spiceSelectorSlot={
+                                      item.demandeSpeciale &&
+                                      item.demandeSpeciale.includes("épicé") ? (
+                                        <Spice
+                                          distribution={item.demandeSpeciale}
+                                          readOnly={true}
+                                          hideZeros={true}
+                                          className="my-1"
                                         />
-                                      ) : (
-                                        <div className="bg-thai-cream/30 border-thai-orange/20 flex h-[72px] w-[72px] items-center justify-center rounded-lg border">
-                                          <span className="text-thai-orange text-2xl">🍽️</span>
-                                        </div>
-                                      )}
-                                    </div>
-
-                                    {/* Contenu principal - 2 lignes */}
-                                    <div className="flex min-w-0 flex-1 flex-col gap-2">
-                                      {/* Ligne 1: Nom → Icônes épicées → Prix total */}
-                                      <div className="flex items-center justify-between gap-2">
-                                        <h4 className="text-thai-green text-base font-medium">
-                                          {item.nom}
-                                        </h4>
-                                        {item.demandeSpeciale &&
-                                          item.demandeSpeciale.includes("épicé") && (
-                                            <Spice
-                                              distribution={item.demandeSpeciale}
-                                              readOnly={true}
-                                              hideZeros={true}
-                                            />
-                                          )}
-                                        <div className="text-thai-orange text-lg font-bold whitespace-nowrap">
-                                          {formatPrix(parseFloat(item.prix) * item.quantite)}
-                                        </div>
-                                      </div>
-
-                                      {/* Ligne 2: Prix unitaire (gauche) → Contrôles (droite) */}
-                                      <div className="flex items-center justify-between gap-2">
-                                        <span className="text-xs text-gray-600">
-                                          Prix unitaire:{" "}
-                                          <span className="font-medium">
-                                            {formatPrix(parseFloat(item.prix))}
-                                          </span>
-                                        </span>
-                                        <div className="flex items-center gap-2">
-                                          <Button
-                                            size="sm"
-                                            variant="ghost"
-                                            onClick={(e) => {
-                                              e.stopPropagation()
-                                              supprimerDuPanier(item.uniqueId!)
-                                              toastVideo({
-                                                title: "Plat supprimé",
-                                                description: `${item.nom} a été retiré de votre panier.`,
-                                                media:
-                                                  "/media/animations/toasts/ajoutpaniernote.mp4",
-                                                position: "center",
-                                              })
-                                            }}
-                                            className="h-7 w-7 p-0 text-gray-400 transition-all duration-200 hover:bg-red-50 hover:text-red-500"
-                                            aria-label="Supprimer l'article"
-                                          >
-                                            <Trash2 className="h-4 w-4" />
-                                          </Button>
-                                          <Button
-                                            size="sm"
-                                            variant="outline"
-                                            className="hover:border-thai-orange h-7 w-7 p-0 transition-all duration-200 hover:scale-110"
-                                            onClick={(e) => {
-                                              e.stopPropagation()
-                                              modifierQuantite(item.uniqueId!, item.quantite - 1)
-                                            }}
-                                          >
-                                            -
-                                          </Button>
-                                          <span className="w-6 text-center text-sm font-bold">
-                                            {item.quantite}
-                                          </span>
-                                          <Button
-                                            size="sm"
-                                            variant="outline"
-                                            className="hover:border-thai-orange h-7 w-7 p-0 transition-all duration-200 hover:scale-110"
-                                            onClick={(e) => {
-                                              e.stopPropagation()
-                                              modifierQuantite(item.uniqueId!, item.quantite + 1)
-                                            }}
-                                          >
-                                            +
-                                          </Button>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
+                                      ) : undefined
+                                    }
+                                    className="mb-2"
+                                  />
                                 ) : (
-                                  <div className="flex items-start gap-3 rounded-lg border border-gray-200 bg-white p-3 opacity-50">
+                                  <div
+                                    key={itemKey}
+                                    className="flex items-start gap-3 rounded-lg border border-gray-200 bg-white p-3 opacity-50"
+                                  >
                                     <div className="flex h-12 w-16 items-center justify-center rounded-lg bg-gray-200">
                                       <span className="text-lg text-gray-400">🍽️</span>
                                     </div>
@@ -1059,6 +1013,22 @@ const Commander = memo(() => {
                                       <div className="mb-3 text-lg font-bold text-gray-400">
                                         {formatPrix(parseFloat(item.prix) * item.quantite)}
                                       </div>
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        onClick={() => {
+                                          supprimerDuPanier(item.uniqueId!)
+                                          toastVideo({
+                                            title: "Plat supprimé",
+                                            description: `${item.nom} retiré du panier.`,
+                                            media: "/media/animations/toasts/ajoutpaniernote.mp4",
+                                            position: "center",
+                                          })
+                                        }}
+                                        className="h-8 w-8 p-0 text-gray-400 hover:text-red-500"
+                                      >
+                                        <Trash2 className="h-4 w-4" />
+                                      </Button>
                                     </div>
                                   </div>
                                 )
