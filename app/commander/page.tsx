@@ -117,8 +117,6 @@ const Commander = memo(() => {
   const dayButtonsSectionRef = useRef<HTMLDivElement>(null)
 
   // États pour la sidebar mobile
-  const [isCartOpen, setIsCartOpen] = useState(false)
-  const [isCartCollapsed, setIsCartCollapsed] = useState(true) // Default to collapsed
   const [highlightedPlatId, setHighlightedPlatId] = useState<string | null>(null)
   const [showThankYouModal, setShowThankYouModal] = useState(false)
   const [featuredDishDays, setFeaturedDishDays] = useState<string[]>([])
@@ -239,6 +237,18 @@ const Commander = memo(() => {
     }
   }, [jourSelectionne, dateRetrait])
 
+  // Auto-sélection de la dernière commande au chargement
+  useEffect(() => {
+    if (panier.length > 0 && !dateRetrait && !jourSelectionne) {
+      const lastItem = panier[panier.length - 1]
+      if (lastItem.jourCommande && lastItem.dateRetrait) {
+        setJourSelectionne(lastItem.jourCommande)
+        setDateRetrait(lastItem.dateRetrait)
+        setHeureRetrait(format(lastItem.dateRetrait, "HH:mm"))
+      }
+    }
+  }, [panier, dateRetrait, jourSelectionne, setJourSelectionne])
+
   // Scroll automatique vers la section des plats
   useEffect(() => {
     if (jourSelectionne && dateRetrait && heureRetrait && platsSectionRef.current) {
@@ -253,29 +263,6 @@ const Commander = memo(() => {
       })
     }
   }, [jourSelectionne, dateRetrait, heureRetrait])
-
-  // Fonction pour ouvrir le panier et scroller vers les plats
-  const handleOpenCart = () => {
-    // flushSync force React à mettre à jour le DOM immédiatement
-    flushSync(() => {
-      setIsCartCollapsed(false)
-    })
-
-    // Double requestAnimationFrame = attendre 2 frames pour que le layout soit recalculé
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        // Fallback : si platsSectionRef n'existe pas, scroller vers les boutons jours
-        const targetRef = platsSectionRef.current || dayButtonsSectionRef.current
-
-        if (targetRef) {
-          targetRef.scrollIntoView({
-            behavior: "smooth",
-            block: "start",
-          })
-        }
-      })
-    })
-  }
 
   // Fonction pour scroll vers la section des boutons jours
   const handleScrollToDays = () => {
@@ -342,8 +329,6 @@ const Commander = memo(() => {
       demandeSpeciale: spicePreference || undefined,
       spiceDistribution: spiceDistribution,
     })
-
-    setIsCartCollapsed(false) // Open cart on add
 
     toastVideo({
       title: uniqueId ? "Panier mis à jour !" : "Plat ajouté !",
@@ -445,7 +430,6 @@ const Commander = memo(() => {
       setHeureRetrait("")
       setDemandesSpeciales("")
       setJourSelectionne(null)
-      setIsCartCollapsed(true)
     } catch (error: unknown) {
       console.error("Erreur validation commande:", error)
       const errorMessage =
@@ -471,7 +455,7 @@ const Commander = memo(() => {
       <div className="bg-gradient-thai min-h-screen px-2 py-8 sm:px-4">
         <div
           className={`mx-auto transition-all duration-500 ${
-            panier.length > 0 && !isCartCollapsed
+            panier.length > 0
               ? "grid max-w-[95%] grid-cols-1 gap-4 md:grid-cols-[3fr_2fr] md:gap-6 xl:max-w-[1600px]"
               : "max-w-[95%] xl:max-w-6xl"
           }`}
@@ -505,22 +489,6 @@ const Commander = memo(() => {
                   Horaire : Lundi, Mercredi, Vendredi, Samedi de 18h00 à 20h30
                 </p>
               </CardHeader>
-              {!isMobile && isCartCollapsed && panier.length > 0 && (
-                <div
-                  className="group absolute top-1/2 -right-10 -translate-y-1/2 cursor-pointer"
-                  onClick={handleOpenCart}
-                >
-                  <div className="bg-thai-green group-hover:bg-thai-green/80 relative flex h-20 w-20 items-center justify-center rounded-full backdrop-blur-sm transition-all duration-300 group-hover:scale-110">
-                    <ShoppingCart className="h-8 w-8 text-white drop-shadow-lg" />
-                  </div>
-                  <Badge
-                    variant="secondary"
-                    className="text-thai-orange border-thai-gold absolute -top-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full border-2 bg-white text-base font-bold shadow-lg"
-                  >
-                    {panier.reduce((total, item) => total + item.quantite, 0)}
-                  </Badge>
-                </div>
-              )}
             </Card>
 
             {/* Section 2: Sélection du jour et recherche */}
@@ -897,461 +865,137 @@ const Commander = memo(() => {
           </div>
 
           {/* Section latérale droite - Panier */}
-          {panier.length > 0 && !isCartCollapsed && (
+          {panier.length > 0 && (
             <div className="w-full">
               {/* Desktop Sidebar - 30% fixe */}
-              {!isMobile && (
-                <div className="sticky top-8 flex max-h-[calc(100vh-4rem)] flex-col">
-                  <Card className="border-thai-orange/20 flex h-full flex-col overflow-hidden shadow-xl">
-                    <CardHeader className="from-thai-orange to-thai-gold relative rounded-t-lg bg-gradient-to-r py-4 text-white">
-                      <div className="text-center">
-                        <div className="mb-1 flex items-center justify-center">
-                          <ShoppingCart className="mr-2 h-7 w-7" />
-                          <CardTitle className="text-2xl font-bold">Mon Panier</CardTitle>
-                        </div>
-                        <p className="text-xs text-white/90">
-                          {panier.reduce((total, item) => total + item.quantite, 0)} Plat
-                          {panier.reduce((total, item) => total + item.quantite, 0) > 1 ? "s" : ""}
-                        </p>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setIsCartCollapsed(true)}
-                          className="absolute top-2 right-2 p-1 text-white hover:bg-white/20"
-                        >
-                          <ChevronRight className="h-4 w-4" />
-                        </Button>
+              <div className="flex flex-col md:sticky md:top-8 md:max-h-[calc(100vh-4rem)]">
+                <Card className="border-thai-orange/20 flex h-full flex-col overflow-hidden shadow-xl">
+                  <CardHeader className="from-thai-orange to-thai-gold relative rounded-t-lg bg-gradient-to-r py-4 text-white">
+                    <div className="text-center">
+                      <div className="mb-1 flex items-center justify-center">
+                        <ShoppingCart className="mr-2 h-7 w-7" />
+                        <CardTitle className="text-2xl font-bold">Mon Panier</CardTitle>
                       </div>
-                    </CardHeader>
+                      <p className="text-xs text-white/90">
+                        {panier.reduce((total, item) => total + item.quantite, 0)} Plat
+                        {panier.reduce((total, item) => total + item.quantite, 0) > 1 ? "s" : ""}
+                      </p>
+                    </div>
+                  </CardHeader>
 
-                    <CardContent className="flex-1 overflow-y-auto p-4">
-                      {(() => {
-                        const groupedByDate = panier.reduce(
-                          (groups, item) => {
-                            const dateKey = item.dateRetrait?.toDateString() || "no-date"
-                            if (!groups[dateKey]) {
-                              groups[dateKey] = []
-                            }
-                            groups[dateKey].push(item)
-                            return groups
-                          },
-                          {} as Record<string, PlatPanier[]>
-                        )
+                  <CardContent className="flex-1 overflow-y-auto p-4">
+                    {(() => {
+                      const groupedByDate = panier.reduce(
+                        (groups, item) => {
+                          const dateKey = item.dateRetrait?.toDateString() || "no-date"
+                          if (!groups[dateKey]) {
+                            groups[dateKey] = []
+                          }
+                          groups[dateKey].push(item)
+                          return groups
+                        },
+                        {} as Record<string, PlatPanier[]>
+                      )
 
-                        return Object.entries(groupedByDate).map(([dateKey, items]) => {
-                          const dateRetrait = items[0]?.dateRetrait
+                      return Object.entries(groupedByDate).map(([dateKey, items]) => {
+                        const dateRetrait = items[0]?.dateRetrait
 
-                          return (
-                            <div
-                              key={dateKey}
-                              className="border-thai-orange/20 bg-thai-cream/20 animate-fade-in hover:border-thai-orange/30 hover:bg-thai-cream/30 mb-4 rounded-lg border p-3 transition-all duration-300 hover:shadow-md"
-                            >
-                              {dateRetrait && (
-                                <div
-                                  className="border-thai-orange/10 hover:bg-thai-orange/5 hover:border-thai-orange/20 mb-2 cursor-pointer rounded-lg border-b px-2 py-1 pb-2 transition-all duration-300"
-                                  onMouseEnter={() => {
-                                    const jourDate = format(dateRetrait, "eeee", {
+                        return (
+                          <div
+                            key={dateKey}
+                            className="border-thai-orange/20 bg-thai-cream/20 animate-fade-in hover:border-thai-orange/30 hover:bg-thai-cream/30 mb-4 rounded-lg border p-3 transition-all duration-300 hover:shadow-md"
+                          >
+                            {dateRetrait && (
+                              <div
+                                className="border-thai-orange/10 hover:bg-thai-orange/5 hover:border-thai-orange/20 mb-2 cursor-pointer rounded-lg border-b px-2 py-1 pb-2 transition-all duration-300"
+                                onMouseEnter={() => {
+                                  const jourDate = format(dateRetrait, "eeee", {
+                                    locale: fr,
+                                  }).toLowerCase()
+                                  const heureDate = format(dateRetrait, "HH:mm")
+                                  setJourSelectionne(jourDate)
+                                  setDateRetrait(dateRetrait)
+                                  setHeureRetrait(heureDate)
+                                }}
+                              >
+                                <h4 className="text-thai-green flex items-center gap-2 text-base font-semibold">
+                                  <CalendarIconLucide className="text-thai-orange h-4 w-4" />
+                                  Retrait prévu le{" "}
+                                  <span className="text-thai-orange font-bold">
+                                    {format(dateRetrait, "eeee dd MMMM", {
                                       locale: fr,
-                                    }).toLowerCase()
-                                    const heureDate = format(dateRetrait, "HH:mm")
-                                    setJourSelectionne(jourDate)
-                                    setDateRetrait(dateRetrait)
-                                    setHeureRetrait(heureDate)
-                                  }}
-                                >
-                                  <h4 className="text-thai-green flex items-center gap-2 text-base font-semibold">
-                                    <CalendarIconLucide className="text-thai-orange h-4 w-4" />
-                                    Retrait prévu le{" "}
-                                    <span className="text-thai-orange font-bold">
-                                      {format(dateRetrait, "eeee dd MMMM", {
-                                        locale: fr,
-                                      }).replace(/^\w/, (c) => c.toUpperCase())}{" "}
-                                      à {format(dateRetrait, "HH:mm")}
-                                    </span>
-                                  </h4>
-                                </div>
-                              )}
+                                    }).replace(/^\w/, (c) => c.toUpperCase())}{" "}
+                                    à {format(dateRetrait, "HH:mm")}
+                                  </span>
+                                </h4>
+                              </div>
+                            )}
 
-                              <div className="space-y-3">
-                                {items.map((item) => {
-                                  const platData = plats?.find((p) => p.id.toString() === item.id)
-                                  const imageUrl = platData?.photo_du_plat
+                            <div className="space-y-3">
+                              {items.map((item) => {
+                                const platData = plats?.find((p) => p.id.toString() === item.id)
+                                const imageUrl = platData?.photo_du_plat
 
-                                  return platData ? (
-                                    <div
-                                      key={item.uniqueId}
-                                      onClick={() =>
-                                        setModalContext({
-                                          plat: platData,
-                                          quantity: item.quantite,
-                                          spiceDistribution: item.spiceDistribution,
-                                          uniqueId: item.uniqueId,
-                                        })
-                                      }
-                                      className="hover:bg-thai-cream/20 hover:border-thai-orange hover:ring-thai-orange/30 flex transform cursor-pointer items-start gap-3 rounded-lg border border-gray-200 bg-white p-3 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:ring-2"
-                                    >
-                                      {/* Photo 18x18 avec badge quantité */}
-                                      <div className="relative flex-shrink-0">
-                                        <div className="bg-thai-orange absolute -top-2 -right-2 z-10 flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold text-white shadow-md">
-                                          {item.quantite}
-                                        </div>
-                                        {imageUrl ? (
-                                          <img
-                                            src={imageUrl}
-                                            alt={item.nom}
-                                            className="h-[72px] w-[72px] rounded-lg object-cover"
-                                          />
-                                        ) : (
-                                          <div className="bg-thai-cream/30 border-thai-orange/20 flex h-[72px] w-[72px] items-center justify-center rounded-lg border">
-                                            <span className="text-thai-orange text-2xl">🍽️</span>
-                                          </div>
-                                        )}
+                                return platData ? (
+                                  <div
+                                    key={item.uniqueId}
+                                    onClick={() =>
+                                      setModalContext({
+                                        plat: platData,
+                                        quantity: item.quantite,
+                                        spiceDistribution: item.spiceDistribution,
+                                        uniqueId: item.uniqueId,
+                                      })
+                                    }
+                                    className="hover:bg-thai-cream/20 hover:border-thai-orange hover:ring-thai-orange/30 flex transform cursor-pointer items-start gap-3 rounded-lg border border-gray-200 bg-white p-3 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:ring-2"
+                                  >
+                                    {/* Photo 18x18 avec badge quantité */}
+                                    <div className="relative flex-shrink-0">
+                                      <div className="bg-thai-orange absolute -top-2 -right-2 z-10 flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold text-white shadow-md">
+                                        {item.quantite}
                                       </div>
-
-                                      {/* Contenu principal - 2 lignes */}
-                                      <div className="flex min-w-0 flex-1 flex-col gap-2">
-                                        {/* Ligne 1: Nom → Icônes épicées → Prix total */}
-                                        <div className="flex items-center justify-between gap-2">
-                                          <h4 className="text-thai-green text-base font-medium">
-                                            {item.nom}
-                                          </h4>
-                                          {item.demandeSpeciale &&
-                                            item.demandeSpeciale.includes("épicé") && (
-                                              <Spice
-                                                distribution={item.demandeSpeciale}
-                                                readOnly={true}
-                                                hideZeros={true}
-                                              />
-                                            )}
-                                          <div className="text-thai-orange text-lg font-bold whitespace-nowrap">
-                                            {formatPrix(parseFloat(item.prix) * item.quantite)}
-                                          </div>
+                                      {imageUrl ? (
+                                        <img
+                                          src={imageUrl}
+                                          alt={item.nom}
+                                          className="h-[72px] w-[72px] rounded-lg object-cover"
+                                        />
+                                      ) : (
+                                        <div className="bg-thai-cream/30 border-thai-orange/20 flex h-[72px] w-[72px] items-center justify-center rounded-lg border">
+                                          <span className="text-thai-orange text-2xl">🍽️</span>
                                         </div>
-
-                                        {/* Ligne 2: Prix unitaire (gauche) → Contrôles (droite) */}
-                                        <div className="flex items-center justify-between gap-2">
-                                          <span className="text-xs text-gray-600">
-                                            Prix unitaire:{" "}
-                                            <span className="font-medium">
-                                              {formatPrix(parseFloat(item.prix))}
-                                            </span>
-                                          </span>
-                                          <div className="flex items-center gap-2">
-                                            <Button
-                                              size="sm"
-                                              variant="ghost"
-                                              onClick={(e) => {
-                                                e.stopPropagation()
-                                                supprimerDuPanier(item.uniqueId!)
-                                                toastVideo({
-                                                  title: "Plat supprimé",
-                                                  description: `${item.nom} a été retiré de votre panier.`,
-                                                  media:
-                                                    "/media/animations/toasts/ajoutpaniernote.mp4",
-                                                  position: "center",
-                                                })
-                                              }}
-                                              className="h-7 w-7 p-0 text-gray-400 transition-all duration-200 hover:bg-red-50 hover:text-red-500"
-                                              aria-label="Supprimer l'article"
-                                            >
-                                              <Trash2 className="h-4 w-4" />
-                                            </Button>
-                                            <Button
-                                              size="sm"
-                                              variant="outline"
-                                              className="hover:border-thai-orange h-7 w-7 p-0 transition-all duration-200 hover:scale-110"
-                                              onClick={(e) => {
-                                                e.stopPropagation()
-                                                modifierQuantite(item.uniqueId!, item.quantite - 1)
-                                              }}
-                                            >
-                                              -
-                                            </Button>
-                                            <span className="w-6 text-center text-sm font-bold">
-                                              {item.quantite}
-                                            </span>
-                                            <Button
-                                              size="sm"
-                                              variant="outline"
-                                              className="hover:border-thai-orange h-7 w-7 p-0 transition-all duration-200 hover:scale-110"
-                                              onClick={(e) => {
-                                                e.stopPropagation()
-                                                modifierQuantite(item.uniqueId!, item.quantite + 1)
-                                              }}
-                                            >
-                                              +
-                                            </Button>
-                                          </div>
-                                        </div>
-                                      </div>
+                                      )}
                                     </div>
-                                  ) : (
-                                    <div className="flex items-start gap-3 rounded-lg border border-gray-200 bg-white p-3 opacity-50">
-                                      <div className="flex h-12 w-16 items-center justify-center rounded-lg bg-gray-200">
-                                        <span className="text-lg text-gray-400">🍽️</span>
-                                      </div>
-                                      <div className="flex-1">
-                                        <h4 className="mb-1 text-base font-medium text-gray-500">
+
+                                    {/* Contenu principal - 2 lignes */}
+                                    <div className="flex min-w-0 flex-1 flex-col gap-2">
+                                      {/* Ligne 1: Nom → Icônes épicées → Prix total */}
+                                      <div className="flex items-center justify-between gap-2">
+                                        <h4 className="text-thai-green text-base font-medium">
                                           {item.nom}
                                         </h4>
-                                        <p className="text-sm text-gray-400">Plat supprimé</p>
-                                      </div>
-                                      <div className="text-right">
-                                        <div className="mb-3 text-lg font-bold text-gray-400">
+                                        {item.demandeSpeciale &&
+                                          item.demandeSpeciale.includes("épicé") && (
+                                            <Spice
+                                              distribution={item.demandeSpeciale}
+                                              readOnly={true}
+                                              hideZeros={true}
+                                            />
+                                          )}
+                                        <div className="text-thai-orange text-lg font-bold whitespace-nowrap">
                                           {formatPrix(parseFloat(item.prix) * item.quantite)}
                                         </div>
                                       </div>
-                                    </div>
-                                  )
-                                })}
-                              </div>
-                            </div>
-                          )
-                        })
-                      })()}
 
-                      <div className="bg-thai-cream/30 mb-4 flex items-center justify-between rounded-lg p-3">
-                        <span className="text-thai-green text-lg font-bold">
-                          Total de la commande :
-                        </span>
-                        <span className="text-thai-orange text-xl font-bold">
-                          {formatPrix(totalPrix)}
-                        </span>
-                      </div>
-
-                      <Alert className="mb-4 border-green-200 bg-green-50/50 text-green-800">
-                        <CreditCard className="h-4 w-4 !text-green-700" />
-                        <AlertDescription className="font-medium">
-                          Paiement sur place : Nous acceptons la carte bleue.
-                        </AlertDescription>
-                      </Alert>
-
-                      <div className="mb-4 space-y-3">
-                        <div>
-                          <Label htmlFor="demandesSpecialesSidebar" className="text-xs">
-                            Demandes spéciales
-                          </Label>
-                          <Textarea
-                            id="demandesSpecialesSidebar"
-                            placeholder="Allergies, etc."
-                            value={demandesSpeciales}
-                            onChange={(e) => setDemandesSpeciales(e.target.value)}
-                            className="border-thai-orange/30 focus:border-thai-orange focus:ring-thai-orange/20 bg-thai-orange/5 h-16 border text-xs"
-                          />
-                        </div>
-                      </div>
-
-                      <Card className="border-thai-green/20 from-thai-cream/30 to-thai-gold/10 mb-4 bg-gradient-to-r backdrop-blur-sm">
-                        <CardContent className="p-3">
-                          <div className="space-y-3 text-center">
-                            <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-3">
-                              <p className="text-center text-xs font-medium text-yellow-800">
-                                ⏳ Votre commande sera mise en attente de confirmation. Nous la
-                                traiterons dans les plus brefs délais.
-                              </p>
-                            </div>
-
-                            <div className="text-thai-green/80 bg-thai-cream/50 rounded-lg p-2 text-center text-xs">
-                              <div className="flex items-center justify-center gap-2">
-                                <MapPin className="text-thai-orange h-3 w-3" />
-                                <span>
-                                  Adresse de retrait : 2 impasse de la poste 37120 Marigny Marmande
-                                </span>
-                              </div>
-                              <div className="mt-1 flex items-center justify-center gap-2">
-                                <Phone className="text-thai-orange h-3 w-3" />
-                                <span>Contact : 07 49 28 37 07</span>
-                              </div>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </CardContent>
-
-                    <div className="flex-shrink-0 rounded-b-lg border-t bg-white p-4">
-                      <Button
-                        onClick={validerCommande}
-                        disabled={
-                          createCommande.isPending || !currentUser || !idclient || !isOnline
-                        }
-                        className="bg-thai-orange w-full py-6 text-lg transition-all duration-200 hover:scale-105"
-                      >
-                        {createCommande.isPending ? (
-                          <Loader2 className="mr-2 h-6 w-6 animate-spin" />
-                        ) : (
-                          <CreditCard className="mr-2 h-6 w-6" />
-                        )}
-                        Valider ma commande ({formatPrix(totalPrix)})
-                      </Button>
-                    </div>
-                  </Card>
-                </div>
-              )}
-
-              {/* Mobile - Bouton flottant en bas */}
-              {isMobile && panier.length > 0 && (
-                <Button
-                  onClick={() => setIsCartOpen(true)}
-                  className="bg-thai-orange hover:bg-thai-orange/90 fixed right-6 bottom-6 z-50 h-16 w-16 animate-pulse rounded-full shadow-2xl transition-all duration-200 hover:scale-110"
-                >
-                  <div className="relative flex flex-col items-center">
-                    <ShoppingCart className="h-7 w-7" />
-                    <Badge
-                      variant="secondary"
-                      className="bg-thai-gold text-thai-green absolute -top-2 -right-2 flex h-7 w-7 items-center justify-center rounded-full border-2 border-white text-sm font-bold shadow-lg"
-                    >
-                      {panier.reduce((total, item) => total + item.quantite, 0)}
-                    </Badge>
-                  </div>
-                </Button>
-              )}
-
-              {/* Mobile - Overlay Modal */}
-              {isMobile && isCartOpen && (
-                <div className="fixed inset-0 z-50 bg-black/50">
-                  <div className="absolute inset-0 bg-white">
-                    <div className="flex h-full flex-col">
-                      <div className="from-thai-orange to-thai-gold bg-gradient-to-r p-4 text-white">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center">
-                            <ShoppingCart className="mr-2 h-6 w-6" />
-                            <h2 className="text-lg font-bold">Mon Panier</h2>
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setIsCartOpen(false)}
-                            className="text-white hover:bg-white/20"
-                          >
-                            <X className="h-6 w-6" />
-                          </Button>
-                        </div>
-                      </div>
-
-                      <div className="flex-1 overflow-y-auto p-4">
-                        {(() => {
-                          const groupedByDate = panier.reduce(
-                            (groups, item) => {
-                              const dateKey = item.dateRetrait?.toDateString() || "no-date"
-                              if (!groups[dateKey]) {
-                                groups[dateKey] = []
-                              }
-                              groups[dateKey].push(item)
-                              return groups
-                            },
-                            {} as Record<string, PlatPanier[]>
-                          )
-
-                          return Object.entries(groupedByDate).map(([dateKey, items]) => {
-                            const dateRetrait = items[0]?.dateRetrait
-                            const totalGroupe = items.reduce(
-                              (sum, item) => sum + parseFloat(item.prix) * item.quantite,
-                              0
-                            )
-
-                            return (
-                              <div
-                                key={dateKey}
-                                className="border-thai-orange/20 bg-thai-cream/20 mb-4 rounded-lg border p-4"
-                              >
-                                {dateRetrait && (
-                                  <div className="border-thai-orange/10 mb-3 border-b pb-2">
-                                    <h4 className="text-thai-green flex items-center gap-2 text-lg font-semibold">
-                                      <CalendarIconLucide className="text-thai-orange h-5 w-5" />
-                                      {format(dateRetrait, "cccc dd MMMM", {
-                                        locale: fr,
-                                      }).replace(/^\w/, (c) => c.toUpperCase())}{" "}
-                                      à {format(dateRetrait, "HH:mm")}
-                                    </h4>
-                                    <p className="text-sm text-gray-600">
-                                      {formatPrix(totalGroupe)} (
-                                      {items.reduce((total, item) => total + item.quantite, 0)} plat
-                                      {items.reduce((total, item) => total + item.quantite, 0) > 1
-                                        ? "s"
-                                        : ""}
-                                      )
-                                    </p>
-                                  </div>
-                                )}
-
-                                <div className="space-y-3">
-                                  {items.map((item) => {
-                                    const platData = plats?.find((p) => p.id.toString() === item.id)
-                                    const imageUrl = platData?.photo_du_plat
-
-                                    return platData ? (
-                                      <div
-                                        key={item.uniqueId}
-                                        onClick={() =>
-                                          setModalContext({
-                                            plat: platData,
-                                            quantity: item.quantite,
-                                            spiceDistribution: item.spiceDistribution,
-                                            uniqueId: item.uniqueId,
-                                          })
-                                        }
-                                        className="flex cursor-pointer items-center gap-3 rounded bg-white/60 p-3 transition-colors hover:bg-white/80"
-                                      >
-                                        {imageUrl ? (
-                                          <img
-                                            src={imageUrl}
-                                            alt={item.nom}
-                                            className="border-thai-orange/20 h-12 w-12 rounded border object-cover"
-                                          />
-                                        ) : (
-                                          <div className="bg-thai-cream/30 border-thai-orange/20 flex h-12 w-12 items-center justify-center rounded border">
-                                            <span className="text-thai-orange">🍽️</span>
-                                          </div>
-                                        )}
-
-                                        <div className="flex-1">
-                                          <p
-                                            className="text-thai-green hover:text-thai-orange cursor-pointer text-base font-bold transition-colors"
-                                            onMouseEnter={() => setHighlightedPlatId(item.id)}
-                                            onMouseLeave={() => setHighlightedPlatId(null)}
-                                          >
-                                            {item.nom}
-                                          </p>
-                                          {item.demandeSpeciale &&
-                                            item.demandeSpeciale.includes("épicé") && (
-                                              <Spice
-                                                distribution={item.demandeSpeciale}
-                                                readOnly={true}
-                                                hideZeros={true}
-                                                className="my-1"
-                                              />
-                                            )}
-                                          <p className="text-thai-orange text-sm font-medium">
-                                            {formatPrix(parseFloat(item.prix) * item.quantite)}
-                                          </p>
-                                        </div>
-
-                                        <div className="flex items-center gap-2">
-                                          <Button
-                                            size="sm"
-                                            variant="outline"
-                                            className="h-8 w-8 p-0"
-                                            onClick={(e) => {
-                                              e.stopPropagation()
-                                              modifierQuantite(item.uniqueId!, item.quantite - 1)
-                                            }}
-                                          >
-                                            -
-                                          </Button>
-                                          <span className="w-6 text-center font-medium">
-                                            {item.quantite}
+                                      {/* Ligne 2: Prix unitaire (gauche) → Contrôles (droite) */}
+                                      <div className="flex items-center justify-between gap-2">
+                                        <span className="text-xs text-gray-600">
+                                          Prix unitaire:{" "}
+                                          <span className="font-medium">
+                                            {formatPrix(parseFloat(item.prix))}
                                           </span>
-                                          <Button
-                                            size="sm"
-                                            variant="outline"
-                                            className="h-8 w-8 p-0"
-                                            onClick={(e) => {
-                                              e.stopPropagation()
-                                              modifierQuantite(item.uniqueId!, item.quantite + 1)
-                                            }}
-                                          >
-                                            +
-                                          </Button>
+                                        </span>
+                                        <div className="flex items-center gap-2">
                                           <Button
                                             size="sm"
                                             variant="ghost"
@@ -1360,95 +1004,145 @@ const Commander = memo(() => {
                                               supprimerDuPanier(item.uniqueId!)
                                               toastVideo({
                                                 title: "Plat supprimé",
-                                                description: `${item.nom} retiré du panier.`,
+                                                description: `${item.nom} a été retiré de votre panier.`,
                                                 media:
                                                   "/media/animations/toasts/ajoutpaniernote.mp4",
                                                 position: "center",
                                               })
                                             }}
-                                            className="h-8 w-8 p-0 text-gray-400 hover:text-red-500"
+                                            className="h-7 w-7 p-0 text-gray-400 transition-all duration-200 hover:bg-red-50 hover:text-red-500"
+                                            aria-label="Supprimer l'article"
                                           >
                                             <Trash2 className="h-4 w-4" />
                                           </Button>
+                                          <Button
+                                            size="sm"
+                                            variant="outline"
+                                            className="hover:border-thai-orange h-7 w-7 p-0 transition-all duration-200 hover:scale-110"
+                                            onClick={(e) => {
+                                              e.stopPropagation()
+                                              modifierQuantite(item.uniqueId!, item.quantite - 1)
+                                            }}
+                                          >
+                                            -
+                                          </Button>
+                                          <span className="w-6 text-center text-sm font-bold">
+                                            {item.quantite}
+                                          </span>
+                                          <Button
+                                            size="sm"
+                                            variant="outline"
+                                            className="hover:border-thai-orange h-7 w-7 p-0 transition-all duration-200 hover:scale-110"
+                                            onClick={(e) => {
+                                              e.stopPropagation()
+                                              modifierQuantite(item.uniqueId!, item.quantite + 1)
+                                            }}
+                                          >
+                                            +
+                                          </Button>
                                         </div>
                                       </div>
-                                    ) : (
-                                      <div className="flex items-center gap-3 rounded bg-white/60 p-3 opacity-50">
-                                        <div className="flex h-12 w-12 items-center justify-center rounded bg-gray-200">
-                                          <span className="text-gray-400">🍽️</span>
-                                        </div>
-                                        <div className="flex-1">
-                                          <p className="text-base font-bold text-gray-500">
-                                            {item.nom}
-                                          </p>
-                                          <p className="text-sm text-gray-400">Plat supprimé</p>
-                                        </div>
-                                        <Button
-                                          size="sm"
-                                          variant="ghost"
-                                          onClick={() => {
-                                            supprimerDuPanier(item.uniqueId!)
-                                            toastVideo({
-                                              title: "Plat supprimé",
-                                              description: `${item.nom} retiré du panier.`,
-                                              media: "/media/animations/toasts/ajoutpaniernote.mp4",
-                                              position: "center",
-                                            })
-                                          }}
-                                          className="h-8 w-8 p-0 text-gray-400 hover:text-red-500"
-                                        >
-                                          <Trash2 className="h-4 w-4" />
-                                        </Button>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div className="flex items-start gap-3 rounded-lg border border-gray-200 bg-white p-3 opacity-50">
+                                    <div className="flex h-12 w-16 items-center justify-center rounded-lg bg-gray-200">
+                                      <span className="text-lg text-gray-400">🍽️</span>
+                                    </div>
+                                    <div className="flex-1">
+                                      <h4 className="mb-1 text-base font-medium text-gray-500">
+                                        {item.nom}
+                                      </h4>
+                                      <p className="text-sm text-gray-400">Plat supprimé</p>
+                                    </div>
+                                    <div className="text-right">
+                                      <div className="mb-3 text-lg font-bold text-gray-400">
+                                        {formatPrix(parseFloat(item.prix) * item.quantite)}
                                       </div>
-                                    )
-                                  })}
-                                </div>
-                              </div>
-                            )
-                          })
-                        })()}
-                      </div>
-
-                      <div className="border-t bg-white p-4">
-                        <div className="text-thai-green mb-4 text-center text-xl font-bold">
-                          Total: {formatPrix(totalPrix)}
-                        </div>
-
-                        <div className="space-y-4">
-                          <div>
-                            <Label htmlFor="demandesSpecialesMobile">Demandes spéciales</Label>
-                            <Textarea
-                              id="demandesSpecialesMobile"
-                              placeholder="Allergies, etc."
-                              value={demandesSpeciales}
-                              onChange={(e) => setDemandesSpeciales(e.target.value)}
-                              className="border-thai-orange/30 focus:border-thai-orange focus:ring-thai-orange/20 bg-thai-orange/5 h-20 border"
-                            />
+                                    </div>
+                                  </div>
+                                )
+                              })}
+                            </div>
                           </div>
+                        )
+                      })
+                    })()}
 
-                          <Button
-                            onClick={() => {
-                              validerCommande()
-                              setIsCartOpen(false)
-                            }}
-                            disabled={
-                              createCommande.isPending || !currentUser || !idclient || !isOnline
-                            }
-                            className="bg-thai-orange w-full py-8 text-xl"
-                          >
-                            {createCommande.isPending ? (
-                              <Loader2 className="mr-2 h-6 w-6 animate-spin" />
-                            ) : (
-                              <CreditCard className="mr-2 h-6 w-6" />
-                            )}
-                            Valider ({formatPrix(totalPrix)})
-                          </Button>
-                        </div>
+                    <div className="bg-thai-cream/30 mb-4 flex items-center justify-between rounded-lg p-3">
+                      <span className="text-thai-green text-lg font-bold">
+                        Total de la commande :
+                      </span>
+                      <span className="text-thai-orange text-xl font-bold">
+                        {formatPrix(totalPrix)}
+                      </span>
+                    </div>
+
+                    <Alert className="mb-4 border-green-200 bg-green-50/50 text-green-800">
+                      <CreditCard className="h-4 w-4 !text-green-700" />
+                      <AlertDescription className="font-medium">
+                        Paiement sur place : Nous acceptons la carte bleue.
+                      </AlertDescription>
+                    </Alert>
+
+                    <div className="mb-4 space-y-3">
+                      <div>
+                        <Label htmlFor="demandesSpecialesSidebar" className="text-xs">
+                          Demandes spéciales
+                        </Label>
+                        <Textarea
+                          id="demandesSpecialesSidebar"
+                          placeholder="Allergies, etc."
+                          value={demandesSpeciales}
+                          onChange={(e) => setDemandesSpeciales(e.target.value)}
+                          className="border-thai-orange/30 focus:border-thai-orange focus:ring-thai-orange/20 bg-thai-orange/5 h-16 border text-xs"
+                        />
                       </div>
                     </div>
+
+                    <Card className="border-thai-green/20 from-thai-cream/30 to-thai-gold/10 mb-4 bg-gradient-to-r backdrop-blur-sm">
+                      <CardContent className="p-3">
+                        <div className="space-y-3 text-center">
+                          <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-3">
+                            <p className="text-center text-xs font-medium text-yellow-800">
+                              ⏳ Votre commande sera mise en attente de confirmation. Nous la
+                              traiterons dans les plus brefs délais.
+                            </p>
+                          </div>
+
+                          <div className="text-thai-green/80 bg-thai-cream/50 rounded-lg p-2 text-center text-xs">
+                            <div className="flex items-center justify-center gap-2">
+                              <MapPin className="text-thai-orange h-3 w-3" />
+                              <span>
+                                Adresse de retrait : 2 impasse de la poste 37120 Marigny Marmande
+                              </span>
+                            </div>
+                            <div className="mt-1 flex items-center justify-center gap-2">
+                              <Phone className="text-thai-orange h-3 w-3" />
+                              <span>Contact : 07 49 28 37 07</span>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </CardContent>
+
+                  <div className="flex-shrink-0 rounded-b-lg border-t bg-white p-4">
+                    <Button
+                      onClick={validerCommande}
+                      disabled={createCommande.isPending || !currentUser || !idclient || !isOnline}
+                      className="bg-thai-orange w-full py-6 text-lg transition-all duration-200 hover:scale-105"
+                    >
+                      {createCommande.isPending ? (
+                        <Loader2 className="mr-2 h-6 w-6 animate-spin" />
+                      ) : (
+                        <CreditCard className="mr-2 h-6 w-6" />
+                      )}
+                      Valider ma commande ({formatPrix(totalPrix)})
+                    </Button>
                   </div>
-                </div>
-              )}
+                </Card>
+              </div>
             </div>
           )}
         </div>
@@ -1461,13 +1155,13 @@ const Commander = memo(() => {
           onOpenChange={(open) => {
             if (!open) setModalContext(null)
           }}
-          plat={modalContext.plat}
+          plat={modalContext!.plat}
           formatPrix={formatPrix}
           onAddToCart={handleAjouterAuPanier}
-          currentQuantity={modalContext.quantity}
-          currentSpiceDistribution={modalContext.spiceDistribution}
+          currentQuantity={modalContext!.quantity}
+          currentSpiceDistribution={modalContext!.spiceDistribution}
           dateRetrait={dateRetrait}
-          uniqueId={modalContext.uniqueId}
+          uniqueId={modalContext!.uniqueId}
         />
       )}
 
