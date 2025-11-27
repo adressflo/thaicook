@@ -45,6 +45,7 @@ function RenderContent() {
       ? parseInt(searchParams.get("imageHeight")!)
       : undefined,
     desktopImageWidth: searchParams.get("desktopImageWidth") || "w-24",
+    customImageObjectPosition: searchParams.get("customImageObjectPosition") || undefined,
     // Props spécifiques Polaroid
     title: searchParams.get("title") || "",
     // description déjà définie plus haut
@@ -102,6 +103,7 @@ function RenderContent() {
               imageWidth={props.imageWidth}
               imageHeight={props.imageHeight}
               desktopImageWidth={props.desktopImageWidth}
+              customImageObjectPosition={props.customImageObjectPosition}
               spiceSelectorSlot={<Spice distribution={[0, 0, 1, 0]} readOnly />}
               onQuantityChange={() => {}}
               onRemove={() => {}}

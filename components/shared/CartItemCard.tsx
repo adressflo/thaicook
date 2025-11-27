@@ -36,6 +36,7 @@ interface CartItemCardProps {
   imageWidth?: number
   imageHeight?: number
   desktopImageWidth?: string
+  customImageObjectPosition?: string
 }
 
 export function CartItemCard({
@@ -59,6 +60,7 @@ export function CartItemCard({
   imageWidth,
   imageHeight,
   desktopImageWidth = "w-24",
+  customImageObjectPosition,
 }: CartItemCardProps) {
   const [imageError, setImageError] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -141,11 +143,12 @@ export function CartItemCard({
                   onError={() => setImageError(true)}
                   style={{
                     transform: `scale(${imageZoom})`,
+                    objectPosition: customImageObjectPosition,
                   }}
                   className={cn(
                     "cursor-pointer transition-opacity duration-200 hover:opacity-80",
                     objectFitClass,
-                    objectPositionClass,
+                    !customImageObjectPosition && objectPositionClass,
                     imageClassName
                   )}
                 />

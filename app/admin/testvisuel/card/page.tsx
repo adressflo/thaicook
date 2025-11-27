@@ -917,13 +917,15 @@ function CartItemCardPlayground() {
     isSpicy: boolean
     readOnly: boolean
     imageAspectRatio: "square" | "video" | "auto" | "square-contain" | "video-contain"
-    imageObjectPosition: "center" | "top" | "bottom" | "left" | "right"
+    imageObjectPosition: "center" | "top" | "bottom" | "left" | "right" | "custom"
     imageZoom: number
     showSpiceSelector: boolean
     imageWidth: number | undefined
     imageHeight: number | undefined
     useCustomDimensions: boolean
     desktopImageWidth: string
+    customImagePositionX: number
+    customImagePositionY: number
   }>({
     quantity: 2,
     isVegetarian: false,
@@ -937,6 +939,8 @@ function CartItemCardPlayground() {
     imageHeight: undefined,
     useCustomDimensions: false,
     desktopImageWidth: "w-24",
+    customImagePositionX: 50,
+    customImagePositionY: 50,
   })
 
   // Sélectionner "Oeuf Vapeur Thaï" par défaut quand les plats sont chargés
@@ -1023,6 +1027,11 @@ function CartItemCardPlayground() {
         showSpiceSelector: props.showSpiceSelector,
         imageWidth: props.useCustomDimensions ? props.imageWidth : undefined,
         imageHeight: props.useCustomDimensions ? props.imageHeight : undefined,
+        desktopImageWidth: props.desktopImageWidth,
+        customImageObjectPosition:
+          props.imageObjectPosition === "custom"
+            ? `${props.customImagePositionX}% ${props.customImagePositionY}%`
+            : undefined,
       },
     })
     return () => channel.close()
@@ -1043,6 +1052,13 @@ function CartItemCardPlayground() {
     params.set("imageObjectPosition", props.imageObjectPosition)
     params.set("imageZoom", props.imageZoom.toString())
     params.set("showSpiceSelector", props.showSpiceSelector.toString())
+    params.set("desktopImageWidth", props.desktopImageWidth)
+    if (props.imageObjectPosition === "custom") {
+      params.set(
+        "customImageObjectPosition",
+        `${props.customImagePositionX}% ${props.customImagePositionY}%`
+      )
+    }
     if (props.useCustomDimensions && props.imageWidth) {
       params.set("imageWidth", props.imageWidth.toString())
     }
@@ -1265,7 +1281,14 @@ function CartItemCardPlayground() {
               isSpicy={props.isSpicy}
               readOnly={props.readOnly}
               imageAspectRatio={props.imageAspectRatio}
-              imageObjectPosition={props.imageObjectPosition}
+              imageObjectPosition={
+                props.imageObjectPosition === "custom" ? undefined : props.imageObjectPosition
+              }
+              customImageObjectPosition={
+                props.imageObjectPosition === "custom"
+                  ? `${props.customImagePositionX}% ${props.customImagePositionY}%`
+                  : undefined
+              }
               imageZoom={props.imageZoom}
               imageWidth={props.useCustomDimensions ? props.imageWidth : undefined}
               imageHeight={props.useCustomDimensions ? props.imageHeight : undefined}
@@ -1440,7 +1463,7 @@ function CartItemCardPlayground() {
         <div className="space-y-2">
           <label className="text-xs font-medium text-gray-700">🎯 Position de l'image</label>
           <div className="flex flex-wrap gap-2">
-            {(["center", "top", "bottom", "left", "right"] as const).map((pos) => (
+            {(["center", "top", "bottom", "left", "right", "custom"] as const).map((pos) => (
               <Button
                 key={pos}
                 size="sm"
@@ -1456,6 +1479,42 @@ function CartItemCardPlayground() {
               </Button>
             ))}
           </div>
+          {props.imageObjectPosition === "custom" && (
+            <div className="mt-2 grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <label className="text-xs text-gray-600">Position X (%)</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={props.customImagePositionX}
+                    onChange={(e) =>
+                      setProps({ ...props, customImagePositionX: Number(e.target.value) })
+                    }
+                    className="flex-1"
+                  />
+                  <span className="w-8 text-sm text-gray-600">{props.customImagePositionX}%</span>
+                </div>
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs text-gray-600">Position Y (%)</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={props.customImagePositionY}
+                    onChange={(e) =>
+                      setProps({ ...props, customImagePositionY: Number(e.target.value) })
+                    }
+                    className="flex-1"
+                  />
+                  <span className="w-8 text-sm text-gray-600">{props.customImagePositionY}%</span>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Section Zoom */}
