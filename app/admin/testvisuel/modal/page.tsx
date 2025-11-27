@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -31,6 +31,201 @@ import { CommandePlatModal, CommandePlatContent } from "@/components/shared/Comm
 import { ModalVideo } from "@/components/ui/ModalVideo"
 import { useData } from "@/contexts/DataContext"
 import { cn } from "@/lib/utils"
+import type { PlatUI } from "@/types/app"
+import { ModalVideoContent } from "@/components/ui/ModalVideo"
+
+// Composant Playground pour CommandePlatModal
+function CommandePlatPlayground({ plats }: { plats: PlatUI[] }) {
+  // Sélection du plat de base
+  const [selectedPlatId, setSelectedPlatId] = useState<string>(plats[0]?.id?.toString() || "")
+
+  // État pour les propriétés personnalisées
+  const [customProps, setCustomProps] = useState({
+    plat: "",
+    description: "",
+    prix: "0",
+    photo_du_plat: "",
+    niveau_epice: 0,
+  })
+
+  // État pour le modal réel
+  const [isModalOpen, setIsModalOpen] = useState(false)
+
+  // Mettre à jour les props quand on change de plat
+  useEffect(() => {
+    const plat = plats.find((p) => p.id === Number(selectedPlatId))
+    if (plat) {
+      setCustomProps({
+        plat: plat.plat,
+        description: plat.description || "",
+        prix: plat.prix || "0",
+        photo_du_plat: plat.photo_du_plat || "",
+        niveau_epice: plat.niveau_epice || 0,
+      })
+    }
+  }, [selectedPlatId, plats])
+
+  // Plat combiné pour le rendu
+  const displayPlat: PlatUI = {
+    ...(plats.find((p) => p.id === Number(selectedPlatId)) || plats[0]),
+    ...customProps,
+    id: Number(selectedPlatId) || 0,
+  }
+
+  return (
+    <div className="grid gap-8 lg:grid-cols-2">
+      {/* Colonne de gauche : Contrôles */}
+      <div className="space-y-4">
+        <div className="border-thai-orange/20 rounded-lg border bg-white p-6 shadow-sm">
+          <div className="mb-4 flex items-center justify-between">
+            <h4 className="text-thai-green flex items-center gap-2 text-lg font-semibold">
+              <span className="text-xl">🎛️</span>
+              Contrôles
+            </h4>
+            <Button
+              size="sm"
+              onClick={() => setIsModalOpen(true)}
+              className="bg-thai-orange hover:bg-thai-orange/90 text-white shadow-md transition-all hover:shadow-lg"
+            >
+              🎬 Ouvrir Modal Réel
+            </Button>
+          </div>
+
+          <div className="space-y-4">
+            {/* Sélection du plat de base */}
+            <div className="space-y-2">
+              <Label>Basé sur le plat</Label>
+              <select
+                className="focus:border-thai-orange focus:ring-thai-orange w-full rounded-md border border-gray-300 p-2 text-sm focus:ring-1 focus:outline-none"
+                value={selectedPlatId}
+                onChange={(e) => setSelectedPlatId(e.target.value)}
+              >
+                {plats.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.plat}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Inputs Texte */}
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label>Nom du plat</Label>
+                <Input
+                  value={customProps.plat}
+                  onChange={(e) => setCustomProps({ ...customProps, plat: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Prix (€)</Label>
+                <Input
+                  type="number"
+                  step="0.1"
+                  value={customProps.prix}
+                  onChange={(e) => setCustomProps({ ...customProps, prix: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Description</Label>
+              <textarea
+                className="focus:border-thai-orange focus:ring-thai-orange w-full rounded-md border border-gray-300 p-2 text-sm focus:ring-1 focus:outline-none"
+                rows={3}
+                value={customProps.description}
+                onChange={(e) => setCustomProps({ ...customProps, description: e.target.value })}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>URL Image</Label>
+              <div className="flex gap-2">
+                <Input
+                  value={customProps.photo_du_plat}
+                  onChange={(e) =>
+                    setCustomProps({ ...customProps, photo_du_plat: e.target.value })
+                  }
+                  className="flex-1"
+                />
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setCustomProps({ ...customProps, photo_du_plat: "" })}
+                  title="Supprimer l'image"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+
+            {/* Toggles */}
+            <div className="flex gap-4">
+              <div className="flex items-center gap-2">
+                <Label className="cursor-pointer">Niveau épice 🌶️</Label>
+                <select
+                  className="focus:border-thai-orange focus:ring-thai-orange rounded-md border border-gray-300 p-1 text-sm focus:ring-1 focus:outline-none"
+                  value={customProps.niveau_epice}
+                  onChange={(e) =>
+                    setCustomProps({ ...customProps, niveau_epice: parseInt(e.target.value) })
+                  }
+                >
+                  <option value={0}>0 - Non épicé</option>
+                  <option value={1}>1 - Peu épicé</option>
+                  <option value={2}>2 - Moyennement épicé</option>
+                  <option value={3}>3 - Très épicé</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Colonne de droite : Aperçu */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <h4 className="flex items-center gap-2 text-lg font-semibold text-gray-600">
+            <span className="text-xl">👁️</span>
+            Aperçu Visuel
+          </h4>
+          <Badge variant="outline" className="bg-gray-100 text-gray-600">
+            Mode Standalone
+          </Badge>
+        </div>
+
+        <div className="relative mx-auto flex h-[600px] w-full max-w-sm flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-2xl">
+          <CommandePlatContent
+            onOpenChange={() => {}}
+            plat={displayPlat}
+            formatPrix={(p) => `${parseFloat(p.toString()).toFixed(2)}€`}
+            currentQuantity={1}
+            currentSpiceDistribution={[1, 0, 0, 0]}
+            dateRetrait={new Date()}
+            standalone={true}
+            onAddToCart={(p, q, s, d) =>
+              console.log("🛒 Action Panier (Preview):", { plat: p.plat, q, s, d })
+            }
+          />
+        </div>
+      </div>
+
+      {/* Modal Réel */}
+      <CommandePlatModal
+        isOpen={isModalOpen}
+        onOpenChange={setIsModalOpen}
+        plat={displayPlat}
+        formatPrix={(p) => `${parseFloat(p.toString()).toFixed(2)}€`}
+        currentQuantity={1}
+        currentSpiceDistribution={[1, 0, 0, 0]}
+        dateRetrait={new Date()}
+        onAddToCart={(p, q, s, d) => {
+          console.log("🛒 Action Panier (Réel):", { plat: p.plat, q, s, d })
+          setIsModalOpen(false)
+        }}
+      />
+    </div>
+  )
+}
 
 // Composant Playground interactif pour ModalVideo
 function ModalVideoPlayground() {
@@ -75,7 +270,8 @@ function ModalVideoPlayground() {
     titleColor: "thai-green" | "thai-orange" | "white" | "black" | "thai-gold"
   }>({
     title: "Vidéo - <orange>Aperçu</orange>",
-    description: "La <bold><orange>vidéo</orange></bold> tourne en boucle pour <semi-bold><green>démonstration</green></semi-bold>",
+    description:
+      "La <bold><orange>vidéo</orange></bold> tourne en boucle pour <semi-bold><green>démonstration</green></semi-bold>",
     media: "/media/animations/toasts/ajoutpaniernote.mp4",
     aspectRatio: "16:9",
     polaroid: false,
@@ -105,7 +301,7 @@ function ModalVideoPlayground() {
     position: "center",
     customX: "50%",
     customY: "50%",
-    titleColor: "thai-green"
+    titleColor: "thai-green",
   })
 
   // Fonction pour générer le code JSX complet
@@ -125,12 +321,12 @@ function ModalVideoPlayground() {
   buttonLayout="${previewProps.buttonLayout}"
   cancelText="${previewProps.cancelText}"
   confirmText="${previewProps.confirmText}"
-  thirdButtonText="${previewProps.thirdButtonText}"${previewProps.cancelLink ? `\n  cancelLink="${previewProps.cancelLink}"` : ''}${previewProps.confirmLink ? `\n  confirmLink="${previewProps.confirmLink}"` : ''}${previewProps.thirdButtonLink ? `\n  thirdButtonLink="${previewProps.thirdButtonLink}"` : ''}
+  thirdButtonText="${previewProps.thirdButtonText}"${previewProps.cancelLink ? `\n  cancelLink="${previewProps.cancelLink}"` : ""}${previewProps.confirmLink ? `\n  confirmLink="${previewProps.confirmLink}"` : ""}${previewProps.thirdButtonLink ? `\n  thirdButtonLink="${previewProps.thirdButtonLink}"` : ""}
   rotation={${previewProps.rotation}}
-  maxWidth="${previewProps.maxWidth}"${previewProps.maxWidth === "custom" && previewProps.customWidth ? `\n  customWidth="${previewProps.customWidth}"` : ''}${previewProps.maxWidth === "custom" && previewProps.customHeight ? `\n  customHeight="${previewProps.customHeight}"` : ''}
+  maxWidth="${previewProps.maxWidth}"${previewProps.maxWidth === "custom" && previewProps.customWidth ? `\n  customWidth="${previewProps.customWidth}"` : ""}${previewProps.maxWidth === "custom" && previewProps.customHeight ? `\n  customHeight="${previewProps.customHeight}"` : ""}
   borderColor="${previewProps.borderColor}"
   borderWidth={${previewProps.borderWidth}}
-  shadowSize="${previewProps.shadowSize}"${previewProps.position !== "center" ? `\n  position="${previewProps.position}"` : ''}${previewProps.position === "custom" && previewProps.customX ? `\n  customX="${previewProps.customX}"` : ''}${previewProps.position === "custom" && previewProps.customY ? `\n  customY="${previewProps.customY}"` : ''}${previewProps.titleColor !== "thai-green" ? `\n  titleColor="${previewProps.titleColor}"` : ''}
+  shadowSize="${previewProps.shadowSize}"${previewProps.position !== "center" ? `\n  position="${previewProps.position}"` : ""}${previewProps.position === "custom" && previewProps.customX ? `\n  customX="${previewProps.customX}"` : ""}${previewProps.position === "custom" && previewProps.customY ? `\n  customY="${previewProps.customY}"` : ""}${previewProps.titleColor !== "thai-green" ? `\n  titleColor="${previewProps.titleColor}"` : ""}
   onCancel={() => console.log("Annulé")}
   onConfirm={() => console.log("Confirmé")}
   onThirdButton={() => console.log("Troisième action")}
@@ -150,410 +346,431 @@ function ModalVideoPlayground() {
   }
 
   return (
-    <div className="space-y-4">
-      {/* Contrôles Interactifs */}
-      <div className="space-y-4 rounded-lg border border-thai-orange/20 bg-white p-6 shadow-sm">
-        <div className="flex items-center justify-between">
-          <h4 className="font-semibold text-lg text-thai-green flex items-center gap-2">
-            <span className="text-xl">🎮</span>
-            Contrôles Interactifs
-          </h4>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={handleCopyCode}
-              className="border-thai-green text-thai-green hover:bg-thai-green hover:text-white transition-all duration-200"
-            >
-              📋 Copier le Code
-            </Button>
-            <Button
-              size="lg"
-              onClick={() => setIsModalOpen(true)}
-              className="bg-thai-orange hover:bg-thai-orange/90 text-white shadow-lg hover:shadow-xl transition-all duration-200"
-            >
-              🎬 Ouvrir Modal Réel
-            </Button>
-          </div>
-        </div>
-
-        {/* Section Contenu */}
-        <div className="space-y-2">
-          <label className="text-xs font-medium text-gray-700">📝 Contenu</label>
-          <div className="space-y-2">
-            <input
-              type="text"
-              value={previewProps.title}
-              onChange={(e) => setPreviewProps({ ...previewProps, title: e.target.value })}
-              placeholder="Titre du modal (balises : <orange>, <bold>, etc.)"
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent"
-            />
-            <textarea
-              value={previewProps.description}
-              onChange={(e) => setPreviewProps({ ...previewProps, description: e.target.value })}
-              placeholder="Description (balises : <orange>, <green>, <bold>, <semi-bold>, etc.)"
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent resize-none"
-              rows={3}
-            />
-            <p className="text-xs text-gray-500 italic">
-              💡 Astuce : Utilisez des balises pour styliser le texte : <code className="bg-gray-100 px-1 rounded">&lt;orange&gt;mot&lt;/orange&gt;</code> <code className="bg-gray-100 px-1 rounded">&lt;bold&gt;mot&lt;/bold&gt;</code>
-            </p>
-            <input
-              type="text"
-              value={previewProps.media}
-              onChange={(e) => {
-                let path = e.target.value
-                // Nettoyer le chemin : enlever "public/" ou "public\" du début
-                path = path.replace(/^public[\/\\]/, '/')
-                // S'assurer qu'il commence par /
-                if (path && !path.startsWith('/')) {
-                  path = '/' + path
-                }
-                setPreviewProps({ ...previewProps, media: path })
-              }}
-              placeholder="/media/avatars/phonevalid.svg (ou public/media/...)"
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent"
-            />
+    <div className="grid gap-8 lg:grid-cols-2">
+      <div className="space-y-4">
+        {/* Contrôles Interactifs */}
+        <div className="border-thai-orange/20 space-y-4 rounded-lg border bg-white p-6 shadow-sm">
+          <div className="flex items-center justify-between">
+            <h4 className="text-thai-green flex items-center gap-2 text-lg font-semibold">
+              <span className="text-xl">🎮</span>
+              Contrôles Interactifs
+            </h4>
             <div className="flex gap-2">
               <Button
-                size="sm"
                 variant="outline"
-                onClick={() => setPreviewProps({ ...previewProps, media: "/media/avatars/phonevalid.svg" })}
-                className="flex-1 border-thai-green/30 text-thai-green hover:bg-thai-green/10"
+                onClick={handleCopyCode}
+                className="border-thai-green text-thai-green hover:bg-thai-green transition-all duration-200 hover:text-white"
               >
-                🖼️ Image
+                📋 Copier le Code
               </Button>
               <Button
-                size="sm"
-                variant="outline"
-                onClick={() => setPreviewProps({ ...previewProps, media: "/media/animations/toasts/ajoutpaniernote.mp4" })}
-                className="flex-1 border-thai-orange/30 text-thai-orange hover:bg-thai-orange/10"
+                size="lg"
+                onClick={() => setIsModalOpen(true)}
+                className="bg-thai-orange hover:bg-thai-orange/90 text-white shadow-lg transition-all duration-200 hover:shadow-xl"
               >
-                🎬 Vidéo
+                🎬 Ouvrir Modal Réel
               </Button>
             </div>
           </div>
-        </div>
 
-        {/* Section Couleurs */}
-        <div className="space-y-2">
-          <label className="text-xs font-medium text-gray-700">🎨 Couleurs du Texte</label>
-          <div className="space-y-3">
-            {/* Couleur du titre */}
-            <div>
-              <label className="text-xs text-gray-600">Couleur du titre</label>
-              <div className="flex gap-2 flex-wrap">
-                {[
-                  { label: "🟢 Vert", value: "thai-green" as const },
-                  { label: "🟠 Orange", value: "thai-orange" as const },
-                  { label: "⚪ Blanc", value: "white" as const },
-                  { label: "⚫ Noir", value: "black" as const },
-                  { label: "🟡 Or", value: "thai-gold" as const }
-                ].map((color) => (
-                  <Button
-                    key={color.value}
-                    size="sm"
-                    variant={previewProps.titleColor === color.value ? "default" : "outline"}
-                    onClick={() => setPreviewProps({ ...previewProps, titleColor: color.value })}
-                    className={previewProps.titleColor === color.value
-                      ? "bg-thai-orange hover:bg-thai-orange/90"
-                      : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"}
-                  >
-                    {color.label}
-                  </Button>
-                ))}
-              </div>
-            </div>
-
-            {/* Info balises - Bouton dialog */}
-            <Dialog>
-              <DialogTrigger asChild>
+          {/* Section Contenu */}
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-gray-700">📝 Contenu</label>
+            <div className="space-y-2">
+              <input
+                type="text"
+                value={previewProps.title}
+                onChange={(e) => setPreviewProps({ ...previewProps, title: e.target.value })}
+                placeholder="Titre du modal (balises : <orange>, <bold>, etc.)"
+                className="focus:ring-thai-orange w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:outline-none"
+              />
+              <textarea
+                value={previewProps.description}
+                onChange={(e) => setPreviewProps({ ...previewProps, description: e.target.value })}
+                placeholder="Description (balises : <orange>, <green>, <bold>, <semi-bold>, etc.)"
+                className="focus:ring-thai-orange w-full resize-none rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:outline-none"
+                rows={3}
+              />
+              <p className="text-xs text-gray-500 italic">
+                💡 Astuce : Utilisez des balises pour styliser le texte :{" "}
+                <code className="rounded bg-gray-100 px-1">&lt;orange&gt;mot&lt;/orange&gt;</code>{" "}
+                <code className="rounded bg-gray-100 px-1">&lt;bold&gt;mot&lt;/bold&gt;</code>
+              </p>
+              <input
+                type="text"
+                value={previewProps.media}
+                onChange={(e) => {
+                  let path = e.target.value
+                  // Nettoyer le chemin : enlever "public/" ou "public\" du début
+                  path = path.replace(/^public[\/\\]/, "/")
+                  // S'assurer qu'il commence par /
+                  if (path && !path.startsWith("/")) {
+                    path = "/" + path
+                  }
+                  setPreviewProps({ ...previewProps, media: path })
+                }}
+                placeholder="/media/avatars/phonevalid.svg (ou public/media/...)"
+                className="focus:ring-thai-orange w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:outline-none"
+              />
+              <div className="flex gap-2">
                 <Button
-                  variant="outline"
                   size="sm"
-                  className="w-full border-thai-orange/30 text-thai-green hover:bg-thai-orange/10 gap-2"
+                  variant="outline"
+                  onClick={() =>
+                    setPreviewProps({ ...previewProps, media: "/media/avatars/phonevalid.svg" })
+                  }
+                  className="border-thai-green/30 text-thai-green hover:bg-thai-green/10 flex-1"
                 >
-                  <Info className="h-4 w-4" />
-                  💡 Comment colorer le texte ?
+                  🖼️ Image
                 </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl bg-white border-2 border-thai-orange shadow-2xl">
-                <DialogHeader>
-                  <DialogTitle className="text-2xl font-bold text-thai-green">
-                    🎨 Balises de Coloration et Style
-                  </DialogTitle>
-                  <DialogDescription className="text-thai-green/80">
-                    Utilisez ces balises dans le titre et la description pour personnaliser le texte
-                  </DialogDescription>
-                </DialogHeader>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() =>
+                    setPreviewProps({
+                      ...previewProps,
+                      media: "/media/animations/toasts/ajoutpaniernote.mp4",
+                    })
+                  }
+                  className="border-thai-orange/30 text-thai-orange hover:bg-thai-orange/10 flex-1"
+                >
+                  🎬 Vidéo
+                </Button>
+              </div>
+            </div>
+          </div>
 
-                <div className="space-y-6">
-                  {/* Balises couleur */}
-                  <div className="space-y-3">
-                    <h4 className="text-sm font-semibold text-thai-orange">🌈 Balises Couleur</h4>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex items-center gap-2">
-                        <code className="bg-gray-100 px-2 py-1 rounded border text-xs flex-shrink-0">&lt;orange&gt;texte&lt;/orange&gt;</code>
-                        <span className="text-gray-400">→</span>
-                        <span className="text-thai-orange font-medium">texte en orange</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <code className="bg-gray-100 px-2 py-1 rounded border text-xs flex-shrink-0">&lt;green&gt;texte&lt;/green&gt;</code>
-                        <span className="text-gray-400">→</span>
-                        <span className="text-thai-green font-medium">texte en vert</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <code className="bg-gray-100 px-2 py-1 rounded border text-xs flex-shrink-0">&lt;gold&gt;texte&lt;/gold&gt;</code>
-                        <span className="text-gray-400">→</span>
-                        <span className="text-thai-gold font-medium">texte en or</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <code className="bg-gray-100 px-2 py-1 rounded border text-xs flex-shrink-0">&lt;white&gt;texte&lt;/white&gt;</code>
-                        <span className="text-gray-400">→</span>
-                        <span className="text-white font-medium bg-gray-800 px-2 py-0.5 rounded">texte en blanc</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <code className="bg-gray-100 px-2 py-1 rounded border text-xs flex-shrink-0">&lt;black&gt;texte&lt;/black&gt;</code>
-                        <span className="text-gray-400">→</span>
-                        <span className="text-black font-medium">texte en noir</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Balises style */}
-                  <div className="space-y-3">
-                    <h4 className="text-sm font-semibold text-thai-orange">✨ Balises Style</h4>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex items-center gap-2">
-                        <code className="bg-gray-100 px-2 py-1 rounded border text-xs flex-shrink-0">&lt;bold&gt;texte&lt;/bold&gt;</code>
-                        <span className="text-gray-400">→</span>
-                        <span className="font-bold">texte en gras</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <code className="bg-gray-100 px-2 py-1 rounded border text-xs flex-shrink-0">&lt;semi-bold&gt;texte&lt;/semi-bold&gt;</code>
-                        <span className="text-gray-400">→</span>
-                        <span className="font-semibold">texte semi-gras</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Exemples */}
-                  <div className="space-y-3 p-4 bg-thai-cream/30 border border-thai-orange/20 rounded-lg">
-                    <h4 className="text-sm font-semibold text-thai-green">📝 Exemples</h4>
-                    <div className="space-y-2 text-xs">
-                      <div>
-                        <p className="text-gray-600 mb-1">Code :</p>
-                        <code className="bg-white px-2 py-1 rounded border block">
-                          "La &lt;orange&gt;vidéo&lt;/orange&gt; tourne en &lt;green&gt;boucle&lt;/green&gt;"
-                        </code>
-                        <p className="text-gray-600 mt-1 mb-1">Résultat :</p>
-                        <p className="text-base">
-                          La <span className="text-thai-orange">vidéo</span> tourne en <span className="text-thai-green">boucle</span>
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-gray-600 mb-1">Code :</p>
-                        <code className="bg-white px-2 py-1 rounded border block">
-                          "Découvrez nos &lt;bold&gt;&lt;orange&gt;plats&lt;/orange&gt;&lt;/bold&gt; authentiques"
-                        </code>
-                        <p className="text-gray-600 mt-1 mb-1">Résultat :</p>
-                        <p className="text-base">
-                          Découvrez nos <span className="font-bold text-thai-orange">plats</span> authentiques
-                        </p>
-                      </div>
-                    </div>
-                  </div>
+          {/* Section Couleurs */}
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-gray-700">🎨 Couleurs du Texte</label>
+            <div className="space-y-3">
+              {/* Couleur du titre */}
+              <div>
+                <label className="text-xs text-gray-600">Couleur du titre</label>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { label: "🟢 Vert", value: "thai-green" as const },
+                    { label: "🟠 Orange", value: "thai-orange" as const },
+                    { label: "⚪ Blanc", value: "white" as const },
+                    { label: "⚫ Noir", value: "black" as const },
+                    { label: "🟡 Or", value: "thai-gold" as const },
+                  ].map((color) => (
+                    <Button
+                      key={color.value}
+                      size="sm"
+                      variant={previewProps.titleColor === color.value ? "default" : "outline"}
+                      onClick={() => setPreviewProps({ ...previewProps, titleColor: color.value })}
+                      className={
+                        previewProps.titleColor === color.value
+                          ? "bg-thai-orange hover:bg-thai-orange/90"
+                          : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
+                      }
+                    >
+                      {color.label}
+                    </Button>
+                  ))}
                 </div>
+              </div>
 
-                <DialogFooter>
+              {/* Info balises - Bouton dialog */}
+              <Dialog>
+                <DialogTrigger asChild>
                   <Button
-                    className="bg-thai-orange hover:bg-thai-orange/90 text-white"
+                    variant="outline"
+                    size="sm"
+                    className="border-thai-orange/30 text-thai-green hover:bg-thai-orange/10 w-full gap-2"
                   >
-                    Compris !
+                    <Info className="h-4 w-4" />
+                    💡 Comment colorer le texte ?
                   </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-          </div>
-        </div>
+                </DialogTrigger>
+                <DialogContent className="border-thai-orange max-w-2xl border-2 bg-white shadow-2xl">
+                  <DialogHeader>
+                    <DialogTitle className="text-thai-green text-2xl font-bold">
+                      🎨 Balises de Coloration et Style
+                    </DialogTitle>
+                    <DialogDescription className="text-thai-green/80">
+                      Utilisez ces balises dans le titre et la description pour personnaliser le
+                      texte
+                    </DialogDescription>
+                  </DialogHeader>
 
-        {/* Section Style */}
-        <div className="space-y-2">
-          <label className="text-xs font-medium text-gray-700">🖼️ Style Visuel</label>
+                  <div className="space-y-6">
+                    {/* Balises couleur */}
+                    <div className="space-y-3">
+                      <h4 className="text-thai-orange text-sm font-semibold">🌈 Balises Couleur</h4>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex items-center gap-2">
+                          <code className="flex-shrink-0 rounded border bg-gray-100 px-2 py-1 text-xs">
+                            &lt;orange&gt;texte&lt;/orange&gt;
+                          </code>
+                          <span className="text-gray-400">→</span>
+                          <span className="text-thai-orange font-medium">texte en orange</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <code className="flex-shrink-0 rounded border bg-gray-100 px-2 py-1 text-xs">
+                            &lt;green&gt;texte&lt;/green&gt;
+                          </code>
+                          <span className="text-gray-400">→</span>
+                          <span className="text-thai-green font-medium">texte en vert</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <code className="flex-shrink-0 rounded border bg-gray-100 px-2 py-1 text-xs">
+                            &lt;gold&gt;texte&lt;/gold&gt;
+                          </code>
+                          <span className="text-gray-400">→</span>
+                          <span className="text-thai-gold font-medium">texte en or</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <code className="flex-shrink-0 rounded border bg-gray-100 px-2 py-1 text-xs">
+                            &lt;white&gt;texte&lt;/white&gt;
+                          </code>
+                          <span className="text-gray-400">→</span>
+                          <span className="rounded bg-gray-800 px-2 py-0.5 font-medium text-white">
+                            texte en blanc
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <code className="flex-shrink-0 rounded border bg-gray-100 px-2 py-1 text-xs">
+                            &lt;black&gt;texte&lt;/black&gt;
+                          </code>
+                          <span className="text-gray-400">→</span>
+                          <span className="font-medium text-black">texte en noir</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Balises style */}
+                    <div className="space-y-3">
+                      <h4 className="text-thai-orange text-sm font-semibold">✨ Balises Style</h4>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex items-center gap-2">
+                          <code className="flex-shrink-0 rounded border bg-gray-100 px-2 py-1 text-xs">
+                            &lt;bold&gt;texte&lt;/bold&gt;
+                          </code>
+                          <span className="text-gray-400">→</span>
+                          <span className="font-bold">texte en gras</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <code className="flex-shrink-0 rounded border bg-gray-100 px-2 py-1 text-xs">
+                            &lt;semi-bold&gt;texte&lt;/semi-bold&gt;
+                          </code>
+                          <span className="text-gray-400">→</span>
+                          <span className="font-semibold">texte semi-gras</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Exemples */}
+                    <div className="bg-thai-cream/30 border-thai-orange/20 space-y-3 rounded-lg border p-4">
+                      <h4 className="text-thai-green text-sm font-semibold">📝 Exemples</h4>
+                      <div className="space-y-2 text-xs">
+                        <div>
+                          <p className="mb-1 text-gray-600">Code :</p>
+                          <code className="block rounded border bg-white px-2 py-1">
+                            "La &lt;orange&gt;vidéo&lt;/orange&gt; tourne en
+                            &lt;green&gt;boucle&lt;/green&gt;"
+                          </code>
+                          <p className="mt-1 mb-1 text-gray-600">Résultat :</p>
+                          <p className="text-base">
+                            La <span className="text-thai-orange">vidéo</span> tourne en{" "}
+                            <span className="text-thai-green">boucle</span>
+                          </p>
+                        </div>
+                        <div>
+                          <p className="mb-1 text-gray-600">Code :</p>
+                          <code className="block rounded border bg-white px-2 py-1">
+                            "Découvrez nos
+                            &lt;bold&gt;&lt;orange&gt;plats&lt;/orange&gt;&lt;/bold&gt;
+                            authentiques"
+                          </code>
+                          <p className="mt-1 mb-1 text-gray-600">Résultat :</p>
+                          <p className="text-base">
+                            Découvrez nos <span className="text-thai-orange font-bold">plats</span>{" "}
+                            authentiques
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <DialogFooter>
+                    <Button className="bg-thai-orange hover:bg-thai-orange/90 text-white">
+                      Compris !
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
+          </div>
+
+          {/* Section Style */}
           <div className="space-y-2">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={previewProps.polaroid}
-                onChange={(e) => setPreviewProps({ ...previewProps, polaroid: e.target.checked })}
-                className="w-4 h-4 text-thai-orange border-gray-300 rounded focus:ring-thai-orange focus:ring-2"
-              />
-              <span className="text-sm text-gray-700">Polaroid (cadre blanc + bordure configurée)</span>
-            </label>
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={previewProps.scrollingText}
-                onChange={(e) => setPreviewProps({ ...previewProps, scrollingText: e.target.checked })}
-                className="w-4 h-4 text-thai-orange border-gray-300 rounded focus:ring-thai-orange focus:ring-2"
-              />
-              <span className="text-sm text-gray-700">Texte défilant (animation marquee)</span>
-            </label>
-            {previewProps.scrollingText && (
-              <div className="flex items-center gap-2 ml-6">
-                <label className="text-xs text-gray-600">Durée:</label>
+            <label className="text-xs font-medium text-gray-700">🖼️ Style Visuel</label>
+            <div className="space-y-2">
+              <label className="flex cursor-pointer items-center gap-2">
                 <input
-                  type="number"
-                  value={previewProps.scrollDuration}
-                  onChange={(e) => setPreviewProps({ ...previewProps, scrollDuration: parseInt(e.target.value) || 10 })}
-                  className="w-16 px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange"
-                  min="1"
-                  max="60"
+                  type="checkbox"
+                  checked={previewProps.polaroid}
+                  onChange={(e) => setPreviewProps({ ...previewProps, polaroid: e.target.checked })}
+                  className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
                 />
-                <span className="text-xs text-gray-600">secondes</span>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Section Format */}
-        <div className="space-y-2">
-          <label className="text-xs font-medium text-gray-700">📐 Format d'image</label>
-          <div className="flex gap-2">
-            {(["16:9", "4:5", "1:1", "auto"] as const).map((ratio) => (
-              <Button
-                key={ratio}
-                size="sm"
-                variant={previewProps.aspectRatio === ratio ? "default" : "outline"}
-                onClick={() => setPreviewProps({ ...previewProps, aspectRatio: ratio })}
-                className={previewProps.aspectRatio === ratio
-                  ? "bg-thai-orange hover:bg-thai-orange/90"
-                  : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"}
-              >
-                {ratio}
-              </Button>
-            ))}
-          </div>
-        </div>
-
-        {/* Section Lecture */}
-        <div className="space-y-2">
-          <label className="text-xs font-medium text-gray-700">🎬 Nombre de lectures</label>
-          <div className="flex gap-2">
-            {[
-              { label: "∞ Infini", value: 0 },
-              { label: "1x", value: 1 },
-              { label: "3x", value: 3 }
-            ].map((loop) => (
-              <Button
-                key={loop.value}
-                size="sm"
-                variant={previewProps.loopCount === loop.value ? "default" : "outline"}
-                onClick={() => setPreviewProps({ ...previewProps, loopCount: loop.value })}
-                className={previewProps.loopCount === loop.value
-                  ? "bg-thai-orange hover:bg-thai-orange/90"
-                  : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"}
-              >
-                {loop.label}
-              </Button>
-            ))}
-          </div>
-        </div>
-
-        {/* Section Fermeture du modal */}
-        <div className="space-y-2">
-          <label className="text-xs font-medium text-gray-700">🔒 Fermeture du modal</label>
-          <div className="space-y-2">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={previewProps.autoClose}
-                onChange={(e) => setPreviewProps({ ...previewProps, autoClose: e.target.checked })}
-                className="w-4 h-4 text-thai-orange border-gray-300 rounded focus:ring-thai-orange focus:ring-2"
-              />
-              <span className="text-sm text-gray-700">Afficher le bouton X de fermeture (croix)</span>
-            </label>
-            <p className="text-xs text-gray-500 italic ml-6">
-              Si décoché, l'utilisateur devra utiliser les boutons d'action pour fermer le modal
-            </p>
-          </div>
-        </div>
-
-        {/* Section Boutons d'action */}
-        <div className="space-y-2">
-          <label className="text-xs font-medium text-gray-700">🔘 Layout des boutons</label>
-          <div className="flex gap-2">
-            {[
-              { label: "Aucun", value: "none" as const },
-              { label: "1 bouton", value: "single" as const },
-              { label: "2 boutons", value: "double" as const },
-              { label: "3 boutons", value: "triple" as const }
-            ].map((layout) => (
-              <Button
-                key={layout.value}
-                size="sm"
-                variant={previewProps.buttonLayout === layout.value ? "default" : "outline"}
-                onClick={() => setPreviewProps({ ...previewProps, buttonLayout: layout.value })}
-                className={previewProps.buttonLayout === layout.value
-                  ? "bg-thai-orange hover:bg-thai-orange/90"
-                  : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"}
-              >
-                {layout.label}
-              </Button>
-            ))}
-          </div>
-          {previewProps.buttonLayout !== "none" && (
-            <div className="space-y-2 mt-3">
-              <div className="grid grid-cols-2 gap-2">
-                {previewProps.buttonLayout !== "single" && (
+                <span className="text-sm text-gray-700">
+                  Polaroid (cadre blanc + bordure configurée)
+                </span>
+              </label>
+              <label className="flex cursor-pointer items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={previewProps.scrollingText}
+                  onChange={(e) =>
+                    setPreviewProps({ ...previewProps, scrollingText: e.target.checked })
+                  }
+                  className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
+                />
+                <span className="text-sm text-gray-700">Texte défilant (animation marquee)</span>
+              </label>
+              {previewProps.scrollingText && (
+                <div className="ml-6 flex items-center gap-2">
+                  <label className="text-xs text-gray-600">Durée:</label>
                   <input
-                    type="text"
-                    value={previewProps.cancelText}
-                    onChange={(e) => setPreviewProps({ ...previewProps, cancelText: e.target.value })}
-                    placeholder="Texte bouton Annuler"
-                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent"
+                    type="number"
+                    value={previewProps.scrollDuration}
+                    onChange={(e) =>
+                      setPreviewProps({
+                        ...previewProps,
+                        scrollDuration: parseInt(e.target.value) || 10,
+                      })
+                    }
+                    className="focus:ring-thai-orange w-16 rounded-md border border-gray-300 px-2 py-1 text-sm focus:ring-2 focus:outline-none"
+                    min="1"
+                    max="60"
                   />
-                )}
-                <input
-                  type="text"
-                  value={previewProps.confirmText}
-                  onChange={(e) => setPreviewProps({ ...previewProps, confirmText: e.target.value })}
-                  placeholder="Texte bouton Confirmer"
-                  className={cn(
-                    "w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent",
-                    previewProps.buttonLayout === "single" && "col-span-2"
-                  )}
-                />
-              </div>
-              {previewProps.buttonLayout === "triple" && (
-                <input
-                  type="text"
-                  value={previewProps.thirdButtonText}
-                  onChange={(e) => setPreviewProps({ ...previewProps, thirdButtonText: e.target.value })}
-                  placeholder="Texte 3ème bouton"
-                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent"
-                />
+                  <span className="text-xs text-gray-600">secondes</span>
+                </div>
               )}
+            </div>
+          </div>
 
-              {/* Champs de liens de redirection */}
-              <div className="mt-4 pt-4 border-t border-gray-200">
-                <label className="text-xs font-medium text-gray-700">🔗 Liens de redirection (optionnels)</label>
-                <div className="grid grid-cols-2 gap-2 mt-2">
+          {/* Section Format */}
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-gray-700">📐 Format d'image</label>
+            <div className="flex gap-2">
+              {(["16:9", "4:5", "1:1", "auto"] as const).map((ratio) => (
+                <Button
+                  key={ratio}
+                  size="sm"
+                  variant={previewProps.aspectRatio === ratio ? "default" : "outline"}
+                  onClick={() => setPreviewProps({ ...previewProps, aspectRatio: ratio })}
+                  className={
+                    previewProps.aspectRatio === ratio
+                      ? "bg-thai-orange hover:bg-thai-orange/90"
+                      : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
+                  }
+                >
+                  {ratio}
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          {/* Section Lecture */}
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-gray-700">🎬 Nombre de lectures</label>
+            <div className="flex gap-2">
+              {[
+                { label: "∞ Infini", value: 0 },
+                { label: "1x", value: 1 },
+                { label: "3x", value: 3 },
+              ].map((loop) => (
+                <Button
+                  key={loop.value}
+                  size="sm"
+                  variant={previewProps.loopCount === loop.value ? "default" : "outline"}
+                  onClick={() => setPreviewProps({ ...previewProps, loopCount: loop.value })}
+                  className={
+                    previewProps.loopCount === loop.value
+                      ? "bg-thai-orange hover:bg-thai-orange/90"
+                      : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
+                  }
+                >
+                  {loop.label}
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          {/* Section Fermeture du modal */}
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-gray-700">🔒 Fermeture du modal</label>
+            <div className="space-y-2">
+              <label className="flex cursor-pointer items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={previewProps.autoClose}
+                  onChange={(e) =>
+                    setPreviewProps({ ...previewProps, autoClose: e.target.checked })
+                  }
+                  className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
+                />
+                <span className="text-sm text-gray-700">
+                  Afficher le bouton X de fermeture (croix)
+                </span>
+              </label>
+              <p className="ml-6 text-xs text-gray-500 italic">
+                Si décoché, l'utilisateur devra utiliser les boutons d'action pour fermer le modal
+              </p>
+            </div>
+          </div>
+
+          {/* Section Boutons d'action */}
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-gray-700">🔘 Layout des boutons</label>
+            <div className="flex gap-2">
+              {[
+                { label: "Aucun", value: "none" as const },
+                { label: "1 bouton", value: "single" as const },
+                { label: "2 boutons", value: "double" as const },
+                { label: "3 boutons", value: "triple" as const },
+              ].map((layout) => (
+                <Button
+                  key={layout.value}
+                  size="sm"
+                  variant={previewProps.buttonLayout === layout.value ? "default" : "outline"}
+                  onClick={() => setPreviewProps({ ...previewProps, buttonLayout: layout.value })}
+                  className={
+                    previewProps.buttonLayout === layout.value
+                      ? "bg-thai-orange hover:bg-thai-orange/90"
+                      : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
+                  }
+                >
+                  {layout.label}
+                </Button>
+              ))}
+            </div>
+            {previewProps.buttonLayout !== "none" && (
+              <div className="mt-3 space-y-2">
+                <div className="grid grid-cols-2 gap-2">
                   {previewProps.buttonLayout !== "single" && (
                     <input
                       type="text"
-                      value={previewProps.cancelLink}
-                      onChange={(e) => setPreviewProps({ ...previewProps, cancelLink: e.target.value })}
-                      placeholder="URL Annuler (ex: /accueil)"
-                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent"
+                      value={previewProps.cancelText}
+                      onChange={(e) =>
+                        setPreviewProps({ ...previewProps, cancelText: e.target.value })
+                      }
+                      placeholder="Texte bouton Annuler"
+                      className="focus:ring-thai-orange w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:outline-none"
                     />
                   )}
                   <input
                     type="text"
-                    value={previewProps.confirmLink}
-                    onChange={(e) => setPreviewProps({ ...previewProps, confirmLink: e.target.value })}
-                    placeholder="URL Confirmer (ex: /confirmation)"
+                    value={previewProps.confirmText}
+                    onChange={(e) =>
+                      setPreviewProps({ ...previewProps, confirmText: e.target.value })
+                    }
+                    placeholder="Texte bouton Confirmer"
                     className={cn(
-                      "w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent",
+                      "focus:ring-thai-orange w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:outline-none",
                       previewProps.buttonLayout === "single" && "col-span-2"
                     )}
                   />
@@ -561,245 +778,395 @@ function ModalVideoPlayground() {
                 {previewProps.buttonLayout === "triple" && (
                   <input
                     type="text"
-                    value={previewProps.thirdButtonLink}
-                    onChange={(e) => setPreviewProps({ ...previewProps, thirdButtonLink: e.target.value })}
-                    placeholder="URL 3ème bouton (ex: /autre-page)"
-                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent mt-2"
+                    value={previewProps.thirdButtonText}
+                    onChange={(e) =>
+                      setPreviewProps({ ...previewProps, thirdButtonText: e.target.value })
+                    }
+                    placeholder="Texte 3ème bouton"
+                    className="focus:ring-thai-orange w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:outline-none"
+                  />
+                )}
+
+                {/* Champs de liens de redirection */}
+                <div className="mt-4 border-t border-gray-200 pt-4">
+                  <label className="text-xs font-medium text-gray-700">
+                    🔗 Liens de redirection (optionnels)
+                  </label>
+                  <div className="mt-2 grid grid-cols-2 gap-2">
+                    {previewProps.buttonLayout !== "single" && (
+                      <input
+                        type="text"
+                        value={previewProps.cancelLink}
+                        onChange={(e) =>
+                          setPreviewProps({ ...previewProps, cancelLink: e.target.value })
+                        }
+                        placeholder="URL Annuler (ex: /accueil)"
+                        className="focus:ring-thai-orange w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:outline-none"
+                      />
+                    )}
+                    <input
+                      type="text"
+                      value={previewProps.confirmLink}
+                      onChange={(e) =>
+                        setPreviewProps({ ...previewProps, confirmLink: e.target.value })
+                      }
+                      placeholder="URL Confirmer (ex: /confirmation)"
+                      className={cn(
+                        "focus:ring-thai-orange w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:outline-none",
+                        previewProps.buttonLayout === "single" && "col-span-2"
+                      )}
+                    />
+                  </div>
+                  {previewProps.buttonLayout === "triple" && (
+                    <input
+                      type="text"
+                      value={previewProps.thirdButtonLink}
+                      onChange={(e) =>
+                        setPreviewProps({ ...previewProps, thirdButtonLink: e.target.value })
+                      }
+                      placeholder="URL 3ème bouton (ex: /autre-page)"
+                      className="focus:ring-thai-orange mt-2 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:outline-none"
+                    />
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Section Style Dialog */}
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-gray-700">🎨 Style Dialog</label>
+            <div className="space-y-3">
+              {/* Animation rotation - CHECKBOX */}
+              <label className="flex cursor-pointer items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={previewProps.rotation}
+                  onChange={(e) => setPreviewProps({ ...previewProps, rotation: e.target.checked })}
+                  className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
+                />
+                <span className="text-sm text-gray-700">
+                  Animation rotation (rotate-[-2deg] hover:rotate-0)
+                </span>
+              </label>
+
+              {/* Taille modal - BUTTON GROUP */}
+              <div>
+                <label className="text-xs text-gray-600">Taille modal</label>
+                <div className="flex gap-2">
+                  {(["sm", "md", "lg", "xl", "custom"] as const).map((size) => (
+                    <Button
+                      key={size}
+                      size="sm"
+                      variant={previewProps.maxWidth === size ? "default" : "outline"}
+                      onClick={() => setPreviewProps({ ...previewProps, maxWidth: size })}
+                      className={
+                        previewProps.maxWidth === size
+                          ? "bg-thai-orange hover:bg-thai-orange/90"
+                          : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
+                      }
+                    >
+                      {size}
+                    </Button>
+                  ))}
+                </div>
+                {previewProps.maxWidth === "custom" && (
+                  <div className="mt-2 grid grid-cols-2 gap-2">
+                    <input
+                      type="text"
+                      value={previewProps.customWidth}
+                      onChange={(e) =>
+                        setPreviewProps({ ...previewProps, customWidth: e.target.value })
+                      }
+                      placeholder="Largeur (ex: 600px, 90vw)"
+                      className="focus:ring-thai-orange w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:outline-none"
+                    />
+                    <input
+                      type="text"
+                      value={previewProps.customHeight}
+                      onChange={(e) =>
+                        setPreviewProps({ ...previewProps, customHeight: e.target.value })
+                      }
+                      placeholder="Hauteur (ex: 400px, 80vh)"
+                      className="focus:ring-thai-orange w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:outline-none"
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Couleur bordure - BUTTON GROUP */}
+              <div>
+                <label className="text-xs text-gray-600">Couleur bordure</label>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { label: "🟠 Orange", value: "thai-orange" as const },
+                    { label: "🟢 Vert", value: "thai-green" as const },
+                    { label: "🔴 Rouge", value: "red" as const },
+                    { label: "🔵 Bleu", value: "blue" as const },
+                    { label: "🎨 Custom", value: "custom" as const },
+                  ].map((color) => (
+                    <Button
+                      key={color.value}
+                      size="sm"
+                      variant={previewProps.borderColor === color.value ? "default" : "outline"}
+                      onClick={() => setPreviewProps({ ...previewProps, borderColor: color.value })}
+                      className={
+                        previewProps.borderColor === color.value
+                          ? "bg-thai-orange hover:bg-thai-orange/90"
+                          : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
+                      }
+                    >
+                      {color.label}
+                    </Button>
+                  ))}
+                </div>
+                {previewProps.borderColor === "custom" && (
+                  <input
+                    type="text"
+                    value={previewProps.customBorderColor}
+                    onChange={(e) =>
+                      setPreviewProps({ ...previewProps, customBorderColor: e.target.value })
+                    }
+                    placeholder="ex: border-purple-500, border-pink-600"
+                    className="focus:ring-thai-orange mt-2 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:outline-none"
                   />
                 )}
               </div>
+
+              {/* Épaisseur bordure - BUTTON GROUP */}
+              <div>
+                <label className="text-xs text-gray-600">Épaisseur bordure</label>
+                <div className="flex gap-2">
+                  {[1, 2, 4, "custom"].map((width) => (
+                    <Button
+                      key={width}
+                      size="sm"
+                      variant={previewProps.borderWidth === width ? "default" : "outline"}
+                      onClick={() =>
+                        setPreviewProps({
+                          ...previewProps,
+                          borderWidth: width as number | "custom",
+                        })
+                      }
+                      className={
+                        previewProps.borderWidth === width
+                          ? "bg-thai-orange hover:bg-thai-orange/90"
+                          : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
+                      }
+                    >
+                      {width === "custom" ? "🎨 Custom" : `${width}px`}
+                    </Button>
+                  ))}
+                </div>
+                {previewProps.borderWidth === "custom" && (
+                  <input
+                    type="number"
+                    value={previewProps.customBorderWidth}
+                    onChange={(e) =>
+                      setPreviewProps({
+                        ...previewProps,
+                        customBorderWidth: Number(e.target.value),
+                      })
+                    }
+                    placeholder="ex: 3, 5, 8"
+                    min={1}
+                    max={20}
+                    className="focus:ring-thai-orange mt-2 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:outline-none"
+                  />
+                )}
+              </div>
+
+              {/* Ombre - BUTTON GROUP */}
+              <div>
+                <label className="text-xs text-gray-600">Ombre</label>
+                <div className="flex gap-2">
+                  {(["sm", "lg", "2xl"] as const).map((shadow) => (
+                    <Button
+                      key={shadow}
+                      size="sm"
+                      variant={previewProps.shadowSize === shadow ? "default" : "outline"}
+                      onClick={() => setPreviewProps({ ...previewProps, shadowSize: shadow })}
+                      className={
+                        previewProps.shadowSize === shadow
+                          ? "bg-thai-orange hover:bg-thai-orange/90"
+                          : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
+                      }
+                    >
+                      {shadow}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Position du modal - BUTTON GROUP */}
+              <div>
+                <label className="text-xs text-gray-600">📍 Position du modal</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { label: "🎯 Centre", value: "center" as const },
+                    { label: "↘️ Bas droite", value: "bottom-right" as const },
+                    { label: "↙️ Bas gauche", value: "bottom-left" as const },
+                    { label: "↗️ Haut droite", value: "top-right" as const },
+                    { label: "↖️ Haut gauche", value: "top-left" as const },
+                    { label: "🎨 Custom", value: "custom" as const },
+                  ].map((pos) => (
+                    <Button
+                      key={pos.value}
+                      size="sm"
+                      variant={previewProps.position === pos.value ? "default" : "outline"}
+                      onClick={() => setPreviewProps({ ...previewProps, position: pos.value })}
+                      className={
+                        previewProps.position === pos.value
+                          ? "bg-thai-orange hover:bg-thai-orange/90"
+                          : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
+                      }
+                    >
+                      {pos.label}
+                    </Button>
+                  ))}
+                </div>
+                {previewProps.position === "custom" && (
+                  <div className="mt-2 grid grid-cols-2 gap-2">
+                    <input
+                      type="text"
+                      value={previewProps.customX}
+                      onChange={(e) =>
+                        setPreviewProps({ ...previewProps, customX: e.target.value })
+                      }
+                      placeholder="Position X (ex: 50%, 100px)"
+                      className="focus:ring-thai-orange w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:outline-none"
+                    />
+                    <input
+                      type="text"
+                      value={previewProps.customY}
+                      onChange={(e) =>
+                        setPreviewProps({ ...previewProps, customY: e.target.value })
+                      }
+                      placeholder="Position Y (ex: 50%, 100px)"
+                      className="focus:ring-thai-orange w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:outline-none"
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Taille cadre Polaroid - CUSTOM INPUTS */}
+              {previewProps.polaroid && (
+                <div className="border-thai-green/30 bg-thai-cream/20 space-y-2 rounded-lg border-2 p-3">
+                  <label className="text-thai-green text-xs font-medium">
+                    📐 Taille cadre Polaroid (padding)
+                  </label>
+                  <div className="grid grid-cols-3 gap-2">
+                    <div>
+                      <label className="text-xs text-gray-600">Côtés (p-x)</label>
+                      <input
+                        type="number"
+                        value={previewProps.polaroidPaddingSides}
+                        onChange={(e) =>
+                          setPreviewProps({
+                            ...previewProps,
+                            polaroidPaddingSides: Number(e.target.value),
+                          })
+                        }
+                        min={0}
+                        max={20}
+                        className="focus:ring-thai-orange w-full rounded-md border border-gray-300 px-2 py-1 text-sm focus:border-transparent focus:ring-2 focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-600">Haut (pt-x)</label>
+                      <input
+                        type="number"
+                        value={previewProps.polaroidPaddingTop}
+                        onChange={(e) =>
+                          setPreviewProps({
+                            ...previewProps,
+                            polaroidPaddingTop: Number(e.target.value),
+                          })
+                        }
+                        min={0}
+                        max={20}
+                        className="focus:ring-thai-orange w-full rounded-md border border-gray-300 px-2 py-1 text-sm focus:border-transparent focus:ring-2 focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-600">Bas (pb-x)</label>
+                      <input
+                        type="number"
+                        value={previewProps.polaroidPaddingBottom}
+                        onChange={(e) =>
+                          setPreviewProps({
+                            ...previewProps,
+                            polaroidPaddingBottom: Number(e.target.value),
+                          })
+                        }
+                        min={0}
+                        max={20}
+                        className="focus:ring-thai-orange w-full rounded-md border border-gray-300 px-2 py-1 text-sm focus:border-transparent focus:ring-2 focus:outline-none"
+                      />
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-500 italic">
+                    Valeurs Tailwind : 0-20 correspondent à p-0 jusqu'à p-20 (ex: 3 = 0.75rem)
+                  </p>
+                </div>
+              )}
             </div>
-          )}
+          </div>
+        </div>
+      </div>
+
+      {/* Colonne de droite : Aperçu */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <h4 className="flex items-center gap-2 text-lg font-semibold text-gray-600">
+            <span className="text-xl">👁️</span>
+            Aperçu Visuel
+          </h4>
+          <Badge variant="outline" className="bg-gray-100 text-gray-600">
+            Mode Standalone
+          </Badge>
         </div>
 
-        {/* Section Style Dialog */}
-        <div className="space-y-2">
-          <label className="text-xs font-medium text-gray-700">🎨 Style Dialog</label>
-          <div className="space-y-3">
-            {/* Animation rotation - CHECKBOX */}
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={previewProps.rotation}
-                onChange={(e) => setPreviewProps({ ...previewProps, rotation: e.target.checked })}
-                className="w-4 h-4 text-thai-orange border-gray-300 rounded focus:ring-thai-orange focus:ring-2"
-              />
-              <span className="text-sm text-gray-700">Animation rotation (rotate-[-2deg] hover:rotate-0)</span>
-            </label>
-
-            {/* Taille modal - BUTTON GROUP */}
-            <div>
-              <label className="text-xs text-gray-600">Taille modal</label>
-              <div className="flex gap-2">
-                {(["sm", "md", "lg", "xl", "custom"] as const).map((size) => (
-                  <Button
-                    key={size}
-                    size="sm"
-                    variant={previewProps.maxWidth === size ? "default" : "outline"}
-                    onClick={() => setPreviewProps({ ...previewProps, maxWidth: size })}
-                    className={previewProps.maxWidth === size
-                      ? "bg-thai-orange hover:bg-thai-orange/90"
-                      : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"}
-                  >
-                    {size}
-                  </Button>
-                ))}
-              </div>
-              {previewProps.maxWidth === "custom" && (
-                <div className="grid grid-cols-2 gap-2 mt-2">
-                  <input
-                    type="text"
-                    value={previewProps.customWidth}
-                    onChange={(e) => setPreviewProps({ ...previewProps, customWidth: e.target.value })}
-                    placeholder="Largeur (ex: 600px, 90vw)"
-                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent"
-                  />
-                  <input
-                    type="text"
-                    value={previewProps.customHeight}
-                    onChange={(e) => setPreviewProps({ ...previewProps, customHeight: e.target.value })}
-                    placeholder="Hauteur (ex: 400px, 80vh)"
-                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent"
-                  />
-                </div>
-              )}
-            </div>
-
-            {/* Couleur bordure - BUTTON GROUP */}
-            <div>
-              <label className="text-xs text-gray-600">Couleur bordure</label>
-              <div className="flex gap-2 flex-wrap">
-                {[
-                  { label: "🟠 Orange", value: "thai-orange" as const },
-                  { label: "🟢 Vert", value: "thai-green" as const },
-                  { label: "🔴 Rouge", value: "red" as const },
-                  { label: "🔵 Bleu", value: "blue" as const },
-                  { label: "🎨 Custom", value: "custom" as const }
-                ].map((color) => (
-                  <Button
-                    key={color.value}
-                    size="sm"
-                    variant={previewProps.borderColor === color.value ? "default" : "outline"}
-                    onClick={() => setPreviewProps({ ...previewProps, borderColor: color.value })}
-                    className={previewProps.borderColor === color.value
-                      ? "bg-thai-orange hover:bg-thai-orange/90"
-                      : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"}
-                  >
-                    {color.label}
-                  </Button>
-                ))}
-              </div>
-              {previewProps.borderColor === "custom" && (
-                <input
-                  type="text"
-                  value={previewProps.customBorderColor}
-                  onChange={(e) => setPreviewProps({ ...previewProps, customBorderColor: e.target.value })}
-                  placeholder="ex: border-purple-500, border-pink-600"
-                  className="w-full mt-2 px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent"
-                />
-              )}
-            </div>
-
-            {/* Épaisseur bordure - BUTTON GROUP */}
-            <div>
-              <label className="text-xs text-gray-600">Épaisseur bordure</label>
-              <div className="flex gap-2">
-                {[1, 2, 4, "custom"].map((width) => (
-                  <Button
-                    key={width}
-                    size="sm"
-                    variant={previewProps.borderWidth === width ? "default" : "outline"}
-                    onClick={() => setPreviewProps({ ...previewProps, borderWidth: width as number | "custom" })}
-                    className={previewProps.borderWidth === width
-                      ? "bg-thai-orange hover:bg-thai-orange/90"
-                      : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"}
-                  >
-                    {width === "custom" ? "🎨 Custom" : `${width}px`}
-                  </Button>
-                ))}
-              </div>
-              {previewProps.borderWidth === "custom" && (
-                <input
-                  type="number"
-                  value={previewProps.customBorderWidth}
-                  onChange={(e) => setPreviewProps({ ...previewProps, customBorderWidth: Number(e.target.value) })}
-                  placeholder="ex: 3, 5, 8"
-                  min={1}
-                  max={20}
-                  className="w-full mt-2 px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent"
-                />
-              )}
-            </div>
-
-            {/* Ombre - BUTTON GROUP */}
-            <div>
-              <label className="text-xs text-gray-600">Ombre</label>
-              <div className="flex gap-2">
-                {(["sm", "lg", "2xl"] as const).map((shadow) => (
-                  <Button
-                    key={shadow}
-                    size="sm"
-                    variant={previewProps.shadowSize === shadow ? "default" : "outline"}
-                    onClick={() => setPreviewProps({ ...previewProps, shadowSize: shadow })}
-                    className={previewProps.shadowSize === shadow
-                      ? "bg-thai-orange hover:bg-thai-orange/90"
-                      : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"}
-                  >
-                    {shadow}
-                  </Button>
-                ))}
-              </div>
-            </div>
-
-            {/* Position du modal - BUTTON GROUP */}
-            <div>
-              <label className="text-xs text-gray-600">📍 Position du modal</label>
-              <div className="grid grid-cols-3 gap-2">
-                {[
-                  { label: "🎯 Centre", value: "center" as const },
-                  { label: "↘️ Bas droite", value: "bottom-right" as const },
-                  { label: "↙️ Bas gauche", value: "bottom-left" as const },
-                  { label: "↗️ Haut droite", value: "top-right" as const },
-                  { label: "↖️ Haut gauche", value: "top-left" as const },
-                  { label: "🎨 Custom", value: "custom" as const }
-                ].map((pos) => (
-                  <Button
-                    key={pos.value}
-                    size="sm"
-                    variant={previewProps.position === pos.value ? "default" : "outline"}
-                    onClick={() => setPreviewProps({ ...previewProps, position: pos.value })}
-                    className={previewProps.position === pos.value
-                      ? "bg-thai-orange hover:bg-thai-orange/90"
-                      : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"}
-                  >
-                    {pos.label}
-                  </Button>
-                ))}
-              </div>
-              {previewProps.position === "custom" && (
-                <div className="grid grid-cols-2 gap-2 mt-2">
-                  <input
-                    type="text"
-                    value={previewProps.customX}
-                    onChange={(e) => setPreviewProps({ ...previewProps, customX: e.target.value })}
-                    placeholder="Position X (ex: 50%, 100px)"
-                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent"
-                  />
-                  <input
-                    type="text"
-                    value={previewProps.customY}
-                    onChange={(e) => setPreviewProps({ ...previewProps, customY: e.target.value })}
-                    placeholder="Position Y (ex: 50%, 100px)"
-                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent"
-                  />
-                </div>
-              )}
-            </div>
-
-            {/* Taille cadre Polaroid - CUSTOM INPUTS */}
-            {previewProps.polaroid && (
-              <div className="space-y-2 p-3 border-2 border-thai-green/30 rounded-lg bg-thai-cream/20">
-                <label className="text-xs font-medium text-thai-green">📐 Taille cadre Polaroid (padding)</label>
-                <div className="grid grid-cols-3 gap-2">
-                  <div>
-                    <label className="text-xs text-gray-600">Côtés (p-x)</label>
-                    <input
-                      type="number"
-                      value={previewProps.polaroidPaddingSides}
-                      onChange={(e) => setPreviewProps({ ...previewProps, polaroidPaddingSides: Number(e.target.value) })}
-                      min={0}
-                      max={20}
-                      className="w-full px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs text-gray-600">Haut (pt-x)</label>
-                    <input
-                      type="number"
-                      value={previewProps.polaroidPaddingTop}
-                      onChange={(e) => setPreviewProps({ ...previewProps, polaroidPaddingTop: Number(e.target.value) })}
-                      min={0}
-                      max={20}
-                      className="w-full px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs text-gray-600">Bas (pb-x)</label>
-                    <input
-                      type="number"
-                      value={previewProps.polaroidPaddingBottom}
-                      onChange={(e) => setPreviewProps({ ...previewProps, polaroidPaddingBottom: Number(e.target.value) })}
-                      min={0}
-                      max={20}
-                      className="w-full px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-thai-orange focus:border-transparent"
-                    />
-                  </div>
-                </div>
-                <p className="text-xs text-gray-500 italic">
-                  Valeurs Tailwind : 0-20 correspondent à p-0 jusqu'à p-20 (ex: 3 = 0.75rem)
-                </p>
-              </div>
-            )}
+        <div className="relative mx-auto flex h-[600px] w-full max-w-md flex-col overflow-hidden rounded-xl border border-gray-200 bg-gray-50 shadow-2xl">
+          <div className="flex-1 overflow-y-auto">
+            <ModalVideoContent
+              onOpenChange={() => {}}
+              title={previewProps.title}
+              description={previewProps.description}
+              media={previewProps.media}
+              aspectRatio={previewProps.aspectRatio}
+              polaroid={previewProps.polaroid}
+              scrollingText={previewProps.scrollingText}
+              scrollDuration={previewProps.scrollDuration}
+              loopCount={previewProps.loopCount}
+              buttonLayout={previewProps.buttonLayout}
+              cancelText={previewProps.cancelText}
+              confirmText={previewProps.confirmText}
+              thirdButtonText={previewProps.thirdButtonText}
+              titleColor={previewProps.titleColor}
+              borderColor={
+                previewProps.borderColor === "custom"
+                  ? previewProps.customBorderColor
+                  : previewProps.borderColor
+              }
+              borderWidth={
+                previewProps.borderWidth === "custom"
+                  ? previewProps.customBorderWidth
+                  : previewProps.borderWidth
+              }
+              shadowSize={previewProps.shadowSize}
+              polaroidPaddingSides={previewProps.polaroidPaddingSides}
+              polaroidPaddingTop={previewProps.polaroidPaddingTop}
+              polaroidPaddingBottom={previewProps.polaroidPaddingBottom}
+              autoClose={previewProps.autoClose}
+              cancelLink={previewProps.cancelLink}
+              confirmLink={previewProps.confirmLink}
+              thirdButtonLink={previewProps.thirdButtonLink}
+              standalone={true}
+              onCancel={() => console.log("Annulé (Preview)")}
+              onConfirm={() => console.log("Confirmé (Preview)")}
+              onThirdButton={() => console.log("Troisième bouton (Preview)")}
+            />
           </div>
         </div>
       </div>
@@ -825,8 +1192,16 @@ function ModalVideoPlayground() {
         customWidth={previewProps.maxWidth === "custom" ? previewProps.customWidth : undefined}
         customHeight={previewProps.maxWidth === "custom" ? previewProps.customHeight : undefined}
         titleColor={previewProps.titleColor}
-        borderColor={previewProps.borderColor === "custom" ? previewProps.customBorderColor : previewProps.borderColor}
-        borderWidth={previewProps.borderWidth === "custom" ? previewProps.customBorderWidth : previewProps.borderWidth}
+        borderColor={
+          previewProps.borderColor === "custom"
+            ? previewProps.customBorderColor
+            : previewProps.borderColor
+        }
+        borderWidth={
+          previewProps.borderWidth === "custom"
+            ? previewProps.customBorderWidth
+            : previewProps.borderWidth
+        }
         shadowSize={previewProps.shadowSize}
         position={previewProps.position}
         customX={previewProps.position === "custom" ? previewProps.customX : undefined}
@@ -1180,90 +1555,15 @@ export default function ModalsTestPage() {
           </Dialog>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-8 md:grid-cols-2">
-            {/* CommandePlatModal Example - Button Trigger */}
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center gap-2">
-                <NumberBadge number={7} />
-                <span className="text-sm font-medium text-gray-600">Test Interactif</span>
-              </div>
-              {isLoading ? (
-                <div className="p-4 text-sm text-gray-500">Chargement des données...</div>
-              ) : plats && plats.length > 0 ? (
-                (() => {
-                  const platExemple =
-                    plats.find((p) => p.plat.toLowerCase().includes("ailes de poulet")) ||
-                    plats.find((p) => p.plat.toLowerCase().includes("pad thaï")) ||
-                    plats[0]
-
-                  const [isModalOpen, setIsModalOpen] = useState(false)
-
-                  return (
-                    <div className="rounded-lg border border-dashed p-4">
-                      <Button
-                        className="bg-thai-orange hover:bg-thai-orange/90 w-full"
-                        onClick={() => setIsModalOpen(true)}
-                      >
-                        Ouvrir le modal "{platExemple.plat}"
-                      </Button>
-
-                      <CommandePlatModal
-                        isOpen={isModalOpen}
-                        onOpenChange={setIsModalOpen}
-                        plat={platExemple}
-                        formatPrix={(p) => `${p.toFixed(2)}€`}
-                        currentQuantity={2}
-                        currentSpiceDistribution={[0, 1, 1, 0]}
-                        dateRetrait={new Date()}
-                        onAddToCart={(p, q, s, d) =>
-                          console.log("Ajout au panier (Réel):", { p, q, s, d })
-                        }
-                      />
-                      <p className="mt-2 text-center text-xs text-gray-500">
-                        Cliquez pour voir le comportement réel du modal
-                      </p>
-                    </div>
-                  )
-                })()
-              ) : (
-                <div className="p-4 text-sm text-red-500">Aucune donnée disponible</div>
-              )}
-            </div>
-
-            {/* CommandePlatModal Example - Inline Preview */}
-            <div className="flex flex-col gap-2">
-              <div className="flex h-6 items-center gap-2">
-                <span className="pl-2 text-sm font-medium text-gray-600">Aperçu Visuel</span>
-              </div>
-              {isLoading ? (
-                <div className="p-4 text-sm text-gray-500">Chargement...</div>
-              ) : plats && plats.length > 0 ? (
-                (() => {
-                  const platExemple =
-                    plats.find((p) => p.plat.toLowerCase().includes("nems")) || plats[0]
-
-                  return (
-                    <div className="relative mx-auto flex h-[500px] w-full max-w-sm flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl">
-                      <div className="absolute top-2 right-2 z-10 rounded bg-black/50 px-2 py-1 text-xs text-white">
-                        Mode Aperçu
-                      </div>
-                      <CommandePlatContent
-                        onOpenChange={() => console.log("Close requested")}
-                        plat={platExemple}
-                        formatPrix={(p) => `${p.toFixed(2)}€`}
-                        currentQuantity={1}
-                        currentSpiceDistribution={[1, 0, 0, 0]}
-                        dateRetrait={new Date()}
-                        standalone={true}
-                        onAddToCart={(p, q, s, d) =>
-                          console.log("Ajout au panier (Preview):", { p, q, s, d })
-                        }
-                      />
-                    </div>
-                  )
-                })()
-              ) : null}
-            </div>
+          {/* CommandePlatModal Playground */}
+          <div className="col-span-2">
+            {isLoading ? (
+              <div className="p-4 text-sm text-gray-500">Chargement des données...</div>
+            ) : plats && plats.length > 0 ? (
+              <CommandePlatPlayground plats={plats} />
+            ) : (
+              <div className="p-4 text-sm text-red-500">Aucune donnée disponible</div>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -1321,7 +1621,8 @@ export default function ModalsTestPage() {
                     <strong>cancelText</strong> (string): Texte bouton Annuler (défaut: "Annuler")
                   </li>
                   <li>
-                    <strong>confirmText</strong> (string): Texte bouton Confirmer (défaut: "Confirmer")
+                    <strong>confirmText</strong> (string): Texte bouton Confirmer (défaut:
+                    "Confirmer")
                   </li>
                   <li>
                     <strong>onCancel</strong> (function): Callback bouton Annuler

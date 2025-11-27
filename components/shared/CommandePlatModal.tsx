@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { FileText, Plus, Minus, ShoppingCart } from "lucide-react"
+import { FileText, Plus, Minus, ShoppingCart, RefreshCw } from "lucide-react"
 import type { PlatUI as Plat } from "@/types/app"
 
 import { Spice } from "@/components/shared/Spice"
@@ -270,8 +270,17 @@ export const CommandePlatContent = React.memo<
               onClick={handleAddToCart}
               className="bg-thai-orange hover:bg-thai-orange/90 w-full py-5 text-base text-white shadow-lg transition-all duration-200 hover:scale-[1.02] hover:shadow-xl"
             >
-              <ShoppingCart className="mr-2 h-5 w-5" />
-              Ajouter au panier ({formatPrix(sousTotal)})
+              {uniqueId ? (
+                <>
+                  <RefreshCw className="mr-2 h-5 w-5" />
+                  Mettre à jour ({formatPrix(sousTotal)})
+                </>
+              ) : (
+                <>
+                  <ShoppingCart className="mr-2 h-5 w-5" />
+                  Ajouter au panier ({formatPrix(sousTotal)})
+                </>
+              )}
             </Button>
           </div>
         )}

@@ -230,7 +230,7 @@ export function CartItemCard({
 
               {/* Sélecteur épicé (Desktop) - ABSOLUMENT CENTRÉ EN HAUT */}
               {spiceContent && (
-                <div className="absolute top-0 left-1/2 hidden -translate-x-1/2 transform sm:block">
+                <div className="absolute top-0 left-[70%] hidden -translate-x-1/2 transform sm:block lg:left-1/2">
                   <div className="origin-center cursor-pointer transition-all duration-300 hover:scale-110 hover:drop-shadow-lg">
                     {spiceContent}
                   </div>
@@ -270,7 +270,7 @@ export function CartItemCard({
 
           {/* Badge Végétarien (Desktop : Absolu bas) */}
           {isVegetarian && (
-            <div className="absolute bottom-0.5 left-1/2 hidden -translate-x-1/2 transform sm:block">
+            <div className="absolute bottom-0.5 left-[70%] hidden -translate-x-1/2 transform sm:block lg:left-1/2">
               <Badge
                 variant="outline"
                 className="h-5 border-green-300 bg-green-50 px-1.5 py-0 text-[10px] text-green-700"
