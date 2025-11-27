@@ -275,7 +275,7 @@ export default function PanierPage() {
   }
 
   return (
-    <div className="bg-gradient-thai min-h-screen px-0 py-4 sm:px-2 sm:py-8">
+    <div className="bg-gradient-thai min-h-screen px-1 pt-1 pb-8 sm:px-2 sm:py-8">
       <div className="w-full sm:container sm:mx-auto sm:max-w-6xl">
         {!currentUser || !clientFirebaseUID ? (
           <Alert className="mb-6 border-blue-200 bg-blue-50 text-blue-800">
