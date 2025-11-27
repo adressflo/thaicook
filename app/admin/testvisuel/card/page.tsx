@@ -932,14 +932,14 @@ function CartItemCardPlayground() {
     isSpicy: false,
     readOnly: false,
     imageAspectRatio: "square",
-    imageObjectPosition: "center",
+    imageObjectPosition: "custom",
     imageZoom: 1,
     showSpiceSelector: false,
     imageWidth: undefined,
     imageHeight: undefined,
     useCustomDimensions: false,
-    desktopImageWidth: "w-24",
-    customImagePositionX: 50,
+    desktopImageWidth: "w-22",
+    customImagePositionX: 20,
     customImagePositionY: 50,
   })
 

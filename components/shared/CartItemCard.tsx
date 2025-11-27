@@ -198,7 +198,7 @@ export function CartItemCard({
 
               {/* Sélecteur épicé (Desktop) - ABSOLUMENT CENTRÉ EN HAUT */}
               {showSpiceSelector && spiceSelectorSlot && (
-                <div className="absolute top-0 left-1/2 hidden -translate-x-1/2 transform md:block">
+                <div className="absolute top-0 left-1/2 hidden -translate-x-1/2 transform sm:block">
                   <div className="origin-center cursor-pointer transition-all duration-300 hover:scale-110 hover:drop-shadow-lg">
                     {spiceSelectorSlot}
                   </div>
@@ -216,7 +216,7 @@ export function CartItemCard({
 
             {/* Sélecteur épicé (Mobile : Centré sous le prix) */}
             {showSpiceSelector && spiceSelectorSlot && (
-              <div className="mt-1 flex justify-center md:hidden">
+              <div className="mt-1 flex justify-center sm:hidden">
                 <div className="origin-center scale-90 transition-transform duration-200 hover:scale-100">
                   {spiceSelectorSlot}
                 </div>
@@ -225,7 +225,7 @@ export function CartItemCard({
 
             {/* Badge Végétarien (Mobile : Centré sous les épices) */}
             {isVegetarian && (
-              <div className="mt-1 md:hidden">
+              <div className="mt-1 sm:hidden">
                 <Badge
                   variant="outline"
                   className="h-5 border-green-300 bg-green-50 px-1.5 py-0 text-[10px] text-green-700"
@@ -238,7 +238,7 @@ export function CartItemCard({
 
           {/* Badge Végétarien (Desktop : Absolu bas) */}
           {isVegetarian && (
-            <div className="absolute bottom-0.5 left-1/2 hidden -translate-x-1/2 transform md:block">
+            <div className="absolute bottom-0.5 left-1/2 hidden -translate-x-1/2 transform sm:block">
               <Badge
                 variant="outline"
                 className="h-5 border-green-300 bg-green-50 px-1.5 py-0 text-[10px] text-green-700"
