@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Trash2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { ModalVideo } from "@/components/ui/ModalVideo"
+import { SmartSpice } from "./SmartSpice"
 
 interface CartItemCardProps {
   // Données du produit
@@ -27,6 +28,8 @@ interface CartItemCardProps {
   // Options
   showSpiceSelector?: boolean
   spiceSelectorSlot?: React.ReactNode
+  spiceDistribution?: number[]
+  onSpiceDistributionChange?: (distribution: number[]) => void
   readOnly?: boolean
   className?: string
   imageClassName?: string
@@ -61,6 +64,8 @@ export function CartItemCard({
   imageHeight,
   desktopImageWidth = "w-22",
   customImageObjectPosition,
+  spiceDistribution,
+  onSpiceDistributionChange,
 }: CartItemCardProps) {
   const [imageError, setImageError] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -104,6 +109,28 @@ export function CartItemCard({
     right: "object-right",
   }[imageObjectPosition]
 
+  // Rendu du sélecteur d'épices (soit via slot, soit via SmartSpice interne)
+  const renderSpiceSelector = () => {
+    if (!showSpiceSelector) return null
+
+    if (spiceDistribution && onSpiceDistributionChange) {
+      return (
+        <div onClick={(e) => e.stopPropagation()}>
+          <SmartSpice
+            quantity={quantity}
+            distribution={spiceDistribution}
+            onDistributionChange={onSpiceDistributionChange}
+            className="scale-90"
+          />
+        </div>
+      )
+    }
+
+    return spiceSelectorSlot
+  }
+
+  const spiceContent = renderSpiceSelector()
+
   return (
     <div
       className={cn(
@@ -124,7 +151,7 @@ export function CartItemCard({
                   {
                     "w-16": "sm:w-16",
                     "w-20": "sm:w-20",
-                    "w-22": "sm:w-22",
+                    "w-22": "sm:w-[5.5rem]",
                     "w-24": "sm:w-24",
                     "w-32": "sm:w-32",
                     "w-40": "sm:w-40",
@@ -202,10 +229,10 @@ export function CartItemCard({
               </h4>
 
               {/* Sélecteur épicé (Desktop) - ABSOLUMENT CENTRÉ EN HAUT */}
-              {showSpiceSelector && spiceSelectorSlot && (
+              {spiceContent && (
                 <div className="absolute top-0 left-1/2 hidden -translate-x-1/2 transform sm:block">
                   <div className="origin-center cursor-pointer transition-all duration-300 hover:scale-110 hover:drop-shadow-lg">
-                    {spiceSelectorSlot}
+                    {spiceContent}
                   </div>
                 </div>
               )}
@@ -220,10 +247,10 @@ export function CartItemCard({
             </div>
 
             {/* Sélecteur épicé (Mobile : Centré sous le prix) */}
-            {showSpiceSelector && spiceSelectorSlot && (
+            {spiceContent && (
               <div className="mt-1 flex justify-center sm:hidden">
                 <div className="origin-center scale-90 transition-transform duration-200 hover:scale-100">
-                  {spiceSelectorSlot}
+                  {spiceContent}
                 </div>
               </div>
             )}

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Spice } from "./Spice"
+import { cn } from "@/lib/utils"
 
 interface SmartSpiceProps {
   quantity: number
@@ -101,13 +102,22 @@ export function SmartSpice({
   }
 
   return (
-    <Spice
-      distribution={distribution}
-      onDistributionChange={isEditing ? handleDistributionChange : undefined}
-      readOnly={!isEditing}
-      showBackground={false}
-      hideZeros={!isEditing}
-      className={className}
-    />
+    <div
+      onClick={(e) => {
+        if (!isEditing) {
+          e.stopPropagation()
+          setIsEditing(true)
+        }
+      }}
+      className={cn(!isEditing && "cursor-pointer", className)}
+    >
+      <Spice
+        distribution={distribution}
+        onDistributionChange={isEditing ? handleDistributionChange : undefined}
+        readOnly={!isEditing}
+        showBackground={false}
+        hideZeros={!isEditing}
+      />
+    </div>
   )
 }

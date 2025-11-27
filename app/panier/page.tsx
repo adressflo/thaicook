@@ -30,8 +30,6 @@ import { fr } from "date-fns/locale"
 import { spiceTextToLevel } from "@/lib/spice-helpers"
 import { CommandePlatModal } from "@/components/shared/CommandePlatModal"
 import { CartItemCard } from "@/components/shared/CartItemCard"
-import { SmartSpice } from "@/components/shared/SmartSpice"
-import { Spice } from "@/components/shared/Spice"
 import { getDistributionText } from "@/lib/spice-helpers"
 import { FloatingUserIcon } from "@/components/layout/FloatingUserIcon"
 import { PolaroidPhoto } from "@/components/shared/PolaroidPhoto"
@@ -380,23 +378,10 @@ export default function PanierPage() {
                                 quantity={item.quantite}
                                 isVegetarian={platData.est_vegetarien === true}
                                 isSpicy={(platData.niveau_epice ?? 0) > 0}
-                                showSpiceSelector={
-                                  !!item.spiceDistribution &&
-                                  item.spiceDistribution.some((c) => c > 0)
-                                }
-                                spiceSelectorSlot={
-                                  item.spiceDistribution ? (
-                                    <div onClick={(e) => e.stopPropagation()}>
-                                      <SmartSpice
-                                        quantity={item.quantite}
-                                        distribution={item.spiceDistribution}
-                                        onDistributionChange={(newDist) =>
-                                          handleDistributionChange(item, newDist)
-                                        }
-                                        className="scale-90"
-                                      />
-                                    </div>
-                                  ) : null
+                                showSpiceSelector={!!item.spiceDistribution}
+                                spiceDistribution={item.spiceDistribution}
+                                onSpiceDistributionChange={(newDist) =>
+                                  handleDistributionChange(item, newDist)
                                 }
                                 onQuantityChange={(newQuantity) =>
                                   handleQuantityChange(item, newQuantity)
