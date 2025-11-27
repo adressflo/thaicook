@@ -112,7 +112,16 @@ export function CartItemCard({
             <div
               className={cn(
                 "relative overflow-hidden rounded-t-lg sm:rounded-lg",
-                !imageWidth && `w-full sm:${desktopImageWidth}`,
+                !imageWidth && "w-full",
+                !imageWidth &&
+                  {
+                    "w-16": "sm:w-16",
+                    "w-20": "sm:w-20",
+                    "w-24": "sm:w-24",
+                    "w-32": "sm:w-32",
+                    "w-40": "sm:w-40",
+                    "w-48": "sm:w-48",
+                  }[desktopImageWidth],
                 !imageHeight && aspectRatioClass
               )}
               style={{

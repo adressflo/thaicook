@@ -1269,6 +1269,7 @@ function CartItemCardPlayground() {
               imageZoom={props.imageZoom}
               imageWidth={props.useCustomDimensions ? props.imageWidth : undefined}
               imageHeight={props.useCustomDimensions ? props.imageHeight : undefined}
+              desktopImageWidth={props.desktopImageWidth}
               showSpiceSelector={props.showSpiceSelector}
               spiceSelectorSlot={
                 props.showSpiceSelector ? (
