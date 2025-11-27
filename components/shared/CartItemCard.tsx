@@ -117,6 +117,7 @@ export function CartItemCard({
                   {
                     "w-16": "sm:w-16",
                     "w-20": "sm:w-20",
+                    "w-22": "sm:w-22",
                     "w-24": "sm:w-24",
                     "w-32": "sm:w-32",
                     "w-40": "sm:w-40",

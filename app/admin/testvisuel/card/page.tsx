@@ -1417,7 +1417,7 @@ function CartItemCardPlayground() {
         <div className="space-y-2">
           <label className="text-xs font-medium text-gray-700">🖥️ Largeur Desktop (sm:)</label>
           <div className="flex flex-wrap gap-2">
-            {["w-16", "w-20", "w-24", "w-32", "w-40", "w-48"].map((width) => (
+            {["w-16", "w-20", "w-22", "w-24", "w-32", "w-40", "w-48"].map((width) => (
               <Button
                 key={width}
                 size="sm"
