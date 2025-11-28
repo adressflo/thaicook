@@ -114,8 +114,15 @@ const Commander = memo(() => {
 
   const idclient = clientProfile?.idclient
 
-  const { panier, ajouterAuPanier, modifierQuantite, supprimerDuPanier, viderPanier, totalPrix } =
-    useCart()
+  const {
+    panier,
+    ajouterAuPanier,
+    modifierQuantite,
+    modifierDistributionEpice,
+    supprimerDuPanier,
+    viderPanier,
+    totalPrix,
+  } = useCart()
   const isMobile = useIsMobile()
   const platsSectionRef = useRef<HTMLDivElement>(null)
   const dayButtonsSectionRef = useRef<HTMLDivElement>(null)
@@ -132,6 +139,18 @@ const Commander = memo(() => {
     spiceDistribution?: number[]
     uniqueId?: string
   } | null>(null)
+
+  // États pour la validation et redirection
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [redirectOrderId, setRedirectOrderId] = useState<string | null>(null)
+
+  // Redirection automatique après création de commande
+  useEffect(() => {
+    if (redirectOrderId) {
+      console.log("🔄 Redirection useEffect déclenchée vers:", `/suivi-commande/${redirectOrderId}`)
+      router.push(`/suivi-commande/${redirectOrderId}`)
+    }
+  }, [redirectOrderId, router])
 
   // Fonction pour formater les prix
   const formatPrix = (prix: number): string => {
@@ -377,6 +396,8 @@ const Commander = memo(() => {
       return
     }
 
+    setIsSubmitting(true)
+
     // Grouper les articles par date de retrait
     const groupedByDate = panier.reduce(
       (groups, item) => {
@@ -392,7 +413,7 @@ const Commander = memo(() => {
 
     try {
       let commandesCreees = 0
-      let lastOrderId = ""
+      let lastOrderId: string | null = null
 
       // Créer une commande pour chaque date de retrait
       for (const [dateKey, items] of Object.entries(groupedByDate)) {
@@ -459,14 +480,12 @@ const Commander = memo(() => {
       setDemandesSpeciales("")
       setJourSelectionne(null)
 
-      console.log(
-        "🔄 Tentative de redirection vers:",
-        lastOrderId ? `/suivi-commande/${lastOrderId}` : "/commander/confirmation"
-      )
-
+      // Déclencher la redirection via useEffect
       if (lastOrderId) {
-        router.push(`/suivi-commande/${lastOrderId}`)
+        console.log("🔄 Mise à jour de l'état pour redirection vers:", lastOrderId)
+        setRedirectOrderId(lastOrderId)
       } else {
+        console.warn("⚠️ Pas d'ID de commande, redirection vers confirmation par défaut")
         router.push("/commander/confirmation")
       }
     } catch (error: unknown) {
@@ -478,13 +497,15 @@ const Commander = memo(() => {
         description: errorMessage,
         variant: "destructive",
       })
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
   if (dataError) {
     return (
       <div className="p-8">
-        <Alert variant="destructive">Erreur de chargement: {dataError.message}</Alert>
+        <Alert variant="destructive">Erreur de chargement: {dataError?.message}</Alert>
       </div>
     )
   }
@@ -1016,16 +1037,9 @@ const Commander = memo(() => {
                                         item.demandeSpeciale.includes("épicé")
                                       )
                                     }
-                                    spiceSelectorSlot={
-                                      item.demandeSpeciale &&
-                                      item.demandeSpeciale.includes("épicé") ? (
-                                        <Spice
-                                          distribution={item.demandeSpeciale}
-                                          readOnly={true}
-                                          hideZeros={true}
-                                          className="my-1"
-                                        />
-                                      ) : undefined
+                                    spiceDistribution={item.spiceDistribution}
+                                    onSpiceDistributionChange={(newDist) =>
+                                      modifierDistributionEpice(item.uniqueId!, newDist)
                                     }
                                     className="mb-2"
                                   />
