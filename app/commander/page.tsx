@@ -441,11 +441,13 @@ const Commander = memo(() => {
         })
 
         const newOrder = await createCommande.mutateAsync(commandeData)
-        console.log("✅ Commande créée:", newOrder)
+        console.log("✅ Commande crée avec succès:", newOrder)
 
         if (newOrder && newOrder.id) {
           lastOrderId = newOrder.id.toString()
-          console.log("🆔 ID de la dernière commande:", lastOrderId)
+          console.log("🆔 ID de la commande capturé:", lastOrderId)
+        } else {
+          console.warn("⚠️ Commande créée mais pas d'ID retourné:", newOrder)
         }
 
         commandesCreees++
@@ -480,16 +482,22 @@ const Commander = memo(() => {
       setDemandesSpeciales("")
       setJourSelectionne(null)
 
-      // Déclencher la redirection via useEffect
+      // Déclencher la redirection
       if (lastOrderId) {
-        console.log("🔄 Mise à jour de l'état pour redirection vers:", lastOrderId)
+        console.log("🔄 Déclenchement redirection vers:", lastOrderId)
         setRedirectOrderId(lastOrderId)
+
+        // Fallback de sécurité : si le useEffect ne se déclenche pas, on force la redirection après 1s
+        setTimeout(() => {
+          console.log("⏰ Fallback redirection déclenché")
+          router.push(`/suivi-commande/${lastOrderId}`)
+        }, 1000)
       } else {
-        console.warn("⚠️ Pas d'ID de commande, redirection vers confirmation par défaut")
+        console.warn("⚠️ Pas d'ID de commande final, redirection vers confirmation par défaut")
         router.push("/commander/confirmation")
       }
     } catch (error: unknown) {
-      console.error("Erreur validation commande:", error)
+      console.error("❌ Erreur validation commande:", error)
       const errorMessage =
         error instanceof Error ? error.message : "Erreur lors de l'enregistrement de la commande."
       toast({

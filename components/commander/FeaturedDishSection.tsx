@@ -62,24 +62,7 @@ export function FeaturedDishSection({ onScrollToDays, featuredDay }: FeaturedDis
     <Card className="border-thai-gold/30 mb-6 overflow-hidden border-2 bg-gradient-to-br from-white to-amber-50/30 shadow-lg">
       <div className="p-6">
         <div className="flex flex-col items-center gap-6 md:flex-row">
-          {/* Vidéo Chanthana + Bulle dialogue */}
-          <div className="relative flex-shrink-0">
-            <video
-              src="/media/hero/videos/platsemaine.mp4"
-              autoPlay
-              loop
-              muted
-              playsInline
-              className="h-32 w-32 rounded-lg object-cover md:h-40 md:w-40"
-            />
-            {/* Bulle de dialogue */}
-            <div className="border-thai-gold absolute -top-2 -right-2 animate-bounce rounded-2xl border-2 bg-white px-4 py-2 shadow-xl md:-right-4">
-              <div className="absolute -bottom-2 left-8 h-0 w-0 border-t-8 border-r-8 border-l-8 border-t-white border-r-transparent border-l-transparent" />
-              <p className="text-thai-orange text-sm font-bold whitespace-nowrap">
-                Au menu cette semaine !
-              </p>
-            </div>
-          </div>
+          {/* Vidéo Chanthana + Bulle dialogue SUPPRIMÉS */}
 
           {/* Polaroid Plat Vedette */}
           <div

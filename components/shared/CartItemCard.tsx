@@ -219,23 +219,34 @@ export function CartItemCard({
         <div className="relative flex min-w-0 flex-1 flex-col justify-between self-stretch p-3 sm:p-0 sm:pb-6">
           {/* Container Mobile : Stack vertical centré */}
           <div className="flex flex-col items-center gap-2 sm:block sm:gap-0">
-            {/* Nom du plat */}
-            <div className="flex w-full items-start justify-center sm:justify-between">
+            {/* Nom du plat et Badges (Desktop) */}
+            <div className="flex w-full flex-col sm:flex-row sm:items-start sm:justify-between sm:gap-4">
               <h4
-                className="text-thai-green hover:text-thai-orange decoration-thai-orange/50 max-w-[90%] cursor-pointer text-center text-base font-medium transition-colors duration-200 hover:underline sm:max-w-[40%] sm:text-left"
+                className="text-thai-green hover:text-thai-orange decoration-thai-orange/50 max-w-[90%] cursor-pointer text-center text-base font-medium transition-colors duration-200 hover:underline sm:max-w-[60%] sm:text-left"
                 onClick={onClick}
               >
                 {name}
               </h4>
 
-              {/* Sélecteur épicé (Desktop) - ABSOLUMENT CENTRÉ EN HAUT */}
-              {spiceContent && (
-                <div className="absolute top-0 left-[70%] hidden -translate-x-1/2 transform sm:block lg:left-1/2">
-                  <div className="origin-center cursor-pointer transition-all duration-300 hover:scale-110 hover:drop-shadow-lg">
+              {/* Badges Desktop (Alignés à droite) */}
+              <div className="hidden flex-col items-end gap-2 sm:flex">
+                {/* Sélecteur épicé */}
+                {spiceContent && (
+                  <div className="origin-right transition-all duration-300 hover:scale-105">
                     {spiceContent}
                   </div>
-                </div>
-              )}
+                )}
+
+                {/* Badge Végétarien */}
+                {isVegetarian && (
+                  <Badge
+                    variant="outline"
+                    className="h-5 border-green-300 bg-green-50 px-1.5 py-0 text-[10px] text-green-700"
+                  >
+                    🌱 Végétarien
+                  </Badge>
+                )}
+              </div>
             </div>
 
             {/* Prix unitaire (Mobile : sous le nom, centré) */}
@@ -268,24 +279,11 @@ export function CartItemCard({
             )}
           </div>
 
-          {/* Badge Végétarien (Desktop : Absolu bas) */}
-          {isVegetarian && (
-            <div className="absolute bottom-0.5 left-[70%] hidden -translate-x-1/2 transform sm:block lg:left-1/2">
-              <Badge
-                variant="outline"
-                className="h-5 border-green-300 bg-green-50 px-1.5 py-0 text-[10px] text-green-700"
-              >
-                🌱 Végétarien
-              </Badge>
-            </div>
-          )}
-
           {/* Espace flexible (Desktop) */}
           <div className="hidden flex-1 sm:block"></div>
 
           {/* Infos Quantité / Prix (Desktop - caché sur mobile car réorganisé) */}
           <div className="mt-1 hidden items-center text-sm text-gray-600 sm:flex">
-            {/* Ce bloc est redondant sur mobile avec le nouveau layout, on le garde pour desktop */}
             {readOnly && (
               <>
                 <span className="font-semibold text-gray-700">Qté:</span>
