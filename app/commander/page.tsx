@@ -63,6 +63,8 @@ import { FeaturedDishSection } from "@/components/commander/FeaturedDishSection"
 import { PolaroidThankYouModal } from "@/components/commander/PolaroidThankYouModal"
 import { spiceTextToLevel } from "@/lib/spice-helpers"
 import { Spice } from "@/components/shared/Spice"
+import { ProductCard } from "@/components/shared/ProductCard"
+import { ModalVideo } from "@/components/ui/ModalVideo"
 
 export const dynamic = "force-dynamic"
 
@@ -143,6 +145,23 @@ const Commander = memo(() => {
   // États pour la validation et redirection
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [redirectOrderId, setRedirectOrderId] = useState<string | null>(null)
+  const [isClearCartModalOpen, setIsClearCartModalOpen] = useState(false)
+
+  // Feedback retour connexion
+  const prevIsOnline = useRef(isOnline)
+  useEffect(() => {
+    if (!prevIsOnline.current && isOnline) {
+      toastVideo({
+        title: "Connexion rétablie !",
+        description: "Vous êtes de nouveau connecté.",
+        media: "/media/animations/toasts/ajoutpaniernote.mp4",
+        position: "bottom-right",
+        aspectRatio: "1:1",
+        polaroid: true,
+      })
+    }
+    prevIsOnline.current = isOnline
+  }, [isOnline])
 
   // Redirection automatique après création de commande
   useEffect(() => {
@@ -384,15 +403,26 @@ const Commander = memo(() => {
 
   const validerCommande = async () => {
     if (!currentUser || !idclient) {
-      toast({
+      toastVideo({
         title: "Profil incomplet",
-        description: "Veuillez vous connecter et compléter votre profil.",
-        variant: "destructive",
+        description: "Veuillez vous connecter et compléter votre profil pour commander.",
+        media: "/media/animations/toasts/ajoutpaniernote.mp4",
+        position: "center",
+        aspectRatio: "1:1",
+        polaroid: true,
       })
       return
     }
     if (panier.length === 0) {
-      toast({ title: "Panier vide", variant: "destructive" })
+      toastVideo({
+        title: "Panier vide",
+        description:
+          "Je suis prête à noter, mais votre panier est vide ! Choisissez d'abord vos plats.",
+        media: "/media/animations/toasts/ajoutpaniernote.mp4",
+        position: "center",
+        aspectRatio: "1:1",
+        polaroid: true,
+      })
       return
     }
 
@@ -614,9 +644,23 @@ const Commander = memo(() => {
                         </div>
                       )}
                       {recherche && platsFiltres.length === 0 && (
-                        <p className="mt-4 text-center text-sm text-gray-500">
-                          Aucun plat ne correspond à votre recherche.
-                        </p>
+                        <div className="mt-6 flex flex-col items-center justify-center space-y-3 text-center">
+                          <div className="relative h-24 w-24 overflow-hidden rounded-full border-4 border-white shadow-lg">
+                            <img
+                              src="/media/avatars/panier1.svg"
+                              alt="Chanthana"
+                              className="h-full w-full bg-orange-50 object-cover p-2"
+                            />
+                          </div>
+                          <div className="bg-thai-cream/30 rounded-lg p-4">
+                            <p className="text-thai-green text-lg font-medium">
+                              Mince, je ne trouve pas ce plat... 🧐
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              Essayez une autre orthographe ou regardez notre menu du jour !
+                            </p>
+                          </div>
+                        </div>
                       )}
                     </div>
 
@@ -840,89 +884,24 @@ const Commander = memo(() => {
                   ) : (
                     <div className="grid gap-4 md:grid-cols-2">
                       {platsDisponibles.map((plat) => (
-                        <Card
+                        <ProductCard
                           key={plat.id}
-                          className={`border-thai-orange/20 flex cursor-pointer flex-col transition-all duration-300 ${
-                            highlightedPlatId === plat.id.toString()
-                              ? "ring-thai-orange/50 border-thai-orange scale-105 shadow-lg ring-4"
-                              : "hover:border-thai-orange/40 hover:shadow-md"
-                          }`}
-                          onMouseEnter={() => setHighlightedPlatId(plat.id.toString())}
-                          onMouseLeave={() => setHighlightedPlatId(null)}
-                          onClick={() =>
+                          title={plat.plat}
+                          description={plat.description || ""}
+                          price={parseFloat(plat.prix || "0")}
+                          imageSrc={plat.photo_du_plat || undefined}
+                          isVegetarian={!!plat.est_vegetarien}
+                          isSpicy={(plat.niveau_epice ?? 0) > 0}
+                          quantityInCart={getCurrentQuantity(plat.idplats)}
+                          onAdd={() =>
                             setModalContext({ plat, quantity: getCurrentQuantity(plat.idplats) })
                           }
-                        >
-                          {plat.photo_du_plat && (
-                            <div className="relative aspect-video overflow-hidden rounded-t-lg">
-                              <Image
-                                src={plat.photo_du_plat}
-                                alt={plat.plat}
-                                fill
-                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                                className="object-cover transition-transform duration-300 hover:scale-110"
-                              />
-                              {/* Badge Disponible en haut à gauche */}
-                              <div className="absolute top-2 left-2">
-                                <Badge className="bg-thai-green px-2 py-0.5 text-xs font-semibold text-white shadow-md">
-                                  Disponible
-                                </Badge>
-                              </div>
-                              {/* Badge Panier en haut à droite */}
-                              {getCurrentQuantity(plat.idplats) > 0 && (
-                                <div className="absolute top-2 right-2">
-                                  <Badge className="bg-thai-orange px-2 py-0.5 text-xs font-semibold text-white shadow-md">
-                                    Panier {getCurrentQuantity(plat.idplats)}
-                                  </Badge>
-                                </div>
-                              )}
-                            </div>
-                          )}
-                          <CardContent className="flex flex-grow flex-col p-3">
-                            {/* Nom + Badges sur même ligne */}
-                            <div className="mb-1 flex items-center justify-between gap-2">
-                              <h4 className="text-thai-green line-clamp-1 flex-1 font-semibold">
-                                {plat.plat}
-                              </h4>
-                              {(plat.est_vegetarien || (plat.niveau_epice ?? 0) > 0) && (
-                                <div className="flex flex-shrink-0 gap-1">
-                                  {plat.est_vegetarien && (
-                                    <Badge
-                                      variant="outline"
-                                      className="h-5 border-green-300 bg-green-50 px-1.5 py-0 text-[10px] text-green-700"
-                                    >
-                                      🌱 Végétarien
-                                    </Badge>
-                                  )}
-                                  {(plat.niveau_epice ?? 0) > 0 && (
-                                    <Badge
-                                      variant="outline"
-                                      className="flex h-5 items-center gap-0.5 border-orange-300 bg-orange-50 px-1.5 py-0 text-[10px] text-orange-700"
-                                    >
-                                      <Flame className="h-3 w-3" />
-                                      Peut être épicé
-                                    </Badge>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-
-                            <p className="mb-2 flex-grow text-xs text-gray-600">
-                              {plat.description}
-                            </p>
-                            <div className="mt-auto flex items-center justify-between pt-2">
-                              <Badge variant="secondary">
-                                {formatPrix(parseFloat(plat.prix || "0"))}
-                              </Badge>
-                              <Button
-                                size="sm"
-                                className="transition-all duration-200 hover:scale-105 hover:shadow-md"
-                              >
-                                Ajouter
-                              </Button>
-                            </div>
-                          </CardContent>
-                        </Card>
+                          className={
+                            highlightedPlatId === plat.id.toString()
+                              ? "ring-thai-orange/50 border-thai-orange scale-105 shadow-lg ring-4"
+                              : ""
+                          }
+                        />
                       ))}
                     </div>
                   )}
@@ -954,6 +933,15 @@ const Commander = memo(() => {
                         {panier.reduce((total, item) => total + item.quantite, 0) > 1 ? "s" : ""}
                       </p>
                     </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute top-2 right-2 h-8 w-8 text-white hover:bg-white/20"
+                      onClick={() => setIsClearCartModalOpen(true)}
+                      title="Vider le panier"
+                    >
+                      <Trash2 className="h-5 w-5" />
+                    </Button>
                   </CardHeader>
 
                   <CardContent className="flex-1 overflow-y-auto p-4">
@@ -1019,9 +1007,23 @@ const Commander = memo(() => {
                                     quantity={item.quantite}
                                     isVegetarian={!!platData.est_vegetarien}
                                     isSpicy={(platData.niveau_epice ?? 0) > 0}
-                                    onQuantityChange={(qty) =>
+                                    onQuantityChange={(qty) => {
+                                      const diff = qty - item.quantite
                                       modifierQuantite(item.uniqueId!, qty)
-                                    }
+                                      if (diff > 0) {
+                                        toast({
+                                          title: "Quantité mise à jour",
+                                          description: `Une portion de ${item.nom} ajoutée.`,
+                                          duration: 2000,
+                                        })
+                                      } else if (diff < 0) {
+                                        toast({
+                                          title: "Quantité mise à jour",
+                                          description: `Une portion de ${item.nom} retirée.`,
+                                          duration: 2000,
+                                        })
+                                      }
+                                    }}
                                     onRemove={() => {
                                       supprimerDuPanier(item.uniqueId!)
                                       toastVideo({
@@ -1190,6 +1192,35 @@ const Commander = memo(() => {
           uniqueId={modalContext!.uniqueId}
         />
       )}
+
+      {/* Modal de confirmation pour vider le panier */}
+      <ModalVideo
+        isOpen={isClearCartModalOpen}
+        onOpenChange={setIsClearCartModalOpen}
+        title="<orange>Vider</orange> le panier ?"
+        description="Êtes-vous sûr de vouloir <bold><orange>supprimer</orange></bold> tous les plats de votre panier ?"
+        media="/media/animations/toasts/ajoutpaniernote.mp4"
+        aspectRatio="1:1"
+        polaroid={true}
+        buttonLayout="double"
+        cancelText="Annuler"
+        confirmText="Tout supprimer"
+        maxWidth="sm"
+        borderColor="thai-green"
+        borderWidth={2}
+        shadowSize="2xl"
+        onCancel={() => setIsClearCartModalOpen(false)}
+        onConfirm={() => {
+          viderPanier()
+          setIsClearCartModalOpen(false)
+          toastVideo({
+            title: "Panier vidé",
+            description: "Votre panier est maintenant vide.",
+            media: "/media/animations/toasts/ajoutpaniernote.mp4",
+            position: "center",
+          })
+        }}
+      />
 
       {/* Modal Polaroid Remerciement */}
       <PolaroidThankYouModal

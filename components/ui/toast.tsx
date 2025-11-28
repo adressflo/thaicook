@@ -16,7 +16,7 @@ import { cn } from "@/lib/utils"
  * - Styles : <bold>, <semi-bold>, <italic>, <underline>, <small>
  */
 const parseColoredText = (text: string | React.ReactNode, depth: number = 0): React.ReactNode => {
-  if (typeof text !== 'string') return text
+  if (typeof text !== "string") return text
 
   // Map des classes Tailwind pour couleurs et styles
   const styleMap: Record<string, string> = {
@@ -31,7 +31,7 @@ const parseColoredText = (text: string | React.ReactNode, depth: number = 0): Re
     "semi-bold": "font-semibold",
     italic: "italic",
     underline: "underline",
-    small: "text-sm"
+    small: "text-sm",
   }
 
   // Regex pour trouver la PREMIÈRE balise (pas greedy pour supporter imbrication)
@@ -89,7 +89,7 @@ const ToastViewport = React.forwardRef<
   <ToastPrimitives.Viewport
     ref={ref}
     className={cn(
-      "fixed top-0 z-[100] flex max-h-screen w-full flex-col-reverse p-4 sm:top-auto sm:right-0 sm:bottom-0 sm:w-auto sm:flex-col md:max-w-fit",
+      "pointer-events-none fixed top-0 z-[100] flex max-h-screen w-full flex-col-reverse p-4 sm:top-auto sm:right-0 sm:bottom-0 sm:w-auto sm:flex-col md:max-w-fit",
       className
     )}
     {...props}
@@ -107,12 +107,9 @@ const toastVariants = cva(
           "destructive group border-destructive bg-destructive text-destructive-foreground",
         polaroid:
           "border-thai-green bg-white text-thai-green shadow-[0_4px_6px_rgba(0,0,0,0.3)] rotate-2 hover:rotate-0 transition-all duration-300 hover:scale-105 border-4 p-4",
-        success:
-          "border-thai-green bg-white text-thai-green",
-        warning:
-          "border-yellow-500 bg-yellow-50 text-yellow-700",
-        info:
-          "border-blue-500 bg-blue-50 text-blue-700",
+        success: "border-thai-green bg-white text-thai-green",
+        warning: "border-yellow-500 bg-yellow-50 text-yellow-700",
+        info: "border-blue-500 bg-blue-50 text-blue-700",
       },
     },
     defaultVariants: {
@@ -172,12 +169,14 @@ interface ToastExtendedProps {
 
 // Map des classes CSS pour les positions du Viewport
 const positionClassMap: Record<ToastPosition, string> = {
-  "center": "top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center sm:top-1/2 sm:right-auto sm:bottom-auto sm:flex-col",
+  center:
+    "top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center sm:top-1/2 sm:right-auto sm:bottom-auto sm:flex-col",
   "bottom-right": "sm:top-auto sm:right-0 sm:bottom-0 sm:w-auto sm:flex-col",
   "bottom-left": "sm:top-auto sm:left-0 sm:bottom-0 sm:right-auto sm:w-auto sm:flex-col",
   "top-right": "top-0 right-0 bottom-auto sm:top-0 sm:right-0 sm:bottom-auto sm:w-auto sm:flex-col",
-  "top-left": "top-0 left-0 right-auto bottom-auto sm:top-0 sm:left-0 sm:right-auto sm:bottom-auto sm:w-auto sm:flex-col",
-  "custom": "",
+  "top-left":
+    "top-0 left-0 right-auto bottom-auto sm:top-0 sm:left-0 sm:right-auto sm:bottom-auto sm:w-auto sm:flex-col",
+  custom: "",
 }
 
 export { positionClassMap }
@@ -186,53 +185,53 @@ export { positionClassMap }
 const borderColorMap: Record<BorderColor, string> = {
   "thai-orange": "border-thai-orange",
   "thai-green": "border-thai-green",
-  "red": "border-red-500",
-  "blue": "border-blue-500",
-  "yellow": "border-yellow-500",
-  "purple": "border-purple-500",
-  "custom": "",
+  red: "border-red-500",
+  blue: "border-blue-500",
+  yellow: "border-yellow-500",
+  purple: "border-purple-500",
+  custom: "",
 }
 
 const shadowSizeMap: Record<ShadowSize, string> = {
-  "none": "shadow-none",
-  "sm": "shadow-sm",
-  "md": "shadow-md",
-  "lg": "shadow-lg",
-  "xl": "shadow-xl",
+  none: "shadow-none",
+  sm: "shadow-sm",
+  md: "shadow-md",
+  lg: "shadow-lg",
+  xl: "shadow-xl",
   "2xl": "shadow-2xl",
 }
 
 const maxWidthMap: Record<MaxWidth, string> = {
-  "xs": "max-w-[280px]",
-  "sm": "max-w-[320px]",
-  "md": "max-w-[400px]",
-  "lg": "max-w-[500px]",
-  "xl": "max-w-[600px]",
+  xs: "max-w-[280px]",
+  sm: "max-w-[320px]",
+  md: "max-w-[400px]",
+  lg: "max-w-[500px]",
+  xl: "max-w-[600px]",
 }
 
 const titleColorMap: Record<TitleColor, string> = {
   "thai-green": "text-thai-green",
   "thai-orange": "text-thai-orange",
-  "white": "text-white",
-  "black": "text-black",
+  white: "text-white",
+  black: "text-black",
   "thai-gold": "text-thai-gold",
-  "inherit": "",
+  inherit: "",
 }
 
 const descriptionColorMap: Record<DescriptionColor, string> = {
   "thai-green": "text-thai-green",
   "thai-orange": "text-thai-orange",
-  "gray": "text-gray-600",
-  "black": "text-black",
-  "inherit": "",
+  gray: "text-gray-600",
+  black: "text-black",
+  inherit: "",
 }
 
 const fontWeightMap: Record<FontWeight, string> = {
-  "normal": "font-normal",
-  "medium": "font-medium",
-  "semibold": "font-semibold",
-  "bold": "font-bold",
-  "extrabold": "font-extrabold",
+  normal: "font-normal",
+  medium: "font-medium",
+  semibold: "font-semibold",
+  bold: "font-bold",
+  extrabold: "font-extrabold",
 }
 
 const Toast = React.forwardRef<
@@ -240,84 +239,99 @@ const Toast = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof ToastPrimitives.Root> &
     VariantProps<typeof toastVariants> &
     ToastExtendedProps
->(({
-  className,
-  variant,
-  tilted,
-  borderColor = "thai-orange",
-  customBorderColor,
-  borderWidth = 2,
-  customBorderWidth,
-  shadowSize = "lg",
-  maxWidth = "lg",
-  animateBorder = false,
-  hoverScale = false,
-  style,
-  // Props qui ne doivent PAS être passées au DOM
-  titleColor: _titleColor,
-  titleFontWeight: _titleFontWeight,
-  descriptionColor: _descriptionColor,
-  descriptionFontWeight: _descriptionFontWeight,
-  position: _position,
-  customX: _customX,
-  customY: _customY,
-  redirectUrl: _redirectUrl,
-  redirectBehavior: _redirectBehavior,
-  ...props
-}, ref) => {
-  const angle = typeof tilted === "number" ? tilted : tilted ? -3 : 0
-  const isTilted = angle !== 0
+>(
+  (
+    {
+      className,
+      variant,
+      tilted,
+      borderColor = "thai-orange",
+      customBorderColor,
+      borderWidth = 2,
+      customBorderWidth,
+      shadowSize = "lg",
+      maxWidth = "lg",
+      animateBorder = false,
+      hoverScale = false,
+      style,
+      // Props qui ne doivent PAS être passées au DOM
+      titleColor: _titleColor,
+      titleFontWeight: _titleFontWeight,
+      descriptionColor: _descriptionColor,
+      descriptionFontWeight: _descriptionFontWeight,
+      position: _position,
+      customX: _customX,
+      customY: _customY,
+      redirectUrl: _redirectUrl,
+      redirectBehavior: _redirectBehavior,
+      ...props
+    },
+    ref
+  ) => {
+    const angle = typeof tilted === "number" ? tilted : tilted ? -3 : 0
+    const isTilted = angle !== 0
 
-  // Calcul des classes dynamiques
-  const borderColorClass = borderColor === "custom" && customBorderColor
-    ? customBorderColor
-    : borderColorMap[borderColor]
+    // Calcul des classes dynamiques
+    const borderColorClass =
+      borderColor === "custom" && customBorderColor
+        ? customBorderColor
+        : borderColorMap[borderColor]
 
-  const borderWidthClass = borderWidth === "custom" && customBorderWidth
-    ? ""
-    : `border-${borderWidth}`
+    const borderWidthClass =
+      borderWidth === "custom" && customBorderWidth ? "" : `border-${borderWidth}`
 
-  const borderWidthStyle = borderWidth === "custom" && customBorderWidth
-    ? { borderWidth: `${customBorderWidth}px` }
-    : {}
+    const borderWidthStyle =
+      borderWidth === "custom" && customBorderWidth ? { borderWidth: `${customBorderWidth}px` } : {}
 
-  return (
-    <ToastPrimitives.Root
-      ref={ref}
-      className={cn(
-        toastVariants({ variant }),
-        // Bordure
-        borderColorClass,
-        borderWidthClass,
-        // Ombre
-        shadowSizeMap[shadowSize],
-        // Largeur max
-        maxWidthMap[maxWidth],
-        // Largeur min
-        "min-w-[280px]",
-        // Animation bordure
-        animateBorder && "animate-moving-border",
-        // Hover scale
-        hoverScale && "hover:scale-105 transition-transform duration-300",
-        // Inclinaison
-        isTilted && "rotate-[var(--toast-angle)] transition-all duration-300 hover:scale-105 hover:rotate-0",
-        className
-      )}
-      style={
-        {
-          ...style,
-          ...borderWidthStyle,
-          "--toast-angle": `${angle}deg`,
-        } as React.CSSProperties & { "--toast-angle": string }
-      }
-      {...props}
-    />
-  )
-})
+    return (
+      <ToastPrimitives.Root
+        ref={ref}
+        className={cn(
+          toastVariants({ variant }),
+          // Bordure
+          borderColorClass,
+          borderWidthClass,
+          // Ombre
+          shadowSizeMap[shadowSize],
+          // Largeur max
+          maxWidthMap[maxWidth],
+          // Largeur min
+          "min-w-[280px]",
+          // Animation bordure
+          animateBorder && "animate-moving-border",
+          // Hover scale
+          hoverScale && "transition-transform duration-300 hover:scale-105",
+          // Inclinaison
+          isTilted &&
+            "rotate-[var(--toast-angle)] transition-all duration-300 hover:scale-105 hover:rotate-0",
+          className
+        )}
+        style={
+          {
+            ...style,
+            ...borderWidthStyle,
+            "--toast-angle": `${angle}deg`,
+          } as React.CSSProperties & { "--toast-angle": string }
+        }
+        {...props}
+      />
+    )
+  }
+)
 Toast.displayName = ToastPrimitives.Root.displayName
 
 export { titleColorMap, descriptionColorMap, fontWeightMap }
-export type { ToastExtendedProps, BorderColor, ShadowSize, MaxWidth, TitleColor, DescriptionColor, ToastPosition, FontWeight, RedirectBehavior }
+export type {
+  ToastExtendedProps,
+  BorderColor,
+  ShadowSize,
+  MaxWidth,
+  TitleColor,
+  DescriptionColor,
+  ToastPosition,
+  FontWeight,
+  RedirectBehavior,
+}
 
 const ToastAction = React.forwardRef<
   React.ElementRef<typeof ToastPrimitives.Action>,

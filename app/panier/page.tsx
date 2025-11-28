@@ -34,6 +34,7 @@ import { CartItemCard } from "@/components/shared/CartItemCard"
 import { getDistributionText } from "@/lib/spice-helpers"
 import { FloatingUserIcon } from "@/components/layout/FloatingUserIcon"
 import { PolaroidPhoto } from "@/components/shared/PolaroidPhoto"
+import { ModalVideo } from "@/components/ui/ModalVideo"
 
 // Helper function pour convertir le prix en nombre
 const toSafeNumber = (prix: string | number | undefined): number => {
@@ -71,6 +72,7 @@ export default function PanierPage() {
     useCart()
 
   const [demandesSpeciales, setDemandesSpeciales] = useState<string>("")
+  const [isClearCartModalOpen, setIsClearCartModalOpen] = useState(false)
 
   // State pour le modal global
   const [modalContext, setModalContext] = useState<{
@@ -91,15 +93,26 @@ export default function PanierPage() {
 
   const validerCommande = async () => {
     if (!currentUser || !clientFirebaseUID) {
-      toast({
+      toastVideo({
         title: "Profil incomplet",
-        description: "Veuillez vous connecter et compléter votre profil.",
-        variant: "destructive",
+        description: "Veuillez vous connecter et compléter votre profil pour commander.",
+        media: "/media/animations/toasts/ajoutpaniernote.mp4",
+        position: "center",
+        aspectRatio: "1:1",
+        polaroid: true,
       })
       return
     }
     if (panier.length === 0) {
-      toast({ title: "Panier vide", variant: "destructive" })
+      toastVideo({
+        title: "Panier vide",
+        description:
+          "Je suis prête à noter, mais votre panier est vide ! Choisissez d'abord vos plats.",
+        media: "/media/animations/toasts/ajoutpaniernote.mp4",
+        position: "center",
+        aspectRatio: "1:1",
+        polaroid: true,
+      })
       return
     }
 
@@ -332,6 +345,17 @@ export default function PanierPage() {
                 rotation={3}
               />
             </div>
+            {panier.length > 0 && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute top-4 right-4 h-8 w-8 text-white hover:bg-white/20 sm:top-8 sm:right-8"
+                onClick={() => setIsClearCartModalOpen(true)}
+                title="Vider le panier"
+              >
+                <Trash2 className="h-5 w-5" />
+              </Button>
+            )}
           </CardHeader>
 
           <CardContent className="p-3 sm:p-6 md:p-8" style={{ position: "relative", zIndex: 1 }}>
@@ -408,9 +432,23 @@ export default function PanierPage() {
                                 onSpiceDistributionChange={(newDist) =>
                                   handleDistributionChange(item, newDist)
                                 }
-                                onQuantityChange={(newQuantity) =>
+                                onQuantityChange={(newQuantity) => {
+                                  const diff = newQuantity - item.quantite
                                   handleQuantityChange(item, newQuantity)
-                                }
+                                  if (diff > 0) {
+                                    toast({
+                                      title: "Quantité mise à jour",
+                                      description: `Une portion de ${item.nom} ajoutée.`,
+                                      duration: 2000,
+                                    })
+                                  } else if (diff < 0) {
+                                    toast({
+                                      title: "Quantité mise à jour",
+                                      description: `Une portion de ${item.nom} retirée.`,
+                                      duration: 2000,
+                                    })
+                                  }
+                                }}
                                 onRemove={() => {
                                   supprimerDuPanier(item.uniqueId!)
                                   toast({
@@ -458,6 +496,19 @@ export default function PanierPage() {
                       value={demandesSpeciales}
                       onChange={(e) => setDemandesSpeciales(e.target.value)}
                       className="border-thai-orange/30 focus:border-thai-orange focus:ring-thai-orange/20 bg-thai-orange/5 border"
+                      onBlur={(e) => {
+                        if (e.target.value.length > 0) {
+                          toastVideo({
+                            title: "Message reçu ! 📝",
+                            description: "Je prends note de votre demande spéciale.",
+                            media: "/media/animations/toasts/ajoutpaniernote.mp4",
+                            position: "bottom-right",
+                            aspectRatio: "1:1",
+                            polaroid: true,
+                            duration: 3000,
+                          })
+                        }
+                      }}
                     />
                   </div>
                 </div>
@@ -535,6 +586,35 @@ export default function PanierPage() {
             uniqueId={modalContext.uniqueId}
           />
         )}
+
+        {/* Modal de confirmation pour vider le panier */}
+        <ModalVideo
+          isOpen={isClearCartModalOpen}
+          onOpenChange={setIsClearCartModalOpen}
+          title="<orange>Vider</orange> le panier ?"
+          description="Êtes-vous sûr de vouloir <bold><orange>supprimer</orange></bold> tous les plats de votre panier ?"
+          media="/media/animations/toasts/ajoutpaniernote.mp4"
+          aspectRatio="1:1"
+          polaroid={true}
+          buttonLayout="double"
+          cancelText="Annuler"
+          confirmText="Tout supprimer"
+          maxWidth="sm"
+          borderColor="thai-green"
+          borderWidth={2}
+          shadowSize="2xl"
+          onCancel={() => setIsClearCartModalOpen(false)}
+          onConfirm={() => {
+            viderPanier()
+            setIsClearCartModalOpen(false)
+            toastVideo({
+              title: "Panier vidé",
+              description: "Votre panier est maintenant vide.",
+              media: "/media/animations/toasts/ajoutpaniernote.mp4",
+              position: "center",
+            })
+          }}
+        />
       </div>
     </div>
   )

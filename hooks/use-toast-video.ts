@@ -11,10 +11,10 @@ import type {
   DescriptionColor,
   ToastPosition,
   FontWeight,
-  RedirectBehavior
+  RedirectBehavior,
 } from "@/components/ui/toast"
 
-const TOAST_LIMIT = 1
+const TOAST_LIMIT = 3
 const TOAST_REMOVE_DELAY = 3000 // 3 secondes pour les toasts video (duree du GIF)
 
 type ToasterToastVideo = ToastProps & {
@@ -53,7 +53,16 @@ type ToasterToastVideo = ToastProps & {
   showCloseButton?: boolean
 }
 
-export type { BorderColor, ShadowSize, MaxWidth, TitleColor, DescriptionColor, ToastPosition, FontWeight, RedirectBehavior }
+export type {
+  BorderColor,
+  ShadowSize,
+  MaxWidth,
+  TitleColor,
+  DescriptionColor,
+  ToastPosition,
+  FontWeight,
+  RedirectBehavior,
+}
 
 const actionTypes = {
   ADD_TOAST: "ADD_TOAST",

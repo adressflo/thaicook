@@ -16,6 +16,7 @@ import type { PlatUI as Plat } from "@/types/app"
 
 import { Spice } from "@/components/shared/Spice"
 import { getDistributionText } from "@/lib/spice-helpers"
+import { toastVideo } from "@/hooks/use-toast-video"
 
 export interface CommandePlatModalProps {
   plat: Plat
@@ -86,6 +87,18 @@ export const CommandePlatContent = React.memo<
 
     const handleAddToCart = () => {
       if (onAddToCart) {
+        // Avertissement si niveau max d'épice sélectionné (index 3 = Piment Thaï)
+        if (spiceDistribution[3] > 0) {
+          toastVideo({
+            title: "Attention, ça pique ! 🌶️",
+            description: "Vous avez choisi le niveau Piment Thaï. C'est vraiment très fort !",
+            media: "/media/animations/toasts/ajoutpaniernote.mp4",
+            position: "center",
+            aspectRatio: "1:1",
+            polaroid: true,
+          })
+        }
+
         // Ne passer la distribution épicée que si le plat a l'option épicée activée
         const spicePreference =
           maxSpiceLevel > 0 ? getDistributionText(spiceDistribution) : undefined
