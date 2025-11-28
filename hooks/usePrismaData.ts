@@ -1,4 +1,4 @@
-'use client'
+"use client"
 
 /**
  * PRISMA ORM HOOKS - Architecture Server Actions
@@ -19,8 +19,8 @@
  * - ✅ Evenement hooks (usePrismaEvenementsByClient, usePrismaCreateEvenement, etc.)
  */
 
-import { useToast } from '@/hooks/use-toast'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useToast } from "@/hooks/use-toast"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 
 /**
  * Helper pour extraire data des SafeActionResult de next-safe-action
@@ -30,37 +30,32 @@ async function unwrapSafeAction<T>(actionPromise: Promise<any>): Promise<T> {
   const result = await actionPromise
 
   // Si l'action a retourné directement les données (anciennes actions)
-  if (result && !('data' in result)) {
+  if (result && !("data" in result)) {
     return result as T
   }
 
   // next-safe-action format: { data, serverError, validationErrors }
   if (result.serverError) {
-    console.error('❌ Server error dans unwrapSafeAction:', result.serverError);
+    console.error("❌ Server error dans unwrapSafeAction:", result.serverError)
     throw new Error(result.serverError)
   }
 
   if (result.validationErrors) {
-    console.error('❌ Validation errors dans unwrapSafeAction:', result.validationErrors);
+    console.error("❌ Validation errors dans unwrapSafeAction:", result.validationErrors)
     const firstError = Object.values(result.validationErrors)[0]
     throw new Error(Array.isArray(firstError) ? firstError[0] : String(firstError))
   }
 
   if (!result.data) {
-    console.error('❌ Pas de données dans unwrapSafeAction, result:', result);
-    throw new Error('Action échouée sans données')
+    console.error("❌ Pas de données dans unwrapSafeAction, result:", result)
+    throw new Error("Action échouée sans données")
   }
 
   return result.data as T
 }
 
 // Import Server Actions
-import {
-  getPlats,
-  createPlat,
-  updatePlat,
-  deletePlat,
-} from '@/app/actions/plats'
+import { getPlats, createPlat, updatePlat, deletePlat } from "@/app/actions/plats"
 
 import {
   getClients,
@@ -69,7 +64,7 @@ import {
   createClient,
   updateClient,
   searchClients,
-} from '@/app/actions/clients'
+} from "@/app/actions/clients"
 
 import {
   getCommandes,
@@ -86,14 +81,9 @@ import {
   updateSpiceDistribution,
   removePlatFromCommande,
   addExtraToCommande,
-} from '@/app/actions/commandes'
+} from "@/app/actions/commandes"
 
-import {
-  getExtras,
-  createExtra,
-  updateExtra,
-  deleteExtra,
-} from '@/app/actions/extras'
+import { getExtras, createExtra, updateExtra, deleteExtra } from "@/app/actions/extras"
 
 import {
   getEvenementsByClient,
@@ -102,7 +92,7 @@ import {
   updateEvenement,
   deleteEvenement,
   getAllEvenements,
-} from '@/app/actions/evenements'
+} from "@/app/actions/evenements"
 
 import type {
   ClientUI,
@@ -113,7 +103,7 @@ import type {
   ExtraUI,
   EvenementUI,
   CreateEvenementData,
-} from '@/types/app'
+} from "@/types/app"
 
 // ============================================
 // PLAT HOOKS
@@ -124,7 +114,7 @@ import type {
  */
 export const usePrismaPlats = () => {
   return useQuery({
-    queryKey: ['prisma-plats'],
+    queryKey: ["prisma-plats"],
     queryFn: async (): Promise<PlatUI[]> => {
       return await getPlats()
     },
@@ -150,25 +140,27 @@ export const usePrismaCreatePlat = () => {
       actif?: boolean
     }) => {
       // Mapper les noms de propriétés pour l'API
-      return await unwrapSafeAction<PlatUI>(createPlat({
-        plat: data.nom_plat,
-        description: data.description,
-        prix: data.prix,
-        photo_du_plat: data.photo_url,
-      }))
+      return await unwrapSafeAction<PlatUI>(
+        createPlat({
+          plat: data.nom_plat,
+          description: data.description,
+          prix: data.prix,
+          photo_du_plat: data.photo_url,
+        })
+      )
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['prisma-plats'] })
+      queryClient.invalidateQueries({ queryKey: ["prisma-plats"] })
       toast({
-        title: 'Plat créé',
-        description: 'Le plat a été créé avec succès',
+        title: "Plat créé",
+        description: "Le plat a été créé avec succès",
       })
     },
     onError: (error: Error) => {
       toast({
-        title: 'Erreur',
+        title: "Erreur",
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       })
     },
   })
@@ -182,35 +174,41 @@ export const usePrismaUpdatePlat = () => {
   const { toast } = useToast()
 
   return useMutation({
-    mutationFn: async ({ id, data }: { id: number; data: Partial<{
-      plat?: string
-      description?: string
-      prix?: string // Changed to string
-      photo_du_plat?: string
-      est_epuise?: boolean
-      lundi_dispo?: any
-      mardi_dispo?: any
-      mercredi_dispo?: any
-      jeudi_dispo?: any
-      vendredi_dispo?: any
-      samedi_dispo?: any
-      dimanche_dispo?: any
-    }> }) => {
+    mutationFn: async ({
+      id,
+      data,
+    }: {
+      id: number
+      data: Partial<{
+        plat?: string
+        description?: string
+        prix?: string // Changed to string
+        photo_du_plat?: string
+        est_epuise?: boolean
+        lundi_dispo?: any
+        mardi_dispo?: any
+        mercredi_dispo?: any
+        jeudi_dispo?: any
+        vendredi_dispo?: any
+        samedi_dispo?: any
+        dimanche_dispo?: any
+      }>
+    }) => {
       // next-safe-action attend un seul objet
       return await unwrapSafeAction<PlatUI>(updatePlat({ id, ...data }))
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['prisma-plats'] })
+      queryClient.invalidateQueries({ queryKey: ["prisma-plats"] })
       toast({
-        title: 'Plat modifié',
-        description: 'Le plat a été modifié avec succès',
+        title: "Plat modifié",
+        description: "Le plat a été modifié avec succès",
       })
     },
     onError: (error: Error) => {
       toast({
-        title: 'Erreur',
+        title: "Erreur",
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       })
     },
   })
@@ -229,17 +227,17 @@ export const usePrismaDeletePlat = () => {
       return await unwrapSafeAction<{ success: boolean; id: number }>(deletePlat({ id }))
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['prisma-plats'] })
+      queryClient.invalidateQueries({ queryKey: ["prisma-plats"] })
       toast({
-        title: 'Plat supprimé',
-        description: 'Le plat a été supprimé avec succès',
+        title: "Plat supprimé",
+        description: "Le plat a été supprimé avec succès",
       })
     },
     onError: (error: Error) => {
       toast({
-        title: 'Erreur',
+        title: "Erreur",
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       })
     },
   })
@@ -254,7 +252,7 @@ export const usePrismaDeletePlat = () => {
  */
 export const usePrismaClients = () => {
   return useQuery({
-    queryKey: ['prisma-clients'],
+    queryKey: ["prisma-clients"],
     queryFn: async (): Promise<ClientUI[]> => {
       return await getClients()
     },
@@ -268,7 +266,7 @@ export const usePrismaClients = () => {
  */
 export const usePrismaClient = (authUserId?: string) => {
   return useQuery({
-    queryKey: ['prisma-client', authUserId],
+    queryKey: ["prisma-client", authUserId],
     queryFn: async (): Promise<ClientUI | null> => {
       if (!authUserId) return null
       return await getClientByAuthUserId(authUserId)
@@ -284,7 +282,7 @@ export const usePrismaClient = (authUserId?: string) => {
  */
 export const usePrismaClientById = (id?: number) => {
   return useQuery({
-    queryKey: ['prisma-client-id', id],
+    queryKey: ["prisma-client-id", id],
     queryFn: async (): Promise<ClientUI | null> => {
       if (!id) return null
       return await getClientById(id)
@@ -312,23 +310,23 @@ export const usePrismaCreateClient = () => {
     }) => {
       const clientData = {
         ...data,
-        nom: data.nom || '',
-        prenom: data.prenom || '',
-      };
+        nom: data.nom || "",
+        prenom: data.prenom || "",
+      }
       return await unwrapSafeAction<ClientUI>(createClient(clientData))
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['prisma-clients'] })
+      queryClient.invalidateQueries({ queryKey: ["prisma-clients"] })
       toast({
-        title: 'Client créé',
-        description: 'Le client a été créé avec succès',
+        title: "Client créé",
+        description: "Le client a été créé avec succès",
       })
     },
     onError: (error: Error) => {
       toast({
-        title: 'Erreur',
+        title: "Erreur",
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       })
     },
   })
@@ -347,18 +345,18 @@ export const usePrismaUpdateClient = () => {
       return await unwrapSafeAction<ClientUI>(updateClient(data))
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['prisma-clients'] })
-      queryClient.invalidateQueries({ queryKey: ['prisma-client'] })
+      queryClient.invalidateQueries({ queryKey: ["prisma-clients"] })
+      queryClient.invalidateQueries({ queryKey: ["prisma-client"] })
       toast({
-        title: 'Client modifié',
-        description: 'Le client a été modifié avec succès',
+        title: "Client modifié",
+        description: "Le client a été modifié avec succès",
       })
     },
     onError: (error: Error) => {
       toast({
-        title: 'Erreur',
+        title: "Erreur",
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       })
     },
   })
@@ -369,7 +367,7 @@ export const usePrismaUpdateClient = () => {
  */
 export const usePrismaSearchClients = (searchTerm?: string) => {
   return useQuery({
-    queryKey: ['prisma-search-clients', searchTerm],
+    queryKey: ["prisma-search-clients", searchTerm],
     queryFn: async (): Promise<ClientUI[]> => {
       if (!searchTerm || searchTerm.length < 2) return []
       // next-safe-action attend un seul objet
@@ -389,7 +387,7 @@ export const usePrismaSearchClients = (searchTerm?: string) => {
  */
 export const usePrismaCommandes = () => {
   return useQuery({
-    queryKey: ['prisma-commandes'],
+    queryKey: ["prisma-commandes"],
     queryFn: async (): Promise<CommandeUI[]> => {
       return await getCommandes()
     },
@@ -403,7 +401,7 @@ export const usePrismaCommandes = () => {
  */
 export const usePrismaCommandeById = (id?: number) => {
   return useQuery({
-    queryKey: ['prisma-commande', id],
+    queryKey: ["prisma-commande", id],
     queryFn: async (): Promise<CommandeUI | null> => {
       if (!id) return null
       return await getCommandeById(id)
@@ -419,7 +417,7 @@ export const usePrismaCommandeById = (id?: number) => {
  */
 export const usePrismaCommandesByClient = (clientId?: number) => {
   return useQuery({
-    queryKey: ['prisma-commandes-client', clientId],
+    queryKey: ["prisma-commandes-client", clientId],
     queryFn: async (): Promise<CommandeUI[]> => {
       if (!clientId) return []
       return await getCommandesByClient(clientId)
@@ -442,32 +440,30 @@ export const usePrismaCreateCommande = () => {
       // Filter out details with null plat_r and ensure required fields
       const cleanedData = {
         ...data,
-        details: data.details?.filter(d => d.plat_r !== null).map(d => ({
-          ...d,
-          plat_r: d.plat_r!,
-          quantite_plat_commande: d.quantite_plat_commande ?? 1,
-        })),
-        plats: data.plats?.map(p => ({
+        details: data.details
+          ?.filter((d) => d.plat_r !== null)
+          .map((d) => ({
+            ...d,
+            plat_r: d.plat_r!,
+            quantite_plat_commande: d.quantite_plat_commande ?? 1,
+          })),
+        plats: data.plats?.map((p) => ({
           ...p,
           quantite: p.quantite ?? 1,
         })),
-      };
+      }
       return await unwrapSafeAction<CommandeUI>(createCommande(cleanedData))
     },
     onSuccess: () => {
       // Invalider toutes les requêtes de commandes (exact: false pour matcher les sous-clés)
-      queryClient.invalidateQueries({ queryKey: ['prisma-commandes'], exact: false })
-      queryClient.invalidateQueries({ queryKey: ['prisma-commandes-client'], exact: false })
-      toast({
-        title: 'Commande créée',
-        description: 'Votre commande a été créée avec succès',
-      })
+      queryClient.invalidateQueries({ queryKey: ["prisma-commandes"], exact: false })
+      queryClient.invalidateQueries({ queryKey: ["prisma-commandes-client"], exact: false })
     },
     onError: (error: Error) => {
       toast({
-        title: 'Erreur',
+        title: "Erreur",
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       })
     },
   })
@@ -482,26 +478,26 @@ export const usePrismaUpdateCommande = () => {
 
   return useMutation({
     mutationFn: async ({ id, data }: { id: number; data: any }) => {
-      console.log('🔵 CLIENT usePrismaUpdateCommande - Avant appel:', { id, data });
+      console.log("🔵 CLIENT usePrismaUpdateCommande - Avant appel:", { id, data })
       // next-safe-action attend un seul objet
-      const payload = { id, ...data };
-      console.log('🔵 CLIENT - Payload final envoyé:', payload);
+      const payload = { id, ...data }
+      console.log("🔵 CLIENT - Payload final envoyé:", payload)
       return await unwrapSafeAction<CommandeUI>(updateCommande(payload))
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['prisma-commandes'] })
-      queryClient.invalidateQueries({ queryKey: ['prisma-commande'] })
-      queryClient.invalidateQueries({ queryKey: ['prisma-commandes-client'] })
+      queryClient.invalidateQueries({ queryKey: ["prisma-commandes"] })
+      queryClient.invalidateQueries({ queryKey: ["prisma-commande"] })
+      queryClient.invalidateQueries({ queryKey: ["prisma-commandes-client"] })
       toast({
-        title: 'Commande modifiée',
-        description: 'La commande a été modifiée avec succès',
+        title: "Commande modifiée",
+        description: "La commande a été modifiée avec succès",
       })
     },
     onError: (error: Error) => {
       toast({
-        title: 'Erreur',
+        title: "Erreur",
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       })
     },
   })
@@ -520,21 +516,21 @@ export const usePrismaToggleEpingleCommande = () => {
       return await unwrapSafeAction<CommandeUI>(toggleEpingleCommande({ id }))
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['prisma-commandes'] })
-      queryClient.invalidateQueries({ queryKey: ['prisma-commande', data.idcommande] })
-      queryClient.invalidateQueries({ queryKey: ['prisma-commandes-client'] })
+      queryClient.invalidateQueries({ queryKey: ["prisma-commandes"] })
+      queryClient.invalidateQueries({ queryKey: ["prisma-commande", data.idcommande] })
+      queryClient.invalidateQueries({ queryKey: ["prisma-commandes-client"] })
       toast({
-        title: data.epingle ? 'Commande épinglée' : 'Commande désépinglée',
+        title: data.epingle ? "Commande épinglée" : "Commande désépinglée",
         description: data.epingle
-          ? 'La commande restera en haut de la liste'
-          : 'La commande reprend sa position normale',
+          ? "La commande restera en haut de la liste"
+          : "La commande reprend sa position normale",
       })
     },
     onError: (error: Error) => {
       toast({
-        title: 'Erreur',
+        title: "Erreur",
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       })
     },
   })
@@ -554,22 +550,22 @@ export const usePrismaToggleOffertDetail = () => {
     },
     onSuccess: (data) => {
       // Invalider toutes les queries liées aux commandes
-      queryClient.invalidateQueries({ queryKey: ['prisma-commandes'] })
-      queryClient.invalidateQueries({ queryKey: ['prisma-commande'] })
-      queryClient.invalidateQueries({ queryKey: ['prisma-commandes-client'] })
+      queryClient.invalidateQueries({ queryKey: ["prisma-commandes"] })
+      queryClient.invalidateQueries({ queryKey: ["prisma-commande"] })
+      queryClient.invalidateQueries({ queryKey: ["prisma-commandes-client"] })
 
       toast({
-        title: data.est_offert ? 'Plat offert' : 'Offre annulée',
+        title: data.est_offert ? "Plat offert" : "Offre annulée",
         description: data.est_offert
-          ? 'Le plat a été marqué comme offert'
-          : 'Le prix original a été restauré',
+          ? "Le plat a été marqué comme offert"
+          : "Le prix original a été restauré",
       })
     },
     onError: (error: Error) => {
       toast({
-        title: 'Erreur',
+        title: "Erreur",
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       })
     },
   })
@@ -588,18 +584,18 @@ export const usePrismaDeleteCommande = () => {
       return await unwrapSafeAction<{ success: boolean; id: number }>(deleteCommande({ id }))
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['prisma-commandes'] })
-      queryClient.invalidateQueries({ queryKey: ['prisma-commandes-client'] })
+      queryClient.invalidateQueries({ queryKey: ["prisma-commandes"] })
+      queryClient.invalidateQueries({ queryKey: ["prisma-commandes-client"] })
       toast({
-        title: 'Commande supprimée',
-        description: 'La commande a été supprimée avec succès',
+        title: "Commande supprimée",
+        description: "La commande a été supprimée avec succès",
       })
     },
     onError: (error: Error) => {
       toast({
-        title: 'Erreur',
+        title: "Erreur",
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       })
     },
   })
@@ -623,20 +619,22 @@ export const usePrismaAddPlatToCommande = () => {
       quantite?: number
     }) => {
       // next-safe-action attend un seul objet
-      return await unwrapSafeAction<{ success: boolean }>(addPlatToCommande({ commandeId, platId, quantite }))
+      return await unwrapSafeAction<{ success: boolean }>(
+        addPlatToCommande({ commandeId, platId, quantite })
+      )
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['prisma-commande'] })
+      queryClient.invalidateQueries({ queryKey: ["prisma-commande"] })
       toast({
-        title: 'Plat ajouté',
-        description: 'Le plat a été ajouté à la commande',
+        title: "Plat ajouté",
+        description: "Le plat a été ajouté à la commande",
       })
     },
     onError: (error: Error) => {
       toast({
-        title: 'Erreur',
+        title: "Erreur",
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       })
     },
   })
@@ -660,20 +658,22 @@ export const usePrismaAddExtraToCommande = () => {
       quantite?: number
     }) => {
       // next-safe-action attend un seul objet
-      return await unwrapSafeAction<{ success: boolean }>(addExtraToCommande({ commandeId, extraId, quantite }))
+      return await unwrapSafeAction<{ success: boolean }>(
+        addExtraToCommande({ commandeId, extraId, quantite })
+      )
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['prisma-commande'] })
+      queryClient.invalidateQueries({ queryKey: ["prisma-commande"] })
       toast({
-        title: 'Extra ajouté',
-        description: 'L\'extra a été ajouté à la commande',
+        title: "Extra ajouté",
+        description: "L'extra a été ajouté à la commande",
       })
     },
     onError: (error: Error) => {
       toast({
-        title: 'Erreur',
+        title: "Erreur",
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       })
     },
   })
@@ -687,28 +687,24 @@ export const usePrismaUpdatePlatQuantite = () => {
   const { toast } = useToast()
 
   return useMutation({
-    mutationFn: async ({
-      detailId,
-      quantite,
-    }: {
-      detailId: number
-      quantite: number
-    }) => {
+    mutationFn: async ({ detailId, quantite }: { detailId: number; quantite: number }) => {
       // next-safe-action attend un seul objet
-      return await unwrapSafeAction<{ success: boolean }>(updatePlatQuantite({ detailId, quantite }))
+      return await unwrapSafeAction<{ success: boolean }>(
+        updatePlatQuantite({ detailId, quantite })
+      )
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['prisma-commande'] })
+      queryClient.invalidateQueries({ queryKey: ["prisma-commande"] })
       toast({
-        title: 'Quantité modifiée',
-        description: 'La quantité a été modifiée avec succès',
+        title: "Quantité modifiée",
+        description: "La quantité a été modifiée avec succès",
       })
     },
     onError: (error: Error) => {
       toast({
-        title: 'Erreur',
+        title: "Erreur",
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       })
     },
   })
@@ -722,27 +718,23 @@ export const usePrismaUpdateSpiceLevel = () => {
   const { toast } = useToast()
 
   return useMutation({
-    mutationFn: async ({
-      detailId,
-      spiceLevel,
-    }: {
-      detailId: number
-      spiceLevel: number
-    }) => {
-      return await unwrapSafeAction<{ success: boolean }>(updateSpiceLevel({ detailId, spiceLevel }))
+    mutationFn: async ({ detailId, spiceLevel }: { detailId: number; spiceLevel: number }) => {
+      return await unwrapSafeAction<{ success: boolean }>(
+        updateSpiceLevel({ detailId, spiceLevel })
+      )
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['prisma-commande'] })
+      queryClient.invalidateQueries({ queryKey: ["prisma-commande"] })
       toast({
-        title: 'Niveau épicé modifié',
-        description: 'Le niveau épicé a été modifié avec succès',
+        title: "Niveau épicé modifié",
+        description: "Le niveau épicé a été modifié avec succès",
       })
     },
     onError: (error: Error) => {
       toast({
-        title: 'Erreur',
+        title: "Erreur",
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       })
     },
   })
@@ -763,20 +755,22 @@ export const usePrismaUpdateSpiceDistribution = () => {
       detailId: number
       distribution: number[]
     }) => {
-      return await unwrapSafeAction<{ success: boolean }>(updateSpiceDistribution({ detailId, distribution }))
+      return await unwrapSafeAction<{ success: boolean }>(
+        updateSpiceDistribution({ detailId, distribution })
+      )
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['prisma-commande'] })
+      queryClient.invalidateQueries({ queryKey: ["prisma-commande"] })
       toast({
-        title: 'Distribution épicée modifiée',
-        description: 'La distribution épicée a été modifiée avec succès',
+        title: "Distribution épicée modifiée",
+        description: "La distribution épicée a été modifiée avec succès",
       })
     },
     onError: (error: Error) => {
       toast({
-        title: 'Erreur',
+        title: "Erreur",
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       })
     },
   })
@@ -792,20 +786,22 @@ export const usePrismaRemovePlatFromCommande = () => {
   return useMutation({
     mutationFn: async (detailId: number) => {
       // next-safe-action attend un seul objet avec 'id'
-      return await unwrapSafeAction<{ success: boolean; detailId: number }>(removePlatFromCommande({ id: detailId }))
+      return await unwrapSafeAction<{ success: boolean; detailId: number }>(
+        removePlatFromCommande({ id: detailId })
+      )
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['prisma-commande'] })
+      queryClient.invalidateQueries({ queryKey: ["prisma-commande"] })
       toast({
-        title: 'Plat retiré',
-        description: 'Le plat a été retiré de la commande',
+        title: "Plat retiré",
+        description: "Le plat a été retiré de la commande",
       })
     },
     onError: (error: Error) => {
       toast({
-        title: 'Erreur',
+        title: "Erreur",
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       })
     },
   })
@@ -820,7 +816,7 @@ export const usePrismaRemovePlatFromCommande = () => {
  */
 export const usePrismaExtras = () => {
   return useQuery({
-    queryKey: ['prisma-extras'],
+    queryKey: ["prisma-extras"],
     queryFn: async (): Promise<ExtraUI[]> => {
       return await getExtras()
     },
@@ -847,17 +843,17 @@ export const usePrismaCreateExtra = () => {
       return await unwrapSafeAction<ExtraUI>(createExtra(data))
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['prisma-extras'] })
+      queryClient.invalidateQueries({ queryKey: ["prisma-extras"] })
       toast({
-        title: 'Extra créé',
-        description: 'L\'extra a été créé avec succès',
+        title: "Extra créé",
+        description: "L'extra a été créé avec succès",
       })
     },
     onError: (error: Error) => {
       toast({
-        title: 'Erreur',
+        title: "Erreur",
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       })
     },
   })
@@ -871,28 +867,34 @@ export const usePrismaUpdateExtra = () => {
   const { toast } = useToast()
 
   return useMutation({
-    mutationFn: async ({ id, data }: { id: number; data: Partial<{
-      nom_extra?: string
-      description?: string
-      prix?: string // Changed to string
-      photo_url?: string
-      actif?: boolean
-    }> }) => {
+    mutationFn: async ({
+      id,
+      data,
+    }: {
+      id: number
+      data: Partial<{
+        nom_extra?: string
+        description?: string
+        prix?: string // Changed to string
+        photo_url?: string
+        actif?: boolean
+      }>
+    }) => {
       // next-safe-action attend un seul objet
       return await unwrapSafeAction<ExtraUI>(updateExtra({ id, data }))
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['prisma-extras'] })
+      queryClient.invalidateQueries({ queryKey: ["prisma-extras"] })
       toast({
-        title: 'Extra modifié',
-        description: 'L\'extra a été modifié avec succès',
+        title: "Extra modifié",
+        description: "L'extra a été modifié avec succès",
       })
     },
     onError: (error: Error) => {
       toast({
-        title: 'Erreur',
+        title: "Erreur",
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       })
     },
   })
@@ -911,17 +913,17 @@ export const usePrismaDeleteExtra = () => {
       return await unwrapSafeAction<{ success: boolean }>(deleteExtra({ id }))
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['prisma-extras'] })
+      queryClient.invalidateQueries({ queryKey: ["prisma-extras"] })
       toast({
-        title: 'Extra supprimé',
-        description: 'L\'extra a été supprimé avec succès',
+        title: "Extra supprimé",
+        description: "L'extra a été supprimé avec succès",
       })
     },
     onError: (error: Error) => {
       toast({
-        title: 'Erreur',
+        title: "Erreur",
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       })
     },
   })
@@ -936,7 +938,7 @@ export const usePrismaDeleteExtra = () => {
  */
 export const usePrismaEvenementsByClient = (clientId?: number) => {
   return useQuery({
-    queryKey: ['prisma-evenements-client', clientId],
+    queryKey: ["prisma-evenements-client", clientId],
     queryFn: async (): Promise<EvenementUI[]> => {
       if (!clientId) return []
       return await getEvenementsByClient(clientId)
@@ -952,7 +954,7 @@ export const usePrismaEvenementsByClient = (clientId?: number) => {
  */
 export const usePrismaEvenementById = (id?: number) => {
   return useQuery({
-    queryKey: ['prisma-evenement', id],
+    queryKey: ["prisma-evenement", id],
     queryFn: async (): Promise<EvenementUI | null> => {
       if (!id) return null
       return await getEvenementById(id)
@@ -975,18 +977,18 @@ export const usePrismaCreateEvenement = () => {
       return await unwrapSafeAction<EvenementUI>(createEvenement(data))
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['prisma-evenements'] })
-      queryClient.invalidateQueries({ queryKey: ['prisma-evenements-client'] })
+      queryClient.invalidateQueries({ queryKey: ["prisma-evenements"] })
+      queryClient.invalidateQueries({ queryKey: ["prisma-evenements-client"] })
       toast({
-        title: 'Événement créé',
-        description: 'Votre événement a été créé avec succès',
+        title: "Événement créé",
+        description: "Votre événement a été créé avec succès",
       })
     },
     onError: (error: Error) => {
       toast({
-        title: 'Erreur',
+        title: "Erreur",
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       })
     },
   })
@@ -1000,33 +1002,39 @@ export const usePrismaUpdateEvenement = () => {
   const { toast } = useToast()
 
   return useMutation({
-    mutationFn: async ({ id, data }: { id: number; data: Partial<{
-      date_evenement?: string
-      type_d_evenement?: string
-      nombre_de_personnes?: number
-      budget_client?: string // Changed to string
-      demandes_speciales_evenement?: string
-      statut_evenement?: string
-      plats_preselectionnes?: number[]
-      notes_internes_evenement?: string
-    }> }) => {
+    mutationFn: async ({
+      id,
+      data,
+    }: {
+      id: number
+      data: Partial<{
+        date_evenement?: string
+        type_d_evenement?: string
+        nombre_de_personnes?: number
+        budget_client?: string // Changed to string
+        demandes_speciales_evenement?: string
+        statut_evenement?: string
+        plats_preselectionnes?: number[]
+        notes_internes_evenement?: string
+      }>
+    }) => {
       // next-safe-action attend un seul objet
       return await unwrapSafeAction<EvenementUI>(updateEvenement({ id, ...data }))
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['prisma-evenements'] })
-      queryClient.invalidateQueries({ queryKey: ['prisma-evenement'] })
-      queryClient.invalidateQueries({ queryKey: ['prisma-evenements-client'] })
+      queryClient.invalidateQueries({ queryKey: ["prisma-evenements"] })
+      queryClient.invalidateQueries({ queryKey: ["prisma-evenement"] })
+      queryClient.invalidateQueries({ queryKey: ["prisma-evenements-client"] })
       toast({
-        title: 'Événement modifié',
-        description: 'L\'événement a été modifié avec succès',
+        title: "Événement modifié",
+        description: "L'événement a été modifié avec succès",
       })
     },
     onError: (error: Error) => {
       toast({
-        title: 'Erreur',
+        title: "Erreur",
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       })
     },
   })
@@ -1045,18 +1053,18 @@ export const usePrismaDeleteEvenement = () => {
       return await unwrapSafeAction<{ success: boolean; id: number }>(deleteEvenement({ id }))
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['prisma-evenements'] })
-      queryClient.invalidateQueries({ queryKey: ['prisma-evenements-client'] })
+      queryClient.invalidateQueries({ queryKey: ["prisma-evenements"] })
+      queryClient.invalidateQueries({ queryKey: ["prisma-evenements-client"] })
       toast({
-        title: 'Événement supprimé',
-        description: 'L\'événement a été supprimé avec succès',
+        title: "Événement supprimé",
+        description: "L'événement a été supprimé avec succès",
       })
     },
     onError: (error: Error) => {
       toast({
-        title: 'Erreur',
+        title: "Erreur",
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       })
     },
   })
@@ -1067,7 +1075,7 @@ export const usePrismaDeleteEvenement = () => {
  */
 export const usePrismaAllEvenements = () => {
   return useQuery({
-    queryKey: ['prisma-all-evenements'],
+    queryKey: ["prisma-all-evenements"],
     queryFn: async (): Promise<EvenementUI[]> => {
       return await getAllEvenements()
     },
@@ -1088,11 +1096,11 @@ import {
   toggleHeroMediaActive,
   deleteHeroMedia,
   uploadHeroFile,
-} from '@/app/actions/hero-media'
+} from "@/app/actions/hero-media"
 
 export type HeroMediaType = {
   id: string
-  type: 'image' | 'video'
+  type: "image" | "video"
   url: string
   titre: string
   description: string | null
@@ -1107,7 +1115,7 @@ export type HeroMediaType = {
  */
 export const useGetAllHeroMedias = () => {
   return useQuery({
-    queryKey: ['hero-medias-all'],
+    queryKey: ["hero-medias-all"],
     queryFn: async (): Promise<HeroMediaType[]> => {
       return await unwrapSafeAction<HeroMediaType[]>(getAllHeroMedias({}))
     },
@@ -1124,22 +1132,22 @@ export const useCreateHeroMedia = () => {
   const { toast } = useToast()
 
   return useMutation({
-    mutationFn: async (data: Omit<HeroMediaType, 'id' | 'created_at' | 'updated_at'>) => {
+    mutationFn: async (data: Omit<HeroMediaType, "id" | "created_at" | "updated_at">) => {
       return await unwrapSafeAction<HeroMediaType>(createHeroMedia(data))
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['hero-medias-all'] })
-      queryClient.invalidateQueries({ queryKey: ['hero-medias-active'] })
+      queryClient.invalidateQueries({ queryKey: ["hero-medias-all"] })
+      queryClient.invalidateQueries({ queryKey: ["hero-medias-active"] })
       toast({
-        title: 'Média créé',
-        description: 'Le média hero a été ajouté avec succès',
+        title: "Média créé",
+        description: "Le média hero a été ajouté avec succès",
       })
     },
     onError: (error: Error) => {
       toast({
-        title: 'Erreur',
+        title: "Erreur",
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       })
     },
   })
@@ -1153,22 +1161,22 @@ export const useUpdateHeroMedia = () => {
   const { toast } = useToast()
 
   return useMutation({
-    mutationFn: async (data: Omit<HeroMediaType, 'created_at' | 'updated_at'>) => {
+    mutationFn: async (data: Omit<HeroMediaType, "created_at" | "updated_at">) => {
       return await unwrapSafeAction<HeroMediaType>(updateHeroMedia(data))
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['hero-medias-all'] })
-      queryClient.invalidateQueries({ queryKey: ['hero-medias-active'] })
+      queryClient.invalidateQueries({ queryKey: ["hero-medias-all"] })
+      queryClient.invalidateQueries({ queryKey: ["hero-medias-active"] })
       toast({
-        title: 'Média mis à jour',
-        description: 'Les modifications ont été enregistrées',
+        title: "Média mis à jour",
+        description: "Les modifications ont été enregistrées",
       })
     },
     onError: (error: Error) => {
       toast({
-        title: 'Erreur',
+        title: "Erreur",
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       })
     },
   })
@@ -1186,14 +1194,14 @@ export const useReorderHeroMedias = () => {
       return await unwrapSafeAction<{ success: boolean }>(reorderHeroMedias({ items }))
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['hero-medias-all'] })
-      queryClient.invalidateQueries({ queryKey: ['hero-medias-active'] })
+      queryClient.invalidateQueries({ queryKey: ["hero-medias-all"] })
+      queryClient.invalidateQueries({ queryKey: ["hero-medias-active"] })
     },
     onError: (error: Error) => {
       toast({
-        title: 'Erreur de réorganisation',
+        title: "Erreur de réorganisation",
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       })
     },
   })
@@ -1211,18 +1219,18 @@ export const useToggleHeroMediaActive = () => {
       return await unwrapSafeAction<HeroMediaType>(toggleHeroMediaActive({ id, active }))
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['hero-medias-all'] })
-      queryClient.invalidateQueries({ queryKey: ['hero-medias-active'] })
+      queryClient.invalidateQueries({ queryKey: ["hero-medias-all"] })
+      queryClient.invalidateQueries({ queryKey: ["hero-medias-active"] })
       toast({
-        title: variables.active ? 'Média activé' : 'Média désactivé',
-        description: `Le média a été ${variables.active ? 'activé' : 'désactivé'}`,
+        title: variables.active ? "Média activé" : "Média désactivé",
+        description: `Le média a été ${variables.active ? "activé" : "désactivé"}`,
       })
     },
     onError: (error: Error) => {
       toast({
-        title: 'Erreur',
+        title: "Erreur",
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       })
     },
   })
@@ -1240,18 +1248,18 @@ export const useDeleteHeroMedia = () => {
       return await unwrapSafeAction<{ success: boolean }>(deleteHeroMedia({ id, url }))
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['hero-medias-all'] })
-      queryClient.invalidateQueries({ queryKey: ['hero-medias-active'] })
+      queryClient.invalidateQueries({ queryKey: ["hero-medias-all"] })
+      queryClient.invalidateQueries({ queryKey: ["hero-medias-active"] })
       toast({
-        title: 'Média supprimé',
-        description: 'Le média hero a été supprimé avec succès',
+        title: "Média supprimé",
+        description: "Le média hero a été supprimé avec succès",
       })
     },
     onError: (error: Error) => {
       toast({
-        title: 'Erreur',
+        title: "Erreur",
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       })
     },
   })
@@ -1264,16 +1272,24 @@ export const useUploadHeroFile = () => {
   const { toast } = useToast()
 
   return useMutation({
-    mutationFn: async ({ fileName, fileType, fileBuffer }: { fileName: string; fileType: string; fileBuffer: string }) => {
+    mutationFn: async ({
+      fileName,
+      fileType,
+      fileBuffer,
+    }: {
+      fileName: string
+      fileType: string
+      fileBuffer: string
+    }) => {
       return await unwrapSafeAction<{ url: string; path: string }>(
         uploadHeroFile({ fileName, fileType, fileBuffer })
       )
     },
     onError: (error: Error) => {
       toast({
-        title: 'Erreur d\'upload',
+        title: "Erreur d'upload",
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       })
     },
   })

@@ -33,6 +33,7 @@ import {
 import { memo, useEffect, useMemo, useRef, useState, Suspense } from "react"
 import { flushSync } from "react-dom"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import type { Route } from "next"
 import Image from "next/image"
 import { useQueryState, parseAsString } from "nuqs"
@@ -91,6 +92,7 @@ const getAvailableDays = (plat: Plat): { value: string; label: string }[] => {
 
 const Commander = memo(() => {
   const { toast } = useToast()
+  const router = useRouter()
   const isOnline = useOnlineStatus()
   const { plats, isLoading: dataIsLoading, error: dataError } = useData()
   const createCommande = usePrismaCreateCommande()
@@ -390,6 +392,7 @@ const Commander = memo(() => {
 
     try {
       let commandesCreees = 0
+      let lastOrderId = ""
 
       // Créer une commande pour chaque date de retrait
       for (const [dateKey, items] of Object.entries(groupedByDate)) {
@@ -416,7 +419,13 @@ const Commander = memo(() => {
           commandeData,
         })
 
-        await createCommande.mutateAsync(commandeData)
+        const newOrder = await createCommande.mutateAsync(commandeData)
+        console.log("✅ Commande créée:", newOrder)
+
+        if (newOrder && newOrder.id) {
+          lastOrderId = newOrder.id.toString()
+          console.log("🆔 ID de la dernière commande:", lastOrderId)
+        }
 
         commandesCreees++
       }
@@ -426,8 +435,22 @@ const Commander = memo(() => {
         0
       )
 
-      // Ouvrir le modal Polaroid au lieu du toast
-      setShowThankYouModal(true)
+      toastVideo({
+        title: "Khop khun Kha !",
+        description:
+          "Votre <orange>commande</orange> a été <orange>enregistrée</orange> avec <orange>succès</orange>.",
+        media: "/media/animations/toasts/validatiomnote.mp4",
+        position: "center",
+        aspectRatio: "1:1",
+        polaroid: true,
+        borderColor: "thai-green",
+        borderWidth: 4,
+        shadowSize: "md",
+        maxWidth: "sm",
+        animateBorder: true,
+        hoverScale: true,
+        showCloseButton: false,
+      })
 
       // Nettoyer le panier et les états
       viderPanier()
@@ -435,6 +458,17 @@ const Commander = memo(() => {
       setHeureRetrait("")
       setDemandesSpeciales("")
       setJourSelectionne(null)
+
+      console.log(
+        "🔄 Tentative de redirection vers:",
+        lastOrderId ? `/suivi-commande/${lastOrderId}` : "/commander/confirmation"
+      )
+
+      if (lastOrderId) {
+        router.push(`/suivi-commande/${lastOrderId}`)
+      } else {
+        router.push("/commander/confirmation")
+      }
     } catch (error: unknown) {
       console.error("Erreur validation commande:", error)
       const errorMessage =

@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useToast } from "@/hooks/use-toast"
+import { toastVideo } from "@/hooks/use-toast-video"
 import {
   ShoppingCart,
   Trash2,
@@ -117,12 +118,13 @@ export default function PanierPage() {
 
     try {
       let commandesCreees = 0
+      let lastOrderId = ""
 
       // Créer une commande pour chaque date de retrait
       for (const [dateKey, items] of Object.entries(groupedByDate)) {
         if (!dateKey) continue
 
-        await createCommande.mutateAsync({
+        const newOrder = await createCommande.mutateAsync({
           client_r: currentUser.id,
           client_r_id: clientFirebaseUID,
           date_et_heure_de_retrait_souhaitees: dateKey,
@@ -135,6 +137,10 @@ export default function PanierPage() {
           })),
         })
 
+        if (newOrder && newOrder.id) {
+          lastOrderId = newOrder.id.toString()
+        }
+
         commandesCreees++
       }
 
@@ -143,14 +149,31 @@ export default function PanierPage() {
         0
       )
 
-      toast({
-        title: "Commande(s) envoyée(s) !",
-        description: `${commandesCreees} commande${commandesCreees > 1 ? "s" : ""} d'un total de ${formatPrix(totalGeneral)} ${commandesCreees > 1 ? "ont été enregistrées" : "a été enregistrée"}.`,
+      toastVideo({
+        title: "Khop khun Kha !",
+        description:
+          "Votre <orange>commande</orange> a été <orange>enregistrée</orange> avec <orange>succès</orange>.",
+        media: "/media/animations/toasts/validatiomnote.mp4",
+        position: "center",
+        aspectRatio: "1:1",
+        polaroid: true,
+        borderColor: "thai-green",
+        borderWidth: 4,
+        shadowSize: "md",
+        maxWidth: "sm",
+        animateBorder: true,
+        hoverScale: true,
+        showCloseButton: false,
       })
 
       viderPanier()
       setDemandesSpeciales("")
-      router.push("/commander/confirmation")
+
+      if (lastOrderId) {
+        router.push(`/suivi-commande/${lastOrderId}`)
+      } else {
+        router.push("/commander/confirmation")
+      }
     } catch (error: unknown) {
       console.error("Erreur validation commande:", error)
       const errorMessage =
