@@ -2,6 +2,7 @@
 
 import { useSearchParams } from "next/navigation"
 import { useState, Suspense } from "react"
+import { ShoppingCart } from "lucide-react"
 import { CartItemCard } from "@/components/shared/CartItemCard"
 import { ProductCard } from "@/components/shared/ProductCard"
 import { PolaroidPhoto } from "@/components/shared/PolaroidPhoto"
@@ -22,7 +23,12 @@ function PreviewContent() {
   const quantity = parseInt(searchParams.get("quantity") || "1")
   const isVegetarian = searchParams.get("isVegetarian") === "true"
   const readOnly = searchParams.get("readOnly") === "true"
-  const imageAspectRatio = (searchParams.get("imageAspectRatio") || "square") as "square" | "video" | "auto" | "square-contain" | "video-contain"
+  const imageAspectRatio = (searchParams.get("imageAspectRatio") || "square") as
+    | "square"
+    | "video"
+    | "auto"
+    | "square-contain"
+    | "video-contain"
   const imageZoom = parseFloat(searchParams.get("imageZoom") || "1")
 
   // State LOCAL pour mode et taille (autonome)
@@ -53,35 +59,24 @@ function PreviewContent() {
       case "ProductCard":
         return (
           <ProductCard
-            id={1}
-            nom={name}
-            prix={String(price)}
+            title={name}
+            price={price}
             description="Description du produit"
-            image={imageUrl}
-            categorie="Plats"
-            disponible={true}
+            imageSrc={imageUrl}
+            isVegetarian={false}
+            isSpicy={false}
+            quantityInCart={0}
+            onAdd={() => {}}
           />
         )
       case "PolaroidPhoto":
-        return (
-          <PolaroidPhoto
-            src={imageUrl || "/placeholder.jpg"}
-            alt={name}
-            caption={name}
-          />
-        )
+        return <PolaroidPhoto src={imageUrl || "/placeholder.jpg"} alt={name} />
       case "StatCard":
-        return (
-          <StatCard
-            title={name}
-            value={String(price)}
-            icon="TrendingUp"
-          />
-        )
+        return <StatCard title={name} value={String(price)} icon={ShoppingCart} />
       default:
         return (
           <div className="flex flex-col items-center justify-center p-8 text-gray-500">
-            <span className="text-4xl mb-2">❓</span>
+            <span className="mb-2 text-4xl">❓</span>
             <p className="font-medium">Composant inconnu</p>
             <p className="text-sm">{component}</p>
           </div>
@@ -90,9 +85,9 @@ function PreviewContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 flex flex-col items-center p-4">
+    <div className="flex min-h-screen flex-col items-center bg-gradient-to-br from-gray-100 to-gray-200 p-4">
       {/* Header avec Toggle Desktop/Tablette/Mobile */}
-      <div className="flex items-center justify-center gap-2 mb-4">
+      <div className="mb-4 flex items-center justify-center gap-2">
         <Button
           size="sm"
           variant={mode === "desktop" ? "default" : "outline"}
@@ -132,27 +127,27 @@ function PreviewContent() {
       </div>
 
       {/* Badges info */}
-      <div className="flex items-center justify-center gap-2 mb-4">
-        <span className="bg-thai-green text-white px-3 py-1 rounded-full text-xs font-semibold shadow-md">
+      <div className="mb-4 flex items-center justify-center gap-2">
+        <span className="bg-thai-green rounded-full px-3 py-1 text-xs font-semibold text-white shadow-md">
           {isDevice ? `${currentWidth}px` : "100%"}
         </span>
-        <span className="bg-gray-700 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-md">
+        <span className="rounded-full bg-gray-700 px-3 py-1 text-xs font-semibold text-white shadow-md">
           {component}
         </span>
       </div>
 
       {/* Container principal avec slider à gauche */}
-      <div className="flex gap-4 justify-center items-stretch flex-1">
+      <div className="flex flex-1 items-stretch justify-center gap-4">
         {/* Slider vertical (si device) */}
         {isDevice && (
           <div className="flex flex-col items-center gap-2 py-2">
             {/* Valeur en haut */}
-            <span className="text-xs font-bold text-thai-green whitespace-nowrap">
+            <span className="text-thai-green text-xs font-bold whitespace-nowrap">
               {currentWidth}px
             </span>
 
             {/* Slider vertical */}
-            <div className="relative flex-1 flex items-center justify-center min-h-[200px]">
+            <div className="relative flex min-h-[200px] flex-1 items-center justify-center">
               <input
                 type="range"
                 min={mode === "mobile" ? 240 : 480}
@@ -166,7 +161,7 @@ function PreviewContent() {
                     setTabletWidth(w)
                   }
                 }}
-                className="h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-thai-green"
+                className="accent-thai-green h-2 cursor-pointer appearance-none rounded-lg bg-gray-200"
                 style={{
                   writingMode: "vertical-lr",
                   direction: "rtl",
@@ -310,48 +305,47 @@ function PreviewContent() {
         <div
           className={cn(
             "transition-all duration-300",
-            isDevice && "bg-gray-800 rounded-[2rem] p-2 shadow-2xl"
+            isDevice && "rounded-[2rem] bg-gray-800 p-2 shadow-2xl"
           )}
           style={isDevice ? { width: currentWidth + 16 } : { width: "100%", maxWidth: "1200px" }}
         >
           {/* Notch (Mobile) */}
           {mode === "mobile" && (
-            <div className="flex justify-center mb-1">
-              <div className="w-16 h-3 bg-gray-800 rounded-b-lg relative">
-                <div className="absolute top-0.5 left-1/2 -translate-x-1/2 w-8 h-2 rounded-full bg-black" />
+            <div className="mb-1 flex justify-center">
+              <div className="relative h-3 w-16 rounded-b-lg bg-gray-800">
+                <div className="absolute top-0.5 left-1/2 h-2 w-8 -translate-x-1/2 rounded-full bg-black" />
               </div>
             </div>
           )}
 
           {/* Camera (Tablet) */}
           {mode === "tablet" && (
-            <div className="flex justify-center mb-1">
-              <div className="w-2 h-2 bg-gray-600 rounded-full" />
+            <div className="mb-1 flex justify-center">
+              <div className="h-2 w-2 rounded-full bg-gray-600" />
             </div>
           )}
 
           {/* Screen */}
           <div
-            className={cn(
-              "bg-white overflow-auto",
-              isDevice && "rounded-[1.5rem]"
-            )}
-            style={isDevice ? {
-              width: currentWidth,
-              minHeight: 400,
-              maxHeight: 600
-            } : undefined}
+            className={cn("overflow-auto bg-white", isDevice && "rounded-[1.5rem]")}
+            style={
+              isDevice
+                ? {
+                    width: currentWidth,
+                    minHeight: 400,
+                    maxHeight: 600,
+                  }
+                : undefined
+            }
           >
-            <div className="p-0">
-              {renderComponent()}
-            </div>
+            <div className="p-0">{renderComponent()}</div>
           </div>
 
           {/* Home Bar */}
           {isDevice && (
-            <div className="flex justify-center mt-2">
+            <div className="mt-2 flex justify-center">
               <div
-                className="h-1 bg-white/80 rounded-full"
+                className="h-1 rounded-full bg-white/80"
                 style={{ width: mode === "mobile" ? 100 : 120 }}
               />
             </div>
@@ -360,8 +354,9 @@ function PreviewContent() {
       </div>
 
       {/* Footer hint */}
-      <p className="mt-4 text-xs text-gray-500 text-center">
-        <span className="text-thai-green font-semibold">Page autonome</span> - Changez de mode et de taille librement
+      <p className="mt-4 text-center text-xs text-gray-500">
+        <span className="text-thai-green font-semibold">Page autonome</span> - Changez de mode et de
+        taille librement
       </p>
     </div>
   )
@@ -369,11 +364,13 @@ function PreviewContent() {
 
 export default function PreviewPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <div className="text-gray-500">Chargement de la preview...</div>
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-gray-100">
+          <div className="text-gray-500">Chargement de la preview...</div>
+        </div>
+      }
+    >
       <PreviewContent />
     </Suspense>
   )

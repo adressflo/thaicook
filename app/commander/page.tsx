@@ -63,7 +63,7 @@ import { FeaturedDishSection } from "@/components/commander/FeaturedDishSection"
 import { PolaroidThankYouModal } from "@/components/commander/PolaroidThankYouModal"
 import { spiceTextToLevel } from "@/lib/spice-helpers"
 import { Spice } from "@/components/shared/Spice"
-import { ProductCard } from "@/components/shared/ProductCard"
+import { ProductCard as SharedProductCard } from "@/components/shared/ProductCard"
 import { ModalVideo } from "@/components/ui/ModalVideo"
 
 export const dynamic = "force-dynamic"
@@ -884,7 +884,7 @@ const Commander = memo(() => {
                   ) : (
                     <div className="grid gap-4 md:grid-cols-2">
                       {platsDisponibles.map((plat) => (
-                        <ProductCard
+                        <SharedProductCard
                           key={plat.id}
                           title={plat.plat}
                           description={plat.description || ""}
@@ -1124,6 +1124,19 @@ const Commander = memo(() => {
                           value={demandesSpeciales}
                           onChange={(e) => setDemandesSpeciales(e.target.value)}
                           className="border-thai-orange/30 focus:border-thai-orange focus:ring-thai-orange/20 bg-thai-orange/5 h-16 border text-xs"
+                          onBlur={(e) => {
+                            if (e.target.value.length > 0) {
+                              toastVideo({
+                                title: "Message reçu ! 📝",
+                                description: "Je prends note de votre demande spéciale.",
+                                media: "/media/animations/toasts/ajoutpaniernote.mp4",
+                                position: "bottom-right",
+                                aspectRatio: "1:1",
+                                polaroid: true,
+                                duration: 3000,
+                              })
+                            }
+                          }}
                         />
                       </div>
                     </div>

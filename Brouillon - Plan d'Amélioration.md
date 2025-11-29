@@ -1059,29 +1059,75 @@ npm run test:e2e
   - Props : `isOpen`, `onClose`, `autoCloseDelay?`, `redirectTo?`
   - Animations : zoom-in-95, pulse, bounce, ping (Tailwind)
 
+- [x] ✅ **Recherche plats en temps réel** : Filtrage case-insensitive par nom
+  - Implémentation : `commander/page.tsx` lignes 190-196
+  - Affichage jours disponibilité dans résultats
+  - Quick-select jour depuis résultat recherche
+
+- [x] ✅ **Sélection Jour/Date/Heure complet** : Workflow 3 étapes
+  - Jours ouverture dynamiques selon disponibilité plats (lignes 253-281)
+  - 8 prochaines dates calculées pour jour sélectionné
+  - Heures: 18h00 - 20h30 (pas de 5 min)
+  - Auto-sélection depuis dernier article panier
+
+- [x] ✅ **Groupage panier par date retrait** : Organisation automatique
+  - Articles groupés visuellement par date (lignes 432-484)
+  - Création commande séparée par date
+
+- [x] ✅ **Toast vidéo ajout panier** : Feedback animé MP4
+  - Animation: `ajoutpaniernote.mp4` (lignes 378-402)
+  - TypingAnimation pour texte coloré
+  - Style Polaroid avec progress bar
+
+- [x] ✅ **Persistence panier localStorage** : Sauvegarde automatique
+  - CartContext avec JSON serialization (lignes 31-61)
+  - Reconversion dates ISO au chargement
+  - UniqueId par article pour gestion fine
+
+- [x] ✅ **Intégration Better Auth** : Authentification complète
+  - useSession() pour vérification connexion (lignes 103-117)
+  - getClientProfile() pour mapping User.id → client_db
+  - Validation profil avant commande
+
+- [x] ✅ **Layout responsive 3 breakpoints** : Mobile/Tablet/Desktop
+  - Mobile: 1 colonne, FeaturedDish compact
+  - Tablet: 2 colonnes, sélecteurs côte à côte
+  - Desktop: Layout 3fr_2fr, Polaroid sticky sidebar (lignes 555-560)
+
+- [x] ✅ **Distribution épicée SmartSpice** : Gestion multi-portions
+  - 4 niveaux: Non épicé → Piment Thai
+  - Répartition intelligente sur plusieurs portions
+  - Indicateurs visuels couleur + warning niveau max
+  - Composants: `SmartSpice.tsx` (124 lignes) + `Spice.tsx` (266 lignes)
+
+- [x] ✅ **Avatar Chanthana animé** : Composant `ChanthanaAvatar.tsx` (84 lignes)
+  - Animations Framer Motion (idle/happy)
+  - Support messages dynamiques + réactions
+  - Responsive mobile/desktop
+
 #### 🔥 Tâches Restantes
 
-- [ ] 🔥🔥 **Icône panier avec badge** : ⚠️ Text "X dans le panier" existe, ajouter icône ShoppingCart visuelle
-  - Remplacer texte par `ShoppingCart` icon de lucide-react
-  - Ajouter badge numérique avec count
-  - Status : IN PROGRESS
+- [ ] 🔥🔥 **Icône panier visuelle** : Ajouter icône ShoppingCart à côté du texte existant
+  - Texte "X dans le panier" existe déjà ✅
+  - Ajouter `ShoppingCart` icon de lucide-react
+  - Ajouter badge numérique superposé
+  - Status : FACILE (~30 min)
 
-- [ ] 🔥 **Mobile UX** : Simplifier navigation étapes (menu bas d'écran)
+- [ ] 🔥 **Mobile UX - Bottom navigation** : Menu bas d'écran
   - Créer bottom navigation bar responsive
   - Optimiser touch interactions
   - Status : PENDING
 
-- [ ] 🔥🔥 **Avatar Chanthana "Prend Commande"** : Visual sidebar/header avec Chanthana tenant carnet + stylo
-  - Position : Sidebar fixe desktop OU header mobile
-  - Format : PNG/WebP 400x500px, fond transparent
-  - Humanise l'expérience (impression que Chanthana prend vraiment la commande)
-  - Status : PENDING (non validé dans session)
+- [x] ✅ **Avatar Chanthana animations** : FAIT via `ChanthanaAvatar.tsx`
+  - Composant existant avec Framer Motion (84 lignes)
+  - Position sidebar avec messages dynamiques
+  - Animations idle/happy + réactions
+  - ~~Status : PENDING~~ → COMPLÉTÉ
 
-- [ ] 🔥 **Animation ajout panier** : Micro-animation Chanthana clin d'œil + thumbs up
-  - Format : GIF/MP4 2-3s, 200x200px
-  - Trigger : Apparaît 0.5s quand plat ajouté au panier
-  - Feedback visuel ludique et satisfaisant
-  - Status : PENDING (non validé dans session)
+- [ ] 🔥 **Animation ajout panier améliorée** : Micro-animation clin d'œil (optionnel)
+  - Toast vidéo existe déjà avec MP4 ✅
+  - À améliorer: GIF/MP4 Chanthana réaction 2-3s
+  - Status : OPTIONNEL (feedback vidéo existe)
 
 #### ⚙️ Configuration Requise pour Affichage
 
@@ -1111,24 +1157,80 @@ npm run test:e2e
 
 #### ✅ Améliorations Complétées
 
-- [x] ✅ **Photo Polaroid Header** : Composant réutilisable `PolaroidPhoto.tsx` avec styling authentique
-  - Padding 10px (top/sides) et 20px (bottom) pour effet Polaroid
-  - Bordures Thai green (border-1) sur frame et photo
-  - Rotation 3° avec effet hover:rotate-0 pour redressement
-  - Position customizable (left/center/right) avec chevauchement léger sur bord
-  - Taille et rotation paramétrables via props
-  - Shadow effects avec hover (shadow-xl)
-  - Caption en Thai green bold
-  - Utilisé dans CardHeader avec py-8 pour bande orange élargie
+- [x] ✅ **Photo Polaroid Header** : Composant réutilisable `PolaroidPhoto.tsx`
+  - Padding effet Polaroid authentique (10px/20px)
+  - Bordures Thai green + rotation hover 3°
+  - Caption et shadow effects
 
-#### 🔥🔥 Fonctionnalités Prioritaires
+- [x] ✅ **Gestion panier complète** : CartContext + localStorage
+  - Fichier: `contexts/CartContext.tsx` (167 lignes)
+  - Ajout/modification/suppression articles
+  - Persistence localStorage avec dates ISO
+  - UniqueId par article pour gestion fine
+  - Reconversion dates au chargement
 
-- [ ] 🔥🔥 **Sauvegarde panier non connecté** : Proposer création compte pour conserver sélection
-- [ ] 🔥🔥 **Page confirmation visuelle** : Récapitulatif + message remerciement après validation
-- [ ] 🔥 **Message confirmation lisible** : Fond blanc pour toast confirmation
-- [ ] 🔥 **Gestion heure retrait** :
+- [x] ✅ **Modification quantité intelligente** : Ajustement épices auto
+  - Fichier: `app/panier/page.tsx` lignes 271-310
+  - Boutons +/- avec suppression si qty <= 0
+  - Distribution épicée ajustée automatiquement
+  - Toast confirmation modifications
+
+- [x] ✅ **Suppression avec confirmation** : Modal vidéo avant action
+  - Composant: `CartItemCard.tsx` lignes 308-383
+  - ModalVideo avec question + boutons Confirmer/Annuler
+  - Animation et feedback visuel
+
+- [x] ✅ **Calcul total prix temps réel** : Somme dynamique
+  - `totalGeneral = sum(prix * quantite)` (ligne 160-163)
+  - Formatage selon décimales (0€ ou 2.50€)
+
+- [x] ✅ **Groupement par date retrait** : Organisation visuelle
+  - Articles groupés par date de retrait (lignes 119-158)
+  - Section distincte par date
+
+- [x] ✅ **Demandes spéciales** : Textarea avec feedback
+  - Champ libre pour allergies/préférences (lignes 490-512)
+  - Toast vidéo au blur si texte rempli
+  - Envoyé dans `demande_special_pour_la_commande`
+
+- [x] ✅ **Création commandes multiples** : Par date retrait
+  - Une commande Prisma par date unique
+  - Détails: plat_r, quantité, épices, distribution
+  - Redirection vers `/suivi-commande/{id}`
+
+- [x] ✅ **Distribution épicée SmartSpice** : Lecture et édition
+  - Composants: `SmartSpice.tsx` (124 lignes) + `Spice.tsx` (266 lignes)
+  - Mode lecture seule dans récapitulatif
+  - Mode édition dans modal modification
+  - Ajustement auto lors changement quantité
+
+- [x] ✅ **Responsive mobile-first** : 3 breakpoints
+  - Mobile: Layout vertical, padding réduit (px-1)
+  - Tablet: Éléments côte à côte
+  - Desktop: Container centré max-w-6xl
+
+- [x] ✅ **Intégration auth Better Auth** : Validation avant commande
+  - Vérification session utilisateur (useSession)
+  - Toast erreur si profil incomplet
+  - Bouton disabled si non connecté
+
+- [x] ✅ **Page confirmation visuelle** : FAIT via redirection suivi-commande
+  - Redirection vers `/suivi-commande/{id}` après validation
+  - Toast vidéo "Khop khun kha" avant redirection
+
+- [x] ✅ **Message confirmation lisible** : FAIT via toast vidéo
+  - Toast vidéo avec animation MP4 + Polaroid style
+  - TypingAnimation pour texte coloré
+
+#### 🔥🔥 Fonctionnalités Prioritaires (Restantes)
+
+- [ ] 🔥🔥 **Sauvegarde panier non connecté** : Proposer création compte
+  - Panier localStorage existe déjà ✅
+  - À ajouter: Modal "Créer compte pour conserver"
+
+- [ ] 🔥 **Gestion heure retrait avancée** :
   - Note heure indicative (peut être ajustée)
-  - Admin : Proposer nouvelle heure
+  - Admin: Proposer nouvelle heure
   - Notification via n8n si changement
 
 ### 📜 D. Page Historique (/historique & /historique/complet)
