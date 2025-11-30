@@ -1,9 +1,9 @@
 "use client"
-import { Card, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Flame } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
+import { Flame } from "lucide-react"
 
 interface ProductCardProps {
   title: string
@@ -63,7 +63,7 @@ export function ProductCard({
           )}
         </div>
       )}
-      <CardContent className="flex flex-grow flex-col p-3">
+      <CardContent className="flex grow flex-col p-3">
         {/* Nom + Badges sur même ligne */}
         {/* Nom du plat */}
         <h4 className="text-thai-green mb-1 line-clamp-1 font-semibold">{title}</h4>
@@ -91,7 +91,7 @@ export function ProductCard({
           </div>
         )}
 
-        <p className="mb-2 line-clamp-3 flex-grow text-xs text-gray-600">{description}</p>
+        <p className="mb-2 line-clamp-3 grow text-xs text-gray-600">{description}</p>
         <div className="mt-auto flex items-center justify-between pt-2">
           <Badge variant="secondary">{formatPrix(price)}</Badge>
           <Button

@@ -11,16 +11,14 @@ import { useIsMobile } from "@/hooks/use-mobile"
 import { useToast } from "@/hooks/use-toast"
 import { toastVideo } from "@/hooks/use-toast-video"
 
+import { OfflineBannerCompact } from "@/components/pwa/OfflineBanner"
 import { TypingAnimation } from "@/components/ui/typing-animation"
 import { useOnlineStatus } from "@/hooks/useOnlineStatus"
-import { OfflineBannerCompact } from "@/components/pwa/OfflineBanner"
 import {
   AlertCircle,
   Calendar as CalendarIconLucide,
-  ChevronRight,
   Clock,
   CreditCard,
-  Flame,
   Loader2,
   MapPin,
   Phone,
@@ -28,15 +26,13 @@ import {
   ShoppingCart,
   Star,
   Trash2,
-  X,
 } from "lucide-react"
-import { memo, useEffect, useMemo, useRef, useState, Suspense } from "react"
-import { flushSync } from "react-dom"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
 import type { Route } from "next"
 import Image from "next/image"
-import { useQueryState, parseAsString } from "nuqs"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { parseAsString, useQueryState } from "nuqs"
+import { memo, Suspense, useEffect, useMemo, useRef, useState } from "react"
 
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import {
@@ -50,21 +46,20 @@ import { cn } from "@/lib/utils"
 import { addDays, format, getDay, isFuture, isSameDay, startOfDay, type Day } from "date-fns"
 import { fr } from "date-fns/locale"
 
-import { useSession } from "@/lib/auth-client"
 import { getClientProfile } from "@/app/profil/actions"
 import { useData } from "@/contexts/DataContext"
+import { useSession } from "@/lib/auth-client"
 // Utilisation des hooks
-import { useCart } from "@/contexts/CartContext"
-import { usePrismaCreateCommande } from "@/hooks/usePrismaData"
-import type { PlatUI as Plat, PlatPanier } from "@/types/app"
-import { CommandePlatModal } from "@/components/shared/CommandePlatModal"
-import { CartItemCard } from "@/components/shared/CartItemCard"
 import { FeaturedDishSection } from "@/components/commander/FeaturedDishSection"
 import { PolaroidThankYouModal } from "@/components/commander/PolaroidThankYouModal"
-import { spiceTextToLevel } from "@/lib/spice-helpers"
-import { Spice } from "@/components/shared/Spice"
+import { CartItemCard } from "@/components/shared/CartItemCard"
+import { CommandePlatModal } from "@/components/shared/CommandePlatModal"
 import { ProductCard as SharedProductCard } from "@/components/shared/ProductCard"
 import { ModalVideo } from "@/components/ui/ModalVideo"
+import { useCart } from "@/contexts/CartContext"
+import { usePrismaCreateCommande } from "@/hooks/usePrismaData"
+import { spiceTextToLevel } from "@/lib/spice-helpers"
+import type { PlatUI as Plat, PlatPanier } from "@/types/app"
 
 export const dynamic = "force-dynamic"
 
@@ -578,7 +573,7 @@ const Commander = memo(() => {
 
             {/* Section 1: Header Pour Commander */}
             <Card className="border-thai-orange/20 relative mb-6 shadow-xl">
-              <CardHeader className="from-thai-orange to-thai-gold rounded-t-lg bg-gradient-to-r py-4 text-center text-white">
+              <CardHeader className="from-thai-orange to-thai-gold rounded-t-lg bg-linear-to-r py-4 text-center text-white">
                 <div className="mb-1 flex items-center justify-center">
                   <ShoppingCart className="mr-2 h-7 w-7" />
                   <CardTitle className="text-2xl font-bold">Pour Commander</CardTitle>
@@ -922,7 +917,7 @@ const Commander = memo(() => {
               {/* Desktop Sidebar - 30% fixe */}
               <div className="flex flex-col md:sticky md:top-8 md:max-h-[calc(100vh-4rem)]">
                 <Card className="border-thai-orange/20 flex h-full flex-col overflow-hidden shadow-xl">
-                  <CardHeader className="from-thai-orange to-thai-gold relative rounded-t-lg bg-gradient-to-r py-4 text-white">
+                  <CardHeader className="from-thai-orange to-thai-gold relative rounded-t-lg bg-linear-to-r py-4 text-white">
                     <div className="text-center">
                       <div className="mb-1 flex items-center justify-center">
                         <ShoppingCart className="mr-2 h-7 w-7" />
@@ -1107,7 +1102,7 @@ const Commander = memo(() => {
                     </div>
 
                     <Alert className="mb-4 border-green-200 bg-green-50/50 text-green-800">
-                      <CreditCard className="h-4 w-4 !text-green-700" />
+                      <CreditCard className="h-4 w-4 text-green-700!" />
                       <AlertDescription className="font-medium">
                         Paiement sur place : Nous acceptons la carte bleue.
                       </AlertDescription>
@@ -1141,7 +1136,7 @@ const Commander = memo(() => {
                       </div>
                     </div>
 
-                    <Card className="border-thai-green/20 from-thai-cream/30 to-thai-gold/10 mb-4 bg-gradient-to-r backdrop-blur-sm">
+                    <Card className="border-thai-green/20 from-thai-cream/30 to-thai-gold/10 mb-4 bg-linear-to-r backdrop-blur-sm">
                       <CardContent className="p-3">
                         <div className="space-y-3 text-center">
                           <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-3">
@@ -1168,7 +1163,7 @@ const Commander = memo(() => {
                     </Card>
                   </CardContent>
 
-                  <div className="flex-shrink-0 rounded-b-lg border-t bg-white p-4">
+                  <div className="shrink-0 rounded-b-lg border-t bg-white p-4">
                     <Button
                       onClick={validerCommande}
                       disabled={createCommande.isPending || !currentUser || !idclient || !isOnline}

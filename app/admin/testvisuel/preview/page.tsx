@@ -1,14 +1,14 @@
 "use client"
 
-import { useSearchParams } from "next/navigation"
-import { useState, Suspense } from "react"
-import { ShoppingCart } from "lucide-react"
 import { CartItemCard } from "@/components/shared/CartItemCard"
-import { ProductCard } from "@/components/shared/ProductCard"
 import { PolaroidPhoto } from "@/components/shared/PolaroidPhoto"
+import { ProductCard } from "@/components/shared/ProductCard"
 import { StatCard } from "@/components/shared/StatCard"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { ShoppingCart } from "lucide-react"
+import { useSearchParams } from "next/navigation"
+import { Suspense, useState } from "react"
 
 type PreviewMode = "desktop" | "tablet" | "mobile"
 
@@ -85,7 +85,7 @@ function PreviewContent() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center bg-gradient-to-br from-gray-100 to-gray-200 p-4">
+    <div className="flex min-h-screen flex-col items-center bg-linear-to-br from-gray-100 to-gray-200 p-4">
       {/* Header avec Toggle Desktop/Tablette/Mobile */}
       <div className="mb-4 flex items-center justify-center gap-2">
         <Button
@@ -305,7 +305,7 @@ function PreviewContent() {
         <div
           className={cn(
             "transition-all duration-300",
-            isDevice && "rounded-[2rem] bg-gray-800 p-2 shadow-2xl"
+            isDevice && "rounded-4xl bg-gray-800 p-2 shadow-2xl"
           )}
           style={isDevice ? { width: currentWidth + 16 } : { width: "100%", maxWidth: "1200px" }}
         >
@@ -327,7 +327,7 @@ function PreviewContent() {
 
           {/* Screen */}
           <div
-            className={cn("overflow-auto bg-white", isDevice && "rounded-[1.5rem]")}
+            className={cn("overflow-auto bg-white", isDevice && "rounded-3xl")}
             style={
               isDevice
                 ? {

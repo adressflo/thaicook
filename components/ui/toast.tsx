@@ -1,7 +1,7 @@
-import * as React from "react"
 import * as ToastPrimitives from "@radix-ui/react-toast"
 import { cva, type VariantProps } from "class-variance-authority"
 import { X } from "lucide-react"
+import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
@@ -89,7 +89,7 @@ const ToastViewport = React.forwardRef<
   <ToastPrimitives.Viewport
     ref={ref}
     className={cn(
-      "pointer-events-none fixed top-0 z-[100] flex max-h-screen w-full flex-col-reverse p-4 sm:top-auto sm:right-0 sm:bottom-0 sm:w-auto sm:flex-col md:max-w-fit",
+      "pointer-events-none fixed top-0 z-100 flex max-h-screen w-full flex-col-reverse p-4 sm:top-auto sm:right-0 sm:bottom-0 sm:w-auto sm:flex-col md:max-w-fit",
       className
     )}
     {...props}
@@ -303,7 +303,7 @@ const Toast = React.forwardRef<
           hoverScale && "transition-transform duration-300 hover:scale-105",
           // Inclinaison
           isTilted &&
-            "rotate-[var(--toast-angle)] transition-all duration-300 hover:scale-105 hover:rotate-0",
+            "rotate-(--toast-angle) transition-all duration-300 hover:scale-105 hover:rotate-0",
           className
         )}
         style={
@@ -320,17 +320,17 @@ const Toast = React.forwardRef<
 )
 Toast.displayName = ToastPrimitives.Root.displayName
 
-export { titleColorMap, descriptionColorMap, fontWeightMap }
+export { descriptionColorMap, fontWeightMap, titleColorMap }
 export type {
-  ToastExtendedProps,
   BorderColor,
-  ShadowSize,
-  MaxWidth,
-  TitleColor,
   DescriptionColor,
-  ToastPosition,
   FontWeight,
+  MaxWidth,
   RedirectBehavior,
+  ShadowSize,
+  TitleColor,
+  ToastExtendedProps,
+  ToastPosition,
 }
 
 const ToastAction = React.forwardRef<
@@ -398,13 +398,13 @@ type ToastProps = React.ComponentPropsWithoutRef<typeof Toast>
 type ToastActionElement = React.ReactElement<typeof ToastAction>
 
 export {
-  type ToastProps,
-  type ToastActionElement,
-  ToastProvider,
-  ToastViewport,
   Toast,
-  ToastTitle,
-  ToastDescription,
-  ToastClose,
   ToastAction,
+  ToastClose,
+  ToastDescription,
+  ToastProvider,
+  ToastTitle,
+  ToastViewport,
+  type ToastActionElement,
+  type ToastProps,
 }

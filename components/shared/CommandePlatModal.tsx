@@ -1,22 +1,21 @@
 "use client"
 
-import React from "react"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
-  DialogDescription,
 } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { FileText, Plus, Minus, ShoppingCart, RefreshCw } from "lucide-react"
 import type { PlatUI as Plat } from "@/types/app"
+import { FileText, Minus, Plus, RefreshCw, ShoppingCart } from "lucide-react"
+import React from "react"
 
 import { Spice } from "@/components/shared/Spice"
-import { getDistributionText } from "@/lib/spice-helpers"
 import { toastVideo } from "@/hooks/use-toast-video"
+import { getDistributionText } from "@/lib/spice-helpers"
 
 export interface CommandePlatModalProps {
   plat: Plat
@@ -128,7 +127,7 @@ export const CommandePlatContent = React.memo<
       <>
         <div className="relative flex-1 overflow-y-auto">
           {/* Header avec photo */}
-          <div className="from-thai-orange/10 to-thai-gold/10 relative h-48 flex-shrink-0 bg-gradient-to-br md:h-56">
+          <div className="from-thai-orange/10 to-thai-gold/10 relative h-48 shrink-0 bg-linear-to-br md:h-56">
             {plat.photo_du_plat ? (
               <img
                 src={plat.photo_du_plat}
@@ -136,13 +135,13 @@ export const CommandePlatContent = React.memo<
                 className="h-full w-full object-cover transition-transform duration-300"
               />
             ) : (
-              <div className="from-thai-cream to-thai-orange/20 flex h-full w-full items-center justify-center bg-gradient-to-br">
+              <div className="from-thai-cream to-thai-orange/20 flex h-full w-full items-center justify-center bg-linear-to-br">
                 <div className="text-thai-orange/50 text-8xl">🍽️</div>
               </div>
             )}
 
             {/* Overlay gradient */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
+            <div className="absolute inset-0 bg-linear-to-t from-black/20 via-transparent to-transparent" />
 
             {/* Badge disponible */}
             <div className="absolute top-3 left-3">
@@ -198,7 +197,7 @@ export const CommandePlatContent = React.memo<
 
             {/* Prix */}
             {prixUnitaire > 0 && (
-              <div className="from-thai-cream/40 to-thai-orange/10 border-thai-orange/20 rounded-lg border bg-gradient-to-r p-3">
+              <div className="from-thai-cream/40 to-thai-orange/10 border-thai-orange/20 rounded-lg border bg-linear-to-r p-3">
                 <div className="text-center">
                   <div className="mb-0.5 text-xs font-medium text-gray-600">PRIX UNITAIRE</div>
                   <div className="text-thai-orange text-xl font-bold">
@@ -278,7 +277,7 @@ export const CommandePlatContent = React.memo<
 
         {/* Bouton d'ajout au panier - sticky en bas */}
         {onAddToCart && (
-          <div className="sticky bottom-0 flex-shrink-0 border-t border-gray-200 bg-white p-4 shadow-lg">
+          <div className="sticky bottom-0 shrink-0 border-t border-gray-200 bg-white p-4 shadow-lg">
             <Button
               onClick={handleAddToCart}
               className="bg-thai-orange hover:bg-thai-orange/90 w-full py-5 text-base text-white shadow-lg transition-all duration-200 hover:scale-[1.02] hover:shadow-xl"

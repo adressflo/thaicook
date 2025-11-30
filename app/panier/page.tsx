@@ -1,40 +1,39 @@
 ﻿"use client"
 
-import { useState, useEffect } from "react"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
+import { getClientProfile } from "@/app/profil/actions"
+import { FloatingUserIcon } from "@/components/layout/FloatingUserIcon"
+import { CartItemCard } from "@/components/shared/CartItemCard"
+import { CommandePlatModal } from "@/components/shared/CommandePlatModal"
+import { PolaroidPhoto } from "@/components/shared/PolaroidPhoto"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Label } from "@/components/ui/label"
+import { ModalVideo } from "@/components/ui/ModalVideo"
+import { Textarea } from "@/components/ui/textarea"
+import { useCart } from "@/contexts/CartContext"
+import { useData } from "@/contexts/DataContext"
 import { useToast } from "@/hooks/use-toast"
 import { toastVideo } from "@/hooks/use-toast-video"
+import { usePrismaCreateCommande } from "@/hooks/usePrismaData"
+import { useSession } from "@/lib/auth-client"
+import { getDistributionText, spiceTextToLevel } from "@/lib/spice-helpers"
+import type { PlatUI as Plat, PlatPanier } from "@/types/app"
+import { format } from "date-fns"
+import { fr } from "date-fns/locale"
 import {
-  ShoppingCart,
-  Trash2,
+  AlertCircle,
+  Calendar as CalendarIconLucide,
   CreditCard,
   Loader2,
   MapPin,
   Phone,
-  AlertCircle,
-  Calendar as CalendarIconLucide,
+  ShoppingCart,
+  Trash2,
 } from "lucide-react"
-import { useSession } from "@/lib/auth-client"
-import { getClientProfile } from "@/app/profil/actions"
-import { useCart } from "@/contexts/CartContext"
-import { useData } from "@/contexts/DataContext"
-import { usePrismaCreateCommande } from "@/hooks/usePrismaData"
-import type { PlatUI as Plat, PlatPanier } from "@/types/app"
-import { format } from "date-fns"
-import { fr } from "date-fns/locale"
-import { spiceTextToLevel } from "@/lib/spice-helpers"
-import { CommandePlatModal } from "@/components/shared/CommandePlatModal"
-import { CartItemCard } from "@/components/shared/CartItemCard"
-import { getDistributionText } from "@/lib/spice-helpers"
-import { FloatingUserIcon } from "@/components/layout/FloatingUserIcon"
-import { PolaroidPhoto } from "@/components/shared/PolaroidPhoto"
-import { ModalVideo } from "@/components/ui/ModalVideo"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
 
 // Helper function pour convertir le prix en nombre
 const toSafeNumber = (prix: string | number | undefined): number => {
@@ -330,7 +329,7 @@ export default function PanierPage() {
           className="border-thai-orange/20 min-h-screen rounded-xl border-x-0 border-t-0 border-b-0 shadow-none sm:min-h-fit sm:rounded-lg sm:border sm:shadow-xl"
           style={{ position: "relative", zIndex: 1 }}
         >
-          <CardHeader className="from-thai-orange to-thai-gold relative rounded-t-xl bg-gradient-to-r py-4 text-white sm:rounded-t-lg sm:py-8">
+          <CardHeader className="from-thai-orange to-thai-gold relative rounded-t-xl bg-linear-to-r py-4 text-white sm:rounded-t-lg sm:py-8">
             <div className="flex items-center justify-center gap-2">
               <ShoppingCart className="h-7 w-7" />
               <CardTitle className="text-2xl font-bold">Mon Panier</CardTitle>
@@ -481,7 +480,7 @@ export default function PanierPage() {
                 </div>
 
                 <Alert className="border-green-200 bg-green-50/50 text-green-800">
-                  <CreditCard className="h-4 w-4 !text-green-700" />
+                  <CreditCard className="h-4 w-4 text-green-700!" />
                   <AlertDescription className="font-medium">
                     Paiement sur place : Nous acceptons la carte bleue.
                   </AlertDescription>
@@ -514,7 +513,7 @@ export default function PanierPage() {
                 </div>
 
                 {/* Section informations */}
-                <Card className="border-thai-green/20 from-thai-cream/30 to-thai-gold/10 bg-gradient-to-r">
+                <Card className="border-thai-green/20 from-thai-cream/30 to-thai-gold/10 bg-linear-to-r">
                   <CardContent className="p-4">
                     <div className="space-y-4 text-center">
                       <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4">
