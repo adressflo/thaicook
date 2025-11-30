@@ -29,7 +29,7 @@ type ToasterToastVideo = ToastProps & {
   scrollingText?: boolean
   scrollDuration?: number
   polaroid?: boolean
-  aspectRatio?: "16:9" | "4:5" | "1:1"
+  aspectRatio?: "16:9" | "4:5" | "1:1" | "auto"
   // Props de style
   borderColor?: BorderColor
   customBorderColor?: string
@@ -43,6 +43,15 @@ type ToasterToastVideo = ToastProps & {
   descriptionFontWeight?: FontWeight
   animateBorder?: boolean
   hoverScale?: boolean
+  // Polaroid padding props
+  polaroidPaddingSides?: number
+  polaroidPaddingTop?: number
+  polaroidPaddingBottom?: number
+  // Animation typing
+  typingAnimation?: boolean
+  typingSpeed?: number
+  // Synchronisation marquee avec vidéo
+  scrollSyncWithVideo?: boolean // Si true, la durée du marquee = durée vidéo × playCount
   // Lecture video (remplace loopVideo)
   playCount?: 1 | 2 | "custom"
   customPlayCount?: number

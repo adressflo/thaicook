@@ -105,15 +105,16 @@ function extractTextSegments(node: ReactNode): TextSegment[] {
     if (typeof child === "object" && "props" in child) {
       const element = child as ReactElement
       const props = element.props as { className?: string; children?: ReactNode }
-      const className = props.className || inheritedClassName
+      // Combiner les classes (inherited + current)
+      const combinedClassName = [inheritedClassName, props.className].filter(Boolean).join(" ")
 
       if (props.children !== undefined) {
         if (typeof props.children === "string" || typeof props.children === "number") {
-          segments.push({ text: String(props.children), className })
+          segments.push({ text: String(props.children), className: combinedClassName })
         } else if (Array.isArray(props.children)) {
-          props.children.forEach((subChild) => traverse(subChild, className))
+          props.children.forEach((subChild) => traverse(subChild, combinedClassName))
         } else {
-          traverse(props.children, className)
+          traverse(props.children, combinedClassName)
         }
       }
     }

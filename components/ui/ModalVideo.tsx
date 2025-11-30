@@ -9,6 +9,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
+import { TypingAnimation } from '@/components/ui/typing-animation'
 import { cn } from '@/lib/utils'
 
 interface ModalVideoProps {
@@ -67,6 +68,14 @@ interface ModalVideoProps {
   polaroidPaddingTop?: number // Padding haut (défaut 3)
   polaroidPaddingBottom?: number // Padding bas (défaut 8)
 
+  // Animation typing
+  typingAnimation?: boolean // Animation dactylographie (typing)
+  typingSpeed?: number // Vitesse de l'animation typing (ms par caractère, défaut 100)
+  typingTarget?: "title" | "description" | "both" // Cible de l'animation (défaut: "description")
+
+  // Synchronisation marquee avec vidéo
+  scrollSyncWithVideo?: boolean // Si true, la durée du marquee = durée vidéo × loopCount (défaut: false)
+
   // Position du modal
   position?: "center" | "bottom-right" | "bottom-left" | "top-right" | "top-left" | "custom" // Position du modal (défaut: "center")
   customX?: string // Position X custom (ex: "10px", "50%") - utilisé si position="custom"
@@ -102,10 +111,15 @@ export function ModalVideoContent({
   polaroidPaddingTop = 3,
   polaroidPaddingBottom = 8,
   titleColor = "thai-green",
+  typingAnimation = false,
+  typingSpeed = 100,
+  typingTarget = "description",
+  scrollSyncWithVideo = false,
 }: Omit<ModalVideoProps, 'isOpen'> & { onOpenChange: (open: boolean) => void }) {
   const router = useRouter()
   const videoRef = useRef<HTMLVideoElement>(null)
   const [playCount, setPlayCount] = useState(0)
+  const [syncedScrollDuration, setSyncedScrollDuration] = useState<number | null>(null)
 
   // Map aspect ratio to Tailwind classes
   const aspectRatioClass = {
@@ -201,6 +215,33 @@ export function ModalVideoContent({
   // Détection du type de média
   const isVideo = media?.endsWith('.mp4') || media?.endsWith('.webm')
 
+  // Calcul de la durée synchronisée du marquee avec la vidéo
+  useEffect(() => {
+    if (!scrollSyncWithVideo || !isVideo || !videoRef.current) return
+
+    const video = videoRef.current
+
+    const handleLoadedMetadata = () => {
+      const videoDuration = video.duration
+      // loopCount = 0 signifie infini, on utilise scrollDuration par défaut dans ce cas
+      if (loopCount === 0) {
+        setSyncedScrollDuration(null) // Utiliser scrollDuration manuel
+      } else {
+        // Durée totale = durée vidéo × nombre de lectures
+        const totalDuration = videoDuration * loopCount
+        setSyncedScrollDuration(totalDuration)
+      }
+    }
+
+    // Si les metadata sont déjà chargées
+    if (video.readyState >= 1) {
+      handleLoadedMetadata()
+    } else {
+      video.addEventListener('loadedmetadata', handleLoadedMetadata)
+      return () => video.removeEventListener('loadedmetadata', handleLoadedMetadata)
+    }
+  }, [scrollSyncWithVideo, isVideo, loopCount, media])
+
   // Gestion de la fin de vidéo
   const handleVideoEnded = () => {
     if (loopCount === 0) {
@@ -267,7 +308,7 @@ export function ModalVideoContent({
 
       {/* Section image/vidéo */}
       {media && (
-        <div className={cn("relative w-full", standalone && "flex-shrink-0")}>
+        <div className={cn("relative w-full", standalone && "shrink-0")}>
           {polaroid ? (
             // Mode Polaroid : cadre blanc + bordure intérieure autour de la photo
             <div
@@ -341,7 +382,13 @@ export function ModalVideoContent({
         <div className={cn("space-y-3", standalone && "flex-1")}>
           {title && (
             <h3 className={cn("text-2xl font-bold text-center", titleColorClass[titleColor])}>
-              {parseColoredText(title)}
+              {typingAnimation && (typingTarget === "title" || typingTarget === "both") ? (
+                <TypingAnimation duration={typingSpeed}>
+                  {parseColoredText(title)}
+                </TypingAnimation>
+              ) : (
+                parseColoredText(title)
+              )}
             </h3>
           )}
           {description && (
@@ -352,12 +399,20 @@ export function ModalVideoContent({
                   scrollingText && "animate-marquee inline-block whitespace-nowrap"
                 )}
                 style={
-                  scrollingText && scrollDuration
-                    ? ({ "--marquee-duration": `${scrollDuration}s` } as React.CSSProperties)
+                  scrollingText
+                    ? ({
+                        "--marquee-duration": `${syncedScrollDuration ?? scrollDuration}s`
+                      } as React.CSSProperties)
                     : undefined
                 }
               >
-                {parseColoredText(description)}
+                {typingAnimation && (typingTarget === "description" || typingTarget === "both") ? (
+                  <TypingAnimation duration={typingSpeed}>
+                    {parseColoredText(description)}
+                  </TypingAnimation>
+                ) : (
+                  parseColoredText(description)
+                )}
               </p>
             </div>
           )}
@@ -492,7 +547,7 @@ export function ModalVideo({
           // Si borderColor est dans borderColorClass, utiliser la classe, sinon utiliser comme classe custom
           borderColor in borderColorClass ? borderColorClass[borderColor as keyof typeof borderColorClass] : borderColor,
           shadowClass[shadowSize],
-          rotation && "rotate-[-2deg] hover:rotate-0 transition-transform duration-300",
+          rotation && "-rotate-2 hover:rotate-0 transition-transform duration-300",
           // Position du modal
           positionClass[position]
         )}

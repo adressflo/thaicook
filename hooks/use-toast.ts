@@ -38,6 +38,10 @@ type ToasterToast = ToastProps & ToastExtendedProps & {
   customX?: string
   /** Position Y custom (si position="custom") */
   customY?: string
+  /** Animation dactylographie (typing) */
+  typingAnimation?: boolean
+  /** Vitesse de l'animation typing (ms par caractère) */
+  typingSpeed?: number
 }
 
 export type { BorderColor, ShadowSize, MaxWidth, TitleColor, DescriptionColor, ToastPosition, FontWeight, RedirectBehavior }

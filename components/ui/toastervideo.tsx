@@ -23,9 +23,10 @@ import {
   type FontWeight,
   type RedirectBehavior,
 } from "@/components/ui/toast"
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { TypingAnimation } from "@/components/ui/typing-animation"
 
 import { cn } from "@/lib/utils"
 
@@ -113,7 +114,7 @@ export function ToasterVideo() {
           )}
           <ToastViewport
             className={cn(
-              "fixed z-[100] flex max-h-screen w-full flex-col-reverse p-4 md:max-w-fit",
+              "fixed z-100 flex max-h-screen w-full flex-col-reverse p-4 md:max-w-fit",
               position === "custom"
                 ? ""
                 : positionClassMap[position as ToastPosition]
@@ -139,7 +140,7 @@ interface ToastVideoItemProps {
   scrollingText?: boolean
   scrollDuration?: number
   polaroid?: boolean
-  aspectRatio?: "16:9" | "4:5" | "1:1"
+  aspectRatio?: "16:9" | "4:5" | "1:1" | "auto"
   // Props de style
   borderColor?: BorderColor
   customBorderColor?: string
@@ -153,6 +154,15 @@ interface ToastVideoItemProps {
   descriptionFontWeight?: FontWeight
   animateBorder?: boolean
   hoverScale?: boolean
+  // Polaroid padding props
+  polaroidPaddingSides?: number
+  polaroidPaddingTop?: number
+  polaroidPaddingBottom?: number
+  // Animation typing
+  typingAnimation?: boolean
+  typingSpeed?: number
+  // Synchronisation marquee avec vidéo
+  scrollSyncWithVideo?: boolean // Si true, la durée du marquee = durée vidéo × playCount
   // Lecture video (remplace loopVideo)
   playCount?: 1 | 2 | "custom"
   customPlayCount?: number
@@ -175,11 +185,11 @@ function ToastVideoItem({
   scrollingText,
   scrollDuration,
   polaroid,
-  aspectRatio,
-  // Props de style
-  borderColor = "thai-orange",
+  aspectRatio = "auto",
+  // Props de style - défaut vert pour polaroid
+  borderColor: borderColorProp,
   customBorderColor,
-  borderWidth = 2,
+  borderWidth: borderWidthProp,
   customBorderWidth,
   shadowSize = "2xl",
   maxWidth = "md",
@@ -189,6 +199,15 @@ function ToastVideoItem({
   descriptionFontWeight = "semibold",
   animateBorder = false,
   hoverScale = false,
+  // Polaroid padding props
+  polaroidPaddingSides = 3,
+  polaroidPaddingTop = 3,
+  polaroidPaddingBottom = 8,
+  // Animation typing
+  typingAnimation = false,
+  typingSpeed = 100,
+  // Synchronisation marquee avec vidéo
+  scrollSyncWithVideo = false,
   // Lecture video
   playCount = 1,
   customPlayCount,
@@ -199,9 +218,13 @@ function ToastVideoItem({
   showCloseButton = true,
   ...props
 }: ToastVideoItemProps) {
+  // Défauts différents selon le mode polaroid
+  const borderColor = borderColorProp ?? (polaroid ? "thai-green" : "thai-orange")
+  const borderWidth = borderWidthProp ?? (polaroid ? 4 : 2)
   const mediaRef = useRef<HTMLImageElement | HTMLVideoElement>(null)
   const playCountRef = useRef(0)
   const router = useRouter()
+  const [syncedScrollDuration, setSyncedScrollDuration] = useState<number | null>(null)
 
   // Calculer le nombre de lectures cible
   const targetPlayCount = playCount === "custom" && customPlayCount
@@ -209,6 +232,31 @@ function ToastVideoItem({
     : playCount === "custom"
       ? 1
       : playCount
+
+  // Détection du type de média
+  const isVideo = media?.endsWith('.mp4') || media?.endsWith('.webm')
+
+  // Calcul de la durée synchronisée du marquee avec la vidéo
+  useEffect(() => {
+    if (!scrollSyncWithVideo || !isVideo || !mediaRef.current) return
+
+    const video = mediaRef.current as HTMLVideoElement
+
+    const handleLoadedMetadata = () => {
+      const videoDuration = video.duration
+      // Durée totale = durée vidéo × nombre de lectures
+      const totalDuration = videoDuration * targetPlayCount
+      setSyncedScrollDuration(totalDuration)
+    }
+
+    // Si les metadata sont déjà chargées
+    if (video.readyState >= 1) {
+      handleLoadedMetadata()
+    } else {
+      video.addEventListener('loadedmetadata', handleLoadedMetadata)
+      return () => video.removeEventListener('loadedmetadata', handleLoadedMetadata)
+    }
+  }, [scrollSyncWithVideo, isVideo, targetPlayCount, media])
 
   // Fonction de fermeture avec redirection
   const handleDismiss = () => {
@@ -264,10 +312,11 @@ function ToastVideoItem({
   }, [media, id, customDuration, targetPlayCount])
 
   // Map aspect ratio to Tailwind classes
-  const aspectRatioClass = {
+  const aspectRatioClassMap: Record<string, string> = {
     "16:9": "aspect-video",
     "4:5": "aspect-[4/5]",
     "1:1": "aspect-square",
+    "auto": "",
   }
 
   // Calcul des classes dynamiques pour la bordure
@@ -275,130 +324,195 @@ function ToastVideoItem({
     ? customBorderColor
     : borderColorMap[borderColor]
 
-  const borderWidthClass = borderWidth === "custom" && customBorderWidth
-    ? ""
-    : `border-${borderWidth}`
+  // Calcul de l'épaisseur de bordure (en pixels)
+  const borderWidthValue = borderWidth === "custom" && customBorderWidth
+    ? customBorderWidth
+    : typeof borderWidth === "number" ? borderWidth : 2
 
-  const borderWidthStyle = borderWidth === "custom" && customBorderWidth
-    ? { borderWidth: `${customBorderWidth}px` }
-    : {}
+  // Rendu du media (video ou image)
+  const renderMedia = () => {
+    if (!media) return null
 
+    if (media.endsWith(".mp4") || media.endsWith(".webm")) {
+      return (
+        <video
+          ref={mediaRef as React.RefObject<HTMLVideoElement>}
+          src={media}
+          autoPlay
+          loop={targetPlayCount > 1 || playCount === "custom"}
+          muted
+          className="h-full w-full object-cover"
+        />
+      )
+    }
+
+    return (
+      <img
+        ref={mediaRef as React.RefObject<HTMLImageElement>}
+        src={media}
+        alt="Toast media"
+        className="h-full w-full object-cover"
+      />
+    )
+  }
+
+  // Rendu du contenu texte
+  const renderContent = () => (
+    <div
+      className={cn(
+        "flex w-full flex-col items-center gap-3",
+        polaroid ? "mt-4 p-0" : "bg-white p-6"
+      )}
+    >
+      {title && (
+        <ToastTitle
+          className={cn(
+            "text-center text-xl",
+            titleColorMap[titleColor],
+            fontWeightMap[titleFontWeight]
+          )}
+        >
+          {typingAnimation ? (
+            <TypingAnimation duration={typingSpeed}>
+              {parseColoredText(title)}
+            </TypingAnimation>
+          ) : (
+            parseColoredText(title)
+          )}
+        </ToastTitle>
+      )}
+      {description && (
+        <div className={cn("w-full", scrollingText && "overflow-hidden")}>
+          <ToastDescription
+            className={cn(
+              "text-center text-sm leading-relaxed",
+              descriptionColorMap[descriptionColor],
+              fontWeightMap[descriptionFontWeight],
+              scrollingText && "animate-marquee inline-block whitespace-nowrap"
+            )}
+            style={
+              scrollingText
+                ? ({
+                    "--marquee-duration": `${syncedScrollDuration ?? scrollDuration}s`
+                  } as React.CSSProperties)
+                : undefined
+            }
+          >
+            {typingAnimation ? (
+              <TypingAnimation duration={typingSpeed}>
+                {parseColoredText(description)}
+              </TypingAnimation>
+            ) : (
+              parseColoredText(description)
+            )}
+          </ToastDescription>
+        </div>
+      )}
+      {action}
+      {/* Bouton de redirection si behavior = button */}
+      {redirectUrl && redirectBehavior === "button" && (
+        <Link
+          href={redirectUrl as "/"}
+          className={cn(
+            "mt-2 inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors",
+            "bg-thai-orange text-white hover:bg-thai-orange/90"
+          )}
+        >
+          Voir
+        </Link>
+      )}
+    </div>
+  )
+
+  // Mode Polaroid : double cadre avec bordures synchronisées
+  if (polaroid) {
+    return (
+      <Toast
+        {...props}
+        className={cn(
+          "flex-col items-center bg-transparent transition-all duration-300 p-0",
+          shadowSizeMap[shadowSize],
+          animateBorder && "animate-moving-border",
+          hoverScale && "hover:scale-105",
+          maxWidthMap[maxWidth],
+          props.className
+        )}
+      >
+        {/* Cadre extérieur avec bordure */}
+        <div
+          className={cn("border-solid bg-white", borderColorClass)}
+          style={{
+            padding: `${polaroidPaddingTop * 0.25}rem ${polaroidPaddingSides * 0.25}rem ${polaroidPaddingBottom * 0.25}rem`,
+            borderWidth: `${borderWidthValue}px`,
+          }}
+        >
+          {/* Cadre intérieur avec bordure autour du media */}
+          {media && (
+            <div
+              className={cn(
+                "relative w-full overflow-hidden border-solid",
+                aspectRatioClassMap[aspectRatio],
+                borderColorClass
+              )}
+              style={{ borderWidth: `${borderWidthValue}px` }}
+            >
+              {renderMedia()}
+            </div>
+          )}
+
+          {/* Contenu texte */}
+          {renderContent()}
+        </div>
+
+        {showCloseButton && (
+          <ToastClose
+            className={cn(
+              "absolute top-2 right-2 rounded-full p-1 transition-opacity hover:text-white/80",
+              titleColorMap[titleColor],
+              "hover:bg-thai-green/10"
+            )}
+          />
+        )}
+      </Toast>
+    )
+  }
+
+  // Mode standard (non-polaroid)
   return (
     <Toast
       {...props}
       className={cn(
         "flex-col items-center bg-white transition-all duration-300",
-        // Ombre
         shadowSizeMap[shadowSize],
-        // Animation bordure
         animateBorder && "animate-moving-border",
-        // Hover scale
         hoverScale && "hover:scale-105",
-        // Style polaroid ou standard
-        polaroid
-          ? cn(
-              "p-[10px_10px_20px_10px]",
-              borderColorClass,
-              borderWidthClass
-            )
-          : cn(
-              "min-w-[320px] overflow-hidden rounded-xl p-0",
-              borderColorClass,
-              borderWidthClass,
-              maxWidthMap[maxWidth]
-            ),
+        "min-w-[320px] overflow-hidden rounded-xl p-0 border-solid",
+        borderColorClass,
+        maxWidthMap[maxWidth],
         props.className
       )}
-      style={borderWidthStyle}
+      style={{ borderWidth: `${borderWidthValue}px` }}
     >
       {/* Section image/video */}
       {media && (
         <div
           className={cn(
             "w-full overflow-hidden",
-            polaroid && cn("border", borderColorClass),
-            aspectRatio && aspectRatioClass[aspectRatio as keyof typeof aspectRatioClass]
+            aspectRatioClassMap[aspectRatio]
           )}
         >
-          {media.endsWith(".mp4") || media.endsWith(".webm") ? (
-            <video
-              ref={mediaRef as React.RefObject<HTMLVideoElement>}
-              src={media}
-              autoPlay
-              loop={targetPlayCount > 1 || playCount === "custom"}
-              muted
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <img
-              ref={mediaRef as React.RefObject<HTMLImageElement>}
-              src={media}
-              alt="Toast media"
-              className="h-full w-full object-cover"
-            />
-          )}
+          {renderMedia()}
         </div>
       )}
 
       {/* Section contenu */}
-      <div
-        className={cn(
-          "flex w-full flex-col items-center gap-3",
-          polaroid ? "mt-4 p-0" : "bg-white p-6"
-        )}
-      >
-        {title && (
-          <ToastTitle
-            className={cn(
-              "text-center text-xl",
-              titleColorMap[titleColor],
-              fontWeightMap[titleFontWeight]
-            )}
-          >
-            {parseColoredText(title)}
-          </ToastTitle>
-        )}
-        {description && (
-          <div className={cn("w-full", scrollingText && "overflow-hidden")}>
-            <ToastDescription
-              className={cn(
-                "text-center text-sm leading-relaxed",
-                descriptionColorMap[descriptionColor],
-                fontWeightMap[descriptionFontWeight],
-                scrollingText && "animate-marquee inline-block whitespace-nowrap"
-              )}
-              style={
-                scrollingText && scrollDuration
-                  ? ({ "--marquee-duration": `${scrollDuration}s` } as React.CSSProperties)
-                  : undefined
-              }
-            >
-              {parseColoredText(description)}
-            </ToastDescription>
-          </div>
-        )}
-        {action}
-        {/* Bouton de redirection si behavior = button */}
-        {redirectUrl && redirectBehavior === "button" && (
-          <Link
-            href={redirectUrl as "/"}
-            className={cn(
-              "mt-2 inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors",
-              "bg-thai-orange text-white hover:bg-thai-orange/90"
-            )}
-          >
-            Voir
-          </Link>
-        )}
-      </div>
+      {renderContent()}
 
       {showCloseButton && (
         <ToastClose
           className={cn(
             "absolute top-2 right-2 rounded-full p-1 transition-opacity hover:text-white/80",
-            polaroid
-              ? cn(titleColorMap[titleColor], "hover:bg-thai-green/10")
-              : "bg-black/30 text-white hover:bg-black/50"
+            "bg-black/30 text-white hover:bg-black/50"
           )}
         />
       )}

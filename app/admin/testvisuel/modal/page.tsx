@@ -268,6 +268,11 @@ function ModalVideoPlayground() {
     customY: string // Position Y custom
     // Couleurs personnalisées
     titleColor: "thai-green" | "thai-orange" | "white" | "black" | "thai-gold"
+    // Animation typing
+    typingAnimation: boolean
+    typingSpeed: number
+    // Synchronisation marquee avec vidéo
+    scrollSyncWithVideo: boolean
   }>({
     title: "Vidéo - <orange>Aperçu</orange>",
     description:
@@ -302,6 +307,9 @@ function ModalVideoPlayground() {
     customX: "50%",
     customY: "50%",
     titleColor: "thai-green",
+    typingAnimation: false,
+    typingSpeed: 100,
+    scrollSyncWithVideo: false,
   })
 
   // Fonction pour générer le code JSX complet
@@ -326,7 +334,7 @@ function ModalVideoPlayground() {
   maxWidth="${previewProps.maxWidth}"${previewProps.maxWidth === "custom" && previewProps.customWidth ? `\n  customWidth="${previewProps.customWidth}"` : ""}${previewProps.maxWidth === "custom" && previewProps.customHeight ? `\n  customHeight="${previewProps.customHeight}"` : ""}
   borderColor="${previewProps.borderColor}"
   borderWidth={${previewProps.borderWidth}}
-  shadowSize="${previewProps.shadowSize}"${previewProps.position !== "center" ? `\n  position="${previewProps.position}"` : ""}${previewProps.position === "custom" && previewProps.customX ? `\n  customX="${previewProps.customX}"` : ""}${previewProps.position === "custom" && previewProps.customY ? `\n  customY="${previewProps.customY}"` : ""}${previewProps.titleColor !== "thai-green" ? `\n  titleColor="${previewProps.titleColor}"` : ""}
+  shadowSize="${previewProps.shadowSize}"${previewProps.position !== "center" ? `\n  position="${previewProps.position}"` : ""}${previewProps.position === "custom" && previewProps.customX ? `\n  customX="${previewProps.customX}"` : ""}${previewProps.position === "custom" && previewProps.customY ? `\n  customY="${previewProps.customY}"` : ""}${previewProps.titleColor !== "thai-green" ? `\n  titleColor="${previewProps.titleColor}"` : ""}${previewProps.typingAnimation ? `\n  typingAnimation={true}` : ""}${previewProps.typingAnimation && previewProps.typingSpeed !== 100 ? `\n  typingSpeed={${previewProps.typingSpeed}}` : ""}
   onCancel={() => console.log("Annulé")}
   onConfirm={() => console.log("Confirmé")}
   onThirdButton={() => console.log("Troisième action")}
@@ -501,28 +509,28 @@ function ModalVideoPlayground() {
                       <h4 className="text-thai-orange text-sm font-semibold">🌈 Balises Couleur</h4>
                       <div className="space-y-2 text-sm">
                         <div className="flex items-center gap-2">
-                          <code className="flex-shrink-0 rounded border bg-gray-100 px-2 py-1 text-xs">
+                          <code className="shrink-0 rounded border bg-gray-100 px-2 py-1 text-xs">
                             &lt;orange&gt;texte&lt;/orange&gt;
                           </code>
                           <span className="text-gray-400">→</span>
                           <span className="text-thai-orange font-medium">texte en orange</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <code className="flex-shrink-0 rounded border bg-gray-100 px-2 py-1 text-xs">
+                          <code className="shrink-0 rounded border bg-gray-100 px-2 py-1 text-xs">
                             &lt;green&gt;texte&lt;/green&gt;
                           </code>
                           <span className="text-gray-400">→</span>
                           <span className="text-thai-green font-medium">texte en vert</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <code className="flex-shrink-0 rounded border bg-gray-100 px-2 py-1 text-xs">
+                          <code className="shrink-0 rounded border bg-gray-100 px-2 py-1 text-xs">
                             &lt;gold&gt;texte&lt;/gold&gt;
                           </code>
                           <span className="text-gray-400">→</span>
                           <span className="text-thai-gold font-medium">texte en or</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <code className="flex-shrink-0 rounded border bg-gray-100 px-2 py-1 text-xs">
+                          <code className="shrink-0 rounded border bg-gray-100 px-2 py-1 text-xs">
                             &lt;white&gt;texte&lt;/white&gt;
                           </code>
                           <span className="text-gray-400">→</span>
@@ -531,7 +539,7 @@ function ModalVideoPlayground() {
                           </span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <code className="flex-shrink-0 rounded border bg-gray-100 px-2 py-1 text-xs">
+                          <code className="shrink-0 rounded border bg-gray-100 px-2 py-1 text-xs">
                             &lt;black&gt;texte&lt;/black&gt;
                           </code>
                           <span className="text-gray-400">→</span>
@@ -545,14 +553,14 @@ function ModalVideoPlayground() {
                       <h4 className="text-thai-orange text-sm font-semibold">✨ Balises Style</h4>
                       <div className="space-y-2 text-sm">
                         <div className="flex items-center gap-2">
-                          <code className="flex-shrink-0 rounded border bg-gray-100 px-2 py-1 text-xs">
+                          <code className="shrink-0 rounded border bg-gray-100 px-2 py-1 text-xs">
                             &lt;bold&gt;texte&lt;/bold&gt;
                           </code>
                           <span className="text-gray-400">→</span>
                           <span className="font-bold">texte en gras</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <code className="flex-shrink-0 rounded border bg-gray-100 px-2 py-1 text-xs">
+                          <code className="shrink-0 rounded border bg-gray-100 px-2 py-1 text-xs">
                             &lt;semi-bold&gt;texte&lt;/semi-bold&gt;
                           </code>
                           <span className="text-gray-400">→</span>
@@ -631,22 +639,73 @@ function ModalVideoPlayground() {
                 <span className="text-sm text-gray-700">Texte défilant (animation marquee)</span>
               </label>
               {previewProps.scrollingText && (
+                <div className="ml-6 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <label className="text-xs text-gray-600">Durée:</label>
+                    <input
+                      type="number"
+                      value={previewProps.scrollDuration}
+                      onChange={(e) =>
+                        setPreviewProps({
+                          ...previewProps,
+                          scrollDuration: parseInt(e.target.value) || 10,
+                        })
+                      }
+                      className="focus:ring-thai-orange w-16 rounded-md border border-gray-300 px-2 py-1 text-sm focus:ring-2 focus:outline-none"
+                      min="1"
+                      max="60"
+                      disabled={previewProps.scrollSyncWithVideo}
+                    />
+                    <span className="text-xs text-gray-600">secondes</span>
+                  </div>
+                  {/* Option synchronisation avec vidéo */}
+                  {previewProps.media?.endsWith('.mp4') || previewProps.media?.endsWith('.webm') ? (
+                    <label className="flex cursor-pointer items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={previewProps.scrollSyncWithVideo}
+                        onChange={(e) =>
+                          setPreviewProps({ ...previewProps, scrollSyncWithVideo: e.target.checked })
+                        }
+                        className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
+                      />
+                      <span className="text-xs text-gray-700">
+                        🔄 Synchroniser avec la vidéo (durée = vidéo × lectures)
+                      </span>
+                    </label>
+                  ) : null}
+                </div>
+              )}
+              {/* Animation Typing */}
+              <label className="flex cursor-pointer items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={previewProps.typingAnimation}
+                  onChange={(e) =>
+                    setPreviewProps({ ...previewProps, typingAnimation: e.target.checked })
+                  }
+                  className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
+                />
+                <span className="text-sm text-gray-700">Animation dactylographie (typing)</span>
+              </label>
+              {previewProps.typingAnimation && (
                 <div className="ml-6 flex items-center gap-2">
-                  <label className="text-xs text-gray-600">Durée:</label>
+                  <label className="text-xs text-gray-600">Vitesse:</label>
                   <input
                     type="number"
-                    value={previewProps.scrollDuration}
+                    value={previewProps.typingSpeed}
                     onChange={(e) =>
                       setPreviewProps({
                         ...previewProps,
-                        scrollDuration: parseInt(e.target.value) || 10,
+                        typingSpeed: parseInt(e.target.value) || 100,
                       })
                     }
                     className="focus:ring-thai-orange w-16 rounded-md border border-gray-300 px-2 py-1 text-sm focus:ring-2 focus:outline-none"
-                    min="1"
-                    max="60"
+                    min="10"
+                    max="500"
+                    step="10"
                   />
-                  <span className="text-xs text-gray-600">secondes</span>
+                  <span className="text-xs text-gray-600">ms/caractère</span>
                 </div>
               )}
             </div>
@@ -1162,6 +1221,9 @@ function ModalVideoPlayground() {
               cancelLink={previewProps.cancelLink}
               confirmLink={previewProps.confirmLink}
               thirdButtonLink={previewProps.thirdButtonLink}
+              typingAnimation={previewProps.typingAnimation}
+              typingSpeed={previewProps.typingSpeed}
+              scrollSyncWithVideo={previewProps.scrollSyncWithVideo}
               standalone={true}
               onCancel={() => console.log("Annulé (Preview)")}
               onConfirm={() => console.log("Confirmé (Preview)")}
@@ -1213,6 +1275,9 @@ function ModalVideoPlayground() {
         cancelLink={previewProps.cancelLink}
         confirmLink={previewProps.confirmLink}
         thirdButtonLink={previewProps.thirdButtonLink}
+        typingAnimation={previewProps.typingAnimation}
+        typingSpeed={previewProps.typingSpeed}
+        scrollSyncWithVideo={previewProps.scrollSyncWithVideo}
         onCancel={() => console.log("Annulé !")}
         onConfirm={() => console.log("Confirmé !")}
         onThirdButton={() => console.log("Troisième bouton cliqué !")}

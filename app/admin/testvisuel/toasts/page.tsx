@@ -666,10 +666,15 @@ function ToasterVideoPlayground() {
     position: ToastPosition
     customX: string
     customY: string
-    aspectRatio: "16:9" | "4:5" | "1:1" | undefined
+    aspectRatio: "16:9" | "4:5" | "1:1" | "auto" | undefined
     polaroid: boolean
+    // Polaroid padding props
+    polaroidPaddingSides: number
+    polaroidPaddingTop: number
+    polaroidPaddingBottom: number
     scrollingText: boolean
     scrollDuration: number
+    scrollSyncWithVideo: boolean
     borderColor: BorderColor
     customBorderColor: string
     borderWidth: 1 | 2 | 4 | "custom"
@@ -680,6 +685,9 @@ function ToasterVideoPlayground() {
     descriptionColor: DescriptionColor
     animateBorder: boolean
     hoverScale: boolean
+    // Animation typing
+    typingAnimation: boolean
+    typingSpeed: number
     // Lecture video (remplace loopVideo)
     playCount: 1 | 2 | "custom"
     customPlayCount: number
@@ -697,8 +705,13 @@ function ToasterVideoPlayground() {
     customY: "50%",
     aspectRatio: "16:9",
     polaroid: false,
+    // Polaroid padding defaults
+    polaroidPaddingSides: 3,
+    polaroidPaddingTop: 3,
+    polaroidPaddingBottom: 8,
     scrollingText: false,
     scrollDuration: 10,
+    scrollSyncWithVideo: false,
     borderColor: "thai-orange",
     customBorderColor: "border-purple-500",
     borderWidth: 2,
@@ -709,6 +722,9 @@ function ToasterVideoPlayground() {
     descriptionColor: "thai-green",
     animateBorder: false,
     hoverScale: false,
+    // Animation typing
+    typingAnimation: false,
+    typingSpeed: 100,
     // Lecture video
     playCount: 1,
     customPlayCount: 3,
@@ -729,8 +745,13 @@ function ToasterVideoPlayground() {
       customY: props.position === "custom" ? props.customY : undefined,
       aspectRatio: props.aspectRatio,
       polaroid: props.polaroid,
+      // Polaroid padding props (only when polaroid is enabled)
+      polaroidPaddingSides: props.polaroid ? props.polaroidPaddingSides : undefined,
+      polaroidPaddingTop: props.polaroid ? props.polaroidPaddingTop : undefined,
+      polaroidPaddingBottom: props.polaroid ? props.polaroidPaddingBottom : undefined,
       scrollingText: props.scrollingText,
       scrollDuration: props.scrollDuration,
+      scrollSyncWithVideo: props.scrollSyncWithVideo,
       borderColor: props.borderColor === "custom" ? "custom" : props.borderColor,
       customBorderColor: props.borderColor === "custom" ? props.customBorderColor : undefined,
       borderWidth: props.borderWidth,
@@ -741,6 +762,9 @@ function ToasterVideoPlayground() {
       descriptionColor: props.descriptionColor,
       animateBorder: props.animateBorder,
       hoverScale: props.hoverScale,
+      // Animation typing
+      typingAnimation: props.typingAnimation,
+      typingSpeed: props.typingAnimation ? props.typingSpeed : undefined,
       // Lecture video
       playCount: props.playCount,
       customPlayCount: props.playCount === "custom" ? props.customPlayCount : undefined,
@@ -765,7 +789,13 @@ function ToasterVideoPlayground() {
       }
     }
     if (props.aspectRatio) lines.push(`  aspectRatio: "${props.aspectRatio}",`)
-    if (props.polaroid) lines.push(`  polaroid: true,`)
+    if (props.polaroid) {
+      lines.push(`  polaroid: true,`)
+      // Include padding values if different from defaults
+      if (props.polaroidPaddingSides !== 3) lines.push(`  polaroidPaddingSides: ${props.polaroidPaddingSides},`)
+      if (props.polaroidPaddingTop !== 3) lines.push(`  polaroidPaddingTop: ${props.polaroidPaddingTop},`)
+      if (props.polaroidPaddingBottom !== 8) lines.push(`  polaroidPaddingBottom: ${props.polaroidPaddingBottom},`)
+    }
     if (props.scrollingText) {
       lines.push(`  scrollingText: true,`)
       lines.push(`  scrollDuration: ${props.scrollDuration},`)
@@ -791,6 +821,11 @@ function ToasterVideoPlayground() {
       lines.push(`  descriptionColor: "${props.descriptionColor}",`)
     if (props.animateBorder) lines.push(`  animateBorder: true,`)
     if (props.hoverScale) lines.push(`  hoverScale: true,`)
+    // Animation typing
+    if (props.typingAnimation) {
+      lines.push(`  typingAnimation: true,`)
+      if (props.typingSpeed !== 100) lines.push(`  typingSpeed: ${props.typingSpeed},`)
+    }
     // Lecture video
     if (props.playCount !== 1) {
       lines.push(`  playCount: ${props.playCount === "custom" ? `"custom"` : props.playCount},`)
@@ -1214,6 +1249,47 @@ function ToasterVideoPlayground() {
               />
               <span className="text-sm text-gray-700">Style Polaroid</span>
             </label>
+            {/* Polaroid padding controls - visible only when polaroid is enabled */}
+            {props.polaroid && (
+              <div className="ml-6 space-y-2 rounded-md border border-gray-200 bg-gray-50 p-3">
+                <p className="text-xs font-medium text-gray-600">Padding Polaroid</p>
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="space-y-1">
+                    <label className="text-xs text-gray-500">Côtés</label>
+                    <input
+                      type="number"
+                      value={props.polaroidPaddingSides}
+                      onChange={(e) => setProps({ ...props, polaroidPaddingSides: Number(e.target.value) })}
+                      className="focus:ring-thai-orange w-full rounded-md border border-gray-300 px-2 py-1 text-sm focus:ring-2 focus:outline-none"
+                      min="0"
+                      max="20"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs text-gray-500">Haut</label>
+                    <input
+                      type="number"
+                      value={props.polaroidPaddingTop}
+                      onChange={(e) => setProps({ ...props, polaroidPaddingTop: Number(e.target.value) })}
+                      className="focus:ring-thai-orange w-full rounded-md border border-gray-300 px-2 py-1 text-sm focus:ring-2 focus:outline-none"
+                      min="0"
+                      max="20"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs text-gray-500">Bas</label>
+                    <input
+                      type="number"
+                      value={props.polaroidPaddingBottom}
+                      onChange={(e) => setProps({ ...props, polaroidPaddingBottom: Number(e.target.value) })}
+                      className="focus:ring-thai-orange w-full rounded-md border border-gray-300 px-2 py-1 text-sm focus:ring-2 focus:outline-none"
+                      min="0"
+                      max="20"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
             <label className="flex cursor-pointer items-center gap-2">
               <input
                 type="checkbox"
@@ -1224,17 +1300,34 @@ function ToasterVideoPlayground() {
               <span className="text-sm text-gray-700">Texte defilant (marquee)</span>
             </label>
             {props.scrollingText && (
-              <div className="ml-6 flex items-center gap-2">
-                <label className="text-xs text-gray-600">Duree:</label>
-                <input
-                  type="number"
-                  value={props.scrollDuration}
-                  onChange={(e) => setProps({ ...props, scrollDuration: Number(e.target.value) })}
-                  className="focus:ring-thai-orange w-16 rounded-md border border-gray-300 px-2 py-1 text-sm focus:ring-2 focus:outline-none"
-                  min="1"
-                  max="60"
-                />
-                <span className="text-xs text-gray-600">secondes</span>
+              <div className="ml-6 space-y-2">
+                <div className="flex items-center gap-2">
+                  <label className="text-xs text-gray-600">Duree:</label>
+                  <input
+                    type="number"
+                    value={props.scrollDuration}
+                    onChange={(e) => setProps({ ...props, scrollDuration: Number(e.target.value) })}
+                    className="focus:ring-thai-orange w-16 rounded-md border border-gray-300 px-2 py-1 text-sm focus:ring-2 focus:outline-none"
+                    min="1"
+                    max="60"
+                    disabled={props.scrollSyncWithVideo}
+                  />
+                  <span className="text-xs text-gray-600">secondes</span>
+                </div>
+                {/* Option synchronisation avec vidéo */}
+                {props.media?.endsWith('.mp4') || props.media?.endsWith('.webm') ? (
+                  <label className="flex cursor-pointer items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={props.scrollSyncWithVideo}
+                      onChange={(e) => setProps({ ...props, scrollSyncWithVideo: e.target.checked })}
+                      className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
+                    />
+                    <span className="text-xs text-gray-700">
+                      🔄 Synchroniser avec la vidéo (durée = vidéo × lectures)
+                    </span>
+                  </label>
+                ) : null}
               </div>
             )}
             <label className="flex cursor-pointer items-center gap-2">
@@ -1255,6 +1348,30 @@ function ToasterVideoPlayground() {
               />
               <span className="text-sm text-gray-700">Effet scale au hover</span>
             </label>
+            <label className="flex cursor-pointer items-center gap-2">
+              <input
+                type="checkbox"
+                checked={props.typingAnimation}
+                onChange={(e) => setProps({ ...props, typingAnimation: e.target.checked })}
+                className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
+              />
+              <span className="text-sm text-gray-700">Animation dactylographie (typing)</span>
+            </label>
+            {props.typingAnimation && (
+              <div className="ml-6 flex items-center gap-2">
+                <label className="text-xs text-gray-600">Vitesse:</label>
+                <input
+                  type="number"
+                  value={props.typingSpeed}
+                  onChange={(e) => setProps({ ...props, typingSpeed: Number(e.target.value) })}
+                  className="focus:ring-thai-orange w-16 rounded-md border border-gray-300 px-2 py-1 text-sm focus:ring-2 focus:outline-none"
+                  min="30"
+                  max="500"
+                  step="10"
+                />
+                <span className="text-xs text-gray-600">ms/caractère</span>
+              </div>
+            )}
             <label className="flex cursor-pointer items-center gap-2">
               <input
                 type="checkbox"

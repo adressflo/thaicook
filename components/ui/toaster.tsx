@@ -13,6 +13,7 @@ import {
   positionClassMap,
   type ToastPosition,
 } from "@/components/ui/toast"
+import { TypingAnimation } from "@/components/ui/typing-animation"
 import { cn } from "@/lib/utils"
 
 export function Toaster() {
@@ -40,7 +41,7 @@ export function Toaster() {
     <>
       {Object.entries(toastsByPosition).map(([position, positionToasts]) => (
         <ToastProvider key={position}>
-          {positionToasts.map(function ({ id, title, description, action, titleColor, titleFontWeight, descriptionColor, descriptionFontWeight, position: _toastPosition, customX, customY, ...props }) {
+          {positionToasts.map(function ({ id, title, description, action, titleColor, titleFontWeight, descriptionColor, descriptionFontWeight, position: _toastPosition, customX, customY, typingAnimation, typingSpeed = 100, ...props }) {
             return (
               <Toast key={id} {...props}>
                 <div className="flex w-full flex-col items-center gap-3">
@@ -52,7 +53,11 @@ export function Toaster() {
                         titleFontWeight ? fontWeightMap[titleFontWeight] : "font-bold"
                       )}
                     >
-                      {title}
+                      {typingAnimation ? (
+                        <TypingAnimation duration={typingSpeed}>{title}</TypingAnimation>
+                      ) : (
+                        title
+                      )}
                     </ToastTitle>
                   )}
                   {description && (
@@ -63,7 +68,11 @@ export function Toaster() {
                         descriptionFontWeight ? fontWeightMap[descriptionFontWeight] : "font-semibold"
                       )}
                     >
-                      {description}
+                      {typingAnimation ? (
+                        <TypingAnimation duration={typingSpeed}>{description}</TypingAnimation>
+                      ) : (
+                        description
+                      )}
                     </ToastDescription>
                   )}
                 </div>
@@ -73,7 +82,7 @@ export function Toaster() {
           })}
           <ToastViewport
             className={cn(
-              "fixed z-[100] flex max-h-screen w-full flex-col-reverse p-4 md:max-w-fit",
+              "fixed z-100 flex max-h-screen w-full flex-col-reverse p-4 md:max-w-fit",
               position === "custom"
                 ? ""
                 : positionClassMap[position as ToastPosition]
