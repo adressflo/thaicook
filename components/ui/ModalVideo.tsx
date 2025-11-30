@@ -62,6 +62,7 @@ interface ModalVideoProps {
   borderColor?: "thai-orange" | "thai-green" | "red" | "blue" | string // Couleur bordure (string pour custom)
   borderWidth?: number // Épaisseur bordure (1, 2, 4, ou custom)
   shadowSize?: "sm" | "lg" | "2xl" // Taille ombre
+  animateBorder?: boolean // Animation bordure pulsante (défaut: false)
 
   // Polaroid cadre custom (padding)
   polaroidPaddingSides?: number // Padding gauche/droite (défaut 3)
@@ -107,6 +108,7 @@ export function ModalVideoContent({
   standalone = false,
   borderColor = "thai-orange",
   borderWidth = 2,
+  animateBorder = false,
   polaroidPaddingSides = 3,
   polaroidPaddingTop = 3,
   polaroidPaddingBottom = 8,
@@ -209,7 +211,32 @@ export function ModalVideoContent({
     "thai-orange": "border-thai-orange",
     "thai-green": "border-thai-green",
     "red": "border-red-500",
-    "blue": "border-blue-500"
+    "blue": "border-blue-500",
+    "yellow": "border-yellow-500",
+    "purple": "border-purple-500",
+  }
+
+  // Map des couleurs hex pour l'animation de bordure dynamique
+  const borderColorHexMap: Record<string, { base: string; light: string; rgba: string; rgbaStrong: string }> = {
+    "thai-orange": { base: "#ff7b54", light: "#ffb386", rgba: "rgba(255, 123, 84, 0.4)", rgbaStrong: "rgba(255, 123, 84, 0.6)" },
+    "thai-green": { base: "#2d5016", light: "#4a7c23", rgba: "rgba(45, 80, 22, 0.4)", rgbaStrong: "rgba(45, 80, 22, 0.6)" },
+    "red": { base: "#ef4444", light: "#f87171", rgba: "rgba(239, 68, 68, 0.4)", rgbaStrong: "rgba(239, 68, 68, 0.6)" },
+    "blue": { base: "#3b82f6", light: "#60a5fa", rgba: "rgba(59, 130, 246, 0.4)", rgbaStrong: "rgba(59, 130, 246, 0.6)" },
+    "yellow": { base: "#eab308", light: "#facc15", rgba: "rgba(234, 179, 8, 0.4)", rgbaStrong: "rgba(234, 179, 8, 0.6)" },
+    "purple": { base: "#a855f7", light: "#c084fc", rgba: "rgba(168, 85, 247, 0.4)", rgbaStrong: "rgba(168, 85, 247, 0.6)" },
+  }
+
+  // Variables CSS pour l'animation de bordure dynamique
+  const getMovingBorderStyle = (): React.CSSProperties => {
+    if (!animateBorder) return {}
+    const colorKey = borderColor in borderColorHexMap ? borderColor : "thai-orange"
+    const colors = borderColorHexMap[colorKey]
+    return {
+      "--moving-border-color": colors.base,
+      "--moving-border-light": colors.light,
+      "--moving-border-glow": colors.rgba,
+      "--moving-border-glow-strong": colors.rgbaStrong,
+    } as React.CSSProperties
   }
 
   // Détection du type de média
@@ -310,22 +337,29 @@ export function ModalVideoContent({
       {media && (
         <div className={cn("relative w-full", standalone && "shrink-0")}>
           {polaroid ? (
-            // Mode Polaroid : cadre blanc + bordure intérieure autour de la photo
+            // Mode Polaroid : cadre BLANC avec bordure colorée
             <div
-              className="bg-white"
+              className={cn(
+                "border-solid bg-white",
+                borderColor in borderColorClass ? borderColorClass[borderColor as keyof typeof borderColorClass] : "",
+                animateBorder && "animate-moving-border"
+              )}
               style={{
-                padding: `${polaroidPaddingTop * 0.25}rem ${polaroidPaddingSides * 0.25}rem ${polaroidPaddingBottom * 0.25}rem ${polaroidPaddingSides * 0.25}rem`
+                padding: `${polaroidPaddingTop * 0.25}rem ${polaroidPaddingSides * 0.25}rem ${polaroidPaddingBottom * 0.25}rem ${polaroidPaddingSides * 0.25}rem`,
+                borderWidth: `${borderWidth}px`,
+                ...(!(borderColor in borderColorClass) && { borderColor: borderColor }),
+                ...getMovingBorderStyle()
               }}
             >
               <div
                 className={cn(
                   "relative w-full overflow-hidden border-solid",
                   aspectRatioClass[aspectRatio],
-                  // Si borderColor est une clé connue, utiliser borderColorClass, sinon utiliser comme classe custom
-                  borderColor in borderColorClass ? borderColorClass[borderColor as keyof typeof borderColorClass] : borderColor
+                  borderColor in borderColorClass ? borderColorClass[borderColor as keyof typeof borderColorClass] : ""
                 )}
                 style={{
-                  borderWidth: `${borderWidth}px`
+                  borderWidth: `${borderWidth}px`,
+                  ...(!(borderColor in borderColorClass) && { borderColor: borderColor })
                 }}
               >
                 {isVideo ? (
@@ -493,6 +527,7 @@ export function ModalVideo({
   borderColor = "thai-orange",
   borderWidth = 2,
   shadowSize = "2xl",
+  animateBorder = false,
   position = "center",
   customX,
   customY,
@@ -511,7 +546,9 @@ export function ModalVideo({
     "thai-orange": "border-thai-orange",
     "thai-green": "border-thai-green",
     "red": "border-red-500",
-    "blue": "border-blue-500"
+    "blue": "border-blue-500",
+    "yellow": "border-yellow-500",
+    "purple": "border-purple-500",
   }
 
   const borderWidthClass = {
@@ -524,6 +561,29 @@ export function ModalVideo({
     "sm": "shadow-sm",
     "lg": "shadow-lg",
     "2xl": "shadow-2xl"
+  }
+
+  // Map des couleurs hex pour l'animation de bordure dynamique
+  const borderColorHexMap: Record<string, { base: string; light: string; rgba: string; rgbaStrong: string }> = {
+    "thai-orange": { base: "#ff7b54", light: "#ffb386", rgba: "rgba(255, 123, 84, 0.4)", rgbaStrong: "rgba(255, 123, 84, 0.6)" },
+    "thai-green": { base: "#2d5016", light: "#4a7c23", rgba: "rgba(45, 80, 22, 0.4)", rgbaStrong: "rgba(45, 80, 22, 0.6)" },
+    "red": { base: "#ef4444", light: "#f87171", rgba: "rgba(239, 68, 68, 0.4)", rgbaStrong: "rgba(239, 68, 68, 0.6)" },
+    "blue": { base: "#3b82f6", light: "#60a5fa", rgba: "rgba(59, 130, 246, 0.4)", rgbaStrong: "rgba(59, 130, 246, 0.6)" },
+    "yellow": { base: "#eab308", light: "#facc15", rgba: "rgba(234, 179, 8, 0.4)", rgbaStrong: "rgba(234, 179, 8, 0.6)" },
+    "purple": { base: "#a855f7", light: "#c084fc", rgba: "rgba(168, 85, 247, 0.4)", rgbaStrong: "rgba(168, 85, 247, 0.6)" },
+  }
+
+  // Variables CSS pour l'animation de bordure dynamique
+  const getMovingBorderStyle = (): React.CSSProperties => {
+    if (!animateBorder) return {}
+    const colorKey = borderColor in borderColorHexMap ? borderColor : "thai-orange"
+    const colors = borderColorHexMap[colorKey]
+    return {
+      "--moving-border-color": colors.base,
+      "--moving-border-light": colors.light,
+      "--moving-border-glow": colors.rgba,
+      "--moving-border-glow-strong": colors.rgbaStrong,
+    } as React.CSSProperties
   }
 
   // Mapping des positions
@@ -548,6 +608,8 @@ export function ModalVideo({
           borderColor in borderColorClass ? borderColorClass[borderColor as keyof typeof borderColorClass] : borderColor,
           shadowClass[shadowSize],
           rotation && "-rotate-2 hover:rotate-0 transition-transform duration-300",
+          // Animation bordure
+          animateBorder && "animate-moving-border",
           // Position du modal
           positionClass[position]
         )}
@@ -569,7 +631,9 @@ export function ModalVideo({
                 top: customY || undefined,
                 transform: "none", // Désactiver les transforms par défaut
               }
-            : {})
+            : {}),
+          // Animation bordure dynamique
+          ...getMovingBorderStyle()
         }}
         onInteractOutside={(e) => {
           // Si autoClose est false, empêcher la fermeture au clic sur le backdrop
@@ -594,6 +658,7 @@ export function ModalVideo({
           description={description}
           borderColor={borderColor}
           borderWidth={borderWidth}
+          animateBorder={animateBorder}
           titleColor={props.titleColor}
           {...props}
         />

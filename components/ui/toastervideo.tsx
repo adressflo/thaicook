@@ -58,6 +58,17 @@ const maxWidthMap: Record<MaxWidth, string> = {
   "xl": "max-w-[600px]",
 }
 
+// Map des couleurs hex pour l'animation de bordure dynamique
+const borderColorHexMap: Record<BorderColor, { base: string; light: string; rgba: string; rgbaStrong: string }> = {
+  "thai-orange": { base: "#ff7b54", light: "#ffb386", rgba: "rgba(255, 123, 84, 0.4)", rgbaStrong: "rgba(255, 123, 84, 0.6)" },
+  "thai-green": { base: "#2d5016", light: "#4a7c23", rgba: "rgba(45, 80, 22, 0.4)", rgbaStrong: "rgba(45, 80, 22, 0.6)" },
+  "red": { base: "#ef4444", light: "#f87171", rgba: "rgba(239, 68, 68, 0.4)", rgbaStrong: "rgba(239, 68, 68, 0.6)" },
+  "blue": { base: "#3b82f6", light: "#60a5fa", rgba: "rgba(59, 130, 246, 0.4)", rgbaStrong: "rgba(59, 130, 246, 0.6)" },
+  "yellow": { base: "#eab308", light: "#facc15", rgba: "rgba(234, 179, 8, 0.4)", rgbaStrong: "rgba(234, 179, 8, 0.6)" },
+  "purple": { base: "#a855f7", light: "#c084fc", rgba: "rgba(168, 85, 247, 0.4)", rgbaStrong: "rgba(168, 85, 247, 0.6)" },
+  "custom": { base: "#2d5016", light: "#4a7c23", rgba: "rgba(45, 80, 22, 0.4)", rgbaStrong: "rgba(45, 80, 22, 0.6)" },
+}
+
 export function ToasterVideo() {
   const { toasts, dismiss } = useToastVideo()
 
@@ -154,6 +165,7 @@ interface ToastVideoItemProps {
   descriptionFontWeight?: FontWeight
   animateBorder?: boolean
   hoverScale?: boolean
+  rotation?: boolean
   // Polaroid padding props
   polaroidPaddingSides?: number
   polaroidPaddingTop?: number
@@ -199,6 +211,7 @@ function ToastVideoItem({
   descriptionFontWeight = "semibold",
   animateBorder = false,
   hoverScale = false,
+  rotation = false,
   // Polaroid padding props
   polaroidPaddingSides = 3,
   polaroidPaddingTop = 3,
@@ -329,6 +342,19 @@ function ToastVideoItem({
     ? customBorderWidth
     : typeof borderWidth === "number" ? borderWidth : 2
 
+  // Variables CSS pour l'animation de bordure dynamique
+  const getMovingBorderStyle = (): React.CSSProperties => {
+    if (!animateBorder) return {}
+    const colorKey = borderColor === "custom" ? "thai-green" : borderColor
+    const colors = borderColorHexMap[colorKey]
+    return {
+      "--moving-border-color": borderColor === "custom" && customBorderColor ? customBorderColor : colors.base,
+      "--moving-border-light": colors.light,
+      "--moving-border-glow": colors.rgba,
+      "--moving-border-glow-strong": colors.rgbaStrong,
+    } as React.CSSProperties
+  }
+
   // Rendu du media (video ou image)
   const renderMedia = () => {
     if (!media) return null
@@ -430,20 +456,26 @@ function ToastVideoItem({
       <Toast
         {...props}
         className={cn(
-          "flex-col items-center bg-transparent transition-all duration-300 p-0",
+          "flex-col items-center bg-transparent transition-all duration-300 p-0 border-0",
           shadowSizeMap[shadowSize],
-          animateBorder && "animate-moving-border",
           hoverScale && "hover:scale-105",
+          rotation && "rotate-[-2deg] hover:rotate-0",
           maxWidthMap[maxWidth],
+          animateBorder && "!overflow-visible",
           props.className
         )}
       >
         {/* Cadre extérieur avec bordure */}
         <div
-          className={cn("border-solid bg-white", borderColorClass)}
+          className={cn(
+            "border-solid bg-white",
+            !animateBorder && borderColorClass,
+            animateBorder && "animate-moving-border"
+          )}
           style={{
             padding: `${polaroidPaddingTop * 0.25}rem ${polaroidPaddingSides * 0.25}rem ${polaroidPaddingBottom * 0.25}rem`,
             borderWidth: `${borderWidthValue}px`,
+            ...getMovingBorderStyle()
           }}
         >
           {/* Cadre intérieur avec bordure autour du media */}
@@ -486,12 +518,13 @@ function ToastVideoItem({
         shadowSizeMap[shadowSize],
         animateBorder && "animate-moving-border",
         hoverScale && "hover:scale-105",
+        rotation && "rotate-[-2deg] hover:rotate-0",
         "min-w-[320px] overflow-hidden rounded-xl p-0 border-solid",
         borderColorClass,
         maxWidthMap[maxWidth],
         props.className
       )}
-      style={{ borderWidth: `${borderWidthValue}px` }}
+      style={{ borderWidth: `${borderWidthValue}px`, ...getMovingBorderStyle() }}
     >
       {/* Section image/video */}
       {media && (

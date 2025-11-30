@@ -43,6 +43,7 @@ type ToasterToastVideo = ToastProps & {
   descriptionFontWeight?: FontWeight
   animateBorder?: boolean
   hoverScale?: boolean
+  rotation?: boolean
   // Polaroid padding props
   polaroidPaddingSides?: number
   polaroidPaddingTop?: number

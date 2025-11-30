@@ -273,6 +273,8 @@ function ModalVideoPlayground() {
     typingSpeed: number
     // Synchronisation marquee avec vidéo
     scrollSyncWithVideo: boolean
+    // Animation bordure
+    animateBorder: boolean
   }>({
     title: "Vidéo - <orange>Aperçu</orange>",
     description:
@@ -310,7 +312,21 @@ function ModalVideoPlayground() {
     typingAnimation: false,
     typingSpeed: 100,
     scrollSyncWithVideo: false,
+    animateBorder: false,
   })
+
+  // Envoyer les props au BroadcastChannel à chaque changement pour mise à jour temps réel
+  useEffect(() => {
+    const channel = new BroadcastChannel("preview_channel")
+    channel.postMessage({
+      type: "UPDATE_PROPS",
+      payload: {
+        component: "ModalVideo",
+        ...previewProps,
+      },
+    })
+    channel.close()
+  }, [previewProps])
 
   // Fonction pour générer le code JSX complet
   const generateCode = () => {
@@ -323,7 +339,7 @@ function ModalVideoPlayground() {
   aspectRatio="${previewProps.aspectRatio}"
   polaroid={${previewProps.polaroid}}
   scrollingText={${previewProps.scrollingText}}
-  scrollDuration={${previewProps.scrollDuration}}
+  scrollDuration={${previewProps.scrollDuration}}${previewProps.scrollSyncWithVideo ? `\n  scrollSyncWithVideo={true}` : ""}
   loopCount={${previewProps.loopCount}}
   autoClose={${previewProps.autoClose}}
   buttonLayout="${previewProps.buttonLayout}"
@@ -334,7 +350,7 @@ function ModalVideoPlayground() {
   maxWidth="${previewProps.maxWidth}"${previewProps.maxWidth === "custom" && previewProps.customWidth ? `\n  customWidth="${previewProps.customWidth}"` : ""}${previewProps.maxWidth === "custom" && previewProps.customHeight ? `\n  customHeight="${previewProps.customHeight}"` : ""}
   borderColor="${previewProps.borderColor}"
   borderWidth={${previewProps.borderWidth}}
-  shadowSize="${previewProps.shadowSize}"${previewProps.position !== "center" ? `\n  position="${previewProps.position}"` : ""}${previewProps.position === "custom" && previewProps.customX ? `\n  customX="${previewProps.customX}"` : ""}${previewProps.position === "custom" && previewProps.customY ? `\n  customY="${previewProps.customY}"` : ""}${previewProps.titleColor !== "thai-green" ? `\n  titleColor="${previewProps.titleColor}"` : ""}${previewProps.typingAnimation ? `\n  typingAnimation={true}` : ""}${previewProps.typingAnimation && previewProps.typingSpeed !== 100 ? `\n  typingSpeed={${previewProps.typingSpeed}}` : ""}
+  shadowSize="${previewProps.shadowSize}"${previewProps.animateBorder ? `\n  animateBorder={true}` : ""}${previewProps.position !== "center" ? `\n  position="${previewProps.position}"` : ""}${previewProps.position === "custom" && previewProps.customX ? `\n  customX="${previewProps.customX}"` : ""}${previewProps.position === "custom" && previewProps.customY ? `\n  customY="${previewProps.customY}"` : ""}${previewProps.titleColor !== "thai-green" ? `\n  titleColor="${previewProps.titleColor}"` : ""}${previewProps.typingAnimation ? `\n  typingAnimation={true}` : ""}${previewProps.typingAnimation && previewProps.typingSpeed !== 100 ? `\n  typingSpeed={${previewProps.typingSpeed}}` : ""}
   onCancel={() => console.log("Annulé")}
   onConfirm={() => console.log("Confirmé")}
   onThirdButton={() => console.log("Troisième action")}
@@ -364,6 +380,63 @@ function ModalVideoPlayground() {
               Contrôles Interactifs
             </h4>
             <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  const params = new URLSearchParams()
+                  params.set("component", "ModalVideo")
+                  params.set("title", previewProps.title)
+                  params.set("description", previewProps.description)
+                  params.set("media", previewProps.media)
+                  params.set("aspectRatio", previewProps.aspectRatio)
+                  params.set("polaroid", previewProps.polaroid.toString())
+                  params.set("scrollingText", previewProps.scrollingText.toString())
+                  params.set("scrollDuration", previewProps.scrollDuration.toString())
+                  params.set("loopCount", previewProps.loopCount.toString())
+                  params.set("buttonLayout", previewProps.buttonLayout)
+                  params.set("cancelText", previewProps.cancelText)
+                  params.set("confirmText", previewProps.confirmText)
+                  params.set("thirdButtonText", previewProps.thirdButtonText)
+                  params.set("rotation", previewProps.rotation.toString())
+                  params.set("maxWidth", previewProps.maxWidth)
+                  params.set("customWidth", previewProps.customWidth)
+                  params.set("customHeight", previewProps.customHeight)
+                  params.set("borderColor", previewProps.borderColor)
+                  params.set("customBorderColor", previewProps.customBorderColor)
+                  params.set("borderWidth", previewProps.borderWidth.toString())
+                  params.set("customBorderWidth", previewProps.customBorderWidth.toString())
+                  params.set("shadowSize", previewProps.shadowSize)
+                  params.set("polaroidPaddingSides", previewProps.polaroidPaddingSides.toString())
+                  params.set("polaroidPaddingTop", previewProps.polaroidPaddingTop.toString())
+                  params.set("polaroidPaddingBottom", previewProps.polaroidPaddingBottom.toString())
+                  params.set("autoClose", previewProps.autoClose.toString())
+                  params.set("cancelLink", previewProps.cancelLink)
+                  params.set("confirmLink", previewProps.confirmLink)
+                  params.set("thirdButtonLink", previewProps.thirdButtonLink)
+                  params.set("position", previewProps.position)
+                  params.set("customX", previewProps.customX)
+                  params.set("customY", previewProps.customY)
+                  params.set("titleColor", previewProps.titleColor)
+                  params.set("typingAnimation", previewProps.typingAnimation.toString())
+                  params.set("typingSpeed", previewProps.typingSpeed.toString())
+                  params.set("scrollSyncWithVideo", previewProps.scrollSyncWithVideo.toString())
+                  params.set("animateBorder", previewProps.animateBorder.toString())
+
+                  const channel = new BroadcastChannel("preview_channel")
+                  channel.postMessage({
+                    type: "UPDATE_PROPS",
+                    payload: {
+                      component: "ModalVideo",
+                      ...previewProps,
+                    },
+                  })
+
+                  window.open(`/preview?${params.toString()}`, "_blank", "width=600,height=700")
+                }}
+                className="border-blue-500 text-blue-500 transition-all duration-200 hover:bg-blue-500 hover:text-white"
+              >
+                👁️ Visualisation
+              </Button>
               <Button
                 variant="outline"
                 onClick={handleCopyCode}
@@ -909,6 +982,19 @@ function ModalVideoPlayground() {
                 </span>
               </label>
 
+              {/* Animation bordure pulsante - CHECKBOX */}
+              <label className="flex cursor-pointer items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={previewProps.animateBorder}
+                  onChange={(e) => setPreviewProps({ ...previewProps, animateBorder: e.target.checked })}
+                  className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
+                />
+                <span className="text-sm text-gray-700">
+                  ✨ Animation bordure pulsante (couleur dynamique)
+                </span>
+              </label>
+
               {/* Taille modal - BUTTON GROUP */}
               <div>
                 <label className="text-xs text-gray-600">Taille modal</label>
@@ -1224,6 +1310,7 @@ function ModalVideoPlayground() {
               typingAnimation={previewProps.typingAnimation}
               typingSpeed={previewProps.typingSpeed}
               scrollSyncWithVideo={previewProps.scrollSyncWithVideo}
+              animateBorder={previewProps.animateBorder}
               standalone={true}
               onCancel={() => console.log("Annulé (Preview)")}
               onConfirm={() => console.log("Confirmé (Preview)")}
@@ -1278,6 +1365,7 @@ function ModalVideoPlayground() {
         typingAnimation={previewProps.typingAnimation}
         typingSpeed={previewProps.typingSpeed}
         scrollSyncWithVideo={previewProps.scrollSyncWithVideo}
+        animateBorder={previewProps.animateBorder}
         onCancel={() => console.log("Annulé !")}
         onConfirm={() => console.log("Confirmé !")}
         onThirdButton={() => console.log("Troisième bouton cliqué !")}

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
@@ -53,11 +53,15 @@ function ToasterPlayground() {
     descriptionFontWeight: FontWeight
     animateBorder: boolean
     hoverScale: boolean
+    rotation: boolean
     position: ToastPosition
     customX: string
     customY: string
     redirectUrl: string
     redirectBehavior: RedirectBehavior
+    // Animation typing
+    typingAnimation: boolean
+    typingSpeed: number
   }>({
     title: "Notification",
     description: "Ceci est un message de notification",
@@ -77,12 +81,29 @@ function ToasterPlayground() {
     descriptionFontWeight: "semibold",
     animateBorder: false,
     hoverScale: false,
+    rotation: false,
     position: "bottom-right",
     customX: "50%",
     customY: "50%",
     redirectUrl: "",
     redirectBehavior: "auto",
+    // Animation typing
+    typingAnimation: false,
+    typingSpeed: 100,
   })
+
+  // Envoyer les props au BroadcastChannel à chaque changement pour mise à jour temps réel
+  useEffect(() => {
+    const channel = new BroadcastChannel("preview_channel")
+    channel.postMessage({
+      type: "UPDATE_PROPS",
+      payload: {
+        component: "Toaster",
+        ...props,
+      },
+    })
+    channel.close()
+  }, [props])
 
   const handleShowToast = () => {
     toast({
@@ -103,11 +124,15 @@ function ToasterPlayground() {
       descriptionFontWeight: props.descriptionFontWeight,
       animateBorder: props.animateBorder,
       hoverScale: props.hoverScale,
+      rotation: props.rotation,
       position: props.position,
       customX: props.position === "custom" ? props.customX : undefined,
       customY: props.position === "custom" ? props.customY : undefined,
       redirectUrl: props.redirectUrl || undefined,
       redirectBehavior: props.redirectUrl ? props.redirectBehavior : undefined,
+      // Animation typing
+      typingAnimation: props.typingAnimation,
+      typingSpeed: props.typingAnimation ? props.typingSpeed : undefined,
     })
   }
 
@@ -150,6 +175,12 @@ function ToasterPlayground() {
       lines.push(`  descriptionFontWeight: "${props.descriptionFontWeight}",`)
     if (props.animateBorder) lines.push(`  animateBorder: true,`)
     if (props.hoverScale) lines.push(`  hoverScale: true,`)
+    if (props.rotation) lines.push(`  rotation: true,`)
+    // Animation typing
+    if (props.typingAnimation) {
+      lines.push(`  typingAnimation: true,`)
+      if (props.typingSpeed !== 100) lines.push(`  typingSpeed: ${props.typingSpeed},`)
+    }
     if (props.redirectUrl) {
       lines.push(`  redirectUrl: "${props.redirectUrl}",`)
       lines.push(`  redirectBehavior: "${props.redirectBehavior}",`)
@@ -207,6 +238,8 @@ function ToasterPlayground() {
                 params.set("customY", props.customY)
                 params.set("redirectUrl", props.redirectUrl)
                 params.set("redirectBehavior", props.redirectBehavior)
+                params.set("typingAnimation", props.typingAnimation.toString())
+                params.set("typingSpeed", props.typingSpeed.toString())
 
                 const channel = new BroadcastChannel("preview_channel")
                 channel.postMessage({
@@ -590,6 +623,39 @@ function ToasterPlayground() {
               />
               <span className="text-sm text-gray-700">Effet scale au hover</span>
             </label>
+            <label className="flex cursor-pointer items-center gap-2">
+              <input
+                type="checkbox"
+                checked={props.rotation}
+                onChange={(e) => setProps({ ...props, rotation: e.target.checked })}
+                className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
+              />
+              <span className="text-sm text-gray-700">Animation rotation (rotate-[-2deg] hover:rotate-0)</span>
+            </label>
+            <label className="flex cursor-pointer items-center gap-2">
+              <input
+                type="checkbox"
+                checked={props.typingAnimation}
+                onChange={(e) => setProps({ ...props, typingAnimation: e.target.checked })}
+                className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
+              />
+              <span className="text-sm text-gray-700">Animation dactylographie (typing)</span>
+            </label>
+            {props.typingAnimation && (
+              <div className="ml-6 flex items-center gap-2">
+                <label className="text-xs text-gray-600">Vitesse:</label>
+                <input
+                  type="number"
+                  value={props.typingSpeed}
+                  onChange={(e) => setProps({ ...props, typingSpeed: Number(e.target.value) })}
+                  className="focus:ring-thai-orange w-16 rounded-md border border-gray-300 px-2 py-1 text-sm focus:ring-2 focus:outline-none"
+                  min="30"
+                  max="500"
+                  step="10"
+                />
+                <span className="text-xs text-gray-600">ms/caractère</span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -685,6 +751,7 @@ function ToasterVideoPlayground() {
     descriptionColor: DescriptionColor
     animateBorder: boolean
     hoverScale: boolean
+    rotation: boolean
     // Animation typing
     typingAnimation: boolean
     typingSpeed: number
@@ -722,6 +789,7 @@ function ToasterVideoPlayground() {
     descriptionColor: "thai-green",
     animateBorder: false,
     hoverScale: false,
+    rotation: false,
     // Animation typing
     typingAnimation: false,
     typingSpeed: 100,
@@ -734,6 +802,19 @@ function ToasterVideoPlayground() {
     redirectBehavior: "auto",
     showCloseButton: true,
   })
+
+  // Envoyer les props au BroadcastChannel à chaque changement pour mise à jour temps réel
+  useEffect(() => {
+    const channel = new BroadcastChannel("preview_channel")
+    channel.postMessage({
+      type: "UPDATE_PROPS",
+      payload: {
+        component: "ToasterVideo",
+        ...props,
+      },
+    })
+    channel.close()
+  }, [props])
 
   const handleShowToast = () => {
     toastVideo({
@@ -762,6 +843,7 @@ function ToasterVideoPlayground() {
       descriptionColor: props.descriptionColor,
       animateBorder: props.animateBorder,
       hoverScale: props.hoverScale,
+      rotation: props.rotation,
       // Animation typing
       typingAnimation: props.typingAnimation,
       typingSpeed: props.typingAnimation ? props.typingSpeed : undefined,
@@ -799,6 +881,7 @@ function ToasterVideoPlayground() {
     if (props.scrollingText) {
       lines.push(`  scrollingText: true,`)
       lines.push(`  scrollDuration: ${props.scrollDuration},`)
+      if (props.scrollSyncWithVideo) lines.push(`  scrollSyncWithVideo: true,`)
     }
     if (props.borderColor !== "thai-orange") {
       lines.push(`  borderColor: "${props.borderColor}",`)
@@ -821,6 +904,7 @@ function ToasterVideoPlayground() {
       lines.push(`  descriptionColor: "${props.descriptionColor}",`)
     if (props.animateBorder) lines.push(`  animateBorder: true,`)
     if (props.hoverScale) lines.push(`  hoverScale: true,`)
+    if (props.rotation) lines.push(`  rotation: true,`)
     // Animation typing
     if (props.typingAnimation) {
       lines.push(`  typingAnimation: true,`)
@@ -896,6 +980,14 @@ function ToasterVideoPlayground() {
                 params.set("redirectUrl", props.redirectUrl)
                 params.set("redirectBehavior", props.redirectBehavior)
                 params.set("showCloseButton", props.showCloseButton.toString())
+                params.set("typingAnimation", props.typingAnimation.toString())
+                params.set("typingSpeed", props.typingSpeed.toString())
+                params.set("scrollSyncWithVideo", props.scrollSyncWithVideo.toString())
+                params.set("polaroidPaddingSides", props.polaroidPaddingSides.toString())
+                params.set("polaroidPaddingTop", props.polaroidPaddingTop.toString())
+                params.set("polaroidPaddingBottom", props.polaroidPaddingBottom.toString())
+                params.set("titleFontWeight", props.titleFontWeight)
+                params.set("descriptionFontWeight", props.descriptionFontWeight)
 
                 const channel = new BroadcastChannel("preview_channel")
                 channel.postMessage({
@@ -1347,6 +1439,15 @@ function ToasterVideoPlayground() {
                 className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
               />
               <span className="text-sm text-gray-700">Effet scale au hover</span>
+            </label>
+            <label className="flex cursor-pointer items-center gap-2">
+              <input
+                type="checkbox"
+                checked={props.rotation}
+                onChange={(e) => setProps({ ...props, rotation: e.target.checked })}
+                className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
+              />
+              <span className="text-sm text-gray-700">Animation rotation (rotate-[-2deg] hover:rotate-0)</span>
             </label>
             <label className="flex cursor-pointer items-center gap-2">
               <input

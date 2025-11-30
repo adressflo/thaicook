@@ -8,6 +8,7 @@ import { PolaroidPhoto } from "@/components/shared/PolaroidPhoto"
 import { StatCard } from "@/components/shared/StatCard"
 import { Spice } from "@/components/shared/Spice"
 import { SmartSpice } from "@/components/shared/SmartSpice"
+import { ModalVideoContent } from "@/components/ui/ModalVideo"
 import { cn } from "@/lib/utils"
 import { TrendingUp } from "lucide-react"
 import { toast } from "@/hooks/use-toast"
@@ -61,7 +62,7 @@ function RenderContent() {
     customY: searchParams.get("customY") || "50%",
     size: searchParams.get("size") || "md",
     customSize: parseInt(searchParams.get("customSize") || "150"),
-    rotation: parseInt(searchParams.get("rotation") || "-3"),
+    rotation: searchParams.get("rotation") === "true",
     borderColor: searchParams.get("borderColor") || "thai-green",
     customBorderColor: searchParams.get("customBorderColor") || "",
     borderWidth:
@@ -83,6 +84,9 @@ function RenderContent() {
     descriptionFontWeight: searchParams.get("descriptionFontWeight") || "semibold",
     redirectUrl: searchParams.get("redirectUrl") || "",
     redirectBehavior: searchParams.get("redirectBehavior") || "auto",
+    // Animation typing
+    typingAnimation: searchParams.get("typingAnimation") === "true",
+    typingSpeed: parseInt(searchParams.get("typingSpeed") || "100"),
     // Props spécifiques ToasterVideo
     media: searchParams.get("media") || "",
     aspectRatio: searchParams.get("aspectRatio") || "16:9",
@@ -94,6 +98,24 @@ function RenderContent() {
     customPlayCount: parseInt(searchParams.get("customPlayCount") || "3"),
     customDuration: parseInt(searchParams.get("customDuration") || "0"),
     showCloseButton: searchParams.get("showCloseButton") !== "false",
+    // Synchronisation marquee avec vidéo
+    scrollSyncWithVideo: searchParams.get("scrollSyncWithVideo") === "true",
+    // Polaroid padding
+    polaroidPaddingSides: parseInt(searchParams.get("polaroidPaddingSides") || "3"),
+    polaroidPaddingTop: parseInt(searchParams.get("polaroidPaddingTop") || "3"),
+    polaroidPaddingBottom: parseInt(searchParams.get("polaroidPaddingBottom") || "8"),
+    // Font weights
+    titleFontWeight: searchParams.get("titleFontWeight") || "bold",
+    // Props spécifiques ModalVideo
+    loopCount: parseInt(searchParams.get("loopCount") || "0"),
+    buttonLayout: searchParams.get("buttonLayout") || "double",
+    cancelText: searchParams.get("cancelText") || "Annuler",
+    confirmText: searchParams.get("confirmText") || "Confirmer",
+    thirdButtonText: searchParams.get("thirdButtonText") || "Action",
+    autoClose: searchParams.get("autoClose") !== "false",
+    cancelLink: searchParams.get("cancelLink") || "",
+    confirmLink: searchParams.get("confirmLink") || "",
+    thirdButtonLink: searchParams.get("thirdButtonLink") || "",
   })
 
   // État local pour la distribution des épices
@@ -131,11 +153,14 @@ function RenderContent() {
                 descriptionFontWeight: newProps.descriptionFontWeight,
                 animateBorder: newProps.animateBorder,
                 hoverScale: newProps.hoverScale,
+                rotation: newProps.rotation,
                 position: newProps.position,
                 customX: newProps.position === "custom" ? newProps.customX : undefined,
                 customY: newProps.position === "custom" ? newProps.customY : undefined,
                 redirectUrl: newProps.redirectUrl || undefined,
                 redirectBehavior: newProps.redirectUrl ? newProps.redirectBehavior : undefined,
+                typingAnimation: newProps.typingAnimation,
+                typingSpeed: newProps.typingAnimation ? newProps.typingSpeed : undefined,
               })
             }, 100)
           } else if (newProps.component === "ToasterVideo") {
@@ -163,6 +188,7 @@ function RenderContent() {
                 descriptionColor: newProps.descriptionColor,
                 animateBorder: newProps.animateBorder,
                 hoverScale: newProps.hoverScale,
+                rotation: newProps.rotation,
                 playCount: newProps.playCount,
                 customPlayCount:
                   newProps.playCount === "custom" ? newProps.customPlayCount : undefined,
@@ -170,6 +196,14 @@ function RenderContent() {
                 redirectUrl: newProps.redirectUrl || undefined,
                 redirectBehavior: newProps.redirectUrl ? newProps.redirectBehavior : undefined,
                 showCloseButton: newProps.showCloseButton,
+                typingAnimation: newProps.typingAnimation,
+                typingSpeed: newProps.typingAnimation ? newProps.typingSpeed : undefined,
+                scrollSyncWithVideo: newProps.scrollSyncWithVideo,
+                polaroidPaddingSides: newProps.polaroidPaddingSides,
+                polaroidPaddingTop: newProps.polaroidPaddingTop,
+                polaroidPaddingBottom: newProps.polaroidPaddingBottom,
+                titleFontWeight: newProps.titleFontWeight,
+                descriptionFontWeight: newProps.descriptionFontWeight,
               })
             }, 100)
           }
@@ -206,11 +240,14 @@ function RenderContent() {
           descriptionFontWeight: props.descriptionFontWeight,
           animateBorder: props.animateBorder,
           hoverScale: props.hoverScale,
+          rotation: props.rotation,
           position: props.position,
           customX: props.position === "custom" ? props.customX : undefined,
           customY: props.position === "custom" ? props.customY : undefined,
           redirectUrl: props.redirectUrl || undefined,
           redirectBehavior: props.redirectUrl ? props.redirectBehavior : undefined,
+          typingAnimation: props.typingAnimation,
+          typingSpeed: props.typingAnimation ? props.typingSpeed : undefined,
         })
       }, 500)
     } else if (props.component === "ToasterVideo") {
@@ -236,12 +273,21 @@ function RenderContent() {
           descriptionColor: props.descriptionColor,
           animateBorder: props.animateBorder,
           hoverScale: props.hoverScale,
+          rotation: props.rotation,
           playCount: props.playCount,
           customPlayCount: props.playCount === "custom" ? props.customPlayCount : undefined,
           customDuration: props.customDuration > 0 ? props.customDuration : undefined,
           redirectUrl: props.redirectUrl || undefined,
           redirectBehavior: props.redirectUrl ? props.redirectBehavior : undefined,
           showCloseButton: props.showCloseButton,
+          typingAnimation: props.typingAnimation,
+          typingSpeed: props.typingAnimation ? props.typingSpeed : undefined,
+          scrollSyncWithVideo: props.scrollSyncWithVideo,
+          polaroidPaddingSides: props.polaroidPaddingSides,
+          polaroidPaddingTop: props.polaroidPaddingTop,
+          polaroidPaddingBottom: props.polaroidPaddingBottom,
+          titleFontWeight: props.titleFontWeight,
+          descriptionFontWeight: props.descriptionFontWeight,
         })
       }, 500)
     }
@@ -352,11 +398,14 @@ function RenderContent() {
                   descriptionFontWeight: props.descriptionFontWeight,
                   animateBorder: props.animateBorder,
                   hoverScale: props.hoverScale,
+                  rotation: props.rotation,
                   position: props.position,
                   customX: props.position === "custom" ? props.customX : undefined,
                   customY: props.position === "custom" ? props.customY : undefined,
                   redirectUrl: props.redirectUrl || undefined,
                   redirectBehavior: props.redirectUrl ? props.redirectBehavior : undefined,
+                  typingAnimation: props.typingAnimation,
+                  typingSpeed: props.typingAnimation ? props.typingSpeed : undefined,
                 })
               }}
               className="bg-thai-orange hover:bg-thai-orange/90 text-white shadow-lg transition-all duration-200 hover:shadow-xl"
@@ -397,12 +446,21 @@ function RenderContent() {
                   descriptionColor: props.descriptionColor,
                   animateBorder: props.animateBorder,
                   hoverScale: props.hoverScale,
+                  rotation: props.rotation,
                   playCount: props.playCount,
                   customPlayCount: props.playCount === "custom" ? props.customPlayCount : undefined,
                   customDuration: props.customDuration > 0 ? props.customDuration : undefined,
                   redirectUrl: props.redirectUrl || undefined,
                   redirectBehavior: props.redirectUrl ? props.redirectBehavior : undefined,
                   showCloseButton: props.showCloseButton,
+                  typingAnimation: props.typingAnimation,
+                  typingSpeed: props.typingAnimation ? props.typingSpeed : undefined,
+                  scrollSyncWithVideo: props.scrollSyncWithVideo,
+                  polaroidPaddingSides: props.polaroidPaddingSides,
+                  polaroidPaddingTop: props.polaroidPaddingTop,
+                  polaroidPaddingBottom: props.polaroidPaddingBottom,
+                  titleFontWeight: props.titleFontWeight,
+                  descriptionFontWeight: props.descriptionFontWeight,
                 })
               }}
               className="bg-thai-orange hover:bg-thai-orange/90 text-white shadow-lg transition-all duration-200 hover:shadow-xl"
@@ -412,6 +470,47 @@ function RenderContent() {
             <p className="mt-4 text-sm text-gray-500">
               Le toast s'affiche automatiquement lors des modifications.
             </p>
+          </div>
+        )
+      case "ModalVideo":
+        return (
+          <div className="flex min-h-screen w-full items-center justify-center bg-gray-100 p-4">
+            <div className="w-full max-w-md overflow-hidden rounded-xl shadow-2xl">
+              <ModalVideoContent
+                onOpenChange={() => {}}
+                title={props.title}
+                description={props.description}
+                media={props.media}
+                aspectRatio={props.aspectRatio}
+                polaroid={props.polaroid}
+                scrollingText={props.scrollingText}
+                scrollDuration={props.scrollDuration}
+                loopCount={props.loopCount || 0}
+                buttonLayout={props.buttonLayout || "double"}
+                cancelText={props.cancelText || "Annuler"}
+                confirmText={props.confirmText || "Confirmer"}
+                thirdButtonText={props.thirdButtonText || "Action"}
+                titleColor={props.titleColor}
+                borderColor={props.borderColor === "custom" ? props.customBorderColor : props.borderColor}
+                borderWidth={props.borderWidth === "custom" ? props.customBorderWidth : props.borderWidth}
+                shadowSize={props.shadowSize}
+                polaroidPaddingSides={props.polaroidPaddingSides}
+                polaroidPaddingTop={props.polaroidPaddingTop}
+                polaroidPaddingBottom={props.polaroidPaddingBottom}
+                autoClose={props.autoClose !== false}
+                cancelLink={props.cancelLink}
+                confirmLink={props.confirmLink}
+                thirdButtonLink={props.thirdButtonLink}
+                typingAnimation={props.typingAnimation}
+                typingSpeed={props.typingSpeed}
+                scrollSyncWithVideo={props.scrollSyncWithVideo}
+                animateBorder={props.animateBorder}
+                standalone={true}
+                onCancel={() => console.log("Annulé (Preview)")}
+                onConfirm={() => console.log("Confirmé (Preview)")}
+                onThirdButton={() => console.log("3ème bouton (Preview)")}
+              />
+            </div>
           </div>
         )
       default:
