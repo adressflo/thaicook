@@ -920,11 +920,16 @@ const Commander = memo(() => {
                   <CardHeader className="from-thai-orange to-thai-gold relative rounded-t-lg bg-linear-to-r py-4 text-white">
                     <div className="text-center">
                       <div className="mb-1 flex items-center justify-center">
-                        <ShoppingCart className="mr-2 h-7 w-7" />
+                        <div className="relative mr-2">
+                          <ShoppingCart className="h-7 w-7" />
+                          <span className="text-thai-orange absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-white text-xs font-bold shadow-sm">
+                            {panier.reduce((total, item) => total + item.quantite, 0)}
+                          </span>
+                        </div>
                         <CardTitle className="text-2xl font-bold">Mon Panier</CardTitle>
                       </div>
                       <p className="text-xs text-white/90">
-                        {panier.reduce((total, item) => total + item.quantite, 0)} Plat
+                        {panier.reduce((total, item) => total + item.quantite, 0)} article
                         {panier.reduce((total, item) => total + item.quantite, 0) > 1 ? "s" : ""}
                       </p>
                     </div>
