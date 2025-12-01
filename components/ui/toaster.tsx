@@ -79,23 +79,33 @@ export function Toaster() {
                     </ToastTitle>
                   )}
                   {description && (
-                    <ToastDescription
-                      className={cn(
-                        "text-center text-sm leading-relaxed",
-                        descriptionColor
-                          ? descriptionColorMap[descriptionColor]
-                          : "text-thai-green",
-                        descriptionFontWeight
-                          ? fontWeightMap[descriptionFontWeight]
-                          : "font-semibold"
-                      )}
-                    >
-                      {typingAnimation ? (
-                        <TypingAnimation duration={typingSpeed}>{description}</TypingAnimation>
-                      ) : (
-                        description
-                      )}
-                    </ToastDescription>
+                    <div className={cn("w-full", props.scrollingText && "overflow-hidden")}>
+                      <ToastDescription
+                        className={cn(
+                          "text-center text-sm leading-relaxed",
+                          descriptionColor
+                            ? descriptionColorMap[descriptionColor]
+                            : "text-thai-green",
+                          descriptionFontWeight
+                            ? fontWeightMap[descriptionFontWeight]
+                            : "font-semibold",
+                          props.scrollingText && "animate-marquee inline-block whitespace-nowrap"
+                        )}
+                        style={
+                          props.scrollingText
+                            ? ({
+                                "--marquee-duration": `${props.scrollDuration || 10}s`,
+                              } as React.CSSProperties)
+                            : undefined
+                        }
+                      >
+                        {typingAnimation ? (
+                          <TypingAnimation duration={typingSpeed}>{description}</TypingAnimation>
+                        ) : (
+                          description
+                        )}
+                      </ToastDescription>
+                    </div>
                   )}
                 </div>
                 {action}

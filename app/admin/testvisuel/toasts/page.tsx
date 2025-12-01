@@ -33,38 +33,44 @@ import { useEffect, useState } from "react"
 // SECTION 1: PLAYGROUND TOASTER (Simple)
 // ============================================================================
 
+interface ToasterPlaygroundProps {
+  title: string
+  description: string
+  variant: "default" | "destructive" | "polaroid" | "success" | "warning" | "info"
+  tilted: boolean
+  tiltedAngle: number
+  duration: number
+  borderColor: BorderColor
+  customBorderColor: string
+  borderWidth: 1 | 2 | 4 | "custom"
+  customBorderWidth: number
+  shadowSize: ShadowSize
+  maxWidth: MaxWidth
+  titleColor: TitleColor
+  titleFontWeight: FontWeight
+  descriptionColor: DescriptionColor
+  descriptionFontWeight: FontWeight
+  animateBorder: boolean
+  hoverScale: boolean
+  rotation: boolean
+  position: ToastPosition
+  customX: string
+  customY: string
+  redirectUrl: string
+  redirectBehavior: RedirectBehavior
+  // Animation typing
+  typingAnimation: boolean
+  typingSpeed: number
+  // Animation fermeture
+  mangaExplosion: boolean
+  animateOut: boolean
+  // Marquee
+  scrollingText: boolean
+  scrollDuration: number
+}
+
 function ToasterPlayground() {
-  const [props, setProps] = useState<{
-    title: string
-    description: string
-    variant: "default" | "destructive" | "polaroid" | "success" | "warning" | "info"
-    tilted: boolean
-    tiltedAngle: number
-    duration: number
-    borderColor: BorderColor
-    customBorderColor: string
-    borderWidth: 1 | 2 | 4 | "custom"
-    customBorderWidth: number
-    shadowSize: ShadowSize
-    maxWidth: MaxWidth
-    titleColor: TitleColor
-    titleFontWeight: FontWeight
-    descriptionColor: DescriptionColor
-    descriptionFontWeight: FontWeight
-    animateBorder: boolean
-    hoverScale: boolean
-    rotation: boolean
-    position: ToastPosition
-    customX: string
-    customY: string
-    redirectUrl: string
-    redirectBehavior: RedirectBehavior
-    // Animation typing
-    typingAnimation: boolean
-    typingSpeed: number
-    // Animation fermeture
-    mangaExplosion: boolean
-  }>({
+  const [props, setProps] = useState<ToasterPlaygroundProps>({
     title: "Notification",
     description: "Ceci est un message de notification",
     variant: "default",
@@ -94,6 +100,10 @@ function ToasterPlayground() {
     typingSpeed: 100,
     // Animation fermeture
     mangaExplosion: false,
+    animateOut: false,
+    // Marquee
+    scrollingText: false,
+    scrollDuration: 10,
   })
 
   // Envoyer les props au BroadcastChannel à chaque changement pour mise à jour temps réel
@@ -125,6 +135,9 @@ function ToasterPlayground() {
       titleColor: props.titleColor,
       typingSpeed: props.typingAnimation ? props.typingSpeed : undefined,
       mangaExplosion: props.mangaExplosion,
+      animateOut: props.animateOut,
+      scrollingText: props.scrollingText,
+      scrollDuration: props.scrollDuration,
     })
   }
 
@@ -174,6 +187,11 @@ function ToasterPlayground() {
       if (props.typingSpeed !== 100) lines.push(`  typingSpeed: ${props.typingSpeed},`)
     }
     if (props.mangaExplosion) lines.push(`  mangaExplosion: true,`)
+    if (props.animateOut) lines.push(`  animateOut: true,`)
+    if (props.scrollingText) {
+      lines.push(`  scrollingText: true,`)
+      if (props.scrollDuration !== 10) lines.push(`  scrollDuration: ${props.scrollDuration},`)
+    }
     if (props.redirectUrl) {
       lines.push(`  redirectUrl: "${props.redirectUrl}",`)
       lines.push(`  redirectBehavior: "${props.redirectBehavior}",`)
@@ -232,7 +250,11 @@ function ToasterPlayground() {
                 params.set("redirectUrl", props.redirectUrl)
                 params.set("redirectBehavior", props.redirectBehavior)
                 params.set("typingAnimation", props.typingAnimation.toString())
+                params.set("typingAnimation", props.typingAnimation.toString())
                 params.set("typingSpeed", props.typingSpeed.toString())
+                params.set("animateOut", props.animateOut.toString())
+                params.set("scrollingText", props.scrollingText.toString())
+                params.set("scrollDuration", props.scrollDuration.toString())
 
                 const channel = new BroadcastChannel("preview_channel")
                 channel.postMessage({
@@ -289,6 +311,18 @@ function ToasterPlayground() {
               &lt;black&gt;, &lt;bold&gt;, &lt;semi-bold&gt;, &lt;italic&gt;, &lt;underline&gt;,
               &lt;small&gt;
             </p>
+          </div>
+          {/* Durée du toast */}
+          <div className="mt-2 flex items-center gap-2">
+            <label className="text-xs font-medium text-gray-700">Durée (ms)</label>
+            <input
+              type="number"
+              value={props.duration}
+              onChange={(e) => setProps({ ...props, duration: Number(e.target.value) })}
+              className="focus:ring-thai-orange w-20 rounded-md border border-gray-300 px-2 py-1 text-sm focus:border-transparent focus:ring-2 focus:outline-none"
+              min={1000}
+              step={500}
+            />
           </div>
         </div>
 
@@ -583,6 +617,28 @@ function ToasterPlayground() {
               <label className="flex cursor-pointer items-center gap-2">
                 <input
                   type="checkbox"
+                  checked={props.scrollingText}
+                  onChange={(e) => setProps({ ...props, scrollingText: e.target.checked })}
+                  className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
+                />
+                <span className="text-sm text-gray-700">Texte défilant (marquee)</span>
+              </label>
+              {props.scrollingText && (
+                <div className="ml-6 flex items-center gap-2">
+                  <label className="text-xs text-gray-600">Durée:</label>
+                  <input
+                    type="number"
+                    value={props.scrollDuration}
+                    onChange={(e) => setProps({ ...props, scrollDuration: Number(e.target.value) })}
+                    className="focus:ring-thai-orange w-16 rounded-md border border-gray-300 px-2 py-1 text-sm focus:ring-2 focus:outline-none"
+                    min="1"
+                  />
+                  <span className="text-xs text-gray-500">s</span>
+                </div>
+              )}
+              <label className="flex cursor-pointer items-center gap-2">
+                <input
+                  type="checkbox"
                   checked={props.typingAnimation}
                   onChange={(e) => setProps({ ...props, typingAnimation: e.target.checked })}
                   className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
@@ -681,6 +737,15 @@ function ToasterPlayground() {
                 />
                 <span className="text-sm text-gray-700">Manga Explosion (Orange Thai)</span>
               </label>
+              <label className="flex cursor-pointer items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={props.animateOut}
+                  onChange={(e) => setProps({ ...props, animateOut: e.target.checked })}
+                  className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
+                />
+                <span className="text-sm text-gray-700">Animation de sortie (Fade + Zoom Out)</span>
+              </label>
             </div>
           </div>
           <label className="text-xs font-medium text-gray-700">Redirection (optionnel)</label>
@@ -729,51 +794,53 @@ function ToasterPlayground() {
 // SECTION 2: PLAYGROUND TOASTER VIDEO
 // ============================================================================
 
+interface ToasterVideoPlaygroundProps {
+  title: string
+  description: string
+  media: string
+  position: ToastPosition
+  customX: string
+  customY: string
+  aspectRatio: "16:9" | "4:5" | "1:1" | "auto" | undefined
+  polaroid: boolean
+  // Polaroid padding props
+  polaroidPaddingSides: number
+  polaroidPaddingTop: number
+  polaroidPaddingBottom: number
+  scrollingText: boolean
+  scrollDuration: number
+  scrollSyncWithVideo: boolean
+  borderColor: BorderColor
+  customBorderColor: string
+  borderWidth: 1 | 2 | 4 | "custom"
+  customBorderWidth: number
+  shadowSize: ShadowSize
+  maxWidth: MaxWidth
+  titleColor: TitleColor
+  titleFontWeight: FontWeight
+  descriptionColor: DescriptionColor
+  descriptionFontWeight: FontWeight
+  animateBorder: boolean
+  hoverScale: boolean
+  rotation: boolean
+  animateOut: boolean
+  // Animation typing
+  typingAnimation: boolean
+  typingSpeed: number
+  // Lecture video (remplace loopVideo)
+  playCount: 1 | 2 | "custom"
+  customPlayCount: number
+  customDuration: number
+  // Redirection
+  redirectUrl: string
+  redirectBehavior: RedirectBehavior
+  showCloseButton: boolean
+  // Animation fermeture
+  mangaExplosion: boolean
+}
+
 function ToasterVideoPlayground() {
-  const [props, setProps] = useState<{
-    title: string
-    description: string
-    media: string
-    position: ToastPosition
-    customX: string
-    customY: string
-    aspectRatio: "16:9" | "4:5" | "1:1" | "auto" | undefined
-    polaroid: boolean
-    // Polaroid padding props
-    polaroidPaddingSides: number
-    polaroidPaddingTop: number
-    polaroidPaddingBottom: number
-    scrollingText: boolean
-    scrollDuration: number
-    scrollSyncWithVideo: boolean
-    borderColor: BorderColor
-    customBorderColor: string
-    borderWidth: 1 | 2 | 4 | "custom"
-    customBorderWidth: number
-    shadowSize: ShadowSize
-    maxWidth: MaxWidth
-    titleColor: TitleColor
-    titleFontWeight: FontWeight
-    descriptionColor: DescriptionColor
-    descriptionFontWeight: FontWeight
-    animateBorder: boolean
-    hoverScale: boolean
-    rotation: boolean
-    animateOut: boolean
-    // Animation typing
-    typingAnimation: boolean
-    typingSpeed: number
-    // Lecture video (remplace loopVideo)
-    playCount: 1 | 2 | "custom"
-    customPlayCount: number
-    customDuration: number
-    // Redirection
-    redirectUrl: string
-    redirectBehavior: RedirectBehavior
-    showCloseButton: boolean
-    // Animation fermeture
-    mangaExplosion: boolean
-  }>({
+  const [props, setProps] = useState<ToasterVideoPlaygroundProps>({
     title: "Plat ajoute !",
     description: "Pad Thai ajoute au panier",
     media: "/media/animations/toasts/ajoutpaniernote.mp4",
@@ -1376,7 +1443,9 @@ function ToasterVideoPlayground() {
                     <input
                       type="number"
                       value={props.scrollDuration}
-                      onChange={(e) => setProps({ ...props, scrollDuration: Number(e.target.value) })}
+                      onChange={(e) =>
+                        setProps({ ...props, scrollDuration: Number(e.target.value) })
+                      }
                       className="focus:ring-thai-orange w-16 rounded-md border border-gray-300 px-2 py-1 text-sm focus:ring-2 focus:outline-none"
                       min="1"
                       max="60"
@@ -1385,7 +1454,7 @@ function ToasterVideoPlayground() {
                     <span className="text-xs text-gray-600">secondes</span>
                   </div>
                   {/* Option synchronisation avec vidéo */}
-                  {(props.media?.endsWith(".mp4") || props.media?.endsWith(".webm")) ? (
+                  {props.media?.endsWith(".mp4") || props.media?.endsWith(".webm") ? (
                     <label className="flex cursor-pointer items-center gap-2">
                       <input
                         type="checkbox"
@@ -1431,7 +1500,9 @@ function ToasterVideoPlayground() {
 
           {/* Style & Animation bordure animate */}
           <div className="space-y-2 rounded-md border border-gray-100 bg-gray-50/50 p-3">
-            <h5 className="text-xs font-semibold text-gray-600">Style & Animation bordure animate</h5>
+            <h5 className="text-xs font-semibold text-gray-600">
+              Style & Animation bordure animate
+            </h5>
             <div className="space-y-2">
               <label className="flex cursor-pointer items-center gap-2">
                 <input
@@ -1661,7 +1732,6 @@ function ToasterVideoPlayground() {
     </div>
   )
 }
-
 
 export default function ToastsPlaygroundPage() {
   return (

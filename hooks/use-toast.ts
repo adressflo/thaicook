@@ -3,48 +3,64 @@
 import * as React from "react"
 
 import type {
-  ToastActionElement,
-  ToastProps,
-  ToastExtendedProps,
   BorderColor,
-  ShadowSize,
-  MaxWidth,
-  TitleColor,
   DescriptionColor,
-  ToastPosition,
   FontWeight,
-  RedirectBehavior
+  MaxWidth,
+  RedirectBehavior,
+  ShadowSize,
+  TitleColor,
+  ToastActionElement,
+  ToastExtendedProps,
+  ToastPosition,
+  ToastProps,
 } from "@/components/ui/toast"
 
 const TOAST_LIMIT = 1
 const TOAST_REMOVE_DELAY = 1000000
 
-type ToasterToast = ToastProps & ToastExtendedProps & {
-  id: string
-  title?: React.ReactNode
-  description?: React.ReactNode
-  action?: ToastActionElement
-  /** Couleur du titre */
-  titleColor?: TitleColor
-  /** Poids de la police du titre */
-  titleFontWeight?: FontWeight
-  /** Couleur de la description */
-  descriptionColor?: DescriptionColor
-  /** Poids de la police de la description */
-  descriptionFontWeight?: FontWeight
-  /** Position du toast */
-  position?: ToastPosition
-  /** Position X custom (si position="custom") */
-  customX?: string
-  /** Position Y custom (si position="custom") */
-  customY?: string
-  /** Animation dactylographie (typing) */
-  typingAnimation?: boolean
-  /** Vitesse de l'animation typing (ms par caractère) */
-  typingSpeed?: number
-}
+type ToasterToast = ToastProps &
+  ToastExtendedProps & {
+    id: string
+    title?: React.ReactNode
+    description?: React.ReactNode
+    action?: ToastActionElement
+    /** Couleur du titre */
+    titleColor?: TitleColor
+    /** Poids de la police du titre */
+    titleFontWeight?: FontWeight
+    /** Couleur de la description */
+    descriptionColor?: DescriptionColor
+    /** Poids de la police de la description */
+    descriptionFontWeight?: FontWeight
+    /** Position du toast */
+    position?: ToastPosition
+    /** Position X custom (si position="custom") */
+    customX?: string
+    /** Position Y custom (si position="custom") */
+    customY?: string
+    /** Animation dactylographie (typing) */
+    typingAnimation?: boolean
+    /** Vitesse de l'animation typing (ms par caractère) */
+    typingSpeed?: number
+    /** Animation de sortie */
+    animateOut?: boolean
+    /** Texte défilant */
+    scrollingText?: boolean
+    /** Durée du défilement */
+    scrollDuration?: number
+  }
 
-export type { BorderColor, ShadowSize, MaxWidth, TitleColor, DescriptionColor, ToastPosition, FontWeight, RedirectBehavior }
+export type {
+  BorderColor,
+  DescriptionColor,
+  FontWeight,
+  MaxWidth,
+  RedirectBehavior,
+  ShadowSize,
+  TitleColor,
+  ToastPosition,
+}
 
 const actionTypes = {
   ADD_TOAST: "ADD_TOAST",
@@ -217,4 +233,4 @@ function useToast() {
   }
 }
 
-export { useToast, toast }
+export { toast, useToast }

@@ -28,6 +28,7 @@ type ToasterToastVideo = Omit<ToastProps, "title" | "description"> & {
   customY?: string // Position Y custom (si position="custom")
   scrollingText?: boolean
   scrollDuration?: number
+  animateOut?: boolean
   polaroid?: boolean
   aspectRatio?: "16:9" | "4:5" | "1:1" | "auto"
   // Props de style

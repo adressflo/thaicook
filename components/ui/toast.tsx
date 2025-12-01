@@ -171,6 +171,10 @@ interface ToastExtendedProps {
   redirectUrl?: string
   /** Comportement de la redirection */
   redirectBehavior?: RedirectBehavior
+  /** Texte défilant (marquee) */
+  scrollingText?: boolean
+  /** Durée du défilement en secondes */
+  scrollDuration?: number
 }
 
 // Map des classes CSS pour les positions du Viewport
@@ -322,6 +326,8 @@ const Toast = React.forwardRef<
       customY: _customY,
       redirectUrl: _redirectUrl,
       redirectBehavior: _redirectBehavior,
+      scrollingText: _scrollingText,
+      scrollDuration: _scrollDuration,
       ...props
     },
     ref
