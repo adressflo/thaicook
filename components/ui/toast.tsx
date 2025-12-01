@@ -147,7 +147,7 @@ interface ToastExtendedProps {
   animateBorder?: boolean
   /** Effet scale au hover */
   hoverScale?: boolean
-  /** Animation rotation (rotate-[-2deg] hover:rotate-0) */
+  /** Animation rotation (-rotate-2 hover:rotate-0) */
   rotation?: boolean
   /** Couleur du titre */
   titleColor?: TitleColor
@@ -195,14 +195,52 @@ const borderColorMap: Record<BorderColor, string> = {
 }
 
 // Map des couleurs hex pour l'animation de bordure dynamique
-const borderColorHexMap: Record<BorderColor, { base: string; light: string; rgba: string; rgbaStrong: string }> = {
-  "thai-orange": { base: "#ff7b54", light: "#ffb386", rgba: "rgba(255, 123, 84, 0.4)", rgbaStrong: "rgba(255, 123, 84, 0.6)" },
-  "thai-green": { base: "#2d5016", light: "#4a7c23", rgba: "rgba(45, 80, 22, 0.4)", rgbaStrong: "rgba(45, 80, 22, 0.6)" },
-  red: { base: "#ef4444", light: "#f87171", rgba: "rgba(239, 68, 68, 0.4)", rgbaStrong: "rgba(239, 68, 68, 0.6)" },
-  blue: { base: "#3b82f6", light: "#60a5fa", rgba: "rgba(59, 130, 246, 0.4)", rgbaStrong: "rgba(59, 130, 246, 0.6)" },
-  yellow: { base: "#eab308", light: "#facc15", rgba: "rgba(234, 179, 8, 0.4)", rgbaStrong: "rgba(234, 179, 8, 0.6)" },
-  purple: { base: "#a855f7", light: "#c084fc", rgba: "rgba(168, 85, 247, 0.4)", rgbaStrong: "rgba(168, 85, 247, 0.6)" },
-  custom: { base: "#2d5016", light: "#4a7c23", rgba: "rgba(45, 80, 22, 0.4)", rgbaStrong: "rgba(45, 80, 22, 0.6)" },
+const borderColorHexMap: Record<
+  BorderColor,
+  { base: string; light: string; rgba: string; rgbaStrong: string }
+> = {
+  "thai-orange": {
+    base: "#ff7b54",
+    light: "#ffb386",
+    rgba: "rgba(255, 123, 84, 0.4)",
+    rgbaStrong: "rgba(255, 123, 84, 0.6)",
+  },
+  "thai-green": {
+    base: "#2d5016",
+    light: "#4a7c23",
+    rgba: "rgba(45, 80, 22, 0.4)",
+    rgbaStrong: "rgba(45, 80, 22, 0.6)",
+  },
+  red: {
+    base: "#ef4444",
+    light: "#f87171",
+    rgba: "rgba(239, 68, 68, 0.4)",
+    rgbaStrong: "rgba(239, 68, 68, 0.6)",
+  },
+  blue: {
+    base: "#3b82f6",
+    light: "#60a5fa",
+    rgba: "rgba(59, 130, 246, 0.4)",
+    rgbaStrong: "rgba(59, 130, 246, 0.6)",
+  },
+  yellow: {
+    base: "#eab308",
+    light: "#facc15",
+    rgba: "rgba(234, 179, 8, 0.4)",
+    rgbaStrong: "rgba(234, 179, 8, 0.6)",
+  },
+  purple: {
+    base: "#a855f7",
+    light: "#c084fc",
+    rgba: "rgba(168, 85, 247, 0.4)",
+    rgbaStrong: "rgba(168, 85, 247, 0.6)",
+  },
+  custom: {
+    base: "#2d5016",
+    light: "#4a7c23",
+    rgba: "rgba(45, 80, 22, 0.4)",
+    rgbaStrong: "rgba(45, 80, 22, 0.6)",
+  },
 }
 
 const shadowSizeMap: Record<ShadowSize, string> = {
@@ -303,7 +341,8 @@ const Toast = React.forwardRef<
       const colorKey = borderColor === "custom" ? "thai-green" : borderColor
       const colors = borderColorHexMap[colorKey]
       return {
-        "--moving-border-color": borderColor === "custom" && customBorderColor ? customBorderColor : colors.base,
+        "--moving-border-color":
+          borderColor === "custom" && customBorderColor ? customBorderColor : colors.base,
         "--moving-border-light": colors.light,
         "--moving-border-glow": colors.rgba,
         "--moving-border-glow-strong": colors.rgbaStrong,
@@ -329,7 +368,7 @@ const Toast = React.forwardRef<
           // Hover scale
           hoverScale && "transition-transform duration-300 hover:scale-105",
           // Rotation
-          rotation && "rotate-[-2deg] transition-transform duration-300 hover:rotate-0",
+          rotation && "-rotate-2 transition-transform duration-300 hover:rotate-0",
           // Inclinaison
           isTilted &&
             "rotate-(--toast-angle) transition-all duration-300 hover:scale-105 hover:rotate-0",

@@ -1,10 +1,10 @@
 "use client"
 
-import { Badge } from "@/components/ui/badge"
+import { ExtraDetailsModalInteractive } from "@/components/historique/ExtraDetailsModalInteractive"
+import { CartItemCard } from "@/components/shared/CartItemCard"
 import { CommandePlatModal } from "@/components/shared/CommandePlatModal"
 import { ProductCard } from "@/components/shared/ProductCard"
-import { CartItemCard } from "@/components/shared/CartItemCard"
-import { ExtraDetailsModalInteractive } from "@/components/historique/ExtraDetailsModalInteractive"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
@@ -25,11 +25,10 @@ import {
   RotateCcw,
   Save,
   ShoppingCart,
-  Trash2,
 } from "lucide-react"
-import { memo, useEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link"
-import { redirect, useParams, useRouter } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
+import { memo, useEffect, useMemo, useRef, useState } from "react"
 
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import {
@@ -43,19 +42,19 @@ import { cn } from "@/lib/utils"
 import { addDays, format, getDay, isFuture, isSameDay, startOfDay, type Day } from "date-fns"
 import { fr } from "date-fns/locale"
 
-import { useSession } from "@/lib/auth-client"
 import { getClientProfile } from "@/app/profil/actions"
 import { useData } from "@/contexts/DataContext"
 import {
   usePrismaCommandeById,
   usePrismaCreateCommande,
   usePrismaDeleteCommande,
-  usePrismaUpdateCommande,
   usePrismaExtras,
+  usePrismaUpdateCommande,
 } from "@/hooks/usePrismaData"
+import { useSession } from "@/lib/auth-client"
 import { extractRouteParam } from "@/lib/params-utils"
 import { toSafeNumber } from "@/lib/serialization"
-import type { PlatUI as Plat, PlatPanier, DetailCommande, ExtraUI } from "@/types/app"
+import type { DetailCommande, ExtraUI, PlatUI as Plat, PlatPanier } from "@/types/app"
 
 const dayNameToNumber: { [key: string]: Day } = {
   dimanche: 0,
@@ -767,7 +766,7 @@ const ModifierCommande = memo(() => {
 
           {/* Header de modification */}
           <Card className="border-thai-orange/20 mb-6 shadow-xl">
-            <CardHeader className="from-thai-orange to-thai-gold rounded-t-lg bg-gradient-to-r py-4 text-center text-white">
+            <CardHeader className="from-thai-orange to-thai-gold rounded-t-lg bg-linear-to-r py-4 text-center text-white">
               <div className="mb-1 flex items-center justify-center">
                 <Edit className="mr-2 h-7 w-7" />
                 <CardTitle className="text-2xl font-bold">
@@ -1073,7 +1072,7 @@ const ModifierCommande = memo(() => {
             {!isMobile && (
               <div className="sticky top-8 h-fit w-full">
                 <Card className="border-thai-orange/20 animate-fade-in shadow-xl">
-                  <CardHeader className="from-thai-orange to-thai-gold relative rounded-t-lg bg-gradient-to-r py-4 text-white">
+                  <CardHeader className="from-thai-orange to-thai-gold relative rounded-t-lg bg-linear-to-r py-4 text-white">
                     <div className="text-center">
                       <div className="mb-1 flex items-center justify-center">
                         <Edit className="mr-2 h-7 w-7 animate-pulse" />
@@ -1245,7 +1244,7 @@ const ModifierCommande = memo(() => {
                                     dateRetrait={dateRetrait}
                                   >
                                     <div
-                                      className={`border-thai-orange/20 from-thai-gold/10 to-thai-orange/10 cursor-pointer rounded-lg border bg-gradient-to-br p-3 transition-all duration-300 ${
+                                      className={`border-thai-orange/20 from-thai-gold/10 to-thai-orange/10 cursor-pointer rounded-lg border bg-linear-to-br p-3 transition-all duration-300 ${
                                         highlightedPlatId === `extra-${extra.idextra}`
                                           ? "ring-thai-gold/50 border-thai-gold scale-105 shadow-lg ring-2"
                                           : "hover:border-thai-gold/50 hover:shadow-md"

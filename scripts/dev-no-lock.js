@@ -69,9 +69,11 @@ async function main() {
   console.log(`🚀 Lancement Next.js sur port ${port} (sans lock)...`)
 
   // Lancer Next.js
-  const nextProcess = spawn("next", ["dev", "-p", port.toString()], {
+  // Lancer Next.js
+  const command = process.platform === "win32" ? "next.cmd" : "next"
+  const nextProcess = spawn(command, ["dev", "-p", port.toString()], {
     stdio: "inherit",
-    shell: true,
+    shell: false,
     cwd: path.join(__dirname, ".."),
   })
 
