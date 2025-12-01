@@ -387,6 +387,27 @@ html {
   white-space: nowrap;
 }
 
+@keyframes manga-explosion {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+    filter: brightness(1);
+  }
+  25% {
+    transform: scale(1.05);
+    filter: brightness(2) contrast(2); /* Flash lumineux */
+  }
+  100% {
+    transform: scale(2);
+    opacity: 0;
+    filter: brightness(2) blur(20px);
+  }
+}
+
+.manga-explosion-exit[data-state="closed"] {
+  animation: manga-explosion 0.4s ease-out forwards;
+}
+
 /* Calendar hover effects - Multiple selectors for better coverage */
 .rdp-day:hover,
 button.rdp-day:hover,

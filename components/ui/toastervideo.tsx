@@ -500,9 +500,9 @@ function ToastVideoItem({
           "flex-col items-center border-0 bg-transparent p-0 transition-all duration-300",
           shadowSizeMap[shadowSize],
           hoverScale && "hover:scale-105",
-          rotation && "rotate-[-2deg] hover:rotate-0",
+          rotation && "-rotate-2 hover:rotate-0",
           maxWidthMap[maxWidth],
-          animateBorder && "!overflow-visible",
+          animateBorder && "overflow-visible!",
           props.className
         )}
       >
@@ -559,7 +559,7 @@ function ToastVideoItem({
         shadowSizeMap[shadowSize],
         animateBorder && "animate-moving-border",
         hoverScale && "hover:scale-105",
-        rotation && "rotate-[-2deg] hover:rotate-0",
+        rotation && "-rotate-2 hover:rotate-0",
         "min-w-[320px] overflow-hidden rounded-xl border-solid p-0",
         borderColorClass,
         maxWidthMap[maxWidth],

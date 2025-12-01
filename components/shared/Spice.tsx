@@ -1,9 +1,9 @@
 "use client"
 
-import { Flame, Leaf } from "lucide-react"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
 import { motion } from "framer-motion"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { Flame, Leaf } from "lucide-react"
 
 interface SpiceProps {
   distribution: number[] | string // [nonSpicy, littleSpicy, spicy, verySpicy] OU texte
@@ -142,7 +142,7 @@ export function Spice({
                   {spiceLevel.flameCount === 0 ? (
                     <div
                       className={cn(
-                        "flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br shadow-md transition-all",
+                        "flex h-10 w-10 items-center justify-center rounded-full bg-linear-to-br shadow-md transition-all",
                         showBackground ? "h-14 w-14" : "",
                         spiceLevel.gradientFrom,
                         spiceLevel.gradientTo,
@@ -154,7 +154,7 @@ export function Spice({
                   ) : spiceLevel.flameCount === 1 ? (
                     <div
                       className={cn(
-                        "flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br shadow-md transition-all",
+                        "flex h-10 w-10 items-center justify-center rounded-full bg-linear-to-br shadow-md transition-all",
                         showBackground ? "h-14 w-14" : "",
                         spiceLevel.gradientFrom,
                         spiceLevel.gradientTo,
@@ -166,7 +166,7 @@ export function Spice({
                   ) : spiceLevel.flameCount === 3 ? (
                     <div
                       className={cn(
-                        "flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br shadow-md transition-all",
+                        "flex h-10 w-10 items-center justify-center rounded-full bg-linear-to-br shadow-md transition-all",
                         showBackground ? "h-14 w-14" : "",
                         spiceLevel.gradientFrom,
                         spiceLevel.gradientTo,
@@ -190,7 +190,7 @@ export function Spice({
                   ) : (
                     <div
                       className={cn(
-                        "flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br shadow-md transition-all",
+                        "flex h-10 w-10 items-center justify-center rounded-full bg-linear-to-br shadow-md transition-all",
                         showBackground ? "h-14 w-14" : "",
                         spiceLevel.gradientFrom,
                         spiceLevel.gradientTo,

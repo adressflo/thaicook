@@ -1,23 +1,23 @@
 "use client"
 
-import * as React from "react"
 import type {
-  ToastActionElement,
-  ToastProps,
   BorderColor,
-  ShadowSize,
-  MaxWidth,
-  TitleColor,
   DescriptionColor,
-  ToastPosition,
   FontWeight,
+  MaxWidth,
   RedirectBehavior,
+  ShadowSize,
+  TitleColor,
+  ToastActionElement,
+  ToastPosition,
+  ToastProps,
 } from "@/components/ui/toast"
+import * as React from "react"
 
 const TOAST_LIMIT = 3
 const TOAST_REMOVE_DELAY = 3000 // 3 secondes pour les toasts video (duree du GIF)
 
-type ToasterToastVideo = ToastProps & {
+type ToasterToastVideo = Omit<ToastProps, "title" | "description"> & {
   id: string
   title?: React.ReactNode
   description?: React.ReactNode
@@ -65,13 +65,13 @@ type ToasterToastVideo = ToastProps & {
 
 export type {
   BorderColor,
-  ShadowSize,
-  MaxWidth,
-  TitleColor,
   DescriptionColor,
-  ToastPosition,
   FontWeight,
+  MaxWidth,
   RedirectBehavior,
+  ShadowSize,
+  TitleColor,
+  ToastPosition,
 }
 
 const actionTypes = {
@@ -247,4 +247,4 @@ function toastVideoCenter(props: ToastVideo) {
   return toastVideo({ ...props, position: "center" })
 }
 
-export { useToastVideo, toastVideo, toastVideoCenter }
+export { toastVideo, toastVideoCenter, useToastVideo }

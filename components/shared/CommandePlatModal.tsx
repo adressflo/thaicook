@@ -14,6 +14,7 @@ import { FileText, Minus, Plus, RefreshCw, ShoppingCart } from "lucide-react"
 import React from "react"
 
 import { Spice } from "@/components/shared/Spice"
+import { TypingAnimation } from "@/components/ui/typing-animation"
 import { toastVideo } from "@/hooks/use-toast-video"
 import { getDistributionText } from "@/lib/spice-helpers"
 
@@ -90,18 +91,20 @@ export const CommandePlatContent = React.memo<
         if (spiceDistribution[3] > 0) {
           toastVideo({
             title: (
-              <div className="flex items-center justify-center gap-2">
-                <span>
-                  Attention, ça <span className="text-thai-orange">pique</span> !
-                </span>
+              <div className="flex flex-nowrap items-center justify-center gap-2 whitespace-nowrap">
+                <TypingAnimation duration={10} className="inline-flex items-center gap-1">
+                  <span>
+                    Attention, ça <span className="text-thai-orange">pique</span> !
+                  </span>
+                </TypingAnimation>
                 <Spice distribution={[0, 0, 0, 1]} hideZeros readOnly className="scale-75" />
               </div>
             ),
             description: (
-              <span>
+              <TypingAnimation duration={10} className="font-semibold">
                 Vous avez choisi le niveau <span className="text-thai-orange">Piment Thaï</span>.
                 C'est vraiment très <span className="text-thai-orange">fort</span> !
-              </span>
+              </TypingAnimation>
             ),
             media: "/media/animations/toasts/ajoutpaniernote.mp4",
             position: "center",
@@ -112,8 +115,6 @@ export const CommandePlatContent = React.memo<
             shadowSize: "lg",
             animateBorder: true,
             rotation: true,
-            typingAnimation: true,
-            typingSpeed: 10,
           })
         }
 
