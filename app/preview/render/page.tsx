@@ -104,8 +104,6 @@ function RenderContent() {
     polaroidPaddingSides: parseInt(searchParams.get("polaroidPaddingSides") || "3"),
     polaroidPaddingTop: parseInt(searchParams.get("polaroidPaddingTop") || "3"),
     polaroidPaddingBottom: parseInt(searchParams.get("polaroidPaddingBottom") || "8"),
-    // Font weights
-    titleFontWeight: searchParams.get("titleFontWeight") || "bold",
     // Props spécifiques ModalVideo
     loopCount: parseInt(searchParams.get("loopCount") || "0"),
     buttonLayout: searchParams.get("buttonLayout") || "double",
@@ -505,6 +503,8 @@ function RenderContent() {
                 typingSpeed={props.typingSpeed}
                 scrollSyncWithVideo={props.scrollSyncWithVideo}
                 animateBorder={props.animateBorder}
+                hoverScale={props.hoverScale}
+                rotation={props.rotation}
                 standalone={true}
                 onCancel={() => console.log("Annulé (Preview)")}
                 onConfirm={() => console.log("Confirmé (Preview)")}

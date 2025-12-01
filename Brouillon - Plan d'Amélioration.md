@@ -1440,6 +1440,102 @@ npm run test:e2e
 - [ ] **Tests permissions** : Seul admin peut modifier ⚠️ À faire
 - [ ] **Tests performance** : Lazy loading, optimisation vidéos ⚠️ À faire
 
+### 🔔 F. Page Admin / Test Visuel Toasts (/admin/testvisuel/toasts) ✅
+
+**Fichier** : `app/admin/testvisuel/toasts/page.tsx` (~1650 lignes)
+
+#### Playgrounds
+
+- [x] **ToasterPlayground** : Playground toast simple (lignes 36-723)
+- [x] **ToasterVideoPlayground** : Playground toast vidéo (lignes 727-1595)
+
+#### Props ToasterPlayground (toast simple)
+
+- [x] title, description
+- [x] variant (default, destructive, polaroid, success, warning, info)
+- [x] tilted, tiltedAngle
+- [x] duration
+- [x] borderColor, customBorderColor, borderWidth, customBorderWidth
+- [x] shadowSize (sm, md, lg, xl, 2xl)
+- [x] maxWidth (sm, md, lg, xl)
+- [x] titleColor (5 couleurs), titleFontWeight (4 poids)
+- [x] descriptionColor (5 couleurs), descriptionFontWeight (4 poids)
+- [x] animateBorder, hoverScale, rotation
+- [x] position (9 positions), customX, customY
+- [x] redirectUrl, redirectBehavior
+- [x] typingAnimation, typingSpeed
+
+#### Props ToasterVideoPlayground (toast vidéo)
+
+- [x] title, description, media
+- [x] position (9 positions), customX, customY
+- [x] aspectRatio (16:9, 4:5, 1:1, auto)
+- [x] polaroid
+- [x] polaroidPaddingSides, polaroidPaddingTop, polaroidPaddingBottom
+- [x] scrollingText, scrollDuration, scrollSyncWithVideo
+- [x] borderColor, customBorderColor, borderWidth, customBorderWidth
+- [x] shadowSize (sm, md, lg, xl, 2xl)
+- [x] maxWidth (sm, md, lg, xl)
+- [x] titleColor (5 couleurs), descriptionColor (5 couleurs)
+- [ ] titleFontWeight, descriptionFontWeight (MANQUANTS - à ajouter)
+- [x] animateBorder, hoverScale, rotation
+- [x] typingAnimation, typingSpeed
+- [x] playCount (1, 2, custom), customPlayCount, customDuration
+- [x] redirectUrl, redirectBehavior
+- [x] showCloseButton
+
+#### Fonctionnalités
+
+- [x] BroadcastChannel sync temps réel
+- [x] Bouton "Ouvrir Preview" (`/preview/render`)
+- [x] Bouton "Afficher Toast" (test réel)
+- [x] Info balises couleur/style (Dialog)
+
+### 🎬 G. Page Admin / Test Visuel Modal (/admin/testvisuel/modal) ✅
+
+**Fichier** : `app/admin/testvisuel/modal/page.tsx` (~1798 lignes)
+
+#### Playground
+
+- [x] **ModalVideoPlayground** : Playground modal vidéo (lignes 231-1378)
+
+#### Props ModalVideoPlayground
+
+- [x] title, description, media
+- [x] aspectRatio (16:9, 4:5, 1:1, auto)
+- [x] polaroid
+- [x] scrollingText, scrollDuration, scrollSyncWithVideo
+- [x] loopCount
+- [x] buttonLayout (none, single, double, triple)
+- [x] cancelText, confirmText, thirdButtonText
+- [x] rotation, hoverScale
+- [x] maxWidth (sm, md, lg, xl, custom), customWidth, customHeight
+- [x] borderColor (+ custom), customBorderColor, borderWidth (+ custom), customBorderWidth
+- [x] shadowSize (none, sm, md, lg, xl, 2xl)
+- [x] polaroidPaddingSides, polaroidPaddingTop, polaroidPaddingBottom
+- [x] autoClose
+- [x] cancelLink, confirmLink, thirdButtonLink
+- [x] position (center, corners, custom), customX, customY
+- [x] titleColor (5 couleurs), titleFontWeight (4 poids)
+- [x] descriptionColor (5 couleurs), descriptionFontWeight (4 poids)
+- [x] typingAnimation, typingSpeed
+- [x] animateBorder
+
+#### Fonctionnalités
+
+- [x] Aperçu standalone (ModalVideoContent)
+- [x] Bouton "Tester Modal Réel" (avec backdrop)
+- [x] Bouton "Ouvrir Preview" (`/preview/render`)
+- [x] Bouton "Copier Code" (code JSX généré)
+- [x] BroadcastChannel sync temps réel
+- [x] Info balises couleur/style (Dialog)
+- [x] Sélecteur plats (données Prisma)
+
+#### Composants Associés
+
+- [x] `components/ui/ModalVideo.tsx` (805 lignes)
+- [x] `ModalVideoContent` : Contenu réutilisable (standalone ou dialog)
+
 ---
 
 ## 🤖 Phase 4 : n8n Workflows - Automatisations Détaillées (🔥🔥 MOYENNE)

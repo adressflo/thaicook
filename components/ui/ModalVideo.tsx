@@ -36,6 +36,9 @@ interface ModalVideoProps {
   // Balises couleur : <orange>, <green>, <white>, <gold>, <black>
   // Balises style : <bold>, <semi-bold>
   titleColor?: "thai-green" | "thai-orange" | "white" | "black" | "thai-gold" // Couleur par défaut du titre (défaut: "thai-green")
+  titleFontWeight?: "normal" | "medium" | "semibold" | "bold" // Poids police titre - IDENTIQUE à ToasterVideo
+  descriptionColor?: "thai-green" | "thai-orange" | "white" | "black" | "thai-gold" // Couleur description - IDENTIQUE à ToasterVideo
+  descriptionFontWeight?: "normal" | "medium" | "semibold" | "bold" // Poids police description - IDENTIQUE à ToasterVideo
 
   // Boutons d'action
   buttonLayout?: "none" | "single" | "double" | "triple" // Layout des boutons (0, 1, 2, ou 3 boutons)
@@ -61,8 +64,9 @@ interface ModalVideoProps {
   customHeight?: string // Hauteur personnalisée (ex: "400px", "80vh")
   borderColor?: "thai-orange" | "thai-green" | "red" | "blue" | string // Couleur bordure (string pour custom)
   borderWidth?: number // Épaisseur bordure (1, 2, 4, ou custom)
-  shadowSize?: "sm" | "lg" | "2xl" // Taille ombre
+  shadowSize?: "none" | "sm" | "md" | "lg" | "xl" | "2xl" // Taille ombre - IDENTIQUE à ToasterVideo
   animateBorder?: boolean // Animation bordure pulsante (défaut: false)
+  hoverScale?: boolean // Effet scale au hover (défaut: false)
 
   // Polaroid cadre custom (padding)
   polaroidPaddingSides?: number // Padding gauche/droite (défaut 3)
@@ -108,11 +112,16 @@ export function ModalVideoContent({
   standalone = false,
   borderColor = "thai-orange",
   borderWidth = 2,
+  shadowSize = "2xl",
   animateBorder = false,
+  hoverScale = false,
   polaroidPaddingSides = 3,
   polaroidPaddingTop = 3,
   polaroidPaddingBottom = 8,
   titleColor = "thai-green",
+  titleFontWeight = "bold",
+  descriptionColor = "thai-green",
+  descriptionFontWeight = "semibold",
   typingAnimation = false,
   typingSpeed = 100,
   typingTarget = "description",
@@ -132,12 +141,29 @@ export function ModalVideoContent({
   }
 
   // Map title colors to Tailwind classes
-  const titleColorClass = {
+  const titleColorClass: Record<string, string> = {
     "thai-green": "text-thai-green",
     "thai-orange": "text-thai-orange",
     "white": "text-white",
     "black": "text-black",
     "thai-gold": "text-thai-gold"
+  }
+
+  // Map description colors - IDENTIQUE à ToasterVideo
+  const descriptionColorClass: Record<string, string> = {
+    "thai-green": "text-thai-green",
+    "thai-orange": "text-thai-orange",
+    "white": "text-white",
+    "black": "text-black",
+    "thai-gold": "text-thai-gold"
+  }
+
+  // Map font weights - IDENTIQUE à ToasterVideo
+  const fontWeightClass: Record<string, string> = {
+    "normal": "font-normal",
+    "medium": "font-medium",
+    "semibold": "font-semibold",
+    "bold": "font-bold"
   }
 
   // Fonction pour parser les balises de couleur et style dans le texte (avec support imbriqué)
@@ -207,13 +233,29 @@ export function ModalVideoContent({
     4: "border-4"
   }
 
-  const borderColorClass = {
+  // Map des couleurs de bordure - IDENTIQUE à ToasterVideo
+  const borderColorMap: Record<string, string> = {
     "thai-orange": "border-thai-orange",
     "thai-green": "border-thai-green",
     "red": "border-red-500",
     "blue": "border-blue-500",
     "yellow": "border-yellow-500",
     "purple": "border-purple-500",
+  }
+
+  // Classe de couleur de bordure calculée - IDENTIQUE à ToasterVideo
+  const borderColorClass = borderColor in borderColorMap
+    ? borderColorMap[borderColor]
+    : ""
+
+  // Map des tailles d'ombre - IDENTIQUE à ToasterVideo
+  const shadowSizeMap: Record<string, string> = {
+    "none": "shadow-none",
+    "sm": "shadow-sm",
+    "md": "shadow-md",
+    "lg": "shadow-lg",
+    "xl": "shadow-xl",
+    "2xl": "shadow-2xl",
   }
 
   // Map des couleurs hex pour l'animation de bordure dynamique
@@ -320,7 +362,11 @@ export function ModalVideoContent({
   }
 
   return (
-    <div className={cn("flex flex-col", standalone ? "h-full" : "")}>
+    <div className={cn(
+      "flex flex-col transition-transform duration-300",
+      standalone ? "h-full" : "",
+      standalone && hoverScale && "hover:scale-105"
+    )}>
       {/* Bouton close (seulement si pas standalone ET si autoClose activé) */}
       {!standalone && autoClose && (
         <button
@@ -333,61 +379,30 @@ export function ModalVideoContent({
         </button>
       )}
 
-      {/* Section image/vidéo */}
-      {media && (
-        <div className={cn("relative w-full", standalone && "shrink-0")}>
-          {polaroid ? (
-            // Mode Polaroid : cadre BLANC avec bordure colorée
+      {/* Mode Polaroid : TOUT dans le cadre (média + contenu) - IDENTIQUE à ToasterVideo */}
+      {polaroid ? (
+        <div
+          className={cn(
+            "border-solid bg-white",
+            shadowSizeMap[shadowSize],
+            !animateBorder && borderColorClass,
+            animateBorder && "animate-moving-border"
+          )}
+          style={{
+            padding: `${polaroidPaddingTop * 0.25}rem ${polaroidPaddingSides * 0.25}rem ${polaroidPaddingBottom * 0.25}rem`,
+            borderWidth: `${borderWidth}px`,
+            ...getMovingBorderStyle()
+          }}
+        >
+          {/* Cadre intérieur avec bordure autour du media */}
+          {media && (
             <div
               className={cn(
-                "border-solid bg-white",
-                borderColor in borderColorClass ? borderColorClass[borderColor as keyof typeof borderColorClass] : "",
-                animateBorder && "animate-moving-border"
+                "relative w-full overflow-hidden border-solid",
+                aspectRatioClass[aspectRatio],
+                borderColorClass
               )}
-              style={{
-                padding: `${polaroidPaddingTop * 0.25}rem ${polaroidPaddingSides * 0.25}rem ${polaroidPaddingBottom * 0.25}rem ${polaroidPaddingSides * 0.25}rem`,
-                borderWidth: `${borderWidth}px`,
-                ...(!(borderColor in borderColorClass) && { borderColor: borderColor }),
-                ...getMovingBorderStyle()
-              }}
-            >
-              <div
-                className={cn(
-                  "relative w-full overflow-hidden border-solid",
-                  aspectRatioClass[aspectRatio],
-                  borderColor in borderColorClass ? borderColorClass[borderColor as keyof typeof borderColorClass] : ""
-                )}
-                style={{
-                  borderWidth: `${borderWidth}px`,
-                  ...(!(borderColor in borderColorClass) && { borderColor: borderColor })
-                }}
-              >
-                {isVideo ? (
-                  <video
-                    ref={videoRef}
-                    src={media}
-                    autoPlay
-                    muted
-                    loop={loopCount === 0}
-                    onEnded={handleVideoEnded}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <img
-                    src={media}
-                    alt="Modal media"
-                    className="h-full w-full object-cover"
-                  />
-                )}
-              </div>
-            </div>
-          ) : (
-            // Mode normal : pas de cadre Polaroid
-            <div
-              className={cn(
-                "relative w-full overflow-hidden",
-                aspectRatioClass[aspectRatio]
-              )}
+              style={{ borderWidth: `${borderWidth}px` }}
             >
               {isVideo ? (
                 <video
@@ -408,109 +423,234 @@ export function ModalVideoContent({
               )}
             </div>
           )}
-        </div>
-      )}
 
-      {/* Section contenu */}
-      <div className={cn("p-6 space-y-4 bg-white", standalone && "flex-1 flex flex-col")}>
-        <div className={cn("space-y-3", standalone && "flex-1")}>
-          {title && (
-            <h3 className={cn("text-2xl font-bold text-center", titleColorClass[titleColor])}>
-              {typingAnimation && (typingTarget === "title" || typingTarget === "both") ? (
-                <TypingAnimation duration={typingSpeed}>
-                  {parseColoredText(title)}
-                </TypingAnimation>
-              ) : (
-                parseColoredText(title)
-              )}
-            </h3>
-          )}
-          {description && (
-            <div className={cn("w-full", scrollingText && "overflow-hidden")}>
-              <p
-                className={cn(
-                  "text-center text-base leading-relaxed",
-                  scrollingText && "animate-marquee inline-block whitespace-nowrap"
-                )}
-                style={
-                  scrollingText
-                    ? ({
-                        "--marquee-duration": `${syncedScrollDuration ?? scrollDuration}s`
-                      } as React.CSSProperties)
-                    : undefined
-                }
-              >
-                {typingAnimation && (typingTarget === "description" || typingTarget === "both") ? (
+          {/* Contenu texte À L'INTÉRIEUR du cadre Polaroid */}
+          <div className="mt-4 space-y-3">
+            {title && (
+              <h3 className={cn("text-xl text-center", titleColorClass[titleColor], fontWeightClass[titleFontWeight])}>
+                {typingAnimation && (typingTarget === "title" || typingTarget === "both") ? (
                   <TypingAnimation duration={typingSpeed}>
-                    {parseColoredText(description)}
+                    {parseColoredText(title)}
                   </TypingAnimation>
                 ) : (
-                  parseColoredText(description)
+                  parseColoredText(title)
                 )}
-              </p>
+              </h3>
+            )}
+            {description && (
+              <div className={cn("w-full", scrollingText && "overflow-hidden")}>
+                <p
+                  className={cn(
+                    "text-center text-sm leading-relaxed",
+                    descriptionColorClass[descriptionColor],
+                    fontWeightClass[descriptionFontWeight],
+                    scrollingText && "animate-marquee inline-block whitespace-nowrap"
+                  )}
+                  style={
+                    scrollingText
+                      ? ({
+                          "--marquee-duration": `${syncedScrollDuration ?? scrollDuration}s`
+                        } as React.CSSProperties)
+                      : undefined
+                  }
+                >
+                  {typingAnimation && (typingTarget === "description" || typingTarget === "both") ? (
+                    <TypingAnimation duration={typingSpeed}>
+                      {parseColoredText(description)}
+                    </TypingAnimation>
+                  ) : (
+                    parseColoredText(description)
+                  )}
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Boutons d'action À L'INTÉRIEUR du cadre Polaroid */}
+          {buttonLayout !== "none" && (
+            <div className={cn("mt-4 flex gap-3", buttonLayout === "single" && "justify-center")}>
+              {buttonLayout === "single" && (
+                <Button
+                  onClick={handleConfirm}
+                  className="bg-thai-orange hover:bg-thai-orange/90 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 px-8"
+                >
+                  {confirmText}
+                </Button>
+              )}
+              {buttonLayout === "double" && (
+                <>
+                  <Button
+                    onClick={handleCancel}
+                    variant="outline"
+                    className="flex-1 rounded-lg border-2 border-thai-green text-thai-green hover:bg-thai-green hover:text-white transition-all duration-200"
+                  >
+                    {cancelText}
+                  </Button>
+                  <Button
+                    onClick={handleConfirm}
+                    className="flex-1 bg-thai-orange hover:bg-thai-orange/90 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
+                  >
+                    {confirmText}
+                  </Button>
+                </>
+              )}
+              {buttonLayout === "triple" && (
+                <>
+                  <Button
+                    onClick={handleCancel}
+                    variant="outline"
+                    className="flex-1 rounded-lg border-2 border-thai-green text-thai-green hover:bg-thai-green hover:text-white transition-all duration-200"
+                  >
+                    {cancelText}
+                  </Button>
+                  <Button
+                    onClick={handleConfirm}
+                    className="flex-1 bg-thai-orange hover:bg-thai-orange/90 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
+                  >
+                    {confirmText}
+                  </Button>
+                  <Button
+                    onClick={handleThirdButton}
+                    className="flex-1 bg-thai-gold hover:bg-thai-gold/90 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
+                  >
+                    {thirdButtonText}
+                  </Button>
+                </>
+              )}
             </div>
           )}
         </div>
-
-        {/* Boutons d'action (selon buttonLayout) */}
-        {buttonLayout !== "none" && (
-          <div className={cn("flex gap-3", buttonLayout === "single" && "justify-center")}>
-            {/* Layout "single" : 1 bouton centré (Confirmer) */}
-            {buttonLayout === "single" && (
-              <Button
-                onClick={handleConfirm}
-                className="bg-thai-orange hover:bg-thai-orange/90 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 px-8"
+      ) : (
+        <>
+          {/* Mode normal : média séparé du contenu */}
+          {media && (
+            <div className={cn("relative w-full", standalone && "shrink-0")}>
+              <div
+                className={cn(
+                  "relative w-full overflow-hidden",
+                  aspectRatioClass[aspectRatio]
+                )}
               >
-                {confirmText}
-              </Button>
-            )}
+                {isVideo ? (
+                  <video
+                    ref={videoRef}
+                    src={media}
+                    autoPlay
+                    muted
+                    loop={loopCount === 0}
+                    onEnded={handleVideoEnded}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <img
+                    src={media}
+                    alt="Modal media"
+                    className="h-full w-full object-cover"
+                  />
+                )}
+              </div>
+            </div>
+          )}
 
-            {/* Layout "double" : 2 boutons (Annuler + Confirmer) */}
-            {buttonLayout === "double" && (
-              <>
-                <Button
-                  onClick={handleCancel}
-                  variant="outline"
-                  className="flex-1 rounded-lg border-2 border-thai-green text-thai-green hover:bg-thai-green hover:text-white transition-all duration-200"
-                >
-                  {cancelText}
-                </Button>
-                <Button
-                  onClick={handleConfirm}
-                  className="flex-1 bg-thai-orange hover:bg-thai-orange/90 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
-                >
-                  {confirmText}
-                </Button>
-              </>
-            )}
+          {/* Section contenu (mode normal) */}
+          <div className={cn("p-6 space-y-4 bg-white", standalone && "flex-1 flex flex-col")}>
+            <div className={cn("space-y-3", standalone && "flex-1")}>
+              {title && (
+                <h3 className={cn("text-2xl text-center", titleColorClass[titleColor], fontWeightClass[titleFontWeight])}>
+                  {typingAnimation && (typingTarget === "title" || typingTarget === "both") ? (
+                    <TypingAnimation duration={typingSpeed}>
+                      {parseColoredText(title)}
+                    </TypingAnimation>
+                  ) : (
+                    parseColoredText(title)
+                  )}
+                </h3>
+              )}
+              {description && (
+                <div className={cn("w-full", scrollingText && "overflow-hidden")}>
+                  <p
+                    className={cn(
+                      "text-center text-base leading-relaxed",
+                      descriptionColorClass[descriptionColor],
+                      fontWeightClass[descriptionFontWeight],
+                      scrollingText && "animate-marquee inline-block whitespace-nowrap"
+                    )}
+                    style={
+                      scrollingText
+                        ? ({
+                            "--marquee-duration": `${syncedScrollDuration ?? scrollDuration}s`
+                          } as React.CSSProperties)
+                        : undefined
+                    }
+                  >
+                    {typingAnimation && (typingTarget === "description" || typingTarget === "both") ? (
+                      <TypingAnimation duration={typingSpeed}>
+                        {parseColoredText(description)}
+                      </TypingAnimation>
+                    ) : (
+                      parseColoredText(description)
+                    )}
+                  </p>
+                </div>
+              )}
+            </div>
 
-            {/* Layout "triple" : 3 boutons (Annuler + Confirmer + 3ème) */}
-            {buttonLayout === "triple" && (
-              <>
-                <Button
-                  onClick={handleCancel}
-                  variant="outline"
-                  className="flex-1 rounded-lg border-2 border-thai-green text-thai-green hover:bg-thai-green hover:text-white transition-all duration-200"
-                >
-                  {cancelText}
-                </Button>
-                <Button
-                  onClick={handleConfirm}
-                  className="flex-1 bg-thai-orange hover:bg-thai-orange/90 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
-                >
-                  {confirmText}
-                </Button>
-                <Button
-                  onClick={handleThirdButton}
-                  className="flex-1 bg-thai-gold hover:bg-thai-gold/90 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
-                >
-                  {thirdButtonText}
-                </Button>
-              </>
+            {/* Boutons d'action (mode normal) */}
+            {buttonLayout !== "none" && (
+              <div className={cn("flex gap-3", buttonLayout === "single" && "justify-center")}>
+                {buttonLayout === "single" && (
+                  <Button
+                    onClick={handleConfirm}
+                    className="bg-thai-orange hover:bg-thai-orange/90 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 px-8"
+                  >
+                    {confirmText}
+                  </Button>
+                )}
+                {buttonLayout === "double" && (
+                  <>
+                    <Button
+                      onClick={handleCancel}
+                      variant="outline"
+                      className="flex-1 rounded-lg border-2 border-thai-green text-thai-green hover:bg-thai-green hover:text-white transition-all duration-200"
+                    >
+                      {cancelText}
+                    </Button>
+                    <Button
+                      onClick={handleConfirm}
+                      className="flex-1 bg-thai-orange hover:bg-thai-orange/90 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
+                    >
+                      {confirmText}
+                    </Button>
+                  </>
+                )}
+                {buttonLayout === "triple" && (
+                  <>
+                    <Button
+                      onClick={handleCancel}
+                      variant="outline"
+                      className="flex-1 rounded-lg border-2 border-thai-green text-thai-green hover:bg-thai-green hover:text-white transition-all duration-200"
+                    >
+                      {cancelText}
+                    </Button>
+                    <Button
+                      onClick={handleConfirm}
+                      className="flex-1 bg-thai-orange hover:bg-thai-orange/90 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
+                    >
+                      {confirmText}
+                    </Button>
+                    <Button
+                      onClick={handleThirdButton}
+                      className="flex-1 bg-thai-gold hover:bg-thai-gold/90 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
+                    >
+                      {thirdButtonText}
+                    </Button>
+                  </>
+                )}
+              </div>
             )}
           </div>
-        )}
-      </div>
+        </>
+      )}
     </div>
   )
 }
@@ -528,6 +668,7 @@ export function ModalVideo({
   borderWidth = 2,
   shadowSize = "2xl",
   animateBorder = false,
+  hoverScale = false,
   position = "center",
   customX,
   customY,
@@ -542,7 +683,8 @@ export function ModalVideo({
     "custom": "" // Pas de classe max-w si custom
   }
 
-  const borderColorClass = {
+  // Map des couleurs de bordure
+  const borderColorMap: Record<string, string> = {
     "thai-orange": "border-thai-orange",
     "thai-green": "border-thai-green",
     "red": "border-red-500",
@@ -551,15 +693,24 @@ export function ModalVideo({
     "purple": "border-purple-500",
   }
 
+  // Classe de couleur de bordure calculée
+  const borderColorClass = borderColor in borderColorMap
+    ? borderColorMap[borderColor]
+    : ""
+
   const borderWidthClass = {
     1: "border",
     2: "border-2",
     4: "border-4"
   }
 
-  const shadowClass = {
+  // Map des tailles d'ombre - IDENTIQUE à ToasterVideo
+  const shadowClass: Record<string, string> = {
+    "none": "shadow-none",
     "sm": "shadow-sm",
+    "md": "shadow-md",
     "lg": "shadow-lg",
+    "xl": "shadow-xl",
     "2xl": "shadow-2xl"
   }
 
@@ -601,19 +752,34 @@ export function ModalVideo({
       <DialogContent
         className={cn(
           maxWidthClass[maxWidth],
-          "bg-white p-0 border-solid fixed z-50 grid w-full gap-4",
-          // Utiliser classe Tailwind si borderWidth est dans borderWidthClass, sinon pas de classe (on utilisera style inline)
-          borderWidth in borderWidthClass ? borderWidthClass[borderWidth as keyof typeof borderWidthClass] : "",
-          // Si borderColor est dans borderColorClass, utiliser la classe, sinon utiliser comme classe custom
-          borderColor in borderColorClass ? borderColorClass[borderColor as keyof typeof borderColorClass] : borderColor,
-          shadowClass[shadowSize],
-          rotation && "-rotate-2 hover:rotate-0 transition-transform duration-300",
-          // Animation bordure
-          animateBorder && "animate-moving-border",
+          "p-0 fixed z-50 grid w-full gap-4",
+          // Mode Polaroid : IDENTIQUE à ToasterVideo - bg-transparent p-0 border-0 (ombre sur Polaroid frame)
+          props.polaroid ? cn(
+            "bg-transparent p-0 border-0",
+            // PAS de shadow ici - elle est sur le Polaroid frame dans ModalVideoContent
+            hoverScale && "hover:scale-105",
+            rotation && "-rotate-2 hover:rotate-0",
+            animateBorder && "overflow-visible!"
+          ) : cn(
+            "bg-white border-solid",
+            borderWidth in borderWidthClass ? borderWidthClass[borderWidth as keyof typeof borderWidthClass] : "",
+            borderColorClass,
+            animateBorder && "animate-moving-border",
+            shadowClass[shadowSize],
+            rotation && "-rotate-2 hover:rotate-0 transition-transform duration-300",
+            hoverScale && "hover:scale-105 transition-transform duration-300"
+          ),
           // Position du modal
           positionClass[position]
         )}
         style={{
+          // Forcer styles en mode polaroid
+          ...(props.polaroid ? {
+            background: "transparent",
+            border: "none",
+            padding: 0,
+            boxShadow: "none"
+          } : {}),
           // Custom dimensions
           ...(maxWidth === "custom" && (customWidth || customHeight)
             ? {
@@ -622,18 +788,18 @@ export function ModalVideo({
                 height: customHeight || undefined,
               }
             : {}),
-          // Custom borderWidth (si borderWidth n'est pas dans borderWidthClass)
-          ...(!(borderWidth in borderWidthClass) ? { borderWidth: `${borderWidth}px` } : {}),
+          // Custom borderWidth (si borderWidth n'est pas dans borderWidthClass ET pas en mode polaroid)
+          ...(!props.polaroid && !(borderWidth in borderWidthClass) ? { borderWidth: `${borderWidth}px` } : {}),
           // Custom position (si position="custom")
           ...(position === "custom" && (customX || customY)
             ? {
                 left: customX || undefined,
                 top: customY || undefined,
-                transform: "none", // Désactiver les transforms par défaut
+                transform: "none",
               }
             : {}),
-          // Animation bordure dynamique
-          ...getMovingBorderStyle()
+          // Animation bordure dynamique (seulement si pas polaroid)
+          ...(!props.polaroid ? getMovingBorderStyle() : {})
         }}
         onInteractOutside={(e) => {
           // Si autoClose est false, empêcher la fermeture au clic sur le backdrop
@@ -658,7 +824,9 @@ export function ModalVideo({
           description={description}
           borderColor={borderColor}
           borderWidth={borderWidth}
+          shadowSize={shadowSize}
           animateBorder={animateBorder}
+          hoverScale={hoverScale}
           titleColor={props.titleColor}
           {...props}
         />

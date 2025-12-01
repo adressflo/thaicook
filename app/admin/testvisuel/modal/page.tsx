@@ -244,6 +244,7 @@ function ModalVideoPlayground() {
     confirmText: string
     thirdButtonText: string
     rotation: boolean
+    hoverScale: boolean
     maxWidth: "sm" | "md" | "lg" | "xl" | "custom"
     customWidth: string
     customHeight: string
@@ -251,7 +252,7 @@ function ModalVideoPlayground() {
     customBorderColor: string // Couleur Tailwind custom (ex: "border-purple-500")
     borderWidth: number | "custom"
     customBorderWidth: number // Épaisseur custom (ex: 3, 5, 8)
-    shadowSize: "sm" | "lg" | "2xl"
+    shadowSize: "none" | "sm" | "md" | "lg" | "xl" | "2xl"
     // Polaroid cadre custom
     polaroidPaddingSides: number // Padding gauche/droite (défaut 3 = p-3)
     polaroidPaddingTop: number // Padding haut (défaut 3 = pt-3)
@@ -266,8 +267,11 @@ function ModalVideoPlayground() {
     position: "center" | "bottom-right" | "bottom-left" | "top-right" | "top-left" | "custom"
     customX: string // Position X custom
     customY: string // Position Y custom
-    // Couleurs personnalisées
+    // Couleurs personnalisées - IDENTIQUE à ToasterVideo
     titleColor: "thai-green" | "thai-orange" | "white" | "black" | "thai-gold"
+    titleFontWeight: "normal" | "medium" | "semibold" | "bold"
+    descriptionColor: "thai-green" | "thai-orange" | "white" | "black" | "thai-gold"
+    descriptionFontWeight: "normal" | "medium" | "semibold" | "bold"
     // Animation typing
     typingAnimation: boolean
     typingSpeed: number
@@ -290,6 +294,7 @@ function ModalVideoPlayground() {
     confirmText: "Confirmer",
     thirdButtonText: "Action",
     rotation: true,
+    hoverScale: false,
     maxWidth: "md",
     customWidth: "600px",
     customHeight: "",
@@ -309,6 +314,9 @@ function ModalVideoPlayground() {
     customX: "50%",
     customY: "50%",
     titleColor: "thai-green",
+    titleFontWeight: "bold",
+    descriptionColor: "thai-green",
+    descriptionFontWeight: "semibold",
     typingAnimation: false,
     typingSpeed: 100,
     scrollSyncWithVideo: false,
@@ -347,10 +355,11 @@ function ModalVideoPlayground() {
   confirmText="${previewProps.confirmText}"
   thirdButtonText="${previewProps.thirdButtonText}"${previewProps.cancelLink ? `\n  cancelLink="${previewProps.cancelLink}"` : ""}${previewProps.confirmLink ? `\n  confirmLink="${previewProps.confirmLink}"` : ""}${previewProps.thirdButtonLink ? `\n  thirdButtonLink="${previewProps.thirdButtonLink}"` : ""}
   rotation={${previewProps.rotation}}
+  hoverScale={${previewProps.hoverScale}}
   maxWidth="${previewProps.maxWidth}"${previewProps.maxWidth === "custom" && previewProps.customWidth ? `\n  customWidth="${previewProps.customWidth}"` : ""}${previewProps.maxWidth === "custom" && previewProps.customHeight ? `\n  customHeight="${previewProps.customHeight}"` : ""}
   borderColor="${previewProps.borderColor}"
   borderWidth={${previewProps.borderWidth}}
-  shadowSize="${previewProps.shadowSize}"${previewProps.animateBorder ? `\n  animateBorder={true}` : ""}${previewProps.position !== "center" ? `\n  position="${previewProps.position}"` : ""}${previewProps.position === "custom" && previewProps.customX ? `\n  customX="${previewProps.customX}"` : ""}${previewProps.position === "custom" && previewProps.customY ? `\n  customY="${previewProps.customY}"` : ""}${previewProps.titleColor !== "thai-green" ? `\n  titleColor="${previewProps.titleColor}"` : ""}${previewProps.typingAnimation ? `\n  typingAnimation={true}` : ""}${previewProps.typingAnimation && previewProps.typingSpeed !== 100 ? `\n  typingSpeed={${previewProps.typingSpeed}}` : ""}
+  shadowSize="${previewProps.shadowSize}"${previewProps.animateBorder ? `\n  animateBorder={true}` : ""}${previewProps.position !== "center" ? `\n  position="${previewProps.position}"` : ""}${previewProps.position === "custom" && previewProps.customX ? `\n  customX="${previewProps.customX}"` : ""}${previewProps.position === "custom" && previewProps.customY ? `\n  customY="${previewProps.customY}"` : ""}${previewProps.titleColor !== "thai-green" ? `\n  titleColor="${previewProps.titleColor}"` : ""}${previewProps.titleFontWeight !== "bold" ? `\n  titleFontWeight="${previewProps.titleFontWeight}"` : ""}${previewProps.descriptionColor !== "thai-green" ? `\n  descriptionColor="${previewProps.descriptionColor}"` : ""}${previewProps.descriptionFontWeight !== "semibold" ? `\n  descriptionFontWeight="${previewProps.descriptionFontWeight}"` : ""}${previewProps.polaroid && previewProps.polaroidPaddingSides !== 3 ? `\n  polaroidPaddingSides={${previewProps.polaroidPaddingSides}}` : ""}${previewProps.polaroid && previewProps.polaroidPaddingTop !== 3 ? `\n  polaroidPaddingTop={${previewProps.polaroidPaddingTop}}` : ""}${previewProps.polaroid && previewProps.polaroidPaddingBottom !== 8 ? `\n  polaroidPaddingBottom={${previewProps.polaroidPaddingBottom}}` : ""}${previewProps.typingAnimation ? `\n  typingAnimation={true}` : ""}${previewProps.typingAnimation && previewProps.typingSpeed !== 100 ? `\n  typingSpeed={${previewProps.typingSpeed}}` : ""}
   onCancel={() => console.log("Annulé")}
   onConfirm={() => console.log("Confirmé")}
   onThirdButton={() => console.log("Troisième action")}
@@ -398,6 +407,7 @@ function ModalVideoPlayground() {
                   params.set("confirmText", previewProps.confirmText)
                   params.set("thirdButtonText", previewProps.thirdButtonText)
                   params.set("rotation", previewProps.rotation.toString())
+                  params.set("hoverScale", previewProps.hoverScale.toString())
                   params.set("maxWidth", previewProps.maxWidth)
                   params.set("customWidth", previewProps.customWidth)
                   params.set("customHeight", previewProps.customHeight)
@@ -421,6 +431,9 @@ function ModalVideoPlayground() {
                   params.set("typingSpeed", previewProps.typingSpeed.toString())
                   params.set("scrollSyncWithVideo", previewProps.scrollSyncWithVideo.toString())
                   params.set("animateBorder", previewProps.animateBorder.toString())
+                  params.set("titleFontWeight", previewProps.titleFontWeight)
+                  params.set("descriptionColor", previewProps.descriptionColor)
+                  params.set("descriptionFontWeight", previewProps.descriptionFontWeight)
 
                   const channel = new BroadcastChannel("preview_channel")
                   channel.postMessage({
@@ -548,6 +561,78 @@ function ModalVideoPlayground() {
                       }
                     >
                       {color.label}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Poids police titre - IDENTIQUE à ToasterVideo */}
+              <div>
+                <label className="text-xs text-gray-600">Poids police titre</label>
+                <div className="flex flex-wrap gap-2">
+                  {(["normal", "medium", "semibold", "bold"] as const).map((weight) => (
+                    <Button
+                      key={weight}
+                      size="sm"
+                      variant={previewProps.titleFontWeight === weight ? "default" : "outline"}
+                      onClick={() => setPreviewProps({ ...previewProps, titleFontWeight: weight })}
+                      className={
+                        previewProps.titleFontWeight === weight
+                          ? "bg-thai-orange hover:bg-thai-orange/90"
+                          : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
+                      }
+                    >
+                      {weight}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Couleur description - IDENTIQUE à ToasterVideo */}
+              <div>
+                <label className="text-xs text-gray-600">Couleur description</label>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { label: "🟢 Vert", value: "thai-green" as const },
+                    { label: "🟠 Orange", value: "thai-orange" as const },
+                    { label: "⚪ Blanc", value: "white" as const },
+                    { label: "⚫ Noir", value: "black" as const },
+                    { label: "🟡 Or", value: "thai-gold" as const },
+                  ].map((color) => (
+                    <Button
+                      key={color.value}
+                      size="sm"
+                      variant={previewProps.descriptionColor === color.value ? "default" : "outline"}
+                      onClick={() => setPreviewProps({ ...previewProps, descriptionColor: color.value })}
+                      className={
+                        previewProps.descriptionColor === color.value
+                          ? "bg-thai-orange hover:bg-thai-orange/90"
+                          : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
+                      }
+                    >
+                      {color.label}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Poids police description - IDENTIQUE à ToasterVideo */}
+              <div>
+                <label className="text-xs text-gray-600">Poids police description</label>
+                <div className="flex flex-wrap gap-2">
+                  {(["normal", "medium", "semibold", "bold"] as const).map((weight) => (
+                    <Button
+                      key={weight}
+                      size="sm"
+                      variant={previewProps.descriptionFontWeight === weight ? "default" : "outline"}
+                      onClick={() => setPreviewProps({ ...previewProps, descriptionFontWeight: weight })}
+                      className={
+                        previewProps.descriptionFontWeight === weight
+                          ? "bg-thai-orange hover:bg-thai-orange/90"
+                          : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
+                      }
+                    >
+                      {weight}
                     </Button>
                   ))}
                 </div>
@@ -982,6 +1067,19 @@ function ModalVideoPlayground() {
                 </span>
               </label>
 
+              {/* Effet scale au hover - CHECKBOX */}
+              <label className="flex cursor-pointer items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={previewProps.hoverScale}
+                  onChange={(e) => setPreviewProps({ ...previewProps, hoverScale: e.target.checked })}
+                  className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
+                />
+                <span className="text-sm text-gray-700">
+                  Effet scale au hover (hover:scale-105)
+                </span>
+              </label>
+
               {/* Animation bordure pulsante - CHECKBOX */}
               <label className="flex cursor-pointer items-center gap-2">
                 <input
@@ -1125,7 +1223,7 @@ function ModalVideoPlayground() {
               <div>
                 <label className="text-xs text-gray-600">Ombre</label>
                 <div className="flex gap-2">
-                  {(["sm", "lg", "2xl"] as const).map((shadow) => (
+                  {(["none", "sm", "md", "lg", "xl", "2xl"] as const).map((shadow) => (
                     <Button
                       key={shadow}
                       size="sm"
@@ -1272,7 +1370,10 @@ function ModalVideoPlayground() {
           </Badge>
         </div>
 
-        <div className="relative mx-auto flex h-[600px] w-full max-w-md flex-col overflow-hidden rounded-xl border border-gray-200 bg-gray-50 shadow-2xl">
+        <div className={cn(
+          "relative mx-auto flex h-[600px] w-full max-w-md flex-col rounded-xl border border-gray-200 bg-gray-50 shadow-2xl",
+          previewProps.animateBorder ? "overflow-visible" : "overflow-hidden"
+        )}>
           <div className="flex-1 overflow-y-auto">
             <ModalVideoContent
               onOpenChange={() => {}}
@@ -1311,6 +1412,10 @@ function ModalVideoPlayground() {
               typingSpeed={previewProps.typingSpeed}
               scrollSyncWithVideo={previewProps.scrollSyncWithVideo}
               animateBorder={previewProps.animateBorder}
+              hoverScale={previewProps.hoverScale}
+              titleFontWeight={previewProps.titleFontWeight}
+              descriptionColor={previewProps.descriptionColor}
+              descriptionFontWeight={previewProps.descriptionFontWeight}
               standalone={true}
               onCancel={() => console.log("Annulé (Preview)")}
               onConfirm={() => console.log("Confirmé (Preview)")}
@@ -1337,6 +1442,7 @@ function ModalVideoPlayground() {
         confirmText={previewProps.confirmText}
         thirdButtonText={previewProps.thirdButtonText}
         rotation={previewProps.rotation}
+        hoverScale={previewProps.hoverScale}
         maxWidth={previewProps.maxWidth}
         customWidth={previewProps.maxWidth === "custom" ? previewProps.customWidth : undefined}
         customHeight={previewProps.maxWidth === "custom" ? previewProps.customHeight : undefined}
@@ -1366,6 +1472,9 @@ function ModalVideoPlayground() {
         typingSpeed={previewProps.typingSpeed}
         scrollSyncWithVideo={previewProps.scrollSyncWithVideo}
         animateBorder={previewProps.animateBorder}
+        titleFontWeight={previewProps.titleFontWeight}
+        descriptionColor={previewProps.descriptionColor}
+        descriptionFontWeight={previewProps.descriptionFontWeight}
         onCancel={() => console.log("Annulé !")}
         onConfirm={() => console.log("Confirmé !")}
         onThirdButton={() => console.log("Troisième bouton cliqué !")}
