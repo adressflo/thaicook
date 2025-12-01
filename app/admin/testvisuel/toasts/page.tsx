@@ -1,12 +1,8 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
-import { Badge } from "@/components/ui/badge"
-import { toast } from "@/hooks/use-toast"
-import { toastVideo } from "@/hooks/use-toast-video"
 import {
   Dialog,
   DialogContent,
@@ -16,18 +12,22 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { Info } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { Separator } from "@/components/ui/separator"
 import type {
   BorderColor,
-  ShadowSize,
-  MaxWidth,
-  TitleColor,
   DescriptionColor,
-  ToastPosition,
   FontWeight,
+  MaxWidth,
   RedirectBehavior,
+  ShadowSize,
+  TitleColor,
+  ToastPosition,
 } from "@/components/ui/toast"
+import { toast } from "@/hooks/use-toast"
+import { toastVideo } from "@/hooks/use-toast-video"
+import { cn } from "@/lib/utils"
+import { Info } from "lucide-react"
+import { useEffect, useState } from "react"
 
 // ============================================================================
 // SECTION 1: PLAYGROUND TOASTER (Simple)
@@ -62,6 +62,8 @@ function ToasterPlayground() {
     // Animation typing
     typingAnimation: boolean
     typingSpeed: number
+    // Animation fermeture
+    mangaExplosion: boolean
   }>({
     title: "Notification",
     description: "Ceci est un message de notification",
@@ -90,6 +92,8 @@ function ToasterPlayground() {
     // Animation typing
     typingAnimation: false,
     typingSpeed: 100,
+    // Animation fermeture
+    mangaExplosion: false,
   })
 
   // Envoyer les props au BroadcastChannel à chaque changement pour mise à jour temps réel
@@ -119,20 +123,8 @@ function ToasterPlayground() {
       shadowSize: props.shadowSize,
       maxWidth: props.maxWidth,
       titleColor: props.titleColor,
-      titleFontWeight: props.titleFontWeight,
-      descriptionColor: props.descriptionColor,
-      descriptionFontWeight: props.descriptionFontWeight,
-      animateBorder: props.animateBorder,
-      hoverScale: props.hoverScale,
-      rotation: props.rotation,
-      position: props.position,
-      customX: props.position === "custom" ? props.customX : undefined,
-      customY: props.position === "custom" ? props.customY : undefined,
-      redirectUrl: props.redirectUrl || undefined,
-      redirectBehavior: props.redirectUrl ? props.redirectBehavior : undefined,
-      // Animation typing
-      typingAnimation: props.typingAnimation,
       typingSpeed: props.typingAnimation ? props.typingSpeed : undefined,
+      mangaExplosion: props.mangaExplosion,
     })
   }
 
@@ -181,6 +173,7 @@ function ToasterPlayground() {
       lines.push(`  typingAnimation: true,`)
       if (props.typingSpeed !== 100) lines.push(`  typingSpeed: ${props.typingSpeed},`)
     }
+    if (props.mangaExplosion) lines.push(`  mangaExplosion: true,`)
     if (props.redirectUrl) {
       lines.push(`  redirectUrl: "${props.redirectUrl}",`)
       lines.push(`  redirectBehavior: "${props.redirectBehavior}",`)
@@ -579,105 +572,117 @@ function ToasterPlayground() {
         </div>
 
         {/* Section Animation */}
-        <div className="space-y-2">
+        {/* Section Animation */}
+        <div className="space-y-4">
           <label className="text-xs font-medium text-gray-700">Animations & Effets</label>
-          <div className="space-y-2">
-            <label className="flex cursor-pointer items-center gap-2">
-              <input
-                type="checkbox"
-                checked={props.tilted}
-                onChange={(e) => setProps({ ...props, tilted: e.target.checked })}
-                className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
-              />
-              <span className="text-sm text-gray-700">Inclinaison (tilted)</span>
-            </label>
-            {props.tilted && (
-              <div className="ml-6 flex items-center gap-2">
-                <label className="text-xs text-gray-600">Angle:</label>
-                <input
-                  type="number"
-                  value={props.tiltedAngle}
-                  onChange={(e) => setProps({ ...props, tiltedAngle: Number(e.target.value) })}
-                  className="focus:ring-thai-orange w-20 rounded-md border border-gray-300 px-2 py-1 text-sm focus:ring-2 focus:outline-none"
-                  min="-15"
-                  max="15"
-                />
-                <span className="text-xs text-gray-600">deg</span>
-              </div>
-            )}
-            <label className="flex cursor-pointer items-center gap-2">
-              <input
-                type="checkbox"
-                checked={props.animateBorder}
-                onChange={(e) => setProps({ ...props, animateBorder: e.target.checked })}
-                className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
-              />
-              <span className="text-sm text-gray-700">Animation bordure (moving-border)</span>
-            </label>
-            <label className="flex cursor-pointer items-center gap-2">
-              <input
-                type="checkbox"
-                checked={props.hoverScale}
-                onChange={(e) => setProps({ ...props, hoverScale: e.target.checked })}
-                className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
-              />
-              <span className="text-sm text-gray-700">Effet scale au hover</span>
-            </label>
-            <label className="flex cursor-pointer items-center gap-2">
-              <input
-                type="checkbox"
-                checked={props.rotation}
-                onChange={(e) => setProps({ ...props, rotation: e.target.checked })}
-                className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
-              />
-              <span className="text-sm text-gray-700">Animation rotation (rotate-[-2deg] hover:rotate-0)</span>
-            </label>
-            <label className="flex cursor-pointer items-center gap-2">
-              <input
-                type="checkbox"
-                checked={props.typingAnimation}
-                onChange={(e) => setProps({ ...props, typingAnimation: e.target.checked })}
-                className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
-              />
-              <span className="text-sm text-gray-700">Animation dactylographie (typing)</span>
-            </label>
-            {props.typingAnimation && (
-              <div className="ml-6 flex items-center gap-2">
-                <label className="text-xs text-gray-600">Vitesse:</label>
-                <input
-                  type="number"
-                  value={props.typingSpeed}
-                  onChange={(e) => setProps({ ...props, typingSpeed: Number(e.target.value) })}
-                  className="focus:ring-thai-orange w-16 rounded-md border border-gray-300 px-2 py-1 text-sm focus:ring-2 focus:outline-none"
-                  min="30"
-                  max="500"
-                  step="10"
-                />
-                <span className="text-xs text-gray-600">ms/caractère</span>
-              </div>
-            )}
-          </div>
-        </div>
 
-        {/* Section Duree */}
-        <div className="space-y-2">
-          <label className="text-xs font-medium text-gray-700">Duree (ms)</label>
-          <div className="flex items-center gap-2">
-            <input
-              type="range"
-              min="1000"
-              max="15000"
-              step="1000"
-              value={props.duration}
-              onChange={(e) => setProps({ ...props, duration: Number(e.target.value) })}
-              className="flex-1"
-            />
-            <span className="w-16 text-sm text-gray-600">{props.duration}ms</span>
+          {/* Style & Animation texte */}
+          <div className="space-y-2 rounded-md border border-gray-100 bg-gray-50/50 p-3">
+            <h5 className="text-xs font-semibold text-gray-600">Style & Animation texte</h5>
+            <div className="space-y-2">
+              <label className="flex cursor-pointer items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={props.typingAnimation}
+                  onChange={(e) => setProps({ ...props, typingAnimation: e.target.checked })}
+                  className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
+                />
+                <span className="text-sm text-gray-700">Animation dactylographie (typing)</span>
+              </label>
+              {props.typingAnimation && (
+                <div className="ml-6 flex items-center gap-2">
+                  <label className="text-xs text-gray-600">Vitesse:</label>
+                  <input
+                    type="number"
+                    value={props.typingSpeed}
+                    onChange={(e) => setProps({ ...props, typingSpeed: Number(e.target.value) })}
+                    className="focus:ring-thai-orange w-16 rounded-md border border-gray-300 px-2 py-1 text-sm focus:ring-2 focus:outline-none"
+                    min="30"
+                    max="500"
+                    step="10"
+                  />
+                  <span className="text-xs text-gray-600">ms/caractère</span>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
 
-        {/* Section Redirection */}
-        <div className="space-y-2">
+          {/* Style & Animation bordure animate */}
+          <div className="space-y-2 rounded-md border border-gray-100 bg-gray-50/50 p-3">
+            <h5 className="text-xs font-semibold text-gray-600">
+              Style & Animation bordure animate
+            </h5>
+            <div className="space-y-2">
+              <label className="flex cursor-pointer items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={props.tilted}
+                  onChange={(e) => setProps({ ...props, tilted: e.target.checked })}
+                  className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
+                />
+                <span className="text-sm text-gray-700">Inclinaison (tilted)</span>
+              </label>
+              {props.tilted && (
+                <div className="ml-6 flex items-center gap-2">
+                  <label className="text-xs text-gray-600">Angle:</label>
+                  <input
+                    type="number"
+                    value={props.tiltedAngle}
+                    onChange={(e) => setProps({ ...props, tiltedAngle: Number(e.target.value) })}
+                    className="focus:ring-thai-orange w-20 rounded-md border border-gray-300 px-2 py-1 text-sm focus:ring-2 focus:outline-none"
+                    min="-15"
+                    max="15"
+                  />
+                  <span className="text-xs text-gray-600">deg</span>
+                </div>
+              )}
+              <label className="flex cursor-pointer items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={props.animateBorder}
+                  onChange={(e) => setProps({ ...props, animateBorder: e.target.checked })}
+                  className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
+                />
+                <span className="text-sm text-gray-700">Animation bordure (moving-border)</span>
+              </label>
+              <label className="flex cursor-pointer items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={props.hoverScale}
+                  onChange={(e) => setProps({ ...props, hoverScale: e.target.checked })}
+                  className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
+                />
+                <span className="text-sm text-gray-700">Effet scale au hover</span>
+              </label>
+              <label className="flex cursor-pointer items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={props.rotation}
+                  onChange={(e) => setProps({ ...props, rotation: e.target.checked })}
+                  className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
+                />
+                <span className="text-sm text-gray-700">
+                  Animation rotation (rotate-[-2deg] hover:rotate-0)
+                </span>
+              </label>
+            </div>
+          </div>
+
+          {/* Style & Animation fermeture */}
+          <div className="space-y-2 rounded-md border border-gray-100 bg-gray-50/50 p-3">
+            <h5 className="text-xs font-semibold text-gray-600">Style & Animation fermeture</h5>
+            <div className="space-y-2">
+              <label className="flex cursor-pointer items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={props.mangaExplosion}
+                  onChange={(e) => setProps({ ...props, mangaExplosion: e.target.checked })}
+                  className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
+                />
+                <span className="text-sm text-gray-700">Manga Explosion (Orange Thai)</span>
+              </label>
+            </div>
+          </div>
           <label className="text-xs font-medium text-gray-700">Redirection (optionnel)</label>
           <input
             type="text"
@@ -748,10 +753,13 @@ function ToasterVideoPlayground() {
     shadowSize: ShadowSize
     maxWidth: MaxWidth
     titleColor: TitleColor
+    titleFontWeight: FontWeight
     descriptionColor: DescriptionColor
+    descriptionFontWeight: FontWeight
     animateBorder: boolean
     hoverScale: boolean
     rotation: boolean
+    animateOut: boolean
     // Animation typing
     typingAnimation: boolean
     typingSpeed: number
@@ -763,6 +771,8 @@ function ToasterVideoPlayground() {
     redirectUrl: string
     redirectBehavior: RedirectBehavior
     showCloseButton: boolean
+    // Animation fermeture
+    mangaExplosion: boolean
   }>({
     title: "Plat ajoute !",
     description: "Pad Thai ajoute au panier",
@@ -786,10 +796,13 @@ function ToasterVideoPlayground() {
     shadowSize: "2xl",
     maxWidth: "md",
     titleColor: "thai-green",
+    titleFontWeight: "bold",
     descriptionColor: "thai-green",
+    descriptionFontWeight: "semibold",
     animateBorder: false,
     hoverScale: false,
     rotation: false,
+    animateOut: false,
     // Animation typing
     typingAnimation: false,
     typingSpeed: 100,
@@ -801,6 +814,8 @@ function ToasterVideoPlayground() {
     redirectUrl: "",
     redirectBehavior: "auto",
     showCloseButton: true,
+    // Animation fermeture
+    mangaExplosion: false,
   })
 
   // Envoyer les props au BroadcastChannel à chaque changement pour mise à jour temps réel
@@ -811,6 +826,7 @@ function ToasterVideoPlayground() {
       payload: {
         component: "ToasterVideo",
         ...props,
+        mangaExplosion: props.mangaExplosion,
       },
     })
     channel.close()
@@ -844,6 +860,7 @@ function ToasterVideoPlayground() {
       animateBorder: props.animateBorder,
       hoverScale: props.hoverScale,
       rotation: props.rotation,
+      animateOut: props.animateOut,
       // Animation typing
       typingAnimation: props.typingAnimation,
       typingSpeed: props.typingAnimation ? props.typingSpeed : undefined,
@@ -855,6 +872,7 @@ function ToasterVideoPlayground() {
       redirectUrl: props.redirectUrl || undefined,
       redirectBehavior: props.redirectUrl ? props.redirectBehavior : undefined,
       showCloseButton: props.showCloseButton,
+      mangaExplosion: props.mangaExplosion,
     })
   }
 
@@ -874,9 +892,12 @@ function ToasterVideoPlayground() {
     if (props.polaroid) {
       lines.push(`  polaroid: true,`)
       // Include padding values if different from defaults
-      if (props.polaroidPaddingSides !== 3) lines.push(`  polaroidPaddingSides: ${props.polaroidPaddingSides},`)
-      if (props.polaroidPaddingTop !== 3) lines.push(`  polaroidPaddingTop: ${props.polaroidPaddingTop},`)
-      if (props.polaroidPaddingBottom !== 8) lines.push(`  polaroidPaddingBottom: ${props.polaroidPaddingBottom},`)
+      if (props.polaroidPaddingSides !== 3)
+        lines.push(`  polaroidPaddingSides: ${props.polaroidPaddingSides},`)
+      if (props.polaroidPaddingTop !== 3)
+        lines.push(`  polaroidPaddingTop: ${props.polaroidPaddingTop},`)
+      if (props.polaroidPaddingBottom !== 8)
+        lines.push(`  polaroidPaddingBottom: ${props.polaroidPaddingBottom},`)
     }
     if (props.scrollingText) {
       lines.push(`  scrollingText: true,`)
@@ -905,6 +926,7 @@ function ToasterVideoPlayground() {
     if (props.animateBorder) lines.push(`  animateBorder: true,`)
     if (props.hoverScale) lines.push(`  hoverScale: true,`)
     if (props.rotation) lines.push(`  rotation: true,`)
+    if (props.animateOut) lines.push(`  animateOut: true,`)
     // Animation typing
     if (props.typingAnimation) {
       lines.push(`  typingAnimation: true,`)
@@ -924,6 +946,7 @@ function ToasterVideoPlayground() {
       lines.push(`  redirectBehavior: "${props.redirectBehavior}",`)
     }
     if (!props.showCloseButton) lines.push(`  showCloseButton: false,`)
+    if (props.mangaExplosion) lines.push(`  mangaExplosion: true,`)
     lines.push(`})`)
     return lines.join("\n")
   }
@@ -1328,160 +1351,210 @@ function ToasterVideoPlayground() {
           </div>
         </div>
 
-        {/* Section Style & Animation */}
-        <div className="space-y-2">
-          <label className="text-xs font-medium text-gray-700">Style & Animation</label>
-          <div className="space-y-2">
-            <label className="flex cursor-pointer items-center gap-2">
-              <input
-                type="checkbox"
-                checked={props.polaroid}
-                onChange={(e) => setProps({ ...props, polaroid: e.target.checked })}
-                className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
-              />
-              <span className="text-sm text-gray-700">Style Polaroid</span>
-            </label>
-            {/* Polaroid padding controls - visible only when polaroid is enabled */}
-            {props.polaroid && (
-              <div className="ml-6 space-y-2 rounded-md border border-gray-200 bg-gray-50 p-3">
-                <p className="text-xs font-medium text-gray-600">Padding Polaroid</p>
-                <div className="grid grid-cols-3 gap-2">
-                  <div className="space-y-1">
-                    <label className="text-xs text-gray-500">Côtés</label>
+        {/* Section Animations & Effets */}
+        {/* Section Animations & Effets */}
+        <div className="space-y-4">
+          <label className="text-xs font-medium text-gray-700">Animations & Effets</label>
+
+          {/* Style & Animation texte */}
+          <div className="space-y-2 rounded-md border border-gray-100 bg-gray-50/50 p-3">
+            <h5 className="text-xs font-semibold text-gray-600">Style & Animation texte</h5>
+            <div className="space-y-2">
+              <label className="flex cursor-pointer items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={props.scrollingText}
+                  onChange={(e) => setProps({ ...props, scrollingText: e.target.checked })}
+                  className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
+                />
+                <span className="text-sm text-gray-700">Texte defilant (marquee)</span>
+              </label>
+              {props.scrollingText && (
+                <div className="ml-6 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <label className="text-xs text-gray-600">Duree:</label>
                     <input
                       type="number"
-                      value={props.polaroidPaddingSides}
-                      onChange={(e) => setProps({ ...props, polaroidPaddingSides: Number(e.target.value) })}
-                      className="focus:ring-thai-orange w-full rounded-md border border-gray-300 px-2 py-1 text-sm focus:ring-2 focus:outline-none"
-                      min="0"
-                      max="20"
+                      value={props.scrollDuration}
+                      onChange={(e) => setProps({ ...props, scrollDuration: Number(e.target.value) })}
+                      className="focus:ring-thai-orange w-16 rounded-md border border-gray-300 px-2 py-1 text-sm focus:ring-2 focus:outline-none"
+                      min="1"
+                      max="60"
+                      disabled={props.scrollSyncWithVideo}
                     />
+                    <span className="text-xs text-gray-600">secondes</span>
                   </div>
-                  <div className="space-y-1">
-                    <label className="text-xs text-gray-500">Haut</label>
-                    <input
-                      type="number"
-                      value={props.polaroidPaddingTop}
-                      onChange={(e) => setProps({ ...props, polaroidPaddingTop: Number(e.target.value) })}
-                      className="focus:ring-thai-orange w-full rounded-md border border-gray-300 px-2 py-1 text-sm focus:ring-2 focus:outline-none"
-                      min="0"
-                      max="20"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-xs text-gray-500">Bas</label>
-                    <input
-                      type="number"
-                      value={props.polaroidPaddingBottom}
-                      onChange={(e) => setProps({ ...props, polaroidPaddingBottom: Number(e.target.value) })}
-                      className="focus:ring-thai-orange w-full rounded-md border border-gray-300 px-2 py-1 text-sm focus:ring-2 focus:outline-none"
-                      min="0"
-                      max="20"
-                    />
-                  </div>
+                  {/* Option synchronisation avec vidéo */}
+                  {(props.media?.endsWith(".mp4") || props.media?.endsWith(".webm")) ? (
+                    <label className="flex cursor-pointer items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={props.scrollSyncWithVideo}
+                        onChange={(e) =>
+                          setProps({ ...props, scrollSyncWithVideo: e.target.checked })
+                        }
+                        className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
+                      />
+                      <span className="text-xs text-gray-700">
+                        🔄 Synchroniser avec la vidéo (durée = vidéo × lectures)
+                      </span>
+                    </label>
+                  ) : null}
                 </div>
-              </div>
-            )}
-            <label className="flex cursor-pointer items-center gap-2">
-              <input
-                type="checkbox"
-                checked={props.scrollingText}
-                onChange={(e) => setProps({ ...props, scrollingText: e.target.checked })}
-                className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
-              />
-              <span className="text-sm text-gray-700">Texte defilant (marquee)</span>
-            </label>
-            {props.scrollingText && (
-              <div className="ml-6 space-y-2">
-                <div className="flex items-center gap-2">
-                  <label className="text-xs text-gray-600">Duree:</label>
+              )}
+              <label className="flex cursor-pointer items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={props.typingAnimation}
+                  onChange={(e) => setProps({ ...props, typingAnimation: e.target.checked })}
+                  className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
+                />
+                <span className="text-sm text-gray-700">Animation dactylographie (typing)</span>
+              </label>
+              {props.typingAnimation && (
+                <div className="ml-6 flex items-center gap-2">
+                  <label className="text-xs text-gray-600">Vitesse:</label>
                   <input
                     type="number"
-                    value={props.scrollDuration}
-                    onChange={(e) => setProps({ ...props, scrollDuration: Number(e.target.value) })}
+                    value={props.typingSpeed}
+                    onChange={(e) => setProps({ ...props, typingSpeed: Number(e.target.value) })}
                     className="focus:ring-thai-orange w-16 rounded-md border border-gray-300 px-2 py-1 text-sm focus:ring-2 focus:outline-none"
-                    min="1"
-                    max="60"
-                    disabled={props.scrollSyncWithVideo}
+                    min="30"
+                    max="500"
+                    step="10"
                   />
-                  <span className="text-xs text-gray-600">secondes</span>
+                  <span className="text-xs text-gray-600">ms/caractère</span>
                 </div>
-                {/* Option synchronisation avec vidéo */}
-                {props.media?.endsWith('.mp4') || props.media?.endsWith('.webm') ? (
-                  <label className="flex cursor-pointer items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={props.scrollSyncWithVideo}
-                      onChange={(e) => setProps({ ...props, scrollSyncWithVideo: e.target.checked })}
-                      className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
-                    />
-                    <span className="text-xs text-gray-700">
-                      🔄 Synchroniser avec la vidéo (durée = vidéo × lectures)
-                    </span>
-                  </label>
-                ) : null}
-              </div>
-            )}
-            <label className="flex cursor-pointer items-center gap-2">
-              <input
-                type="checkbox"
-                checked={props.animateBorder}
-                onChange={(e) => setProps({ ...props, animateBorder: e.target.checked })}
-                className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
-              />
-              <span className="text-sm text-gray-700">Animation bordure (moving-border)</span>
-            </label>
-            <label className="flex cursor-pointer items-center gap-2">
-              <input
-                type="checkbox"
-                checked={props.hoverScale}
-                onChange={(e) => setProps({ ...props, hoverScale: e.target.checked })}
-                className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
-              />
-              <span className="text-sm text-gray-700">Effet scale au hover</span>
-            </label>
-            <label className="flex cursor-pointer items-center gap-2">
-              <input
-                type="checkbox"
-                checked={props.rotation}
-                onChange={(e) => setProps({ ...props, rotation: e.target.checked })}
-                className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
-              />
-              <span className="text-sm text-gray-700">Animation rotation (rotate-[-2deg] hover:rotate-0)</span>
-            </label>
-            <label className="flex cursor-pointer items-center gap-2">
-              <input
-                type="checkbox"
-                checked={props.typingAnimation}
-                onChange={(e) => setProps({ ...props, typingAnimation: e.target.checked })}
-                className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
-              />
-              <span className="text-sm text-gray-700">Animation dactylographie (typing)</span>
-            </label>
-            {props.typingAnimation && (
-              <div className="ml-6 flex items-center gap-2">
-                <label className="text-xs text-gray-600">Vitesse:</label>
+              )}
+            </div>
+          </div>
+
+          {/* Style & Animation bordure animate */}
+          <div className="space-y-2 rounded-md border border-gray-100 bg-gray-50/50 p-3">
+            <h5 className="text-xs font-semibold text-gray-600">Style & Animation bordure animate</h5>
+            <div className="space-y-2">
+              <label className="flex cursor-pointer items-center gap-2">
                 <input
-                  type="number"
-                  value={props.typingSpeed}
-                  onChange={(e) => setProps({ ...props, typingSpeed: Number(e.target.value) })}
-                  className="focus:ring-thai-orange w-16 rounded-md border border-gray-300 px-2 py-1 text-sm focus:ring-2 focus:outline-none"
-                  min="30"
-                  max="500"
-                  step="10"
+                  type="checkbox"
+                  checked={props.polaroid}
+                  onChange={(e) => setProps({ ...props, polaroid: e.target.checked })}
+                  className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
                 />
-                <span className="text-xs text-gray-600">ms/caractère</span>
-              </div>
-            )}
-            <label className="flex cursor-pointer items-center gap-2">
-              <input
-                type="checkbox"
-                checked={props.showCloseButton}
-                onChange={(e) => setProps({ ...props, showCloseButton: e.target.checked })}
-                className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
-              />
-              <span className="text-sm text-gray-700">Afficher bouton fermeture (X)</span>
-            </label>
+                <span className="text-sm text-gray-700">Style Polaroid</span>
+              </label>
+              {/* Polaroid padding controls - visible only when polaroid is enabled */}
+              {props.polaroid && (
+                <div className="ml-6 space-y-2 rounded-md border border-gray-200 bg-gray-50 p-3">
+                  <p className="text-xs font-medium text-gray-600">Padding Polaroid</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="space-y-1">
+                      <label className="text-xs text-gray-500">Côtés</label>
+                      <input
+                        type="number"
+                        value={props.polaroidPaddingSides}
+                        onChange={(e) =>
+                          setProps({ ...props, polaroidPaddingSides: Number(e.target.value) })
+                        }
+                        className="focus:ring-thai-orange w-full rounded-md border border-gray-300 px-2 py-1 text-sm focus:ring-2 focus:outline-none"
+                        min="0"
+                        max="20"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs text-gray-500">Haut</label>
+                      <input
+                        type="number"
+                        value={props.polaroidPaddingTop}
+                        onChange={(e) =>
+                          setProps({ ...props, polaroidPaddingTop: Number(e.target.value) })
+                        }
+                        className="focus:ring-thai-orange w-full rounded-md border border-gray-300 px-2 py-1 text-sm focus:ring-2 focus:outline-none"
+                        min="0"
+                        max="20"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs text-gray-500">Bas</label>
+                      <input
+                        type="number"
+                        value={props.polaroidPaddingBottom}
+                        onChange={(e) =>
+                          setProps({ ...props, polaroidPaddingBottom: Number(e.target.value) })
+                        }
+                        className="focus:ring-thai-orange w-full rounded-md border border-gray-300 px-2 py-1 text-sm focus:ring-2 focus:outline-none"
+                        min="0"
+                        max="20"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+              <label className="flex cursor-pointer items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={props.animateBorder}
+                  onChange={(e) => setProps({ ...props, animateBorder: e.target.checked })}
+                  className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
+                />
+                <span className="text-sm text-gray-700">Animation bordure (moving-border)</span>
+              </label>
+              <label className="flex cursor-pointer items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={props.hoverScale}
+                  onChange={(e) => setProps({ ...props, hoverScale: e.target.checked })}
+                  className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
+                />
+                <span className="text-sm text-gray-700">Effet scale au hover</span>
+              </label>
+              <label className="flex cursor-pointer items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={props.rotation}
+                  onChange={(e) => setProps({ ...props, rotation: e.target.checked })}
+                  className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
+                />
+                <span className="text-sm text-gray-700">
+                  Animation rotation (rotate-[-2deg] hover:rotate-0)
+                </span>
+              </label>
+            </div>
+          </div>
+
+          {/* Style & Animation fermeture */}
+          <div className="space-y-2 rounded-md border border-gray-100 bg-gray-50/50 p-3">
+            <h5 className="text-xs font-semibold text-gray-600">Style & Animation fermeture</h5>
+            <div className="space-y-2">
+              <label className="flex cursor-pointer items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={props.animateOut}
+                  onChange={(e) => setProps({ ...props, animateOut: e.target.checked })}
+                  className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
+                />
+                <span className="text-sm text-gray-700">
+                  Animation de sortie (fade-out + zoom-out)
+                </span>
+              </label>
+              <label className="flex cursor-pointer items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={props.mangaExplosion}
+                  onChange={(e) => setProps({ ...props, mangaExplosion: e.target.checked })}
+                  className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
+                />
+                <span className="text-sm text-gray-700">Manga Explosion (Orange Thai)</span>
+              </label>
+              <label className="flex cursor-pointer items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={props.showCloseButton}
+                  onChange={(e) => setProps({ ...props, showCloseButton: e.target.checked })}
+                  className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
+                />
+                <span className="text-sm text-gray-700">Afficher bouton fermeture (X)</span>
+              </label>
+            </div>
           </div>
         </div>
 
@@ -1589,9 +1662,6 @@ function ToasterVideoPlayground() {
   )
 }
 
-// ============================================================================
-// PAGE PRINCIPALE
-// ============================================================================
 
 export default function ToastsPlaygroundPage() {
   return (

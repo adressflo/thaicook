@@ -1,16 +1,11 @@
-'use client'
+"use client"
 
-import React, { useState, useRef, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  DialogDescription,
-} from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { TypingAnimation } from '@/components/ui/typing-animation'
-import { cn } from '@/lib/utils'
+import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog"
+import { TypingAnimation } from "@/components/ui/typing-animation"
+import { cn } from "@/lib/utils"
+import { useRouter } from "next/navigation"
+import React, { useEffect, useRef, useState } from "react"
 
 interface ModalVideoProps {
   // État du modal
@@ -66,6 +61,8 @@ interface ModalVideoProps {
   borderWidth?: number // Épaisseur bordure (1, 2, 4, ou custom)
   shadowSize?: "none" | "sm" | "md" | "lg" | "xl" | "2xl" // Taille ombre - IDENTIQUE à ToasterVideo
   animateBorder?: boolean // Animation bordure pulsante (défaut: false)
+  animateOut?: boolean // Animation de sortie (fade-out + zoom-out)
+  mangaExplosion?: boolean // Animation Manga Explosion (orange thai)
   hoverScale?: boolean // Effet scale au hover (défaut: false)
 
   // Polaroid cadre custom (padding)
@@ -126,7 +123,7 @@ export function ModalVideoContent({
   typingSpeed = 100,
   typingTarget = "description",
   scrollSyncWithVideo = false,
-}: Omit<ModalVideoProps, 'isOpen'> & { onOpenChange: (open: boolean) => void }) {
+}: Omit<ModalVideoProps, "isOpen"> & { onOpenChange: (open: boolean) => void }) {
   const router = useRouter()
   const videoRef = useRef<HTMLVideoElement>(null)
   const [playCount, setPlayCount] = useState(0)
@@ -137,38 +134,38 @@ export function ModalVideoContent({
     "16:9": "aspect-video",
     "4:5": "aspect-[4/5]",
     "1:1": "aspect-square",
-    "auto": "", // Pas de contrainte d'aspect ratio
+    auto: "", // Pas de contrainte d'aspect ratio
   }
 
   // Map title colors to Tailwind classes
   const titleColorClass: Record<string, string> = {
     "thai-green": "text-thai-green",
     "thai-orange": "text-thai-orange",
-    "white": "text-white",
-    "black": "text-black",
-    "thai-gold": "text-thai-gold"
+    white: "text-white",
+    black: "text-black",
+    "thai-gold": "text-thai-gold",
   }
 
   // Map description colors - IDENTIQUE à ToasterVideo
   const descriptionColorClass: Record<string, string> = {
     "thai-green": "text-thai-green",
     "thai-orange": "text-thai-orange",
-    "white": "text-white",
-    "black": "text-black",
-    "thai-gold": "text-thai-gold"
+    white: "text-white",
+    black: "text-black",
+    "thai-gold": "text-thai-gold",
   }
 
   // Map font weights - IDENTIQUE à ToasterVideo
   const fontWeightClass: Record<string, string> = {
-    "normal": "font-normal",
-    "medium": "font-medium",
-    "semibold": "font-semibold",
-    "bold": "font-bold"
+    normal: "font-normal",
+    medium: "font-medium",
+    semibold: "font-semibold",
+    bold: "font-bold",
   }
 
   // Fonction pour parser les balises de couleur et style dans le texte (avec support imbriqué)
   const parseColoredText = (text: string | React.ReactNode, depth: number = 0): React.ReactNode => {
-    if (typeof text !== 'string') return text
+    if (typeof text !== "string") return text
 
     // Map des classes Tailwind pour couleurs et styles
     const styleMap: Record<string, string> = {
@@ -180,7 +177,7 @@ export function ModalVideoContent({
       black: "text-black",
       // Styles
       bold: "font-bold",
-      "semi-bold": "font-semibold"
+      "semi-bold": "font-semibold",
     }
 
     // Regex pour trouver la PREMIÈRE balise (pas greedy pour supporter imbrication)
@@ -230,42 +227,73 @@ export function ModalVideoContent({
   const borderWidthClass = {
     1: "border",
     2: "border-2",
-    4: "border-4"
+    4: "border-4",
   }
 
   // Map des couleurs de bordure - IDENTIQUE à ToasterVideo
   const borderColorMap: Record<string, string> = {
     "thai-orange": "border-thai-orange",
     "thai-green": "border-thai-green",
-    "red": "border-red-500",
-    "blue": "border-blue-500",
-    "yellow": "border-yellow-500",
-    "purple": "border-purple-500",
+    red: "border-red-500",
+    blue: "border-blue-500",
+    yellow: "border-yellow-500",
+    purple: "border-purple-500",
   }
 
   // Classe de couleur de bordure calculée - IDENTIQUE à ToasterVideo
-  const borderColorClass = borderColor in borderColorMap
-    ? borderColorMap[borderColor]
-    : ""
+  const borderColorClass = borderColor in borderColorMap ? borderColorMap[borderColor] : ""
 
   // Map des tailles d'ombre - IDENTIQUE à ToasterVideo
   const shadowSizeMap: Record<string, string> = {
-    "none": "shadow-none",
-    "sm": "shadow-sm",
-    "md": "shadow-md",
-    "lg": "shadow-lg",
-    "xl": "shadow-xl",
+    none: "shadow-none",
+    sm: "shadow-sm",
+    md: "shadow-md",
+    lg: "shadow-lg",
+    xl: "shadow-xl",
     "2xl": "shadow-2xl",
   }
 
   // Map des couleurs hex pour l'animation de bordure dynamique
-  const borderColorHexMap: Record<string, { base: string; light: string; rgba: string; rgbaStrong: string }> = {
-    "thai-orange": { base: "#ff7b54", light: "#ffb386", rgba: "rgba(255, 123, 84, 0.4)", rgbaStrong: "rgba(255, 123, 84, 0.6)" },
-    "thai-green": { base: "#2d5016", light: "#4a7c23", rgba: "rgba(45, 80, 22, 0.4)", rgbaStrong: "rgba(45, 80, 22, 0.6)" },
-    "red": { base: "#ef4444", light: "#f87171", rgba: "rgba(239, 68, 68, 0.4)", rgbaStrong: "rgba(239, 68, 68, 0.6)" },
-    "blue": { base: "#3b82f6", light: "#60a5fa", rgba: "rgba(59, 130, 246, 0.4)", rgbaStrong: "rgba(59, 130, 246, 0.6)" },
-    "yellow": { base: "#eab308", light: "#facc15", rgba: "rgba(234, 179, 8, 0.4)", rgbaStrong: "rgba(234, 179, 8, 0.6)" },
-    "purple": { base: "#a855f7", light: "#c084fc", rgba: "rgba(168, 85, 247, 0.4)", rgbaStrong: "rgba(168, 85, 247, 0.6)" },
+  const borderColorHexMap: Record<
+    string,
+    { base: string; light: string; rgba: string; rgbaStrong: string }
+  > = {
+    "thai-orange": {
+      base: "#ff7b54",
+      light: "#ffb386",
+      rgba: "rgba(255, 123, 84, 0.4)",
+      rgbaStrong: "rgba(255, 123, 84, 0.6)",
+    },
+    "thai-green": {
+      base: "#2d5016",
+      light: "#4a7c23",
+      rgba: "rgba(45, 80, 22, 0.4)",
+      rgbaStrong: "rgba(45, 80, 22, 0.6)",
+    },
+    red: {
+      base: "#ef4444",
+      light: "#f87171",
+      rgba: "rgba(239, 68, 68, 0.4)",
+      rgbaStrong: "rgba(239, 68, 68, 0.6)",
+    },
+    blue: {
+      base: "#3b82f6",
+      light: "#60a5fa",
+      rgba: "rgba(59, 130, 246, 0.4)",
+      rgbaStrong: "rgba(59, 130, 246, 0.6)",
+    },
+    yellow: {
+      base: "#eab308",
+      light: "#facc15",
+      rgba: "rgba(234, 179, 8, 0.4)",
+      rgbaStrong: "rgba(234, 179, 8, 0.6)",
+    },
+    purple: {
+      base: "#a855f7",
+      light: "#c084fc",
+      rgba: "rgba(168, 85, 247, 0.4)",
+      rgbaStrong: "rgba(168, 85, 247, 0.6)",
+    },
   }
 
   // Variables CSS pour l'animation de bordure dynamique
@@ -282,7 +310,7 @@ export function ModalVideoContent({
   }
 
   // Détection du type de média
-  const isVideo = media?.endsWith('.mp4') || media?.endsWith('.webm')
+  const isVideo = media?.endsWith(".mp4") || media?.endsWith(".webm")
 
   // Calcul de la durée synchronisée du marquee avec la vidéo
   useEffect(() => {
@@ -306,8 +334,8 @@ export function ModalVideoContent({
     if (video.readyState >= 1) {
       handleLoadedMetadata()
     } else {
-      video.addEventListener('loadedmetadata', handleLoadedMetadata)
-      return () => video.removeEventListener('loadedmetadata', handleLoadedMetadata)
+      video.addEventListener("loadedmetadata", handleLoadedMetadata)
+      return () => video.removeEventListener("loadedmetadata", handleLoadedMetadata)
     }
   }, [scrollSyncWithVideo, isVideo, loopCount, media])
 
@@ -362,19 +390,26 @@ export function ModalVideoContent({
   }
 
   return (
-    <div className={cn(
-      "flex flex-col transition-transform duration-300",
-      standalone ? "h-full" : "",
-      standalone && hoverScale && "hover:scale-105"
-    )}>
+    <div
+      className={cn(
+        "flex flex-col transition-transform duration-300",
+        standalone ? "h-full" : "",
+        standalone && hoverScale && "hover:scale-105"
+      )}
+    >
       {/* Bouton close (seulement si pas standalone ET si autoClose activé) */}
       {!standalone && autoClose && (
         <button
           onClick={() => onOpenChange(false)}
-          className="absolute right-4 top-4 z-20 rounded-full p-1.5 text-white/80 hover:text-white hover:bg-black/20 transition-all duration-200"
+          className="absolute top-4 right-4 z-20 rounded-full p-1.5 text-white/80 transition-all duration-200 hover:bg-black/20 hover:text-white"
         >
           <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M6 18L18 6M6 6l12 12"
+            />
           </svg>
         </button>
       )}
@@ -391,7 +426,7 @@ export function ModalVideoContent({
           style={{
             padding: `${polaroidPaddingTop * 0.25}rem ${polaroidPaddingSides * 0.25}rem ${polaroidPaddingBottom * 0.25}rem`,
             borderWidth: `${borderWidth}px`,
-            ...getMovingBorderStyle()
+            ...getMovingBorderStyle(),
           }}
         >
           {/* Cadre intérieur avec bordure autour du media */}
@@ -415,11 +450,7 @@ export function ModalVideoContent({
                   className="h-full w-full object-cover"
                 />
               ) : (
-                <img
-                  src={media}
-                  alt="Modal media"
-                  className="h-full w-full object-cover"
-                />
+                <img src={media} alt="Modal media" className="h-full w-full object-cover" />
               )}
             </div>
           )}
@@ -427,7 +458,13 @@ export function ModalVideoContent({
           {/* Contenu texte À L'INTÉRIEUR du cadre Polaroid */}
           <div className="mt-4 space-y-3">
             {title && (
-              <h3 className={cn("text-xl text-center", titleColorClass[titleColor], fontWeightClass[titleFontWeight])}>
+              <h3
+                className={cn(
+                  "text-center text-xl",
+                  titleColorClass[titleColor],
+                  fontWeightClass[titleFontWeight]
+                )}
+              >
                 {typingAnimation && (typingTarget === "title" || typingTarget === "both") ? (
                   <TypingAnimation duration={typingSpeed}>
                     {parseColoredText(title)}
@@ -449,12 +486,13 @@ export function ModalVideoContent({
                   style={
                     scrollingText
                       ? ({
-                          "--marquee-duration": `${syncedScrollDuration ?? scrollDuration}s`
+                          "--marquee-duration": `${syncedScrollDuration ?? scrollDuration}s`,
                         } as React.CSSProperties)
                       : undefined
                   }
                 >
-                  {typingAnimation && (typingTarget === "description" || typingTarget === "both") ? (
+                  {typingAnimation &&
+                  (typingTarget === "description" || typingTarget === "both") ? (
                     <TypingAnimation duration={typingSpeed}>
                       {parseColoredText(description)}
                     </TypingAnimation>
@@ -472,7 +510,7 @@ export function ModalVideoContent({
               {buttonLayout === "single" && (
                 <Button
                   onClick={handleConfirm}
-                  className="bg-thai-orange hover:bg-thai-orange/90 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 px-8"
+                  className="bg-thai-orange hover:bg-thai-orange/90 rounded-lg px-8 text-white shadow-lg transition-all duration-200 hover:shadow-xl"
                 >
                   {confirmText}
                 </Button>
@@ -482,13 +520,13 @@ export function ModalVideoContent({
                   <Button
                     onClick={handleCancel}
                     variant="outline"
-                    className="flex-1 rounded-lg border-2 border-thai-green text-thai-green hover:bg-thai-green hover:text-white transition-all duration-200"
+                    className="border-thai-green text-thai-green hover:bg-thai-green flex-1 rounded-lg border-2 transition-all duration-200 hover:text-white"
                   >
                     {cancelText}
                   </Button>
                   <Button
                     onClick={handleConfirm}
-                    className="flex-1 bg-thai-orange hover:bg-thai-orange/90 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
+                    className="bg-thai-orange hover:bg-thai-orange/90 flex-1 rounded-lg text-white shadow-lg transition-all duration-200 hover:shadow-xl"
                   >
                     {confirmText}
                   </Button>
@@ -499,19 +537,19 @@ export function ModalVideoContent({
                   <Button
                     onClick={handleCancel}
                     variant="outline"
-                    className="flex-1 rounded-lg border-2 border-thai-green text-thai-green hover:bg-thai-green hover:text-white transition-all duration-200"
+                    className="border-thai-green text-thai-green hover:bg-thai-green flex-1 rounded-lg border-2 transition-all duration-200 hover:text-white"
                   >
                     {cancelText}
                   </Button>
                   <Button
                     onClick={handleConfirm}
-                    className="flex-1 bg-thai-orange hover:bg-thai-orange/90 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
+                    className="bg-thai-orange hover:bg-thai-orange/90 flex-1 rounded-lg text-white shadow-lg transition-all duration-200 hover:shadow-xl"
                   >
                     {confirmText}
                   </Button>
                   <Button
                     onClick={handleThirdButton}
-                    className="flex-1 bg-thai-gold hover:bg-thai-gold/90 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
+                    className="bg-thai-gold hover:bg-thai-gold/90 flex-1 rounded-lg text-white shadow-lg transition-all duration-200 hover:shadow-xl"
                   >
                     {thirdButtonText}
                   </Button>
@@ -525,12 +563,7 @@ export function ModalVideoContent({
           {/* Mode normal : média séparé du contenu */}
           {media && (
             <div className={cn("relative w-full", standalone && "shrink-0")}>
-              <div
-                className={cn(
-                  "relative w-full overflow-hidden",
-                  aspectRatioClass[aspectRatio]
-                )}
-              >
+              <div className={cn("relative w-full overflow-hidden", aspectRatioClass[aspectRatio])}>
                 {isVideo ? (
                   <video
                     ref={videoRef}
@@ -542,21 +575,23 @@ export function ModalVideoContent({
                     className="h-full w-full object-cover"
                   />
                 ) : (
-                  <img
-                    src={media}
-                    alt="Modal media"
-                    className="h-full w-full object-cover"
-                  />
+                  <img src={media} alt="Modal media" className="h-full w-full object-cover" />
                 )}
               </div>
             </div>
           )}
 
           {/* Section contenu (mode normal) */}
-          <div className={cn("p-6 space-y-4 bg-white", standalone && "flex-1 flex flex-col")}>
+          <div className={cn("space-y-4 bg-white p-6", standalone && "flex flex-1 flex-col")}>
             <div className={cn("space-y-3", standalone && "flex-1")}>
               {title && (
-                <h3 className={cn("text-2xl text-center", titleColorClass[titleColor], fontWeightClass[titleFontWeight])}>
+                <h3
+                  className={cn(
+                    "text-center text-2xl",
+                    titleColorClass[titleColor],
+                    fontWeightClass[titleFontWeight]
+                  )}
+                >
                   {typingAnimation && (typingTarget === "title" || typingTarget === "both") ? (
                     <TypingAnimation duration={typingSpeed}>
                       {parseColoredText(title)}
@@ -578,12 +613,13 @@ export function ModalVideoContent({
                     style={
                       scrollingText
                         ? ({
-                            "--marquee-duration": `${syncedScrollDuration ?? scrollDuration}s`
+                            "--marquee-duration": `${syncedScrollDuration ?? scrollDuration}s`,
                           } as React.CSSProperties)
                         : undefined
                     }
                   >
-                    {typingAnimation && (typingTarget === "description" || typingTarget === "both") ? (
+                    {typingAnimation &&
+                    (typingTarget === "description" || typingTarget === "both") ? (
                       <TypingAnimation duration={typingSpeed}>
                         {parseColoredText(description)}
                       </TypingAnimation>
@@ -601,7 +637,7 @@ export function ModalVideoContent({
                 {buttonLayout === "single" && (
                   <Button
                     onClick={handleConfirm}
-                    className="bg-thai-orange hover:bg-thai-orange/90 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 px-8"
+                    className="bg-thai-orange hover:bg-thai-orange/90 rounded-lg px-8 text-white shadow-lg transition-all duration-200 hover:shadow-xl"
                   >
                     {confirmText}
                   </Button>
@@ -611,13 +647,13 @@ export function ModalVideoContent({
                     <Button
                       onClick={handleCancel}
                       variant="outline"
-                      className="flex-1 rounded-lg border-2 border-thai-green text-thai-green hover:bg-thai-green hover:text-white transition-all duration-200"
+                      className="border-thai-green text-thai-green hover:bg-thai-green flex-1 rounded-lg border-2 transition-all duration-200 hover:text-white"
                     >
                       {cancelText}
                     </Button>
                     <Button
                       onClick={handleConfirm}
-                      className="flex-1 bg-thai-orange hover:bg-thai-orange/90 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
+                      className="bg-thai-orange hover:bg-thai-orange/90 flex-1 rounded-lg text-white shadow-lg transition-all duration-200 hover:shadow-xl"
                     >
                       {confirmText}
                     </Button>
@@ -628,19 +664,19 @@ export function ModalVideoContent({
                     <Button
                       onClick={handleCancel}
                       variant="outline"
-                      className="flex-1 rounded-lg border-2 border-thai-green text-thai-green hover:bg-thai-green hover:text-white transition-all duration-200"
+                      className="border-thai-green text-thai-green hover:bg-thai-green flex-1 rounded-lg border-2 transition-all duration-200 hover:text-white"
                     >
                       {cancelText}
                     </Button>
                     <Button
                       onClick={handleConfirm}
-                      className="flex-1 bg-thai-orange hover:bg-thai-orange/90 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
+                      className="bg-thai-orange hover:bg-thai-orange/90 flex-1 rounded-lg text-white shadow-lg transition-all duration-200 hover:shadow-xl"
                     >
                       {confirmText}
                     </Button>
                     <Button
                       onClick={handleThirdButton}
-                      className="flex-1 bg-thai-gold hover:bg-thai-gold/90 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
+                      className="bg-thai-gold hover:bg-thai-gold/90 flex-1 rounded-lg text-white shadow-lg transition-all duration-200 hover:shadow-xl"
                     >
                       {thirdButtonText}
                     </Button>
@@ -668,6 +704,8 @@ export function ModalVideo({
   borderWidth = 2,
   shadowSize = "2xl",
   animateBorder = false,
+  animateOut = true,
+  mangaExplosion = false,
   hoverScale = false,
   position = "center",
   customX,
@@ -676,52 +714,83 @@ export function ModalVideo({
 }: ModalVideoProps) {
   // Mapping des classes Tailwind
   const maxWidthClass = {
-    "sm": "max-w-sm",
-    "md": "max-w-md",
-    "lg": "max-w-lg",
-    "xl": "max-w-xl",
-    "custom": "" // Pas de classe max-w si custom
+    sm: "max-w-sm",
+    md: "max-w-md",
+    lg: "max-w-lg",
+    xl: "max-w-xl",
+    custom: "", // Pas de classe max-w si custom
   }
 
   // Map des couleurs de bordure
   const borderColorMap: Record<string, string> = {
     "thai-orange": "border-thai-orange",
     "thai-green": "border-thai-green",
-    "red": "border-red-500",
-    "blue": "border-blue-500",
-    "yellow": "border-yellow-500",
-    "purple": "border-purple-500",
+    red: "border-red-500",
+    blue: "border-blue-500",
+    yellow: "border-yellow-500",
+    purple: "border-purple-500",
   }
 
   // Classe de couleur de bordure calculée
-  const borderColorClass = borderColor in borderColorMap
-    ? borderColorMap[borderColor]
-    : ""
+  const borderColorClass = borderColor in borderColorMap ? borderColorMap[borderColor] : ""
 
   const borderWidthClass = {
     1: "border",
     2: "border-2",
-    4: "border-4"
+    4: "border-4",
   }
 
   // Map des tailles d'ombre - IDENTIQUE à ToasterVideo
   const shadowClass: Record<string, string> = {
-    "none": "shadow-none",
-    "sm": "shadow-sm",
-    "md": "shadow-md",
-    "lg": "shadow-lg",
-    "xl": "shadow-xl",
-    "2xl": "shadow-2xl"
+    none: "shadow-none",
+    sm: "shadow-sm",
+    md: "shadow-md",
+    lg: "shadow-lg",
+    xl: "shadow-xl",
+    "2xl": "shadow-2xl",
   }
 
   // Map des couleurs hex pour l'animation de bordure dynamique
-  const borderColorHexMap: Record<string, { base: string; light: string; rgba: string; rgbaStrong: string }> = {
-    "thai-orange": { base: "#ff7b54", light: "#ffb386", rgba: "rgba(255, 123, 84, 0.4)", rgbaStrong: "rgba(255, 123, 84, 0.6)" },
-    "thai-green": { base: "#2d5016", light: "#4a7c23", rgba: "rgba(45, 80, 22, 0.4)", rgbaStrong: "rgba(45, 80, 22, 0.6)" },
-    "red": { base: "#ef4444", light: "#f87171", rgba: "rgba(239, 68, 68, 0.4)", rgbaStrong: "rgba(239, 68, 68, 0.6)" },
-    "blue": { base: "#3b82f6", light: "#60a5fa", rgba: "rgba(59, 130, 246, 0.4)", rgbaStrong: "rgba(59, 130, 246, 0.6)" },
-    "yellow": { base: "#eab308", light: "#facc15", rgba: "rgba(234, 179, 8, 0.4)", rgbaStrong: "rgba(234, 179, 8, 0.6)" },
-    "purple": { base: "#a855f7", light: "#c084fc", rgba: "rgba(168, 85, 247, 0.4)", rgbaStrong: "rgba(168, 85, 247, 0.6)" },
+  const borderColorHexMap: Record<
+    string,
+    { base: string; light: string; rgba: string; rgbaStrong: string }
+  > = {
+    "thai-orange": {
+      base: "#ff7b54",
+      light: "#ffb386",
+      rgba: "rgba(255, 123, 84, 0.4)",
+      rgbaStrong: "rgba(255, 123, 84, 0.6)",
+    },
+    "thai-green": {
+      base: "#2d5016",
+      light: "#4a7c23",
+      rgba: "rgba(45, 80, 22, 0.4)",
+      rgbaStrong: "rgba(45, 80, 22, 0.6)",
+    },
+    red: {
+      base: "#ef4444",
+      light: "#f87171",
+      rgba: "rgba(239, 68, 68, 0.4)",
+      rgbaStrong: "rgba(239, 68, 68, 0.6)",
+    },
+    blue: {
+      base: "#3b82f6",
+      light: "#60a5fa",
+      rgba: "rgba(59, 130, 246, 0.4)",
+      rgbaStrong: "rgba(59, 130, 246, 0.6)",
+    },
+    yellow: {
+      base: "#eab308",
+      light: "#facc15",
+      rgba: "rgba(234, 179, 8, 0.4)",
+      rgbaStrong: "rgba(234, 179, 8, 0.6)",
+    },
+    purple: {
+      base: "#a855f7",
+      light: "#c084fc",
+      rgba: "rgba(168, 85, 247, 0.4)",
+      rgbaStrong: "rgba(168, 85, 247, 0.6)",
+    },
   }
 
   // Variables CSS pour l'animation de bordure dynamique
@@ -739,12 +808,12 @@ export function ModalVideo({
 
   // Mapping des positions
   const positionClass = {
-    "center": "!left-[50%] !top-[50%] !translate-x-[-50%] !translate-y-[-50%]",
+    center: "!left-[50%] !top-[50%] !translate-x-[-50%] !translate-y-[-50%]",
     "bottom-right": "!left-auto !top-auto !right-4 !bottom-4 !translate-x-0 !translate-y-0",
     "bottom-left": "!left-4 !top-auto !right-auto !bottom-4 !translate-x-0 !translate-y-0",
     "top-right": "!left-auto !top-4 !right-4 !bottom-auto !translate-x-0 !translate-y-0",
     "top-left": "!left-4 !top-4 !right-auto !bottom-auto !translate-x-0 !translate-y-0",
-    "custom": "!left-auto !top-auto !right-auto !bottom-auto !translate-x-0 !translate-y-0" // Classes custom via style inline
+    custom: "!left-auto !top-auto !right-auto !bottom-auto !translate-x-0 !translate-y-0", // Classes custom via style inline
   }
 
   return (
@@ -752,34 +821,46 @@ export function ModalVideo({
       <DialogContent
         className={cn(
           maxWidthClass[maxWidth],
-          "p-0 fixed z-50 grid w-full gap-4",
+          "fixed z-50 grid w-full gap-4 p-0",
           // Mode Polaroid : IDENTIQUE à ToasterVideo - bg-transparent p-0 border-0 (ombre sur Polaroid frame)
-          props.polaroid ? cn(
-            "bg-transparent p-0 border-0",
-            // PAS de shadow ici - elle est sur le Polaroid frame dans ModalVideoContent
-            hoverScale && "hover:scale-105",
-            rotation && "-rotate-2 hover:rotate-0",
-            animateBorder && "overflow-visible!"
-          ) : cn(
-            "bg-white border-solid",
-            borderWidth in borderWidthClass ? borderWidthClass[borderWidth as keyof typeof borderWidthClass] : "",
-            borderColorClass,
-            animateBorder && "animate-moving-border",
-            shadowClass[shadowSize],
-            rotation && "-rotate-2 hover:rotate-0 transition-transform duration-300",
-            hoverScale && "hover:scale-105 transition-transform duration-300"
-          ),
+          props.polaroid
+            ? cn(
+                "border-0 bg-transparent p-0",
+                // PAS de shadow ici - elle est sur le Polaroid frame dans ModalVideoContent
+                hoverScale && "hover:scale-105",
+                rotation && "-rotate-2 hover:rotate-0",
+                animateBorder && "overflow-visible!"
+              )
+            : cn(
+                "border-solid bg-white",
+                borderWidth in borderWidthClass
+                  ? borderWidthClass[borderWidth as keyof typeof borderWidthClass]
+                  : "",
+                borderColorClass,
+                animateBorder && "animate-moving-border",
+                shadowClass[shadowSize],
+                rotation && "-rotate-2 transition-transform duration-300 hover:rotate-0",
+                hoverScale && "transition-transform duration-300 hover:scale-105"
+              ),
           // Position du modal
-          positionClass[position]
+          positionClass[position],
+          // Animation de sortie
+          // Animation de sortie
+          !animateOut &&
+            !mangaExplosion &&
+            "data-[state=closed]:animate-none! data-[state=closed]:duration-0!",
+          mangaExplosion && "manga-explosion-exit"
         )}
         style={{
           // Forcer styles en mode polaroid
-          ...(props.polaroid ? {
-            background: "transparent",
-            border: "none",
-            padding: 0,
-            boxShadow: "none"
-          } : {}),
+          ...(props.polaroid
+            ? {
+                background: "transparent",
+                border: "none",
+                padding: 0,
+                boxShadow: "none",
+              }
+            : {}),
           // Custom dimensions
           ...(maxWidth === "custom" && (customWidth || customHeight)
             ? {
@@ -789,7 +870,9 @@ export function ModalVideo({
               }
             : {}),
           // Custom borderWidth (si borderWidth n'est pas dans borderWidthClass ET pas en mode polaroid)
-          ...(!props.polaroid && !(borderWidth in borderWidthClass) ? { borderWidth: `${borderWidth}px` } : {}),
+          ...(!props.polaroid && !(borderWidth in borderWidthClass)
+            ? { borderWidth: `${borderWidth}px` }
+            : {}),
           // Custom position (si position="custom")
           ...(position === "custom" && (customX || customY)
             ? {
@@ -799,7 +882,7 @@ export function ModalVideo({
               }
             : {}),
           // Animation bordure dynamique (seulement si pas polaroid)
-          ...(!props.polaroid ? getMovingBorderStyle() : {})
+          ...(!props.polaroid ? getMovingBorderStyle() : {}),
         }}
         onInteractOutside={(e) => {
           // Si autoClose est false, empêcher la fermeture au clic sur le backdrop
@@ -816,7 +899,9 @@ export function ModalVideo({
       >
         {/* Titres accessibles (cachés visuellement) */}
         <DialogTitle className="sr-only">{title || "Modal Vidéo"}</DialogTitle>
-        <DialogDescription className="sr-only">{description || "Modal avec contenu vidéo ou image"}</DialogDescription>
+        <DialogDescription className="sr-only">
+          {description || "Modal avec contenu vidéo ou image"}
+        </DialogDescription>
 
         <ModalVideoContent
           onOpenChange={onOpenChange}

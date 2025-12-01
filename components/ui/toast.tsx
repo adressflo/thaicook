@@ -98,7 +98,7 @@ const ToastViewport = React.forwardRef<
 ToastViewport.displayName = ToastPrimitives.Viewport.displayName
 
 const toastVariants = cva(
-  "group pointer-events-auto relative flex items-center overflow-hidden rounded-md p-6 transition-all manga-explosion-exit data-[swipe=cancel]:translate-x-0 data-[swipe=end]:translate-x-[var(--radix-toast-swipe-end-x)] data-[swipe=move]:translate-x-[var(--radix-toast-swipe-move-x)] data-[swipe=move]:transition-none data-[state=open]:animate-in data-[state=open]:slide-in-from-top-full data-[state=open]:sm:slide-in-from-bottom-full",
+  "group pointer-events-auto relative flex items-center overflow-hidden rounded-md p-6 transition-all data-[swipe=cancel]:translate-x-0 data-[swipe=end]:translate-x-[var(--radix-toast-swipe-end-x)] data-[swipe=move]:translate-x-[var(--radix-toast-swipe-move-x)] data-[swipe=move]:transition-none data-[state=open]:animate-in data-[state=open]:slide-in-from-top-full data-[state=open]:sm:slide-in-from-bottom-full",
   {
     variants: {
       variant: {
@@ -145,6 +145,10 @@ interface ToastExtendedProps {
   maxWidth?: MaxWidth
   /** Animation de bordure animée */
   animateBorder?: boolean
+  /** Animation de sortie (fade-out + zoom-out) */
+  animateOut?: boolean
+  /** Animation Manga Explosion (orange thai) */
+  mangaExplosion?: boolean
   /** Effet scale au hover */
   hoverScale?: boolean
   /** Animation rotation (-rotate-2 hover:rotate-0) */
@@ -303,6 +307,8 @@ const Toast = React.forwardRef<
       shadowSize = "lg",
       maxWidth = "lg",
       animateBorder = false,
+      animateOut = false,
+      mangaExplosion = false,
       hoverScale = false,
       rotation = false,
       style,
@@ -372,6 +378,12 @@ const Toast = React.forwardRef<
           // Inclinaison
           isTilted &&
             "rotate-(--toast-angle) transition-all duration-300 hover:scale-105 hover:rotate-0",
+          // Animation de sortie
+          animateOut &&
+            !mangaExplosion &&
+            "data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95",
+          // Animation Manga Explosion
+          mangaExplosion && "manga-explosion-exit",
           className
         )}
         style={

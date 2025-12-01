@@ -1,20 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
+import { CommandePlatContent, CommandePlatModal } from "@/components/shared/CommandePlatModal"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,13 +12,26 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { CheckCircle2, Trash2, Settings, User, CreditCard, Info } from "lucide-react"
-import { CommandePlatModal, CommandePlatContent } from "@/components/shared/CommandePlatModal"
-import { ModalVideo } from "@/components/ui/ModalVideo"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { ModalVideo, ModalVideoContent } from "@/components/ui/ModalVideo"
 import { useData } from "@/contexts/DataContext"
 import { cn } from "@/lib/utils"
 import type { PlatUI } from "@/types/app"
-import { ModalVideoContent } from "@/components/ui/ModalVideo"
+import { CheckCircle2, CreditCard, Info, Settings, Trash2, User } from "lucide-react"
+import { useEffect, useState } from "react"
 
 // Composant Playground pour CommandePlatModal
 function CommandePlatPlayground({ plats }: { plats: PlatUI[] }) {
@@ -279,6 +278,9 @@ function ModalVideoPlayground() {
     scrollSyncWithVideo: boolean
     // Animation bordure
     animateBorder: boolean
+    // Animation de sortie
+    animateOut: boolean
+    mangaExplosion: boolean
   }>({
     title: "Vidéo - <orange>Aperçu</orange>",
     description:
@@ -294,6 +296,9 @@ function ModalVideoPlayground() {
     confirmText: "Confirmer",
     thirdButtonText: "Action",
     rotation: true,
+
+    animateOut: false,
+    mangaExplosion: false,
     hoverScale: false,
     maxWidth: "md",
     customWidth: "600px",
@@ -359,7 +364,7 @@ function ModalVideoPlayground() {
   maxWidth="${previewProps.maxWidth}"${previewProps.maxWidth === "custom" && previewProps.customWidth ? `\n  customWidth="${previewProps.customWidth}"` : ""}${previewProps.maxWidth === "custom" && previewProps.customHeight ? `\n  customHeight="${previewProps.customHeight}"` : ""}
   borderColor="${previewProps.borderColor}"
   borderWidth={${previewProps.borderWidth}}
-  shadowSize="${previewProps.shadowSize}"${previewProps.animateBorder ? `\n  animateBorder={true}` : ""}${previewProps.position !== "center" ? `\n  position="${previewProps.position}"` : ""}${previewProps.position === "custom" && previewProps.customX ? `\n  customX="${previewProps.customX}"` : ""}${previewProps.position === "custom" && previewProps.customY ? `\n  customY="${previewProps.customY}"` : ""}${previewProps.titleColor !== "thai-green" ? `\n  titleColor="${previewProps.titleColor}"` : ""}${previewProps.titleFontWeight !== "bold" ? `\n  titleFontWeight="${previewProps.titleFontWeight}"` : ""}${previewProps.descriptionColor !== "thai-green" ? `\n  descriptionColor="${previewProps.descriptionColor}"` : ""}${previewProps.descriptionFontWeight !== "semibold" ? `\n  descriptionFontWeight="${previewProps.descriptionFontWeight}"` : ""}${previewProps.polaroid && previewProps.polaroidPaddingSides !== 3 ? `\n  polaroidPaddingSides={${previewProps.polaroidPaddingSides}}` : ""}${previewProps.polaroid && previewProps.polaroidPaddingTop !== 3 ? `\n  polaroidPaddingTop={${previewProps.polaroidPaddingTop}}` : ""}${previewProps.polaroid && previewProps.polaroidPaddingBottom !== 8 ? `\n  polaroidPaddingBottom={${previewProps.polaroidPaddingBottom}}` : ""}${previewProps.typingAnimation ? `\n  typingAnimation={true}` : ""}${previewProps.typingAnimation && previewProps.typingSpeed !== 100 ? `\n  typingSpeed={${previewProps.typingSpeed}}` : ""}
+  shadowSize="${previewProps.shadowSize}"${previewProps.animateBorder ? `\n  animateBorder={true}` : ""}${!previewProps.animateOut ? `\n  animateOut={false}` : ""}${previewProps.mangaExplosion ? `\n  mangaExplosion={true}` : ""}${previewProps.position !== "center" ? `\n  position="${previewProps.position}"` : ""}${previewProps.position === "custom" && previewProps.customX ? `\n  customX="${previewProps.customX}"` : ""}${previewProps.position === "custom" && previewProps.customY ? `\n  customY="${previewProps.customY}"` : ""}${previewProps.titleColor !== "thai-green" ? `\n  titleColor="${previewProps.titleColor}"` : ""}${previewProps.titleFontWeight !== "bold" ? `\n  titleFontWeight="${previewProps.titleFontWeight}"` : ""}${previewProps.descriptionColor !== "thai-green" ? `\n  descriptionColor="${previewProps.descriptionColor}"` : ""}${previewProps.descriptionFontWeight !== "semibold" ? `\n  descriptionFontWeight="${previewProps.descriptionFontWeight}"` : ""}${previewProps.polaroid && previewProps.polaroidPaddingSides !== 3 ? `\n  polaroidPaddingSides={${previewProps.polaroidPaddingSides}}` : ""}${previewProps.polaroid && previewProps.polaroidPaddingTop !== 3 ? `\n  polaroidPaddingTop={${previewProps.polaroidPaddingTop}}` : ""}${previewProps.polaroid && previewProps.polaroidPaddingBottom !== 8 ? `\n  polaroidPaddingBottom={${previewProps.polaroidPaddingBottom}}` : ""}${previewProps.typingAnimation ? `\n  typingAnimation={true}` : ""}${previewProps.typingAnimation && previewProps.typingSpeed !== 100 ? `\n  typingSpeed={${previewProps.typingSpeed}}` : ""}
   onCancel={() => console.log("Annulé")}
   onConfirm={() => console.log("Confirmé")}
   onThirdButton={() => console.log("Troisième action")}
@@ -534,9 +539,11 @@ function ModalVideoPlayground() {
             </div>
           </div>
 
-          {/* Section Couleurs */}
-          <div className="space-y-2">
-            <label className="text-xs font-medium text-gray-700">🎨 Couleurs du Texte</label>
+          {/* Style & Animation texte */}
+          <div className="space-y-2 rounded-md border border-gray-100 bg-gray-50/50 p-3">
+            <h5 className="text-xs font-semibold text-gray-600">Style & Animation texte</h5>
+
+            {/* Couleurs du Texte */}
             <div className="space-y-3">
               {/* Couleur du titre */}
               <div>
@@ -566,7 +573,7 @@ function ModalVideoPlayground() {
                 </div>
               </div>
 
-              {/* Poids police titre - IDENTIQUE à ToasterVideo */}
+              {/* Poids police titre */}
               <div>
                 <label className="text-xs text-gray-600">Poids police titre</label>
                 <div className="flex flex-wrap gap-2">
@@ -588,7 +595,7 @@ function ModalVideoPlayground() {
                 </div>
               </div>
 
-              {/* Couleur description - IDENTIQUE à ToasterVideo */}
+              {/* Couleur description */}
               <div>
                 <label className="text-xs text-gray-600">Couleur description</label>
                 <div className="flex flex-wrap gap-2">
@@ -602,8 +609,12 @@ function ModalVideoPlayground() {
                     <Button
                       key={color.value}
                       size="sm"
-                      variant={previewProps.descriptionColor === color.value ? "default" : "outline"}
-                      onClick={() => setPreviewProps({ ...previewProps, descriptionColor: color.value })}
+                      variant={
+                        previewProps.descriptionColor === color.value ? "default" : "outline"
+                      }
+                      onClick={() =>
+                        setPreviewProps({ ...previewProps, descriptionColor: color.value })
+                      }
                       className={
                         previewProps.descriptionColor === color.value
                           ? "bg-thai-orange hover:bg-thai-orange/90"
@@ -616,7 +627,7 @@ function ModalVideoPlayground() {
                 </div>
               </div>
 
-              {/* Poids police description - IDENTIQUE à ToasterVideo */}
+              {/* Poids police description */}
               <div>
                 <label className="text-xs text-gray-600">Poids police description</label>
                 <div className="flex flex-wrap gap-2">
@@ -624,8 +635,12 @@ function ModalVideoPlayground() {
                     <Button
                       key={weight}
                       size="sm"
-                      variant={previewProps.descriptionFontWeight === weight ? "default" : "outline"}
-                      onClick={() => setPreviewProps({ ...previewProps, descriptionFontWeight: weight })}
+                      variant={
+                        previewProps.descriptionFontWeight === weight ? "default" : "outline"
+                      }
+                      onClick={() =>
+                        setPreviewProps({ ...previewProps, descriptionFontWeight: weight })
+                      }
                       className={
                         previewProps.descriptionFontWeight === weight
                           ? "bg-thai-orange hover:bg-thai-orange/90"
@@ -660,7 +675,6 @@ function ModalVideoPlayground() {
                       texte
                     </DialogDescription>
                   </DialogHeader>
-
                   <div className="space-y-6">
                     {/* Balises couleur */}
                     <div className="space-y-3">
@@ -705,7 +719,6 @@ function ModalVideoPlayground() {
                         </div>
                       </div>
                     </div>
-
                     {/* Balises style */}
                     <div className="space-y-3">
                       <h4 className="text-thai-orange text-sm font-semibold">✨ Balises Style</h4>
@@ -726,7 +739,6 @@ function ModalVideoPlayground() {
                         </div>
                       </div>
                     </div>
-
                     {/* Exemples */}
                     <div className="bg-thai-cream/30 border-thai-orange/20 space-y-3 rounded-lg border p-4">
                       <h4 className="text-thai-green text-sm font-semibold">📝 Exemples</h4>
@@ -759,7 +771,6 @@ function ModalVideoPlayground() {
                       </div>
                     </div>
                   </div>
-
                   <DialogFooter>
                     <Button className="bg-thai-orange hover:bg-thai-orange/90 text-white">
                       Compris !
@@ -768,73 +779,9 @@ function ModalVideoPlayground() {
                 </DialogContent>
               </Dialog>
             </div>
-          </div>
 
-          {/* Section Style */}
-          <div className="space-y-2">
-            <label className="text-xs font-medium text-gray-700">🖼️ Style Visuel</label>
+            {/* Animation Typing */}
             <div className="space-y-2">
-              <label className="flex cursor-pointer items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={previewProps.polaroid}
-                  onChange={(e) => setPreviewProps({ ...previewProps, polaroid: e.target.checked })}
-                  className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
-                />
-                <span className="text-sm text-gray-700">
-                  Polaroid (cadre blanc + bordure configurée)
-                </span>
-              </label>
-              <label className="flex cursor-pointer items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={previewProps.scrollingText}
-                  onChange={(e) =>
-                    setPreviewProps({ ...previewProps, scrollingText: e.target.checked })
-                  }
-                  className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
-                />
-                <span className="text-sm text-gray-700">Texte défilant (animation marquee)</span>
-              </label>
-              {previewProps.scrollingText && (
-                <div className="ml-6 space-y-2">
-                  <div className="flex items-center gap-2">
-                    <label className="text-xs text-gray-600">Durée:</label>
-                    <input
-                      type="number"
-                      value={previewProps.scrollDuration}
-                      onChange={(e) =>
-                        setPreviewProps({
-                          ...previewProps,
-                          scrollDuration: parseInt(e.target.value) || 10,
-                        })
-                      }
-                      className="focus:ring-thai-orange w-16 rounded-md border border-gray-300 px-2 py-1 text-sm focus:ring-2 focus:outline-none"
-                      min="1"
-                      max="60"
-                      disabled={previewProps.scrollSyncWithVideo}
-                    />
-                    <span className="text-xs text-gray-600">secondes</span>
-                  </div>
-                  {/* Option synchronisation avec vidéo */}
-                  {previewProps.media?.endsWith('.mp4') || previewProps.media?.endsWith('.webm') ? (
-                    <label className="flex cursor-pointer items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={previewProps.scrollSyncWithVideo}
-                        onChange={(e) =>
-                          setPreviewProps({ ...previewProps, scrollSyncWithVideo: e.target.checked })
-                        }
-                        className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
-                      />
-                      <span className="text-xs text-gray-700">
-                        🔄 Synchroniser avec la vidéo (durée = vidéo × lectures)
-                      </span>
-                    </label>
-                  ) : null}
-                </div>
-              )}
-              {/* Animation Typing */}
               <label className="flex cursor-pointer items-center gap-2">
                 <input
                   type="checkbox"
@@ -867,60 +814,383 @@ function ModalVideoPlayground() {
                 </div>
               )}
             </div>
-          </div>
 
-          {/* Section Format */}
-          <div className="space-y-2">
-            <label className="text-xs font-medium text-gray-700">📐 Format d'image</label>
-            <div className="flex gap-2">
-              {(["16:9", "4:5", "1:1", "auto"] as const).map((ratio) => (
-                <Button
-                  key={ratio}
-                  size="sm"
-                  variant={previewProps.aspectRatio === ratio ? "default" : "outline"}
-                  onClick={() => setPreviewProps({ ...previewProps, aspectRatio: ratio })}
-                  className={
-                    previewProps.aspectRatio === ratio
-                      ? "bg-thai-orange hover:bg-thai-orange/90"
-                      : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
-                  }
-                >
-                  {ratio}
-                </Button>
-              ))}
-            </div>
-          </div>
-
-          {/* Section Lecture */}
-          <div className="space-y-2">
-            <label className="text-xs font-medium text-gray-700">🎬 Nombre de lectures</label>
-            <div className="flex gap-2">
-              {[
-                { label: "∞ Infini", value: 0 },
-                { label: "1x", value: 1 },
-                { label: "3x", value: 3 },
-              ].map((loop) => (
-                <Button
-                  key={loop.value}
-                  size="sm"
-                  variant={previewProps.loopCount === loop.value ? "default" : "outline"}
-                  onClick={() => setPreviewProps({ ...previewProps, loopCount: loop.value })}
-                  className={
-                    previewProps.loopCount === loop.value
-                      ? "bg-thai-orange hover:bg-thai-orange/90"
-                      : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
-                  }
-                >
-                  {loop.label}
-                </Button>
-              ))}
-            </div>
-          </div>
-
-          {/* Section Fermeture du modal */}
-          <div className="space-y-2">
-            <label className="text-xs font-medium text-gray-700">🔒 Fermeture du modal</label>
+            {/* Texte défilant (Marquee) */}
             <div className="space-y-2">
+              <label className="flex cursor-pointer items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={previewProps.scrollingText}
+                  onChange={(e) =>
+                    setPreviewProps({ ...previewProps, scrollingText: e.target.checked })
+                  }
+                  className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
+                />
+                <span className="text-sm text-gray-700">Texte défilant (animation marquee)</span>
+              </label>
+              {previewProps.scrollingText && (
+                <div className="ml-6 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <label className="text-xs text-gray-600">Durée:</label>
+                    <input
+                      type="number"
+                      value={previewProps.scrollDuration}
+                      onChange={(e) =>
+                        setPreviewProps({
+                          ...previewProps,
+                          scrollDuration: parseInt(e.target.value) || 10,
+                        })
+                      }
+                      className="focus:ring-thai-orange w-16 rounded-md border border-gray-300 px-2 py-1 text-sm focus:ring-2 focus:outline-none"
+                      min="1"
+                      max="60"
+                      disabled={previewProps.scrollSyncWithVideo}
+                    />
+                    <span className="text-xs text-gray-600">secondes</span>
+                  </div>
+                  {/* Option synchronisation avec vidéo */}
+                  {previewProps.media?.endsWith(".mp4") || previewProps.media?.endsWith(".webm") ? (
+                    <label className="flex cursor-pointer items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={previewProps.scrollSyncWithVideo}
+                        onChange={(e) =>
+                          setPreviewProps({
+                            ...previewProps,
+                            scrollSyncWithVideo: e.target.checked,
+                          })
+                        }
+                        className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
+                      />
+                      <span className="text-xs text-gray-700">
+                        🔄 Synchroniser avec la vidéo (durée = vidéo × lectures)
+                      </span>
+                    </label>
+                  ) : null}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Style & Animation bordure animate */}
+          <div className="space-y-2 rounded-md border border-gray-100 bg-gray-50/50 p-3">
+            <h5 className="text-xs font-semibold text-gray-600">
+              Style & Animation bordure animate
+            </h5>
+
+            {/* Couleur bordure */}
+            <div>
+              <label className="text-xs text-gray-600">Couleur bordure</label>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { label: "🟠 Orange", value: "thai-orange" as const },
+                  { label: "🟢 Vert", value: "thai-green" as const },
+                  { label: "🔴 Rouge", value: "red" as const },
+                  { label: "🔵 Bleu", value: "blue" as const },
+                  { label: "🎨 Custom", value: "custom" as const },
+                ].map((color) => (
+                  <Button
+                    key={color.value}
+                    size="sm"
+                    variant={previewProps.borderColor === color.value ? "default" : "outline"}
+                    onClick={() => setPreviewProps({ ...previewProps, borderColor: color.value })}
+                    className={
+                      previewProps.borderColor === color.value
+                        ? "bg-thai-orange hover:bg-thai-orange/90"
+                        : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
+                    }
+                  >
+                    {color.label}
+                  </Button>
+                ))}
+              </div>
+              {previewProps.borderColor === "custom" && (
+                <input
+                  type="text"
+                  value={previewProps.customBorderColor}
+                  onChange={(e) =>
+                    setPreviewProps({ ...previewProps, customBorderColor: e.target.value })
+                  }
+                  placeholder="ex: border-purple-500, border-pink-600"
+                  className="focus:ring-thai-orange mt-2 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:outline-none"
+                />
+              )}
+            </div>
+
+            {/* Épaisseur bordure */}
+            <div>
+              <label className="text-xs text-gray-600">Épaisseur bordure</label>
+              <div className="flex gap-2">
+                {[1, 2, 4, "custom"].map((width) => (
+                  <Button
+                    key={width}
+                    size="sm"
+                    variant={previewProps.borderWidth === width ? "default" : "outline"}
+                    onClick={() =>
+                      setPreviewProps({
+                        ...previewProps,
+                        borderWidth: width as number | "custom",
+                      })
+                    }
+                    className={
+                      previewProps.borderWidth === width
+                        ? "bg-thai-orange hover:bg-thai-orange/90"
+                        : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
+                    }
+                  >
+                    {width === "custom" ? "🎨 Custom" : `${width}px`}
+                  </Button>
+                ))}
+              </div>
+              {previewProps.borderWidth === "custom" && (
+                <input
+                  type="number"
+                  value={previewProps.customBorderWidth}
+                  onChange={(e) =>
+                    setPreviewProps({
+                      ...previewProps,
+                      customBorderWidth: Number(e.target.value),
+                    })
+                  }
+                  placeholder="ex: 3, 5, 8"
+                  min={1}
+                  max={20}
+                  className="focus:ring-thai-orange mt-2 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:outline-none"
+                />
+              )}
+            </div>
+
+            {/* Ombre */}
+            <div>
+              <label className="text-xs text-gray-600">Ombre</label>
+              <div className="flex gap-2">
+                {(["none", "sm", "md", "lg", "xl", "2xl"] as const).map((shadow) => (
+                  <Button
+                    key={shadow}
+                    size="sm"
+                    variant={previewProps.shadowSize === shadow ? "default" : "outline"}
+                    onClick={() => setPreviewProps({ ...previewProps, shadowSize: shadow })}
+                    className={
+                      previewProps.shadowSize === shadow
+                        ? "bg-thai-orange hover:bg-thai-orange/90"
+                        : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
+                    }
+                  >
+                    {shadow}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            {/* Taille modal */}
+            <div>
+              <label className="text-xs text-gray-600">Taille modal</label>
+              <div className="flex gap-2">
+                {(["sm", "md", "lg", "xl", "custom"] as const).map((size) => (
+                  <Button
+                    key={size}
+                    size="sm"
+                    variant={previewProps.maxWidth === size ? "default" : "outline"}
+                    onClick={() => setPreviewProps({ ...previewProps, maxWidth: size })}
+                    className={
+                      previewProps.maxWidth === size
+                        ? "bg-thai-orange hover:bg-thai-orange/90"
+                        : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
+                    }
+                  >
+                    {size}
+                  </Button>
+                ))}
+              </div>
+              {previewProps.maxWidth === "custom" && (
+                <div className="mt-2 grid grid-cols-2 gap-2">
+                  <input
+                    type="text"
+                    value={previewProps.customWidth}
+                    onChange={(e) =>
+                      setPreviewProps({ ...previewProps, customWidth: e.target.value })
+                    }
+                    placeholder="Largeur (ex: 600px, 90vw)"
+                    className="focus:ring-thai-orange w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:outline-none"
+                  />
+                  <input
+                    type="text"
+                    value={previewProps.customHeight}
+                    onChange={(e) =>
+                      setPreviewProps({ ...previewProps, customHeight: e.target.value })
+                    }
+                    placeholder="Hauteur (ex: 400px, 80vh)"
+                    className="focus:ring-thai-orange w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:outline-none"
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Format d'image */}
+            <div>
+              <label className="text-xs text-gray-600">Format d'image</label>
+              <div className="flex gap-2">
+                {(["16:9", "4:5", "1:1", "auto"] as const).map((ratio) => (
+                  <Button
+                    key={ratio}
+                    size="sm"
+                    variant={previewProps.aspectRatio === ratio ? "default" : "outline"}
+                    onClick={() => setPreviewProps({ ...previewProps, aspectRatio: ratio })}
+                    className={
+                      previewProps.aspectRatio === ratio
+                        ? "bg-thai-orange hover:bg-thai-orange/90"
+                        : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
+                    }
+                  >
+                    {ratio}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            {/* Animation bordure pulsante */}
+            <label className="flex cursor-pointer items-center gap-2">
+              <input
+                type="checkbox"
+                checked={previewProps.animateBorder}
+                onChange={(e) =>
+                  setPreviewProps({ ...previewProps, animateBorder: e.target.checked })
+                }
+                className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
+              />
+              <span className="text-sm text-gray-700">
+                ✨ Animation bordure pulsante (couleur dynamique)
+              </span>
+            </label>
+
+            {/* Animation rotation */}
+            <label className="flex cursor-pointer items-center gap-2">
+              <input
+                type="checkbox"
+                checked={previewProps.rotation}
+                onChange={(e) => setPreviewProps({ ...previewProps, rotation: e.target.checked })}
+                className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
+              />
+              <span className="text-sm text-gray-700">
+                Animation rotation (rotate-[-2deg] hover:rotate-0)
+              </span>
+            </label>
+
+            {/* Effet scale au hover */}
+            <label className="flex cursor-pointer items-center gap-2">
+              <input
+                type="checkbox"
+                checked={previewProps.hoverScale}
+                onChange={(e) => setPreviewProps({ ...previewProps, hoverScale: e.target.checked })}
+                className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
+              />
+              <span className="text-sm text-gray-700">Effet scale au hover (hover:scale-105)</span>
+            </label>
+
+            {/* Polaroid */}
+            <div className="space-y-2">
+              <label className="flex cursor-pointer items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={previewProps.polaroid}
+                  onChange={(e) => setPreviewProps({ ...previewProps, polaroid: e.target.checked })}
+                  className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
+                />
+                <span className="text-sm text-gray-700">
+                  Polaroid (cadre blanc + bordure configurée)
+                </span>
+              </label>
+              {previewProps.polaroid && (
+                <div className="border-thai-green/30 bg-thai-cream/20 space-y-2 rounded-lg border-2 p-3">
+                  <label className="text-thai-green text-xs font-medium">
+                    📐 Taille cadre Polaroid (padding)
+                  </label>
+                  <div className="grid grid-cols-3 gap-2">
+                    <div>
+                      <label className="text-xs text-gray-600">Côtés (p-x)</label>
+                      <input
+                        type="number"
+                        value={previewProps.polaroidPaddingSides}
+                        onChange={(e) =>
+                          setPreviewProps({
+                            ...previewProps,
+                            polaroidPaddingSides: Number(e.target.value),
+                          })
+                        }
+                        min={0}
+                        max={20}
+                        className="focus:ring-thai-orange w-full rounded-md border border-gray-300 px-2 py-1 text-sm focus:border-transparent focus:ring-2 focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-600">Haut (pt-x)</label>
+                      <input
+                        type="number"
+                        value={previewProps.polaroidPaddingTop}
+                        onChange={(e) =>
+                          setPreviewProps({
+                            ...previewProps,
+                            polaroidPaddingTop: Number(e.target.value),
+                          })
+                        }
+                        min={0}
+                        max={20}
+                        className="focus:ring-thai-orange w-full rounded-md border border-gray-300 px-2 py-1 text-sm focus:border-transparent focus:ring-2 focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-600">Bas (pb-x)</label>
+                      <input
+                        type="number"
+                        value={previewProps.polaroidPaddingBottom}
+                        onChange={(e) =>
+                          setPreviewProps({
+                            ...previewProps,
+                            polaroidPaddingBottom: Number(e.target.value),
+                          })
+                        }
+                        min={0}
+                        max={20}
+                        className="focus:ring-thai-orange w-full rounded-md border border-gray-300 px-2 py-1 text-sm focus:border-transparent focus:ring-2 focus:outline-none"
+                      />
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-500 italic">
+                    Valeurs Tailwind : 0-20 correspondent à p-0 jusqu'à p-20 (ex: 3 = 0.75rem)
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Style & Animation fermeture */}
+          <div className="space-y-2 rounded-md border border-gray-100 bg-gray-50/50 p-3">
+            <h5 className="text-xs font-semibold text-gray-600">Style & Animation fermeture</h5>
+            <div className="space-y-2">
+              <label className="flex cursor-pointer items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={previewProps.animateOut}
+                  onChange={(e) =>
+                    setPreviewProps({ ...previewProps, animateOut: e.target.checked })
+                  }
+                  className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
+                />
+                <span className="text-sm text-gray-700">
+                  Animation de sortie (fade-out + zoom-out)
+                </span>
+              </label>
+              <label className="flex cursor-pointer items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={previewProps.mangaExplosion}
+                  onChange={(e) =>
+                    setPreviewProps({ ...previewProps, mangaExplosion: e.target.checked })
+                  }
+                  className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
+                />
+                <span className="text-sm text-gray-700">Manga Explosion (Orange Thai)</span>
+              </label>
               <label className="flex cursor-pointer items-center gap-2">
                 <input
                   type="checkbox"
@@ -934,9 +1204,37 @@ function ModalVideoPlayground() {
                   Afficher le bouton X de fermeture (croix)
                 </span>
               </label>
-              <p className="ml-6 text-xs text-gray-500 italic">
-                Si décoché, l'utilisateur devra utiliser les boutons d'action pour fermer le modal
-              </p>
+              {!previewProps.autoClose && (
+                <p className="ml-6 text-xs text-gray-500 italic">
+                  Si décoché, l'utilisateur devra utiliser les boutons d'action pour fermer le modal
+                </p>
+              )}
+            </div>
+
+            {/* Nombre de lectures */}
+            <div className="mt-2">
+              <label className="text-xs font-medium text-gray-700">🎬 Nombre de lectures</label>
+              <div className="mt-1 flex gap-2">
+                {[
+                  { label: "∞ Infini", value: 0 },
+                  { label: "1x", value: 1 },
+                  { label: "3x", value: 3 },
+                ].map((loop) => (
+                  <Button
+                    key={loop.value}
+                    size="sm"
+                    variant={previewProps.loopCount === loop.value ? "default" : "outline"}
+                    onClick={() => setPreviewProps({ ...previewProps, loopCount: loop.value })}
+                    className={
+                      previewProps.loopCount === loop.value
+                        ? "bg-thai-orange hover:bg-thai-orange/90"
+                        : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
+                    }
+                  >
+                    {loop.label}
+                  </Button>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -1049,312 +1347,6 @@ function ModalVideoPlayground() {
               </div>
             )}
           </div>
-
-          {/* Section Style Dialog */}
-          <div className="space-y-2">
-            <label className="text-xs font-medium text-gray-700">🎨 Style Dialog</label>
-            <div className="space-y-3">
-              {/* Animation rotation - CHECKBOX */}
-              <label className="flex cursor-pointer items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={previewProps.rotation}
-                  onChange={(e) => setPreviewProps({ ...previewProps, rotation: e.target.checked })}
-                  className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
-                />
-                <span className="text-sm text-gray-700">
-                  Animation rotation (rotate-[-2deg] hover:rotate-0)
-                </span>
-              </label>
-
-              {/* Effet scale au hover - CHECKBOX */}
-              <label className="flex cursor-pointer items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={previewProps.hoverScale}
-                  onChange={(e) => setPreviewProps({ ...previewProps, hoverScale: e.target.checked })}
-                  className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
-                />
-                <span className="text-sm text-gray-700">
-                  Effet scale au hover (hover:scale-105)
-                </span>
-              </label>
-
-              {/* Animation bordure pulsante - CHECKBOX */}
-              <label className="flex cursor-pointer items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={previewProps.animateBorder}
-                  onChange={(e) => setPreviewProps({ ...previewProps, animateBorder: e.target.checked })}
-                  className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300 focus:ring-2"
-                />
-                <span className="text-sm text-gray-700">
-                  ✨ Animation bordure pulsante (couleur dynamique)
-                </span>
-              </label>
-
-              {/* Taille modal - BUTTON GROUP */}
-              <div>
-                <label className="text-xs text-gray-600">Taille modal</label>
-                <div className="flex gap-2">
-                  {(["sm", "md", "lg", "xl", "custom"] as const).map((size) => (
-                    <Button
-                      key={size}
-                      size="sm"
-                      variant={previewProps.maxWidth === size ? "default" : "outline"}
-                      onClick={() => setPreviewProps({ ...previewProps, maxWidth: size })}
-                      className={
-                        previewProps.maxWidth === size
-                          ? "bg-thai-orange hover:bg-thai-orange/90"
-                          : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
-                      }
-                    >
-                      {size}
-                    </Button>
-                  ))}
-                </div>
-                {previewProps.maxWidth === "custom" && (
-                  <div className="mt-2 grid grid-cols-2 gap-2">
-                    <input
-                      type="text"
-                      value={previewProps.customWidth}
-                      onChange={(e) =>
-                        setPreviewProps({ ...previewProps, customWidth: e.target.value })
-                      }
-                      placeholder="Largeur (ex: 600px, 90vw)"
-                      className="focus:ring-thai-orange w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:outline-none"
-                    />
-                    <input
-                      type="text"
-                      value={previewProps.customHeight}
-                      onChange={(e) =>
-                        setPreviewProps({ ...previewProps, customHeight: e.target.value })
-                      }
-                      placeholder="Hauteur (ex: 400px, 80vh)"
-                      className="focus:ring-thai-orange w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:outline-none"
-                    />
-                  </div>
-                )}
-              </div>
-
-              {/* Couleur bordure - BUTTON GROUP */}
-              <div>
-                <label className="text-xs text-gray-600">Couleur bordure</label>
-                <div className="flex flex-wrap gap-2">
-                  {[
-                    { label: "🟠 Orange", value: "thai-orange" as const },
-                    { label: "🟢 Vert", value: "thai-green" as const },
-                    { label: "🔴 Rouge", value: "red" as const },
-                    { label: "🔵 Bleu", value: "blue" as const },
-                    { label: "🎨 Custom", value: "custom" as const },
-                  ].map((color) => (
-                    <Button
-                      key={color.value}
-                      size="sm"
-                      variant={previewProps.borderColor === color.value ? "default" : "outline"}
-                      onClick={() => setPreviewProps({ ...previewProps, borderColor: color.value })}
-                      className={
-                        previewProps.borderColor === color.value
-                          ? "bg-thai-orange hover:bg-thai-orange/90"
-                          : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
-                      }
-                    >
-                      {color.label}
-                    </Button>
-                  ))}
-                </div>
-                {previewProps.borderColor === "custom" && (
-                  <input
-                    type="text"
-                    value={previewProps.customBorderColor}
-                    onChange={(e) =>
-                      setPreviewProps({ ...previewProps, customBorderColor: e.target.value })
-                    }
-                    placeholder="ex: border-purple-500, border-pink-600"
-                    className="focus:ring-thai-orange mt-2 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:outline-none"
-                  />
-                )}
-              </div>
-
-              {/* Épaisseur bordure - BUTTON GROUP */}
-              <div>
-                <label className="text-xs text-gray-600">Épaisseur bordure</label>
-                <div className="flex gap-2">
-                  {[1, 2, 4, "custom"].map((width) => (
-                    <Button
-                      key={width}
-                      size="sm"
-                      variant={previewProps.borderWidth === width ? "default" : "outline"}
-                      onClick={() =>
-                        setPreviewProps({
-                          ...previewProps,
-                          borderWidth: width as number | "custom",
-                        })
-                      }
-                      className={
-                        previewProps.borderWidth === width
-                          ? "bg-thai-orange hover:bg-thai-orange/90"
-                          : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
-                      }
-                    >
-                      {width === "custom" ? "🎨 Custom" : `${width}px`}
-                    </Button>
-                  ))}
-                </div>
-                {previewProps.borderWidth === "custom" && (
-                  <input
-                    type="number"
-                    value={previewProps.customBorderWidth}
-                    onChange={(e) =>
-                      setPreviewProps({
-                        ...previewProps,
-                        customBorderWidth: Number(e.target.value),
-                      })
-                    }
-                    placeholder="ex: 3, 5, 8"
-                    min={1}
-                    max={20}
-                    className="focus:ring-thai-orange mt-2 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:outline-none"
-                  />
-                )}
-              </div>
-
-              {/* Ombre - BUTTON GROUP */}
-              <div>
-                <label className="text-xs text-gray-600">Ombre</label>
-                <div className="flex gap-2">
-                  {(["none", "sm", "md", "lg", "xl", "2xl"] as const).map((shadow) => (
-                    <Button
-                      key={shadow}
-                      size="sm"
-                      variant={previewProps.shadowSize === shadow ? "default" : "outline"}
-                      onClick={() => setPreviewProps({ ...previewProps, shadowSize: shadow })}
-                      className={
-                        previewProps.shadowSize === shadow
-                          ? "bg-thai-orange hover:bg-thai-orange/90"
-                          : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
-                      }
-                    >
-                      {shadow}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Position du modal - BUTTON GROUP */}
-              <div>
-                <label className="text-xs text-gray-600">📍 Position du modal</label>
-                <div className="grid grid-cols-3 gap-2">
-                  {[
-                    { label: "🎯 Centre", value: "center" as const },
-                    { label: "↘️ Bas droite", value: "bottom-right" as const },
-                    { label: "↙️ Bas gauche", value: "bottom-left" as const },
-                    { label: "↗️ Haut droite", value: "top-right" as const },
-                    { label: "↖️ Haut gauche", value: "top-left" as const },
-                    { label: "🎨 Custom", value: "custom" as const },
-                  ].map((pos) => (
-                    <Button
-                      key={pos.value}
-                      size="sm"
-                      variant={previewProps.position === pos.value ? "default" : "outline"}
-                      onClick={() => setPreviewProps({ ...previewProps, position: pos.value })}
-                      className={
-                        previewProps.position === pos.value
-                          ? "bg-thai-orange hover:bg-thai-orange/90"
-                          : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
-                      }
-                    >
-                      {pos.label}
-                    </Button>
-                  ))}
-                </div>
-                {previewProps.position === "custom" && (
-                  <div className="mt-2 grid grid-cols-2 gap-2">
-                    <input
-                      type="text"
-                      value={previewProps.customX}
-                      onChange={(e) =>
-                        setPreviewProps({ ...previewProps, customX: e.target.value })
-                      }
-                      placeholder="Position X (ex: 50%, 100px)"
-                      className="focus:ring-thai-orange w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:outline-none"
-                    />
-                    <input
-                      type="text"
-                      value={previewProps.customY}
-                      onChange={(e) =>
-                        setPreviewProps({ ...previewProps, customY: e.target.value })
-                      }
-                      placeholder="Position Y (ex: 50%, 100px)"
-                      className="focus:ring-thai-orange w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:outline-none"
-                    />
-                  </div>
-                )}
-              </div>
-
-              {/* Taille cadre Polaroid - CUSTOM INPUTS */}
-              {previewProps.polaroid && (
-                <div className="border-thai-green/30 bg-thai-cream/20 space-y-2 rounded-lg border-2 p-3">
-                  <label className="text-thai-green text-xs font-medium">
-                    📐 Taille cadre Polaroid (padding)
-                  </label>
-                  <div className="grid grid-cols-3 gap-2">
-                    <div>
-                      <label className="text-xs text-gray-600">Côtés (p-x)</label>
-                      <input
-                        type="number"
-                        value={previewProps.polaroidPaddingSides}
-                        onChange={(e) =>
-                          setPreviewProps({
-                            ...previewProps,
-                            polaroidPaddingSides: Number(e.target.value),
-                          })
-                        }
-                        min={0}
-                        max={20}
-                        className="focus:ring-thai-orange w-full rounded-md border border-gray-300 px-2 py-1 text-sm focus:border-transparent focus:ring-2 focus:outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs text-gray-600">Haut (pt-x)</label>
-                      <input
-                        type="number"
-                        value={previewProps.polaroidPaddingTop}
-                        onChange={(e) =>
-                          setPreviewProps({
-                            ...previewProps,
-                            polaroidPaddingTop: Number(e.target.value),
-                          })
-                        }
-                        min={0}
-                        max={20}
-                        className="focus:ring-thai-orange w-full rounded-md border border-gray-300 px-2 py-1 text-sm focus:border-transparent focus:ring-2 focus:outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs text-gray-600">Bas (pb-x)</label>
-                      <input
-                        type="number"
-                        value={previewProps.polaroidPaddingBottom}
-                        onChange={(e) =>
-                          setPreviewProps({
-                            ...previewProps,
-                            polaroidPaddingBottom: Number(e.target.value),
-                          })
-                        }
-                        min={0}
-                        max={20}
-                        className="focus:ring-thai-orange w-full rounded-md border border-gray-300 px-2 py-1 text-sm focus:border-transparent focus:ring-2 focus:outline-none"
-                      />
-                    </div>
-                  </div>
-                  <p className="text-xs text-gray-500 italic">
-                    Valeurs Tailwind : 0-20 correspondent à p-0 jusqu'à p-20 (ex: 3 = 0.75rem)
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
         </div>
       </div>
 
@@ -1370,10 +1362,12 @@ function ModalVideoPlayground() {
           </Badge>
         </div>
 
-        <div className={cn(
-          "relative mx-auto flex h-[600px] w-full max-w-md flex-col rounded-xl border border-gray-200 bg-gray-50 shadow-2xl",
-          previewProps.animateBorder ? "overflow-visible" : "overflow-hidden"
-        )}>
+        <div
+          className={cn(
+            "relative mx-auto flex h-[600px] w-full max-w-md flex-col rounded-xl border border-gray-200 bg-gray-50 shadow-2xl",
+            previewProps.animateBorder ? "overflow-visible" : "overflow-hidden"
+          )}
+        >
           <div className="flex-1 overflow-y-auto">
             <ModalVideoContent
               onOpenChange={() => {}}
@@ -1472,6 +1466,7 @@ function ModalVideoPlayground() {
         typingSpeed={previewProps.typingSpeed}
         scrollSyncWithVideo={previewProps.scrollSyncWithVideo}
         animateBorder={previewProps.animateBorder}
+        animateOut={previewProps.animateOut}
         titleFontWeight={previewProps.titleFontWeight}
         descriptionColor={previewProps.descriptionColor}
         descriptionFontWeight={previewProps.descriptionFontWeight}
