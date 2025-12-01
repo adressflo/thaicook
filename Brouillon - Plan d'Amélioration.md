@@ -1020,15 +1020,19 @@ npm run test:e2e
   - ⚠️ **Configuration requise** : Définir valeurs dans Prisma Studio pour affichage
 
 - [x] ✅ **Sélecteur Niveau Épicé** : Choix 0-3 piments dans modal plat
-  - Composant : `components/commander/SpiceLevelSelector.tsx` (161 lignes)
-  - Design : shadcn/ui `ToggleGroup` + Lucide `Flame` icons
-  - Niveaux : 🍃 Non épicé | 🌶️ Léger | 🌶️🌶️ Moyen | 🌶️🌶️🌶️ Très épicé
-  - Gradient couleurs : vert → jaune → orange → rouge
-  - Intégration : `DishDetailsModalInteractive` lignes 176-185
-  - Helper function : `getSpiceLevelText(level)` génère texte formaté
-  - Storage : Append à `PlatPanier.demandeSpeciale` via paramètre `onAddToCart`
-  - Affichage conditionnel : Seulement si `plat.niveau_epice > 0`
-  - ⚠️ **Configuration requise** : Définir `niveau_epice` dans Prisma Studio (1-3)
+  - Composant principal : `components/shared/Spice.tsx` (266 lignes)
+  - Intégration : `components/shared/CommandePlatModal.tsx` lignes 271-282
+  - Design : Cercles gradient avec Lucide `Flame` + `Leaf` icons
+  - Niveaux : 🍃 Non épicé | 🔥 Un peu épicé | 🔥🔥 Épicé | 🔥🔥🔥 Très épicé (Piment Thaï)
+  - Gradient couleurs : vert (green-400→600) → jaune (yellow-400→orange-500) → orange (orange-400→red-500) → rouge (red-500→700)
+  - Distribution système : `spiceDistribution: number[]` = [nonÉpicé, peuÉpicé, épicé, trèsÉpicé]
+  - Helper function : `lib/spice-helpers.ts` → `getDistributionText()` génère texte formaté
+  - Storage : Props `spicePreference` + `spiceDistribution` dans `onAddToCart`
+  - Toast avertissement : Si niveau 3 (Piment Thaï) sélectionné → `toastVideo()` warning (lignes 89-118)
+  - Affichage conditionnel : Seulement si `plat.niveau_epice > 0` (ligne 272)
+  - Animations : Framer Motion `whileHover`, `whileTap`, badges count avec scale animation
+  - Props Spice : `distribution`, `onDistributionChange`, `readOnly`, `showBackground`, `hideZeros`
+  - ⚠️ **Configuration requise** : Définir `niveau_epice` (0-3) dans Prisma Studio ou admin plats
 
 - [x] ✅ **Section "Cette semaine au menu"** : Plat vedette avec Chanthana + Polaroid
   - Composant : `components/commander/FeaturedDishSection.tsx` (172 lignes)

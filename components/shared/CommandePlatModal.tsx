@@ -89,12 +89,31 @@ export const CommandePlatContent = React.memo<
         // Avertissement si niveau max d'épice sélectionné (index 3 = Piment Thaï)
         if (spiceDistribution[3] > 0) {
           toastVideo({
-            title: "Attention, ça pique ! 🌶️",
-            description: "Vous avez choisi le niveau Piment Thaï. C'est vraiment très fort !",
+            title: (
+              <div className="flex items-center justify-center gap-2">
+                <span>
+                  Attention, ça <span className="text-thai-orange">pique</span> !
+                </span>
+                <Spice distribution={[0, 0, 0, 1]} hideZeros readOnly className="scale-75" />
+              </div>
+            ),
+            description: (
+              <span>
+                Vous avez choisi le niveau <span className="text-thai-orange">Piment Thaï</span>.
+                C'est vraiment très <span className="text-thai-orange">fort</span> !
+              </span>
+            ),
             media: "/media/animations/toasts/ajoutpaniernote.mp4",
             position: "center",
             aspectRatio: "1:1",
             polaroid: true,
+            borderColor: "thai-green",
+            borderWidth: 4,
+            shadowSize: "lg",
+            animateBorder: true,
+            rotation: true,
+            typingAnimation: true,
+            typingSpeed: 10,
           })
         }
 
