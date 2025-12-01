@@ -1235,47 +1235,144 @@ npm run test:e2e
 
 ### 📜 D. Page Historique (/historique & /historique/complet)
 
-#### Page Historique (/historique)
+**Fichier** : `app/historique/page.tsx` (651 lignes)
 
-- [ ] 🔥🔥 **Limiter affichage** : 3-5 dernières commandes + 3 derniers événements
-- [x] 🔥🔥 **Bouton Facture** ✅ : `BoutonTelechargerFacture.tsx` utilisé pour commandes "Récupérée"
-- [ ] 🔥🔥 **Bouton Devis/Facture** : Pour événements terminés (template PDF à créer)
-- [ ] 🔥🔥 **Bouton "Voir tout l'historique"** : Redirection vers `/historique/complet` (page à créer)
+#### ✅ Fonctionnalités Existantes (Complètes)
+
+- [x] ✅ **FilterSearchBar** : Composant complet de filtres (ligne 310)
+  - [x] Recherche par nom de plat (case-insensitive)
+  - [x] Filtre par statut (commande ou événement)
+  - [x] Filtre par type (commande / événement)
+  - [x] Filtre par plage de dates (DateRangePicker)
+  - [x] Filtre par montant min/max
+  - [x] Bouton "Effacer tous les filtres"
+  - [x] Badge compteur filtres actifs
+- [x] ✅ **Real-time Supabase sync** : `useCommandesRealtime()` (ligne 72)
+- [x] ✅ **Offline Banner** : `OfflineBannerCompact` (ligne 307)
+- [x] ✅ **Résumé résultats filtrés** : Affichage count commandes + événements (lignes 293-308)
+- [x] ✅ **Séparation En Cours / Historique** : 4 sections distinctes
+- [x] ✅ **Limite 10 dernières commandes historique** : `.slice(0, 10)` (ligne 254)
+- [x] ✅ **StatusBadge** : Composant couleurs statuts (ligne 47)
+- [x] ✅ **CommandeActionButtons** : Boutons Voir/Modifier (ligne 35-37)
+- [x] ✅ **EvenementActionButtons** : Boutons Voir/Modifier (ligne 35-37)
+- [x] ✅ **FormattedDate, FormattedPrice, DishList, PersonCount** : Composants display (ligne 40-46)
+
+#### ⚠️ Composant Créé mais NON Intégré
+
+- [ ] 🔥🔥 **BoutonTelechargerFacture** : Composant existe (`components/historique/BoutonTelechargerFacture.tsx` - 41 lignes) mais **NON utilisé** dans la page historique
+  - À intégrer dans `CommandeActionButtons` pour commandes "Récupérée"
+
+#### 🔥🔥 Tâches Restantes
+
+- [ ] 🔥🔥 **Intégrer BoutonTelechargerFacture** : Ajouter dans ActionButtons.tsx pour statut "Récupérée"
+- [ ] 🔥🔥 **Bouton Devis/Facture événements** : Template PDF événement à créer
+- [ ] 🔥🔥 **Bouton "Voir tout l'historique"** : Redirection vers `/historique/complet`
+- [ ] 🔥🔥 **"Commander à Nouveau"** : Bouton copie commande passée vers panier
 
 #### ❌ Page Historique Complet (/historique/complet) - N'EXISTE PAS
 
-**Note : Page planifiée mais non créée, à développer en Phase 2**
+**Note : Page planifiée mais non créée**
 
 - [ ] 🔥🔥 **Créer page `/historique/complet/page.tsx`** : Route Next.js manquante
-- [ ] 🔥🔥 **nuqs - Filtres avancés** : Recherche par nom plat, date, statut
 - [ ] 🔥🔥 **nuqs - Pagination** : Navigation pages avec URL state
-- [ ] 🔥🔥 **"Commander à Nouveau"** : Bouton copie commande passée vers panier
 - [ ] 🔥 **Vue Calendrier** : Navigation visuelle commandes/événements passés
-- [ ] 🔥 **Export Facture PDF** : Téléchargement pour chaque commande "Récupérée"
+
+---
 
 ### 📍 E. Page Suivi de Commande (/suivi-commande/[id])
 
-- [ ] 🔥🔥 **Bouton Facture** : Pour commandes "Récupérée" (génération PDF)
+**Fichier** : `app/suivi-commande/[id]/page.tsx` (541 lignes)
+
+#### ✅ Fonctionnalités Existantes (Complètes)
+
+- [x] ✅ **ProgressTimeline** : Chronologie visuelle 5 étapes (ligne 186-190)
+  - Commande passée → Confirmation → En préparation → Prête à récupérer → Récupérée
+  - États : completed, current, pending, cancelled
+  - Composant : `components/suivi-commande/ProgressTimeline.tsx` (225 lignes)
+- [x] ✅ **Real-time Supabase sync** : `useCommandesRealtime()` (ligne 54)
+- [x] ✅ **Calcul total commande** : `calculateTotal()` (lignes 118-125)
+- [x] ✅ **DishDetailsModalComplex** : Modal détails plat cliquable (ligne 216)
+- [x] ✅ **Demandes spéciales** : Section affichage (lignes 330-344)
+- [x] ✅ **CalendarIcon** : Affichage date stylisé (ligne 360)
+- [x] ✅ **Bouton "Modifier ma commande"** : Si statut "En attente" ou "Confirmée" (lignes 466-485)
+- [x] ✅ **Messages conditionnels statut** : 5 états différents avec couleurs (lignes 487-527)
+- [x] ✅ **Adresse retrait + lien carte** : Lien vers /nous-trouver (lignes 378-390)
+- [x] ✅ **StatusBadge** : Badge statut coloré (ligne 442)
+- [x] ✅ **Numéro de commande** : Affichage ID (lignes 424-436)
+- [x] ✅ **Total à payer** : Section mise en évidence (lignes 446-455)
+
+#### 🔥🔥 Tâches Restantes
+
+- [ ] 🔥🔥 **Intégrer BoutonTelechargerFacture** : Pour commandes "Récupérée"
 - [ ] 🔥🔥 **Notifications Push** : Changement statut via PWA + n8n
-- [ ] 🔥 **Carte localisation** : ⚠️ Code embed Google Maps ready, ajouter API key dans `.env`
-- [ ] 🔥 **Contact Rapide** : Boutons appel/SMS en un clic
+- [ ] 🔥 **Contact Rapide** : Boutons `<a href="tel:">` et `<a href="sms:">`
 - [ ] 🔥 **Laisser un Avis** : Formulaire simple après "Récupérée"
+
+---
 
 ### ✏️ F. Page Modifier Commande (/modifier-commande/[id])
 
-- [ ] 🔥🔥 **Confirmation modifications** : Dialog récapitulatif changements + différence prix
-- [ ] 🔥🔥 **Notification admin** : Alerte via n8n si client modifie commande
-- [ ] 🔥🔥 **Confirmation client** : Email détaillé après sauvegarde modifications
-- [ ] 🔥 **Trace modifications** : Log qui/quand/quoi (côté admin)
-- [ ] 🔥 **Gestion heure retrait** : Note indicative + proposition nouvelle heure admin
+**Fichier** : `app/modifier-commande/[id]/page.tsx` (1346 lignes) - **PAGE TRÈS COMPLÈTE**
+
+#### ✅ Fonctionnalités Existantes (Complètes)
+
+- [x] ✅ **Modification date/heure/jour retrait** : Sélecteurs complets (lignes 786-861)
+  - Select jour de la semaine
+  - Select date (8 prochaines occurrences du jour)
+  - Select heure (18h00-20h30 par 5 min)
+- [x] ✅ **Affichage plats disponibles selon jour** : Grille ProductCard (lignes 1114-1155)
+- [x] ✅ **Affichage extras disponibles** : Section dédiée avec ExtraDetailsModalInteractive (lignes 1197-1321)
+- [x] ✅ **Modification quantités** : Boutons +/- via CartItemCard (lignes 521-530)
+- [x] ✅ **Suppression articles** : Fonction `supprimerDuPanierItem()` (lignes 533-535)
+- [x] ✅ **Demandes spéciales** : Textarea éditable (lignes 954-974)
+- [x] ✅ **Calcul total temps réel** : `totalPrixModification` (lignes 471-476)
+- [x] ✅ **Bouton Restaurer original** : `restaurerOriginal()` (lignes 537-554)
+- [x] ✅ **Badge "Modifications non sauvegardées"** : Indicateur visuel (lignes 729-735)
+- [x] ✅ **Sidebar Desktop avec plats** : Sticky sidebar (lignes 1070-1337)
+- [x] ✅ **CommandePlatModal** : Modal ajout plat avec quantité (lignes 1158-1195)
+- [x] ✅ **ExtraDetailsModalInteractive** : Modal ajout extra (lignes 1236-1316)
+- [x] ✅ **Groupement par date retrait** : Affichage groupé (lignes 875-938)
+- [x] ✅ **Logique annulation si panier vide** : Statut → "Annulée" (lignes 560-592)
+- [x] ✅ **Création nouvelle commande après modif** : Workflow complet (lignes 604-695)
+- [x] ✅ **Toast notifications** : Feedback utilisateur (multiple)
+- [x] ✅ **ProductCard + CartItemCard** : Composants réutilisables
+- [x] ✅ **Vérification permissions** : Admin OU propriétaire (lignes 136-151)
+- [x] ✅ **Bouton panier flottant** : Indicateur Desktop (lignes 751-766)
+
+#### 🔥🔥 Tâches Restantes
+
+- [ ] 🔥🔥 **Dialog confirmation avant sauvegarde** : Récapitulatif changements + différence prix
+- [ ] 🔥🔥 **Notification admin via n8n** : Webhook si client modifie commande
+- [ ] 🔥🔥 **Email confirmation client** : React Email après sauvegarde
+- [ ] 🔥 **Trace modifications** : Log qui/quand/quoi (notes_internes)
+
+---
 
 ### 🎉 G. Page Suivi d'Événement (/suivi-evenement/[id])
 
-- [ ] 🔥🔥 **Chronologie visuelle** : Étapes clés ("Demande reçue" → "Devis envoyé" → "Confirmé")
-- [ ] 🔥🔥 **Accès Documents** : Téléchargement devis + facture PDF
-- [ ] 🔥🔥 **Validation Devis** : Bouton "Accepter le devis" → notification admin n8n
-- [ ] 🔥 **Contact Rapide** : Bouton "Poser une question" avec messagerie pré-remplie
-- [ ] 🔥 **Rappels automatiques** : n8n envoie rappels avant événement + remerciement après
+**Fichier** : `app/suivi-evenement/[id]/page.tsx` (434 lignes)
+
+#### ✅ Fonctionnalités Existantes (Complètes)
+
+- [x] ✅ **Détails événement** : Nom, type, date/heure (lignes 178-221)
+- [x] ✅ **Statut avec couleurs** : `getStatutColor()` (lignes 91-107)
+- [x] ✅ **Nombre de personnes** : Affichage avec icône Users (lignes 244-251)
+- [x] ✅ **Budget indicatif** : Si renseigné (lignes 253-261)
+- [x] ✅ **Plats présélectionnés** : Grille avec DishDetailsModal (lignes 281-357)
+- [x] ✅ **Demandes spéciales / Thème** : Section affichage (lignes 359-376)
+- [x] ✅ **Messages selon statut** : 3 états (Demande/Confirmé/Réalisé) (lignes 381-420)
+- [x] ✅ **Bouton Modifier** : Si canEdit (lignes 141-153)
+- [x] ✅ **Lien vers /modifier-evenement/[id]** : Navigation (ligne 142)
+- [x] ✅ **Date création demande** : Affichage (lignes 263-273)
+- [x] ✅ **Vérification propriétaire** : Redirect si non autorisé (lignes 80-83)
+
+#### 🔥🔥 Tâches Restantes
+
+- [ ] 🔥🔥 **ProgressTimelineEvenement** : Chronologie visuelle (Demande → Contact → Devis → Confirmé → Réalisé)
+- [ ] 🔥🔥 **BoutonTelechargerDevis** : Template PDF événement
+- [ ] 🔥🔥 **Bouton "Accepter le devis"** : Webhook n8n + changement statut
+- [ ] 🔥 **Contact Rapide** : WhatsApp avec message pré-rempli
+- [ ] 🔥 **Rappels automatiques** : n8n avant événement + remerciement après
 
 ### 👤 H. Page Profil (/profil) & Inscription (/auth/signup)
 

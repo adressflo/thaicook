@@ -70,8 +70,8 @@ async function main() {
 
   // Lancer Next.js
   // Lancer Next.js
-  const command = process.platform === "win32" ? "next.cmd" : "next"
-  const nextProcess = spawn(command, ["dev", "-p", port.toString()], {
+  const nextJsPath = path.join(__dirname, "..", "node_modules", "next", "dist", "bin", "next")
+  const nextProcess = spawn(process.execPath, [nextJsPath, "dev", "-p", port.toString()], {
     stdio: "inherit",
     shell: false,
     cwd: path.join(__dirname, ".."),
