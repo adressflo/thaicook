@@ -1214,7 +1214,7 @@ function ModalVideoPlayground() {
             {/* Nombre de lectures */}
             <div className="mt-2">
               <label className="text-xs font-medium text-gray-700">🎬 Nombre de lectures</label>
-              <div className="mt-1 flex gap-2">
+              <div className="mt-1 flex flex-wrap gap-2">
                 {[
                   { label: "∞ Infini", value: 0 },
                   { label: "1x", value: 1 },
@@ -1234,7 +1234,37 @@ function ModalVideoPlayground() {
                     {loop.label}
                   </Button>
                 ))}
+                <Button
+                  size="sm"
+                  variant={![0, 1, 3].includes(previewProps.loopCount) ? "default" : "outline"}
+                  onClick={() => setPreviewProps({ ...previewProps, loopCount: 5 })}
+                  className={
+                    ![0, 1, 3].includes(previewProps.loopCount)
+                      ? "bg-thai-orange hover:bg-thai-orange/90"
+                      : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
+                  }
+                >
+                  Custom
+                </Button>
               </div>
+              {![0, 1, 3].includes(previewProps.loopCount) && (
+                <div className="mt-2 flex items-center gap-2">
+                  <input
+                    type="number"
+                    value={previewProps.loopCount}
+                    onChange={(e) =>
+                      setPreviewProps({
+                        ...previewProps,
+                        loopCount: Math.max(1, Number(e.target.value)),
+                      })
+                    }
+                    min={1}
+                    max={50}
+                    className="focus:ring-thai-orange w-20 rounded-md border border-gray-300 px-3 py-1 text-sm focus:border-transparent focus:ring-2 focus:outline-none"
+                  />
+                  <span className="text-xs text-gray-600">fois</span>
+                </div>
+              )}
             </div>
           </div>
 

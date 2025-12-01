@@ -1133,30 +1133,6 @@ npm run test:e2e
   - À améliorer: GIF/MP4 Chanthana réaction 2-3s
   - Status : OPTIONNEL (feedback vidéo existe)
 
-#### ⚙️ Configuration Requise pour Affichage
-
-**Après restart du serveur de développement, configurer via Prisma Studio** :
-
-1. **Pour badges spéciaux** : Éditer plats dans `plats_db`
-   - `est_vegetarien` → `true` pour plats végétariens
-   - `niveau_epice` → `1`, `2`, ou `3` pour plats épicés
-   - Exemple : Pad Thai végétarien → `est_vegetarien: true, niveau_epice: 2`
-
-2. **Pour sélecteur épicé dans modal** :
-   - Définir `niveau_epice` > 0 sur plats concernés
-   - Modal affichera automatiquement le sélecteur
-
-3. **Pour section plat vedette** :
-   - Aller dans `/admin/plats`
-   - Cliquer sur bouton "⭐ Vedette" du plat souhaité
-   - Vérifier que plat a au moins 1 jour disponible (`lundi_dispo` = "oui", etc.)
-   - Section apparaîtra automatiquement sur `/commander`
-
-4. **Vérification** :
-   - Prisma Studio en cours : Background process c1883f
-   - Interface : http://localhost:5555
-   - Redémarrer serveur après modifications Prisma
-
 ### 🛍️ C. Page Panier (/panier)
 
 #### ✅ Améliorations Complétées

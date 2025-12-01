@@ -344,6 +344,10 @@ function ToastVideoItem({
         playCountRef.current += 1
         if (playCountRef.current >= targetPlayCount) {
           handleDismiss()
+        } else {
+          // Relancer la vidéo pour la prochaine lecture
+          element.currentTime = 0
+          element.play()
         }
       }
       element.addEventListener("ended", handleVideoEnd)
@@ -408,7 +412,7 @@ function ToastVideoItem({
           ref={mediaRef as React.RefObject<HTMLVideoElement>}
           src={media}
           autoPlay
-          loop={targetPlayCount > 1 || playCount === "custom"}
+          loop={false}
           muted
           className="h-full w-full object-cover"
         />
