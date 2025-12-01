@@ -1,6 +1,5 @@
 "use client"
 
-import { useToastVideo } from "@/hooks/use-toast-video"
 import {
   Toast,
   ToastClose,
@@ -8,25 +7,25 @@ import {
   ToastProvider,
   ToastTitle,
   ToastViewport,
-  ToastAction,
-  titleColorMap,
   descriptionColorMap,
   fontWeightMap,
-  positionClassMap,
   parseColoredText,
+  positionClassMap,
+  titleColorMap,
   type BorderColor,
-  type ShadowSize,
-  type MaxWidth,
-  type TitleColor,
   type DescriptionColor,
-  type ToastPosition,
   type FontWeight,
+  type MaxWidth,
   type RedirectBehavior,
+  type ShadowSize,
+  type TitleColor,
+  type ToastPosition,
 } from "@/components/ui/toast"
-import { useEffect, useRef, useState } from "react"
-import { useRouter } from "next/navigation"
-import Link from "next/link"
 import { TypingAnimation } from "@/components/ui/typing-animation"
+import { useToastVideo } from "@/hooks/use-toast-video"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useEffect, useRef, useState } from "react"
 
 import { cn } from "@/lib/utils"
 
@@ -34,51 +33,92 @@ import { cn } from "@/lib/utils"
 const borderColorMap: Record<BorderColor, string> = {
   "thai-orange": "border-thai-orange",
   "thai-green": "border-thai-green",
-  "red": "border-red-500",
-  "blue": "border-blue-500",
-  "yellow": "border-yellow-500",
-  "purple": "border-purple-500",
-  "custom": "",
+  red: "border-red-500",
+  blue: "border-blue-500",
+  yellow: "border-yellow-500",
+  purple: "border-purple-500",
+  custom: "",
 }
 
 const shadowSizeMap: Record<ShadowSize, string> = {
-  "none": "shadow-none",
-  "sm": "shadow-sm",
-  "md": "shadow-md",
-  "lg": "shadow-lg",
-  "xl": "shadow-xl",
+  none: "shadow-none",
+  sm: "shadow-sm",
+  md: "shadow-md",
+  lg: "shadow-lg",
+  xl: "shadow-xl",
   "2xl": "shadow-2xl",
 }
 
 const maxWidthMap: Record<MaxWidth, string> = {
-  "xs": "max-w-[280px]",
-  "sm": "max-w-[320px]",
-  "md": "max-w-[400px]",
-  "lg": "max-w-[500px]",
-  "xl": "max-w-[600px]",
+  xs: "max-w-[280px]",
+  sm: "max-w-[320px]",
+  md: "max-w-[400px]",
+  lg: "max-w-[500px]",
+  xl: "max-w-[600px]",
 }
 
 // Map des couleurs hex pour l'animation de bordure dynamique
-const borderColorHexMap: Record<BorderColor, { base: string; light: string; rgba: string; rgbaStrong: string }> = {
-  "thai-orange": { base: "#ff7b54", light: "#ffb386", rgba: "rgba(255, 123, 84, 0.4)", rgbaStrong: "rgba(255, 123, 84, 0.6)" },
-  "thai-green": { base: "#2d5016", light: "#4a7c23", rgba: "rgba(45, 80, 22, 0.4)", rgbaStrong: "rgba(45, 80, 22, 0.6)" },
-  "red": { base: "#ef4444", light: "#f87171", rgba: "rgba(239, 68, 68, 0.4)", rgbaStrong: "rgba(239, 68, 68, 0.6)" },
-  "blue": { base: "#3b82f6", light: "#60a5fa", rgba: "rgba(59, 130, 246, 0.4)", rgbaStrong: "rgba(59, 130, 246, 0.6)" },
-  "yellow": { base: "#eab308", light: "#facc15", rgba: "rgba(234, 179, 8, 0.4)", rgbaStrong: "rgba(234, 179, 8, 0.6)" },
-  "purple": { base: "#a855f7", light: "#c084fc", rgba: "rgba(168, 85, 247, 0.4)", rgbaStrong: "rgba(168, 85, 247, 0.6)" },
-  "custom": { base: "#2d5016", light: "#4a7c23", rgba: "rgba(45, 80, 22, 0.4)", rgbaStrong: "rgba(45, 80, 22, 0.6)" },
+const borderColorHexMap: Record<
+  BorderColor,
+  { base: string; light: string; rgba: string; rgbaStrong: string }
+> = {
+  "thai-orange": {
+    base: "#ff7b54",
+    light: "#ffb386",
+    rgba: "rgba(255, 123, 84, 0.4)",
+    rgbaStrong: "rgba(255, 123, 84, 0.6)",
+  },
+  "thai-green": {
+    base: "#2d5016",
+    light: "#4a7c23",
+    rgba: "rgba(45, 80, 22, 0.4)",
+    rgbaStrong: "rgba(45, 80, 22, 0.6)",
+  },
+  red: {
+    base: "#ef4444",
+    light: "#f87171",
+    rgba: "rgba(239, 68, 68, 0.4)",
+    rgbaStrong: "rgba(239, 68, 68, 0.6)",
+  },
+  blue: {
+    base: "#3b82f6",
+    light: "#60a5fa",
+    rgba: "rgba(59, 130, 246, 0.4)",
+    rgbaStrong: "rgba(59, 130, 246, 0.6)",
+  },
+  yellow: {
+    base: "#eab308",
+    light: "#facc15",
+    rgba: "rgba(234, 179, 8, 0.4)",
+    rgbaStrong: "rgba(234, 179, 8, 0.6)",
+  },
+  purple: {
+    base: "#a855f7",
+    light: "#c084fc",
+    rgba: "rgba(168, 85, 247, 0.4)",
+    rgbaStrong: "rgba(168, 85, 247, 0.6)",
+  },
+  custom: {
+    base: "#2d5016",
+    light: "#4a7c23",
+    rgba: "rgba(45, 80, 22, 0.4)",
+    rgbaStrong: "rgba(45, 80, 22, 0.6)",
+  },
 }
 
 export function ToasterVideo() {
   const { toasts, dismiss } = useToastVideo()
 
   // Grouper les toasts par position
-  const toastsByPosition = toasts.reduce((acc, toast) => {
-    const position = toast.position || "bottom-right"
-    if (!acc[position]) acc[position] = []
-    acc[position].push(toast)
-    return acc
-  }, {} as Record<ToastPosition, typeof toasts>)
+  const toastsByPosition = toasts.reduce(
+    (acc, toast) => {
+      const position = toast.position || "bottom-right"
+      if (!acc[position]) acc[position] = []
+      acc[position].push(toast)
+      return acc
+    },
+    {} as Record<ToastPosition, typeof toasts>
+  )
 
   // Generer le style custom pour les positions personnalisees
   const getCustomPositionStyle = (customX?: string, customY?: string) => {
@@ -125,15 +165,14 @@ export function ToasterVideo() {
           )}
           <ToastViewport
             className={cn(
-              "fixed z-100 flex max-h-screen w-full flex-col-reverse p-4 md:max-w-fit",
-              position === "custom"
-                ? ""
-                : positionClassMap[position as ToastPosition]
+              "fixed z-50 flex max-h-screen w-full flex-col-reverse p-4 md:max-w-fit",
+              position === "custom" ? "" : positionClassMap[position as ToastPosition]
             )}
-            style={position === "custom" ? getCustomPositionStyle(
-              positionToasts[0]?.customX,
-              positionToasts[0]?.customY
-            ) : undefined}
+            style={
+              position === "custom"
+                ? getCustomPositionStyle(positionToasts[0]?.customX, positionToasts[0]?.customY)
+                : undefined
+            }
           />
         </ToastProvider>
       ))}
@@ -240,14 +279,15 @@ function ToastVideoItem({
   const [syncedScrollDuration, setSyncedScrollDuration] = useState<number | null>(null)
 
   // Calculer le nombre de lectures cible
-  const targetPlayCount = playCount === "custom" && customPlayCount
-    ? customPlayCount
-    : playCount === "custom"
-      ? 1
-      : playCount
+  const targetPlayCount =
+    playCount === "custom" && customPlayCount
+      ? customPlayCount
+      : playCount === "custom"
+        ? 1
+        : playCount
 
   // Détection du type de média
-  const isVideo = media?.endsWith('.mp4') || media?.endsWith('.webm')
+  const isVideo = media?.endsWith(".mp4") || media?.endsWith(".webm")
 
   // Calcul de la durée synchronisée du marquee avec la vidéo
   useEffect(() => {
@@ -266,8 +306,8 @@ function ToastVideoItem({
     if (video.readyState >= 1) {
       handleLoadedMetadata()
     } else {
-      video.addEventListener('loadedmetadata', handleLoadedMetadata)
-      return () => video.removeEventListener('loadedmetadata', handleLoadedMetadata)
+      video.addEventListener("loadedmetadata", handleLoadedMetadata)
+      return () => video.removeEventListener("loadedmetadata", handleLoadedMetadata)
     }
   }, [scrollSyncWithVideo, isVideo, targetPlayCount, media])
 
@@ -329,18 +369,20 @@ function ToastVideoItem({
     "16:9": "aspect-video",
     "4:5": "aspect-[4/5]",
     "1:1": "aspect-square",
-    "auto": "",
+    auto: "",
   }
 
   // Calcul des classes dynamiques pour la bordure
-  const borderColorClass = borderColor === "custom" && customBorderColor
-    ? customBorderColor
-    : borderColorMap[borderColor]
+  const borderColorClass =
+    borderColor === "custom" && customBorderColor ? customBorderColor : borderColorMap[borderColor]
 
   // Calcul de l'épaisseur de bordure (en pixels)
-  const borderWidthValue = borderWidth === "custom" && customBorderWidth
-    ? customBorderWidth
-    : typeof borderWidth === "number" ? borderWidth : 2
+  const borderWidthValue =
+    borderWidth === "custom" && customBorderWidth
+      ? customBorderWidth
+      : typeof borderWidth === "number"
+        ? borderWidth
+        : 2
 
   // Variables CSS pour l'animation de bordure dynamique
   const getMovingBorderStyle = (): React.CSSProperties => {
@@ -348,7 +390,8 @@ function ToastVideoItem({
     const colorKey = borderColor === "custom" ? "thai-green" : borderColor
     const colors = borderColorHexMap[colorKey]
     return {
-      "--moving-border-color": borderColor === "custom" && customBorderColor ? customBorderColor : colors.base,
+      "--moving-border-color":
+        borderColor === "custom" && customBorderColor ? customBorderColor : colors.base,
       "--moving-border-light": colors.light,
       "--moving-border-glow": colors.rgba,
       "--moving-border-glow-strong": colors.rgbaStrong,
@@ -399,9 +442,7 @@ function ToastVideoItem({
           )}
         >
           {typingAnimation ? (
-            <TypingAnimation duration={typingSpeed}>
-              {parseColoredText(title)}
-            </TypingAnimation>
+            <TypingAnimation duration={typingSpeed}>{parseColoredText(title)}</TypingAnimation>
           ) : (
             parseColoredText(title)
           )}
@@ -419,7 +460,7 @@ function ToastVideoItem({
             style={
               scrollingText
                 ? ({
-                    "--marquee-duration": `${syncedScrollDuration ?? scrollDuration}s`
+                    "--marquee-duration": `${syncedScrollDuration ?? scrollDuration}s`,
                   } as React.CSSProperties)
                 : undefined
             }
@@ -441,7 +482,7 @@ function ToastVideoItem({
           href={redirectUrl as "/"}
           className={cn(
             "mt-2 inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors",
-            "bg-thai-orange text-white hover:bg-thai-orange/90"
+            "bg-thai-orange hover:bg-thai-orange/90 text-white"
           )}
         >
           Voir
@@ -456,7 +497,7 @@ function ToastVideoItem({
       <Toast
         {...props}
         className={cn(
-          "flex-col items-center bg-transparent transition-all duration-300 p-0 border-0",
+          "flex-col items-center border-0 bg-transparent p-0 transition-all duration-300",
           shadowSizeMap[shadowSize],
           hoverScale && "hover:scale-105",
           rotation && "rotate-[-2deg] hover:rotate-0",
@@ -475,7 +516,7 @@ function ToastVideoItem({
           style={{
             padding: `${polaroidPaddingTop * 0.25}rem ${polaroidPaddingSides * 0.25}rem ${polaroidPaddingBottom * 0.25}rem`,
             borderWidth: `${borderWidthValue}px`,
-            ...getMovingBorderStyle()
+            ...getMovingBorderStyle(),
           }}
         >
           {/* Cadre intérieur avec bordure autour du media */}
@@ -519,7 +560,7 @@ function ToastVideoItem({
         animateBorder && "animate-moving-border",
         hoverScale && "hover:scale-105",
         rotation && "rotate-[-2deg] hover:rotate-0",
-        "min-w-[320px] overflow-hidden rounded-xl p-0 border-solid",
+        "min-w-[320px] overflow-hidden rounded-xl border-solid p-0",
         borderColorClass,
         maxWidthMap[maxWidth],
         props.className
@@ -528,12 +569,7 @@ function ToastVideoItem({
     >
       {/* Section image/video */}
       {media && (
-        <div
-          className={cn(
-            "w-full overflow-hidden",
-            aspectRatioClassMap[aspectRatio]
-          )}
-        >
+        <div className={cn("w-full overflow-hidden", aspectRatioClassMap[aspectRatio])}>
           {renderMedia()}
         </div>
       )}

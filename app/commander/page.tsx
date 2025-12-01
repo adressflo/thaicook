@@ -549,7 +549,7 @@ const Commander = memo(() => {
         <div
           className={`mx-auto transition-all duration-500 ${
             panier.length > 0
-              ? "grid max-w-[95%] grid-cols-1 gap-4 md:grid-cols-[3fr_2fr] md:gap-6 xl:max-w-[1600px]"
+              ? "grid max-w-[95%] grid-cols-1 gap-4 lg:grid-cols-[3fr_2fr] lg:gap-6 xl:max-w-[1600px]"
               : "max-w-[95%] xl:max-w-6xl"
           }`}
         >
