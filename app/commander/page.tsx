@@ -406,6 +406,7 @@ const Commander = memo(() => {
         aspectRatio: "1:1",
         polaroid: true,
       })
+      setTimeout(() => router.push("/auth/login"), 2000)
       return
     }
     if (panier.length === 0) {
@@ -936,7 +937,7 @@ const Commander = memo(() => {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="absolute top-2 right-2 h-8 w-8 text-white hover:bg-white/20"
+                      className="absolute top-2 right-2 h-8 w-8 bg-white/10 text-white transition-colors hover:bg-white/30"
                       onClick={() => setIsClearCartModalOpen(true)}
                       title="Vider le panier"
                     >
