@@ -517,6 +517,8 @@ function ToastVideoItem({
       <Toast
         duration={Infinity}
         {...props}
+        animateOut={animateOut}
+        mangaExplosion={mangaExplosion}
         className={cn(
           "flex-col items-center border-0 bg-transparent p-0 transition-all duration-300",
           shadowSizeMap[shadowSize],
@@ -524,9 +526,15 @@ function ToastVideoItem({
           rotation && "-rotate-2 hover:rotate-0",
           maxWidthMap[maxWidth],
           animateBorder && "overflow-visible!",
+          // Désactiver les animations si les deux sont false
           !animateOut &&
             !mangaExplosion &&
             "data-[state=closed]:animate-none! data-[state=closed]:duration-0!",
+          // Animation fade-out + zoom-out + slide si animateOut=true (comme ModalVideo)
+          animateOut &&
+            !mangaExplosion &&
+            "data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=closed]:duration-200",
+          // Animation Manga Explosion si mangaExplosion=true
           mangaExplosion && "manga-explosion-exit data-[state=closed]:duration-500!",
           props.className
         )}
@@ -580,6 +588,8 @@ function ToastVideoItem({
     <Toast
       duration={Infinity}
       {...props}
+      animateOut={animateOut}
+      mangaExplosion={mangaExplosion}
       className={cn(
         "flex-col items-center bg-white transition-all duration-300",
         shadowSizeMap[shadowSize],
@@ -589,9 +599,15 @@ function ToastVideoItem({
         "min-w-[320px] overflow-hidden rounded-xl border-solid p-0",
         borderColorClass,
         maxWidthMap[maxWidth],
+        // Désactiver les animations si les deux sont false
         !animateOut &&
           !mangaExplosion &&
           "data-[state=closed]:animate-none! data-[state=closed]:duration-0!",
+        // Animation fade-out + zoom-out + slide si animateOut=true (comme ModalVideo)
+        animateOut &&
+          !mangaExplosion &&
+          "data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=closed]:duration-200",
+        // Animation Manga Explosion si mangaExplosion=true
         mangaExplosion && "manga-explosion-exit data-[state=closed]:duration-500!",
         props.className
       )}

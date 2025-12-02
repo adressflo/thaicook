@@ -385,13 +385,13 @@ const Toast = React.forwardRef<
           isTilted &&
             "rotate-(--toast-angle) transition-all duration-300 hover:scale-105 hover:rotate-0",
           // Animation de sortie
-          // Animation de sortie
           !animateOut &&
             !mangaExplosion &&
             "data-[state=closed]:animate-none! data-[state=closed]:duration-0!",
+          // Animation fade-out + zoom-out + slide si animateOut=true (comme ModalVideo)
           animateOut &&
             !mangaExplosion &&
-            "data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=closed]:duration-300",
+            "data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=closed]:duration-200",
           // Animation Manga Explosion
           mangaExplosion && "manga-explosion-exit data-[state=closed]:duration-500!",
           className

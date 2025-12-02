@@ -883,7 +883,7 @@ function ToasterVideoPlayground() {
     animateBorder: false,
     hoverScale: false,
     rotation: false,
-    animateOut: false,
+    animateOut: true,
     // Animation typing
     typingAnimation: false,
     typingSpeed: 100,
@@ -2011,16 +2011,64 @@ export default function ToastsPlaygroundPage() {
                       <strong>scrollDuration</strong> (number): Duree du defilement en secondes
                     </li>
                     <li>
+                      <strong>scrollSyncWithVideo</strong> (boolean): Synchroniser marquee avec video
+                    </li>
+                    <li>
                       <strong>animateBorder</strong> (boolean): Animation moving-border
                     </li>
                     <li>
                       <strong>hoverScale</strong> (boolean): Effet scale au hover
                     </li>
                     <li>
-                      <strong>loopVideo</strong> (boolean): Boucle video
+                      <strong>rotation</strong> (boolean): Animation rotation (-rotate-2 hover:rotate-0)
+                    </li>
+                    <li>
+                      <strong>typingAnimation</strong> (boolean): Animation dactylographie
+                    </li>
+                    <li>
+                      <strong>typingSpeed</strong> (number): Vitesse typing (ms/char)
                     </li>
                     <li>
                       <strong>showCloseButton</strong> (boolean): Afficher bouton X
+                    </li>
+                  </ul>
+                </div>
+                <Separator />
+                <div className="space-y-2">
+                  <h4 className="text-thai-orange font-semibold">Animation de fermeture</h4>
+                  <ul className="list-disc space-y-1 pl-5 text-sm text-gray-600">
+                    <li>
+                      <strong>animateOut</strong> (boolean): Animation de sortie (fade-out + zoom-out)
+                    </li>
+                    <li>
+                      <strong>mangaExplosion</strong> (boolean): Animation Manga Explosion (Orange Thai)
+                    </li>
+                  </ul>
+                </div>
+                <Separator />
+                <div className="space-y-2">
+                  <h4 className="text-thai-orange font-semibold">Lecture video</h4>
+                  <ul className="list-disc space-y-1 pl-5 text-sm text-gray-600">
+                    <li>
+                      <strong>playCount</strong>: 1 | 2 | "custom" - Nombre de lectures avant fermeture
+                    </li>
+                    <li>
+                      <strong>customPlayCount</strong> (number): Nombre custom de lectures
+                    </li>
+                    <li>
+                      <strong>customDuration</strong> (number): Duree fixe en secondes (override)
+                    </li>
+                  </ul>
+                </div>
+                <Separator />
+                <div className="space-y-2">
+                  <h4 className="text-thai-orange font-semibold">Redirection</h4>
+                  <ul className="list-disc space-y-1 pl-5 text-sm text-gray-600">
+                    <li>
+                      <strong>redirectUrl</strong> (string): URL de redirection a la fermeture
+                    </li>
+                    <li>
+                      <strong>redirectBehavior</strong>: "auto" | "new-tab" | "button"
                     </li>
                   </ul>
                 </div>

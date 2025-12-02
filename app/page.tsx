@@ -1,97 +1,110 @@
 ﻿// src/pages/Index.tsx converted to Next.js app/page.tsx
-'use client';
+"use client"
 
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Info, AlertTriangle, CheckCircle, XCircle } from 'lucide-react';
-import { memo, useState, useEffect } from 'react';
-import { usePermissions } from '@/hooks/usePermissions';
-import { getActiveAnnouncement, announcementTypeConfig, type Announcement } from '@/lib/announcements';
-import { FloatingUserIcon } from '@/components/layout/FloatingUserIcon';
-import { HeroCarousel, type HeroMedia } from '@/components/shared/HeroCarousel';
-import { QuickNav } from '@/components/layout/QuickNav';
-import { NavigationCards } from '@/components/layout/NavigationCards';
-import { SectionPourquoiCompte } from '@/components/shared/SectionPourquoiCompte';
-import { supabase } from '@/lib/supabase';
+import { FloatingUserIcon } from "@/components/layout/FloatingUserIcon"
+import { NavigationCards } from "@/components/layout/NavigationCards"
+import { QuickNav } from "@/components/layout/QuickNav"
+import { HeroCarousel, type HeroMedia } from "@/components/shared/HeroCarousel"
+import { SectionPourquoiCompte } from "@/components/shared/SectionPourquoiCompte"
+import { usePermissions } from "@/hooks/usePermissions"
+import {
+  announcementTypeConfig,
+  getActiveAnnouncement,
+  type Announcement,
+} from "@/lib/announcements"
+import { supabase } from "@/lib/supabase"
+import { AlertTriangle, CheckCircle, Info, XCircle } from "lucide-react"
+import { memo, useEffect, useState } from "react"
 
 const TableauDeBord = memo(() => {
-  const { isAuthenticated, isAdmin, clientProfile } = usePermissions();
-  const currentUser = isAuthenticated ? clientProfile : null;
-  const currentUserRole = clientProfile?.role;
+  const { isAuthenticated, isAdmin, clientProfile } = usePermissions()
+  const currentUser = isAuthenticated ? clientProfile : null
+  const currentUserRole = clientProfile?.role
 
   // État pour l'annonce dynamique
-  const [announcement, setAnnouncement] = useState<Announcement | null>(null);
-  const [isLoadingAnnouncement, setIsLoadingAnnouncement] = useState(true);
+  const [announcement, setAnnouncement] = useState<Announcement | null>(null)
+  const [isLoadingAnnouncement, setIsLoadingAnnouncement] = useState(true)
 
   // État pour les médias du hero carousel
-  const [heroMedias, setHeroMedias] = useState<HeroMedia[]>([]);
-  const [isLoadingHeroMedias, setIsLoadingHeroMedias] = useState(true);
+  const [heroMedias, setHeroMedias] = useState<HeroMedia[]>([])
+  const [isLoadingHeroMedias, setIsLoadingHeroMedias] = useState(true)
 
   // Charger l'annonce active au montage du composant
   useEffect(() => {
     const loadAnnouncement = async () => {
       try {
-        const activeAnnouncement = await getActiveAnnouncement();
-        setAnnouncement(activeAnnouncement);
+        const activeAnnouncement = await getActiveAnnouncement()
+        setAnnouncement(activeAnnouncement)
       } catch (error) {
         // Silent fail for announcements - not critical for app functionality
       } finally {
-        setIsLoadingAnnouncement(false);
+        setIsLoadingAnnouncement(false)
       }
-    };
-    loadAnnouncement();
-  }, []);
+    }
+    loadAnnouncement()
+  }, [])
 
   // Charger les médias du hero carousel
   useEffect(() => {
     const loadHeroMedias = async () => {
       try {
         const { data, error } = await (supabase as any)
-          .from('hero_media')
-          .select('*')
-          .eq('active', true)
-          .order('ordre', { ascending: true });
+          .from("hero_media")
+          .select("*")
+          .eq("active", true)
+          .order("ordre", { ascending: true })
 
-        if (error) throw error;
+        if (error) throw error
 
         // Cast to HeroMedia[] type
-        setHeroMedias((data as any[])?.map((media) => ({
-          id: media.id,
-          type: media.type as 'image' | 'video',
-          url: media.url,
-          titre: media.titre,
-          description: media.description,
-          ordre: media.ordre,
-          active: media.active,
-        })) || []);
+        setHeroMedias(
+          (data as any[])?.map((media) => ({
+            id: media.id,
+            type: media.type as "image" | "video",
+            url: media.url,
+            titre: media.titre,
+            description: media.description,
+            ordre: media.ordre,
+            active: media.active,
+          })) || []
+        )
       } catch (error) {
-        console.error('Erreur lors du chargement des médias hero:', error);
+        console.error("Erreur lors du chargement des médias hero:", error)
         // Silent fail - HeroCarousel affichera un fallback
       } finally {
-        setIsLoadingHeroMedias(false);
+        setIsLoadingHeroMedias(false)
       }
-    };
-    loadHeroMedias();
-  }, []);
+    }
+    loadHeroMedias()
+  }, [])
 
   // Calculer si la photo a été uploadée récemment (<7 jours)
-  const photoUploadedRecently = false; // TODO: Implémenter la logique de calcul de date
-
+  const photoUploadedRecently = false // TODO: Implémenter la logique de calcul de date
 
   return (
-    <div className="min-h-screen bg-gradient-thai flex flex-col">
+    <div className="bg-gradient-thai flex min-h-screen flex-col">
       {/* Hero Carousel avec médias dynamiques */}
-      {!isLoadingHeroMedias && <HeroCarousel medias={heroMedias} isAuthenticated={isAuthenticated} />}
+      {!isLoadingHeroMedias && (
+        <HeroCarousel medias={heroMedias} isAuthenticated={isAuthenticated} />
+      )}
 
       {/* Annonce dynamique */}
       {!isLoadingAnnouncement && announcement?.is_active && announcement?.message && (
-        <div className={`${announcementTypeConfig[announcement.type]?.bgColor || 'bg-blue-600/90'} backdrop-blur-sm`}>
-          <div className="flex items-center justify-center py-3 px-4">
-            {announcement.type === 'info' && <Info className="w-5 h-5 text-white mr-2 flex-shrink-0" />}
-            {announcement.type === 'warning' && <AlertTriangle className="w-5 h-5 text-white mr-2 flex-shrink-0" />}
-            {announcement.type === 'error' && <XCircle className="w-5 h-5 text-white mr-2 flex-shrink-0" />}
-            {announcement.type === 'success' && <CheckCircle className="w-5 h-5 text-white mr-2 flex-shrink-0" />}
-            <p className="text-white font-medium text-center text-sm md:text-base">
+        <div
+          className={`${announcementTypeConfig[announcement.type]?.bgColor || "bg-blue-600/90"} backdrop-blur-sm`}
+        >
+          <div className="flex items-center justify-center px-4 py-3">
+            {announcement.type === "info" && <Info className="mr-2 h-5 w-5 shrink-0 text-white" />}
+            {announcement.type === "warning" && (
+              <AlertTriangle className="mr-2 h-5 w-5 shrink-0 text-white" />
+            )}
+            {announcement.type === "error" && (
+              <XCircle className="mr-2 h-5 w-5 shrink-0 text-white" />
+            )}
+            {announcement.type === "success" && (
+              <CheckCircle className="mr-2 h-5 w-5 shrink-0 text-white" />
+            )}
+            <p className="text-center text-sm font-medium text-white md:text-base">
               {announcement.message}
             </p>
           </div>
@@ -114,9 +127,9 @@ const TableauDeBord = memo(() => {
       {/* FloatingUserIcon ajouté pour navigation universelle */}
       <FloatingUserIcon />
     </div>
-  );
-});
+  )
+})
 
-TableauDeBord.displayName = 'TableauDeBord';
+TableauDeBord.displayName = "TableauDeBord"
 
-export default TableauDeBord;
+export default TableauDeBord

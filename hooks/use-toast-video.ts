@@ -29,6 +29,7 @@ type ToasterToastVideo = Omit<ToastProps, "title" | "description"> & {
   scrollingText?: boolean
   scrollDuration?: number
   animateOut?: boolean
+  mangaExplosion?: boolean
   polaroid?: boolean
   aspectRatio?: "16:9" | "4:5" | "1:1" | "auto"
   // Props de style

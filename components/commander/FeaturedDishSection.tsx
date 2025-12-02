@@ -1,12 +1,12 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import Image from "next/image"
-import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Star } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { Card } from "@/components/ui/card"
 import type { plats_db } from "@/generated/prisma/client"
+import { cn } from "@/lib/utils"
+import { Star } from "lucide-react"
+import Image from "next/image"
+import { useEffect, useState } from "react"
 
 interface FeaturedDish extends plats_db {
   joursDisponibles: string[]
@@ -59,7 +59,7 @@ export function FeaturedDishSection({ onScrollToDays, featuredDay }: FeaturedDis
   }
 
   return (
-    <Card className="border-thai-gold/30 mb-6 overflow-hidden border-2 bg-gradient-to-br from-white to-amber-50/30 shadow-lg">
+    <Card className="border-thai-gold/30 mb-6 overflow-hidden border-2 bg-linear-to-br from-white to-amber-50/30 shadow-lg">
       <div className="p-6">
         <div className="flex flex-col items-center gap-6 md:flex-row">
           {/* Vidéo Chanthana + Bulle dialogue SUPPRIMÉS */}
