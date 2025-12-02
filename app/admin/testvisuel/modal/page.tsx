@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { ModalVideo, ModalVideoContent } from "@/components/ui/ModalVideo"
+import { ModalVideo } from "@/components/ui/ModalVideo"
 import { useData } from "@/contexts/DataContext"
 import { cn } from "@/lib/utils"
 import type { PlatUI } from "@/types/app"
@@ -187,9 +187,6 @@ function CommandePlatPlayground({ plats }: { plats: PlatUI[] }) {
             <span className="text-xl">👁️</span>
             Aperçu Visuel
           </h4>
-          <Badge variant="outline" className="bg-gray-100 text-gray-600">
-            Mode Standalone
-          </Badge>
         </div>
 
         <div className="relative mx-auto flex h-[600px] w-full max-w-sm flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-2xl">
@@ -384,7 +381,7 @@ function ModalVideoPlayground() {
   }
 
   return (
-    <div className="grid gap-8 lg:grid-cols-2">
+    <div className="mx-auto max-w-3xl space-y-8">
       <div className="space-y-4">
         {/* Contrôles Interactifs */}
         <div className="border-thai-orange/20 space-y-4 rounded-lg border bg-white p-6 shadow-sm">
@@ -1268,6 +1265,59 @@ function ModalVideoPlayground() {
             </div>
           </div>
 
+          {/* Section Position */}
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-gray-700">Position du Modal</label>
+            <div className="flex flex-wrap gap-2">
+              {[
+                { label: "Bas droite", value: "bottom-right" as const },
+                { label: "Bas gauche", value: "bottom-left" as const },
+                { label: "Haut droite", value: "top-right" as const },
+                { label: "Haut gauche", value: "top-left" as const },
+                { label: "Centre", value: "center" as const },
+                { label: "Custom", value: "custom" as const },
+              ].map((pos) => (
+                <Button
+                  key={pos.value}
+                  size="sm"
+                  variant={previewProps.position === pos.value ? "default" : "outline"}
+                  onClick={() => setPreviewProps({ ...previewProps, position: pos.value })}
+                  className={
+                    previewProps.position === pos.value
+                      ? "bg-thai-orange hover:bg-thai-orange/90"
+                      : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
+                  }
+                >
+                  {pos.label}
+                </Button>
+              ))}
+            </div>
+            {previewProps.position === "custom" && (
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <label className="text-xs text-gray-600">Position X (left)</label>
+                  <input
+                    type="text"
+                    value={previewProps.customX}
+                    onChange={(e) => setPreviewProps({ ...previewProps, customX: e.target.value })}
+                    placeholder="ex: 50%, 100px, 10vw"
+                    className="focus:ring-thai-orange w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:outline-none"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs text-gray-600">Position Y (top)</label>
+                  <input
+                    type="text"
+                    value={previewProps.customY}
+                    onChange={(e) => setPreviewProps({ ...previewProps, customY: e.target.value })}
+                    placeholder="ex: 50%, 100px, 10vh"
+                    className="focus:ring-thai-orange w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:outline-none"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* Section Boutons d'action */}
           <div className="space-y-2">
             <label className="text-xs font-medium text-gray-700">🔘 Layout des boutons</label>
@@ -1380,75 +1430,6 @@ function ModalVideoPlayground() {
         </div>
       </div>
 
-      {/* Colonne de droite : Aperçu */}
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <h4 className="flex items-center gap-2 text-lg font-semibold text-gray-600">
-            <span className="text-xl">👁️</span>
-            Aperçu Visuel
-          </h4>
-          <Badge variant="outline" className="bg-gray-100 text-gray-600">
-            Mode Standalone
-          </Badge>
-        </div>
-
-        <div
-          className={cn(
-            "relative mx-auto flex h-[600px] w-full max-w-md flex-col rounded-xl border border-gray-200 bg-gray-50 shadow-2xl",
-            previewProps.animateBorder ? "overflow-visible" : "overflow-hidden"
-          )}
-        >
-          <div className="flex-1 overflow-y-auto">
-            <ModalVideoContent
-              onOpenChange={() => {}}
-              title={previewProps.title}
-              description={previewProps.description}
-              media={previewProps.media}
-              aspectRatio={previewProps.aspectRatio}
-              polaroid={previewProps.polaroid}
-              scrollingText={previewProps.scrollingText}
-              scrollDuration={previewProps.scrollDuration}
-              loopCount={previewProps.loopCount}
-              buttonLayout={previewProps.buttonLayout}
-              cancelText={previewProps.cancelText}
-              confirmText={previewProps.confirmText}
-              thirdButtonText={previewProps.thirdButtonText}
-              titleColor={previewProps.titleColor}
-              borderColor={
-                previewProps.borderColor === "custom"
-                  ? previewProps.customBorderColor
-                  : previewProps.borderColor
-              }
-              borderWidth={
-                previewProps.borderWidth === "custom"
-                  ? previewProps.customBorderWidth
-                  : previewProps.borderWidth
-              }
-              shadowSize={previewProps.shadowSize}
-              polaroidPaddingSides={previewProps.polaroidPaddingSides}
-              polaroidPaddingTop={previewProps.polaroidPaddingTop}
-              polaroidPaddingBottom={previewProps.polaroidPaddingBottom}
-              autoClose={previewProps.autoClose}
-              cancelLink={previewProps.cancelLink}
-              confirmLink={previewProps.confirmLink}
-              thirdButtonLink={previewProps.thirdButtonLink}
-              typingAnimation={previewProps.typingAnimation}
-              typingSpeed={previewProps.typingSpeed}
-              scrollSyncWithVideo={previewProps.scrollSyncWithVideo}
-              animateBorder={previewProps.animateBorder}
-              hoverScale={previewProps.hoverScale}
-              titleFontWeight={previewProps.titleFontWeight}
-              descriptionColor={previewProps.descriptionColor}
-              descriptionFontWeight={previewProps.descriptionFontWeight}
-              standalone={true}
-              onCancel={() => console.log("Annulé (Preview)")}
-              onConfirm={() => console.log("Confirmé (Preview)")}
-              onThirdButton={() => console.log("Troisième bouton (Preview)")}
-            />
-          </div>
-        </div>
-      </div>
-
       {/* Modal Réel (avec backdrop et rotation) */}
       <ModalVideo
         isOpen={isModalOpen}
@@ -1479,7 +1460,7 @@ function ModalVideoPlayground() {
         borderWidth={
           previewProps.borderWidth === "custom"
             ? previewProps.customBorderWidth
-            : previewProps.borderWidth
+            : (previewProps.borderWidth as number)
         }
         shadowSize={previewProps.shadowSize}
         position={previewProps.position}
