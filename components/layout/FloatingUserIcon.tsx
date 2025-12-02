@@ -1,34 +1,32 @@
 "use client"
 
-import { useState, useRef, useEffect, memo, useCallback } from "react"
-import Link from "next/link"
-import Image from "next/image"
-import { useRouter } from "next/navigation"
+import { getClientProfile } from "@/app/profil/actions"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { useSession } from "@/lib/auth-client"
 import { useCart } from "@/contexts/CartContext"
 import { useNotifications } from "@/contexts/NotificationContext"
-import { authClient } from "@/lib/auth-client"
-import { getClientProfile } from "@/app/profil/actions"
-import {
-  User,
-  LogOut,
-  Bell,
-  ChevronDown,
-  History,
-  Calendar,
-  ShoppingCart,
-  MapPin,
-  Clock,
-  Home,
-  ShoppingBag,
-  Shield,
-} from "lucide-react"
+import { authClient, useSession } from "@/lib/auth-client"
 import { cn } from "@/lib/utils"
+import {
+  Bell,
+  Calendar,
+  Clock,
+  History,
+  Home,
+  LogOut,
+  MapPin,
+  Shield,
+  ShoppingBag,
+  ShoppingCart,
+  User,
+} from "lucide-react"
 import type { Route } from "next"
+import Image from "next/image"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { memo, useCallback, useEffect, useRef, useState } from "react"
 
 const FloatingUserIcon = memo(() => {
   const [isOpen, setIsOpen] = useState(false)
@@ -142,10 +140,7 @@ const FloatingUserIcon = memo(() => {
   const firstName = currentUserProfile?.prenom || currentUser?.name?.split(" ")[0]
 
   return (
-    <div
-      className="floating-user-icon fixed top-4 right-4 z-[70] hidden lg:block"
-      ref={dropdownRef}
-    >
+    <div className="floating-user-icon fixed top-4 right-4 z-70 hidden lg:block" ref={dropdownRef}>
       {/* Icône utilisateur plus grande avec contour ondulé amélioré */}
       <div className="relative">
         <Button
@@ -155,7 +150,7 @@ const FloatingUserIcon = memo(() => {
             setIsOpen(!isOpen)
             setShowNotifications(false)
           }}
-          className="group relative z-10 flex h-32 w-32 items-center justify-center !border-0 !shadow-none !ring-0 !outline-none hover:bg-transparent focus-visible:!ring-0 focus-visible:!ring-offset-0 active:bg-transparent"
+          className="group relative z-10 flex h-32 w-32 items-center justify-center border-0! shadow-none! ring-0! outline-none! hover:bg-transparent focus-visible:ring-0! focus-visible:ring-offset-0! active:bg-transparent"
           aria-label="Ouvrir le menu"
         >
           <div className="relative h-full w-full">
@@ -178,7 +173,7 @@ const FloatingUserIcon = memo(() => {
               setShowNotifications(!showNotifications)
               setIsOpen(false)
             }}
-            className="flex h-12 w-12 items-center justify-center rounded-full bg-white/95 shadow-md transition-all duration-200 hover:scale-105 hover:bg-white/100 hover:shadow-lg focus:border-0 focus:ring-0 focus:outline-none"
+            className="flex h-12 w-12 items-center justify-center rounded-full bg-white/95 shadow-md transition-all duration-200 hover:scale-105 hover:bg-white hover:shadow-lg focus:border-0 focus:ring-0 focus:outline-none"
             aria-label="Notifications"
           >
             <Bell className="text-thai-orange h-5 w-5" />
@@ -195,7 +190,7 @@ const FloatingUserIcon = memo(() => {
           {showNotifications && (
             <Card className="animate-in slide-in-from-top-2 absolute top-10 right-0 z-50 w-80 border-0 bg-white/95 shadow-xl backdrop-blur-sm duration-200">
               <CardContent className="p-0">
-                <div className="from-thai-orange/10 to-thai-gold/10 rounded-t-lg bg-gradient-to-r p-4">
+                <div className="from-thai-orange/10 to-thai-gold/10 rounded-t-lg bg-linear-to-r p-4">
                   <div className="flex items-center justify-between">
                     <h3 className="text-thai-green font-semibold">Notifications</h3>
                     {unreadCount > 0 && (
@@ -307,7 +302,7 @@ const FloatingUserIcon = memo(() => {
                 className={cn(
                   "rounded-t-lg p-4",
                   (currentUser?.image || currentUserProfile?.photo_client) &&
-                    "from-thai-orange/10 to-thai-gold/10 bg-gradient-to-r"
+                    "from-thai-orange/10 to-thai-gold/10 bg-linear-to-r"
                 )}
               >
                 <div className="flex items-center space-x-3">
@@ -531,7 +526,7 @@ const FloatingUserIcon = memo(() => {
               </div>
 
               {/* Footer optimisé avec lien vers l'accueil */}
-              <div className="from-thai-cream/30 to-thai-gold/20 border-thai-orange/10 rounded-b-lg border-t bg-gradient-to-r px-4 py-3">
+              <div className="from-thai-cream/30 to-thai-gold/20 border-thai-orange/10 rounded-b-lg border-t bg-linear-to-r px-4 py-3">
                 <Link
                   href="/"
                   onClick={() => setIsOpen(false)}

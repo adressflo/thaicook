@@ -2662,3 +2662,341 @@ Phase 4-7 (Optimisations) → Continu, non bloquant
 ```
 
 ---
+
+## 🧹 Phase 8 : Dette Technique & Qualité Code (🔥🔥🔥 HAUTE)
+
+**Objectif : Nettoyer le code pour maintenir la qualité et faciliter les futures évolutions**
+
+### A. Nettoyage Console.log (20+ instances à supprimer)
+
+| Fichier | Lignes | Action |
+|---------|--------|--------|
+| `hooks/useSupabaseData.ts` | 204, 217, 229, 233, 247, 259, 263, 268, 286, 294, 298, 312, 320, 324, 341, 350, 354 | ❌ Supprimer logs debug |
+| `app/admin/commandes/page.tsx` | 2938 | ❌ Supprimer `console.log("🔍 DEBUG - Extras...")` |
+| `hooks/usePWAInstalled.ts` | 57, 68, 72 | ❌ Remplacer par logger conditionnel |
+| `hooks/useRealtimeNotifications.ts` | 25, 51, 84 | ❌ Supprimer logs payload |
+
+#### 💜 Suggestion : Logger Centralisé
+
+- [ ] 💜 **Créer `lib/logger.ts`** : Logger avec niveaux (debug/info/warn/error) et désactivation automatique en production
+  ```typescript
+  const logger = {
+    debug: (...args) => process.env.NODE_ENV === 'development' && console.log(...args),
+    info: (...args) => console.info(...args),
+    warn: (...args) => console.warn(...args),
+    error: (...args) => console.error(...args),
+  }
+  ```
+
+### B. TODO/FIXME à Compléter (11 items)
+
+| Fichier | Ligne | TODO | Priorité |
+|---------|-------|------|----------|
+| `app/page.tsx` | 82 | `photoUploadedRecently = false // TODO: Implémenter logique date` | 🔥 |
+| `app/auth/verify-email/[token]/page.tsx` | 63 | `// TODO: Get user email from session` | 🔥🔥 |
+| `app/admin/testvisuel/modal/page.tsx` | 376 | `// TODO: Add toast notification "✅ Code copié !"` | 🔥 |
+| `app/profil/actions.ts` | 216, 300 | `// TODO: Send confirmation emails` (2x) | 🔥🔥🔥 |
+| `app/modifier-commande/[id]/page.tsx` | 1177 | `// TODO: Ajouter support épices dans PlatPanier` | 🔥 |
+| `components/shared/ErrorBoundary.tsx` | 30 | `// TODO: Intégrer Sentry/LogRocket` | 🔥🔥 |
+| `components/pwa/OfflineIndicator.tsx` | 187, 190 | `// TODO: Intégrer système toast` (2x) | 🔥 |
+| `proxy.ts` | 43 | `// TODO: Vérifier rôle admin côté Server Component` | 🔥🔥🔥 |
+| `tests/offline.spec.ts` | 114, 141, 192 | `// TODO: Ajouter auth Playwright` (3x) | 🔥 |
+
+### C. TypeScript `any` à Typer
+
+| Fichier | Variable | Type suggéré |
+|---------|----------|--------------|
+| `app/actions/commandes.ts` | `updateData: any` | `Partial<CommandeUpdateInput>` |
+| `app/actions/evenements.ts` | `updateData: any` | `Partial<EvenementUpdateInput>` |
+| `app/actions/notifications.ts` | `quietHoursData: any` | `QuietHoursConfig` |
+| `app/admin/commandes/page.tsx:2911` | `router: any, toast: any` | `AppRouterInstance`, `ReturnType<typeof useToast>` |
+
+### D. Composants Trop Volumineux (À Découper)
+
+| Fichier | Lignes | Sous-composants suggérés |
+|---------|--------|--------------------------|
+| `app/admin/commandes/page.tsx` | **3900** | `CommandeCard`, `CommandeFilters`, `CommandeActions`, `CommandeStats` |
+| `app/admin/clients/[id]/orders/page.tsx` | **3267** | `OrderList`, `OrderDetails`, `OrderModals` |
+| `app/modifier-commande/[id]/page.tsx` | **1345** | `ModifyCartSection`, `ModifyPaymentSection` |
+| `app/commander/page.tsx` | **1264** | `MenuSection`, `CartSidebar`, `CheckoutFlow` |
+| `components/ui/ModalVideo.tsx` | **922** | `ModalWrapper`, `MediaContent`, `ModalControls` |
+
+---
+
+## 🎯 Phase 9 : UX/UI Améliorations Découvertes (🔥🔥 MOYENNE)
+
+**Objectif : Améliorer la cohérence et l'expérience utilisateur**
+
+### A. Remplacer `window.confirm()` par AlertDialog (8 instances)
+
+| Fichier | Instances | Action |
+|---------|-----------|--------|
+| `app/admin/clients/[id]/orders/page.tsx` | 3 | ⚠️ Utiliser `<AlertDialog>` |
+| `app/admin/commandes/page.tsx` | 3 | ⚠️ Utiliser `<AlertDialog>` |
+| `app/admin/hero-media/page.tsx` | 2 | ⚠️ Utiliser `<AlertDialog>` |
+
+**Composant existant** : `components/ui/alert-dialog.tsx` (déjà utilisé dans HeroCarousel)
+
+### B. Ajouter Breadcrumbs aux Routes Imbriquées
+
+| Route | Breadcrumb suggéré |
+|-------|-------------------|
+| `/admin/clients/[id]/orders` | Admin > Clients > [Nom Client] > Commandes |
+| `/modifier-commande/[id]` | Accueil > Mes Commandes > Modifier #123 |
+| `/admin/clients/[id]/contact` | Admin > Clients > [Nom Client] > Contact |
+| `/admin/clients/[id]/events` | Admin > Clients > [Nom Client] > Événements |
+
+**Composant existant** : `components/ui/breadcrumb.tsx` (non utilisé en production, à intégrer)
+
+### C. Ajouter Empty States aux Pages Admin
+
+| Page | Empty State manquant | Message suggéré |
+|------|---------------------|-----------------|
+| `/admin/clients` | ❌ Aucun | "Aucun client pour le moment. Les clients s'inscriront via le site." |
+| `/admin/commandes` | ❌ Aucun | "Aucune commande aujourd'hui. Profitez-en pour préparer !" |
+| `/admin/plats` | ❌ Aucun | "Aucun plat dans le menu. Ajoutez votre premier plat !" |
+| `/admin/evenements` | ❌ Aucun | "Aucun événement programmé." |
+
+**Composant existant** : `components/historique/EmptyState.tsx` (à réutiliser/adapter)
+
+### D. Ajouter error.tsx aux Routes Principales
+
+- [ ] `app/admin/error.tsx` - Erreur admin générique avec bouton retry
+- [ ] `app/commander/error.tsx` - Erreur menu/commande avec suggestion de rafraîchir
+- [ ] `app/profil/error.tsx` - Erreur profil utilisateur
+- [ ] `app/evenements/error.tsx` - Erreur événements
+
+---
+
+## 🌐 Phase 10 : APIs Navigateur Modernes 2025 (🔥 BASSE)
+
+**Objectif : Exploiter les capacités modernes des navigateurs pour une meilleure UX**
+
+### A. Web Share API
+
+| Page | Utilisation | Bouton |
+|------|-------------|--------|
+| `/commander` | Partager un plat vedette | "Partager ce plat" |
+| `/historique` | Partager confirmation commande | "Partager ma commande" |
+| `/panier` | Partager panier avec amis | "Envoyer mon panier" |
+| `/a-propos` | Partager infos restaurant | "Recommander" |
+
+- [ ] 💜 **Créer `hooks/useWebShare.ts`** : Hook wrapper autour de `navigator.share()` avec fallback
+
+### B. Clipboard API
+
+| Page | Utilisation | Bouton |
+|------|-------------|--------|
+| `/panier` | Copier récapitulatif commande | "Copier le récap" |
+| `/historique` | Copier numéro facture | Icône copie |
+| `/admin/commandes` | Copier détails commande | Icône copie |
+| `/suivi-commande/[id]` | Copier numéro commande | "Copier #CMD-XXX" |
+
+- [ ] 💜 **Créer `hooks/useClipboard.ts`** : Hook avec toast de confirmation "Copié !"
+
+### C. Geolocation API (Page Nous Trouver)
+
+**Fichier** : `app/nous-trouver/page.tsx`
+
+- [ ] 💜 **Détecter position utilisateur** : Bouton "Utiliser ma position"
+- [ ] 💜 **Afficher distance** : "Vous êtes à X km du restaurant"
+- [ ] 💜 **Navigation intelligente** : Proposer Google Maps / Waze / Apple Maps selon device
+
+### D. Payment Request API (Panier) - Futur
+
+**Fichier** : `app/panier/page.tsx`
+
+- [ ] 💜 **Apple Pay / Google Pay** : Intégration native via Payment Request API
+- [ ] 💜 **Express checkout** : Infos pré-remplies depuis portefeuille digital
+- [ ] 💜 **Fallback** : Paiement classique si API non supportée
+
+---
+
+## 📈 Phase 11 : SEO & Méta Avancé (🔥🔥 MOYENNE)
+
+**Objectif : Améliorer le référencement et le partage social**
+
+### A. Fichiers SEO Manquants à Créer
+
+| Fichier | Contenu | Priorité |
+|---------|---------|----------|
+| `app/sitemap.ts` | Sitemap dynamique (pages statiques + plats + événements) | 🔥🔥🔥 |
+| `app/robots.ts` | Configuration robots.txt (autoriser crawl, exclure admin) | 🔥🔥 |
+| `app/opengraph-image.tsx` | Image OG dynamique pour accueil (1200x630) | 🔥 |
+
+### B. Twitter Cards (Manquantes)
+
+**Fichier** : `app/layout.tsx`
+
+- [ ] Ajouter métadonnées Twitter :
+```typescript
+twitter: {
+  card: "summary_large_image",
+  title: "ChanthanaThaiCook - Cuisine Thaï Authentique",
+  description: "Cuisine thaïlandaise authentique à Marigny-Marmande (37)",
+  creator: "@chanthanacook",
+  images: ["/og-image.jpg"],
+}
+```
+
+### C. Structured Data JSON-LD
+
+| Type Schema | Page | Contenu |
+|-------------|------|---------|
+| `Restaurant` | `/` (accueil) | Nom, adresse, horaires, téléphone, cuisine |
+| `Menu` + `MenuItem` | `/commander` | Liste des plats avec prix |
+| `Organization` | Footer global | Logo, réseaux sociaux, contact |
+| `Event` | `/evenements` | Événements traiteur |
+| `LocalBusiness` | `/nous-trouver` | Coordonnées GPS, horaires |
+
+- [ ] 💜 **Créer `components/seo/StructuredData.tsx`** : Composant réutilisable pour JSON-LD
+
+---
+
+## 🚀 Phase 12 : Performance Avancée (🔥🔥 MOYENNE)
+
+**Objectif : Optimiser les performances pour une meilleure expérience**
+
+### A. Convertir `<img>` vers `next/image`
+
+| Fichier | Images à convertir |
+|---------|-------------------|
+| `app/a-propos/page.tsx` | Images équipe/restaurant |
+| `app/admin/clients/[id]/orders/page.tsx` | Images plats dans commandes |
+| `app/admin/commandes/page.tsx` | Images produits |
+| `components/ui/ModalVideo.tsx` | Media dans modal |
+
+### B. Ajouter Suspense Boundaries
+
+| Page | Section à wrapper | Fallback suggéré |
+|------|------------------|------------------|
+| `/commander` | Liste des plats | Skeleton cards plats |
+| `/historique` | Liste commandes | Skeleton liste |
+| `/admin/commandes` | Table commandes | Skeleton table |
+| `/profil` | Données utilisateur | Skeleton form |
+
+### C. App Shortcuts PWA (manifest.ts)
+
+- [ ] Ajouter raccourcis dans `app/manifest.ts` :
+```typescript
+shortcuts: [
+  { name: "Commander", short_name: "Menu", url: "/commander", icons: [...] },
+  { name: "Mes Commandes", short_name: "Historique", url: "/historique", icons: [...] },
+  { name: "Nous Trouver", short_name: "Adresse", url: "/nous-trouver", icons: [...] },
+  { name: "Mon Profil", short_name: "Profil", url: "/profil", icons: [...] },
+]
+```
+
+---
+
+## ♿ Phase 13 : Accessibilité (a11y) (🔥🔥 MOYENNE)
+
+**Objectif : Rendre l'application accessible à tous les utilisateurs**
+
+### A. Ajouter aria-label aux Boutons Icônes
+
+| Composant | Boutons concernés | aria-label suggéré |
+|-----------|------------------|-------------------|
+| `ModalVideo.tsx` | Bouton fermer (X) | "Fermer la vidéo" |
+| `FloatingUserIcon.tsx` | Menu utilisateur | "Menu utilisateur" |
+| `CartSidebar` | Bouton panier | "Voir mon panier" |
+| Toutes les modales | Boutons close | "Fermer" |
+
+### B. Améliorer Navigation Clavier
+
+- [ ] 💜 **Focus trap dans modales** : Empêcher le focus de sortir des modales ouvertes
+- [ ] 💜 **Skip links** : Lien "Aller au contenu principal" en haut de page
+- [ ] 💜 **Tab order logique** : Vérifier l'ordre de tabulation dans les formulaires
+- [ ] 💜 **Focus visible** : Indicateur de focus clair sur tous éléments interactifs
+
+### C. Support Screen Reader
+
+- [ ] 💜 **aria-live** : Pour notifications toast et changements dynamiques
+- [ ] 💜 **aria-describedby** : Pour formulaires complexes avec instructions
+- [ ] 💜 **Rôles ARIA** : Pour composants custom (tabs, modals, menus)
+
+---
+
+## 🧪 Phase 14 : Tests Manquants (🔥🔥🔥 HAUTE)
+
+**Objectif : Assurer la stabilité et prévenir les régressions**
+
+### A. Tests Composants (Priorité Haute)
+
+| Composant | Lignes | Tests suggérés |
+|-----------|--------|----------------|
+| `CartItemCard.tsx` | 386 | Ajout/suppression, calcul prix, options |
+| `CommandePlatModal.tsx` | 339 | Sélection options, validation, soumission |
+| `CreateClientModal.tsx` | 338 | Validation formulaire, création, erreurs |
+| `DateRuptureManager.tsx` | 369 | Gestion dates, validation plages, suppression |
+
+### B. Tests E2E Manquants
+
+| Flow | Fichier test | Scénarios |
+|------|-------------|-----------|
+| Checkout complet | `tests/checkout.e2e.spec.ts` | Panier → Paiement → Confirmation |
+| Profil utilisateur | `tests/profile.e2e.spec.ts` | Modification infos, changement password |
+| Dashboard admin | `tests/admin-dashboard.e2e.spec.ts` | Navigation, actions rapides |
+| Real-time updates | `tests/realtime.e2e.spec.ts` | Notifications, mise à jour statuts |
+
+### C. Compléter Tests Offline
+
+**Fichier** : `tests/offline.spec.ts`
+
+- [ ] Compléter 3 TODOs pour setup auth Playwright (lignes 114, 141, 192)
+- [ ] Tester mode hors-ligne avec utilisateur connecté
+- [ ] Tester sync au retour de connexion
+
+---
+
+## 🔄 Phase 15 : Refactoring Code Dupliqué (🔥 BASSE)
+
+**Objectif : Réduire la duplication et améliorer la maintenabilité**
+
+### A. Fusionner Modales Historique (3 → 1)
+
+| Fichier actuel | Action |
+|----------------|--------|
+| `DishDetailsModal.tsx` | ✅ Garder comme base |
+| `DishDetailsModalComplex.tsx` | ❌ Fusionner |
+| `DishDetailsModalInteractive.tsx` | ❌ Fusionner |
+
+**Résultat** : 1 composant `DishDetailsModal` avec prop `variant: 'simple' | 'complex' | 'interactive'`
+
+### B. Unifier Sélecteurs Date (3 → 1)
+
+| Fichier actuel | Utilisation |
+|----------------|-------------|
+| `DateSelector.tsx` | Sélection date générique |
+| `DateBirthSelector.tsx` | Date de naissance (3 selects) |
+| `ResponsiveDateSelector.tsx` | Version mobile-first |
+
+**Résultat** : 1 composant `DatePicker` avec props :
+```typescript
+type DatePickerProps = {
+  type: 'default' | 'birth' | 'responsive'
+  value: Date | null
+  onChange: (date: Date) => void
+  minDate?: Date
+  maxDate?: Date
+}
+```
+
+---
+
+## 📊 Résumé Nouvelles Phases (Décembre 2025)
+
+| Phase | Priorité | Items principaux | Effort estimé |
+|-------|----------|------------------|---------------|
+| **Phase 8** : Dette Technique | 🔥🔥🔥 HAUTE | 20+ console.log, 11 TODOs, 4 `any`, 5 gros composants | 2-3 jours |
+| **Phase 9** : UX/UI | 🔥🔥 MOYENNE | 8 confirm(), breadcrumbs, empty states, error.tsx | 1-2 jours |
+| **Phase 10** : APIs Modernes | 🔥 BASSE | Web Share, Clipboard, Geolocation, Payment | 1 semaine |
+| **Phase 11** : SEO | 🔥🔥 MOYENNE | sitemap, robots, Twitter Cards, JSON-LD | 2-3 jours |
+| **Phase 12** : Performance | 🔥🔥 MOYENNE | next/image, Suspense, PWA shortcuts | 3-4 jours |
+| **Phase 13** : Accessibilité | 🔥🔥 MOYENNE | aria-labels, keyboard nav, screen readers | 2-3 jours |
+| **Phase 14** : Tests | 🔥🔥🔥 HAUTE | Tests composants, E2E, offline | 1-2 semaines |
+| **Phase 15** : Refactoring | 🔥 BASSE | Modales, DatePickers | 1-2 jours |
+
+**Total estimé : 3-4 semaines de travail supplémentaire**
+
+---
