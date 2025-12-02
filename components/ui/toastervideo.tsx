@@ -557,7 +557,7 @@ function ToastVideoItem({
         {showCloseButton && (
           <ToastClose
             className={cn(
-              "absolute top-2 right-2 rounded-full p-1 transition-opacity hover:text-white/80",
+              "absolute top-2 right-2 rounded-full p-1 opacity-100 transition-opacity hover:text-white/80",
               titleColorMap[titleColor],
               "hover:bg-thai-green/10"
             )}
@@ -598,7 +598,7 @@ function ToastVideoItem({
       {showCloseButton && (
         <ToastClose
           className={cn(
-            "absolute top-2 right-2 rounded-full p-1 transition-opacity hover:text-white/80",
+            "absolute top-2 right-2 rounded-full p-1 opacity-100! transition-opacity hover:text-white/80",
             "bg-black/30 text-white hover:bg-black/50"
           )}
         />
