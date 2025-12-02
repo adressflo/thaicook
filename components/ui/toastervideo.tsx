@@ -273,10 +273,12 @@ function ToastVideoItem({
   // Défauts différents selon le mode polaroid
   const borderColor = borderColorProp ?? (polaroid ? "thai-green" : "thai-orange")
   const borderWidth = borderWidthProp ?? (polaroid ? 4 : 2)
-  const mediaRef = useRef<HTMLImageElement | HTMLVideoElement>(null)
+  const [videoElement, setVideoElement] = useState<HTMLVideoElement | HTMLImageElement | null>(null)
   const playCountRef = useRef(0)
   const router = useRouter()
   const [syncedScrollDuration, setSyncedScrollDuration] = useState<number | null>(null)
+  const [dismissCalled, setDismissCalled] = useState(false)
+  const [currentCount, setCurrentCount] = useState(0)
 
   // Calculer le nombre de lectures cible
   const targetPlayCount =
@@ -291,9 +293,9 @@ function ToastVideoItem({
 
   // Calcul de la durée synchronisée du marquee avec la vidéo
   useEffect(() => {
-    if (!scrollSyncWithVideo || !isVideo || !mediaRef.current) return
+    if (!scrollSyncWithVideo || !isVideo || !videoElement) return
 
-    const video = mediaRef.current as HTMLVideoElement
+    const video = videoElement as HTMLVideoElement
 
     const handleLoadedMetadata = () => {
       const videoDuration = video.duration
@@ -309,10 +311,11 @@ function ToastVideoItem({
       video.addEventListener("loadedmetadata", handleLoadedMetadata)
       return () => video.removeEventListener("loadedmetadata", handleLoadedMetadata)
     }
-  }, [scrollSyncWithVideo, isVideo, targetPlayCount, media])
+  }, [scrollSyncWithVideo, isVideo, targetPlayCount, media, videoElement])
 
   // Fonction de fermeture avec redirection
   const handleDismiss = () => {
+    setDismissCalled(true)
     dismiss(id)
 
     if (redirectUrl) {
@@ -326,9 +329,9 @@ function ToastVideoItem({
   }
 
   useEffect(() => {
-    if (!media || !mediaRef.current) return
+    if (!media || !videoElement) return
 
-    const element = mediaRef.current
+    const element = videoElement
 
     // Si customDuration est défini, utiliser un timer fixe (pour images ET videos)
     if (customDuration && customDuration > 0) {
@@ -339,19 +342,11 @@ function ToastVideoItem({
     }
 
     // Pour les videos : compter les lectures
+    // Pour les videos : le comptage se fait via onEnded sur la balise video directement
+    // Plus besoin de addEventListener ici
     if (element instanceof HTMLVideoElement) {
-      const handleVideoEnd = () => {
-        playCountRef.current += 1
-        if (playCountRef.current >= targetPlayCount) {
-          handleDismiss()
-        } else {
-          // Relancer la vidéo pour la prochaine lecture
-          element.currentTime = 0
-          element.play()
-        }
-      }
-      element.addEventListener("ended", handleVideoEnd)
-      return () => element.removeEventListener("ended", handleVideoEnd)
+      // On garde juste le log pour debug
+      console.log("Video element mounted via callback ref")
     }
 
     // Pour les images : delai selon le type
@@ -407,13 +402,30 @@ function ToastVideoItem({
     if (!media) return null
 
     if (media.endsWith(".mp4") || media.endsWith(".webm")) {
+      const handleVideoEnd = (e: React.SyntheticEvent<HTMLVideoElement, Event>) => {
+        const video = e.currentTarget
+        playCountRef.current += 1
+        setCurrentCount(playCountRef.current)
+        console.log("Video ended (prop). Count:", playCountRef.current, "Target:", targetPlayCount)
+
+        if (playCountRef.current >= targetPlayCount) {
+          handleDismiss()
+        } else {
+          // Relancer la vidéo pour la prochaine lecture
+          console.log("Replaying video...")
+          video.currentTime = 0
+          video.play()
+        }
+      }
+
       return (
         <video
-          ref={mediaRef as React.RefObject<HTMLVideoElement>}
+          ref={setVideoElement}
           src={media}
           autoPlay
           loop={false}
           muted
+          onEnded={handleVideoEnd}
           className="h-full w-full object-cover"
         />
       )
@@ -421,7 +433,7 @@ function ToastVideoItem({
 
     return (
       <img
-        ref={mediaRef as React.RefObject<HTMLImageElement>}
+        ref={setVideoElement}
         src={media}
         alt="Toast media"
         className="h-full w-full object-cover"
@@ -499,6 +511,7 @@ function ToastVideoItem({
   if (polaroid) {
     return (
       <Toast
+        duration={Infinity}
         {...props}
         className={cn(
           "flex-col items-center border-0 bg-transparent p-0 transition-all duration-300",
@@ -557,6 +570,7 @@ function ToastVideoItem({
   // Mode standard (non-polaroid)
   return (
     <Toast
+      duration={Infinity}
       {...props}
       className={cn(
         "flex-col items-center bg-white transition-all duration-300",

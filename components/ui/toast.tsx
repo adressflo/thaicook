@@ -387,7 +387,7 @@ const Toast = React.forwardRef<
           // Animation de sortie
           animateOut &&
             !mangaExplosion &&
-            "data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95",
+            "data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=closed]:duration-300",
           // Animation Manga Explosion
           mangaExplosion && "manga-explosion-exit",
           className

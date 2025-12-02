@@ -15,7 +15,7 @@ import type {
 import * as React from "react"
 
 const TOAST_LIMIT = 3
-const TOAST_REMOVE_DELAY = 3000 // 3 secondes pour les toasts video (duree du GIF)
+const TOAST_REMOVE_DELAY = 1000 // 1 seconde pour laisser le temps à l'animation de sortie
 
 type ToasterToastVideo = Omit<ToastProps, "title" | "description"> & {
   id: string
