@@ -769,39 +769,45 @@ npm run test:e2e
 
 #### 💡 Section "Pourquoi Créer un Compte" (Non-connectés uniquement)
 
-- [ ] 🔥🔥 **Bénéfices pratiques (pas marketing)** :
-  - 📱 Suivi en temps réel : Notifications quand commande prête
-  - 📋 Historique : Retrouver facilement plats préférés
-  - 🎉 Gestion événements : Suivre demandes devis et réservations
-  - Design : Fond crème thaï, icônes minimalistes, ton informatif
-  - Boutons : [Créer mon compte] [Se connecter]
+- [x] 🔥🔥 **Bénéfices pratiques (pas marketing)** : ✅ COMPLÉTÉ
+  - ✅ Composant: `components/shared/SectionPourquoiCompte.tsx` (lignes 20-96)
+  - ✅ 3 bénéfices affichés: Suivi temps réel (Bell), Historique (History), Gestion événements (Calendar)
+  - ✅ Boutons [Créer mon compte] → `/auth/signup` et [Se connecter] → `/auth/login`
+  - ✅ Affiché uniquement aux visiteurs non connectés (lignes 16-18)
+  - ✅ Intégré dans `app/page.tsx` ligne 112
 
 #### 📱 Section PWA Intelligente
 
-- [ ] 🔥🔥🔥 **Hook `usePWAInstalled`** : Détecter si app installée
-  - Vérifier `display-mode: standalone`
-  - Écouter `beforeinstallprompt` event
-  - Stocker état dans localStorage
+- [x] 🔥🔥🔥 **Hook `usePWAInstalled`** : ✅ COMPLÉTÉ
+  - ✅ Fichier: `hooks/usePWAInstalled.ts` (entièrement fonctionnel)
+  - ✅ Détecte `display-mode: standalone` (ligne 23)
+  - ✅ Support iOS `navigator.standalone` (ligne 24)
+  - ✅ Écoute `beforeinstallprompt` event (ligne 36)
+  - ✅ Retourne: `isInstalled`, `canInstall`, `install()`, `installPrompt`
 
-- [ ] 🔥🔥 **Affichage conditionnel** :
-  - **Si non installée** : "Installez notre application"
-    - Mockup téléphone avec screenshot app
-    - Bénéfices : Commander + rapidement, Notifications, Hors ligne
-    - Bouton : [Installer l'application →]
-  - **Si installée** : "Application installée ✅"
-    - Message : "Accédez rapidement à votre espace"
-    - Bouton : [Ouvrir l'application →] (deep link)
+- [x] 🔥🔥 **Affichage conditionnel** : ✅ COMPLÉTÉ
+  - ✅ Utilisé dans HeroCarousel (ligne 49) et NavigationCards (ligne 54)
+  - ✅ Card "Installer l'Application" avec dialog d'installation
+  - ✅ Bouton conditionnel selon `canInstall`
 
 #### 🚫 Suppressions
 
-- [ ] 🔥 **Supprimer page `/suivi`** : Redondante avec `/historique`
-  - Fichier : `app/suivi/page.tsx` (suppression)
-  - Redirection 308 Permanent : `/suivi` → `/historique`
-- [ ] 🔥 **Renommer card navigation** : "Suivi & Historique" → "Suivi"
-  - Description : "Suivez vos commandes et consultez l'historique" (conservée)
-  - Icon : History (conservée)
-- [ ] 🔥 **Supprimer section témoignages** : Pas adapté restaurant familial
-- [ ] 🔥 **Supprimer promotions/offres/fidélité** : Pas la politique maison
+- [x] 🔥 **Page `/suivi`** : ✅ N'EXISTE PAS (aucune action nécessaire)
+  - ✅ La page `/suivi` n'a jamais été créée
+  - ✅ La navigation pointe déjà vers `/historique`
+  - ✅ Routes existantes: `/suivi-commande/[id]` et `/suivi-evenement/[id]` (pages de détail)
+- [x] 🔥 **Card navigation** : ✅ Déjà configurée comme "Suivi / Historique"
+  - ✅ Fichier: `components/layout/NavigationCards.tsx` (lignes 153-162)
+- [x] 🔥 **Section témoignages** : ✅ N'existe pas (jamais créée)
+- [x] 🔥 **Promotions/offres/fidélité** : ✅ N'existe pas (jamais créé)
+
+#### 💜 Suggestions Pratiques
+
+- [ ] 💜 **Chanthana accueil animée** : Animation Lottie de Chanthana faisant le wai (salut thaï) au chargement - générer via IA une animation 3-5s
+- [ ] 💜 **Parallax léger sur Hero** : Effet parallax subtil avec react-scroll-parallax (gratuit) sur les images/vidéos du carousel
+- [ ] 💜 **Indicateur de chargement Chanthana** : Remplacer le spinner par une mini-animation de Chanthana qui cuisine (Lottie)
+- [ ] 💜 **Effet 3D cards au hover** : Ajouter Tilt Card 3D de 21st.dev `npx shadcn@latest add "https://21st.dev/r/llaxmi/tilt-card"` sur NavigationCards
+- [ ] 💜 **Bulle info contextuelle** : Chanthana avec bulle "Sawadee ! Qu'est-ce qui vous ferait plaisir ?" pour nouveaux visiteurs (localStorage)
 
 #### 🔧 Spécifications Techniques Détaillées
 
@@ -1111,27 +1117,37 @@ npm run test:e2e
 
 #### 🔥 Tâches Restantes
 
-- [ ] 🔥🔥 **Icône panier visuelle** : Ajouter icône ShoppingCart à côté du texte existant
-  - Texte "X dans le panier" existe déjà ✅
-  - Ajouter `ShoppingCart` icon de lucide-react
-  - Ajouter badge numérique superposé
-  - Status : FACILE (~30 min)
+- [x] ✅ **Icône panier visuelle** : DÉJÀ IMPLÉMENTÉ
+  - ✅ Import ShoppingCart de lucide-react (ligne 26)
+  - ✅ Header section avec icône 7x7 px (ligne 579)
+  - ✅ Cart sidebar avec badge quantité (ligne 925)
+  - ✅ Badge numérique superposé fonctionnel
 
-- [ ] 🔥 **Mobile UX - Bottom navigation** : Menu bas d'écran
-  - Créer bottom navigation bar responsive
-  - Optimiser touch interactions
-  - Status : PENDING
+- [ ] 🔥 **Mobile UX - Bottom navigation** : ❌ NON IMPLÉMENTÉ
+  - Actuellement: Sidebar hamburger menu (gauche) via `Sidebar.tsx`
+  - À créer: Navigation bas d'écran pour mobile (pattern moderne 2025)
+  - Composants suggérés: Bottom sheet glissant ou Tab bar fixe
 
-- [x] ✅ **Avatar Chanthana animations** : FAIT via `ChanthanaAvatar.tsx`
-  - Composant existant avec Framer Motion (84 lignes)
-  - Position sidebar avec messages dynamiques
-  - Animations idle/happy + réactions
-  - ~~Status : PENDING~~ → COMPLÉTÉ
+- [x] ✅ **Avatar Chanthana animations** : COMPLÉTÉ
+  - ✅ Fichier: `components/commander/ChanthanaAvatar.tsx` (84 lignes)
+  - ✅ Animations idle/happy avec Framer Motion
+  - ✅ Bulle de dialogue personnalisable
+  - ✅ Position responsive mobile/desktop
 
-- [ ] 🔥 **Animation ajout panier améliorée** : Micro-animation clin d'œil (optionnel)
-  - Toast vidéo existe déjà avec MP4 ✅
-  - À améliorer: GIF/MP4 Chanthana réaction 2-3s
-  - Status : OPTIONNEL (feedback vidéo existe)
+- [x] ✅ **Animation ajout panier** : COMPLÉTÉ (Toast vidéo)
+  - ✅ Toast vidéo avec MP4 `ajoutpaniernote.mp4` (lignes 378-402)
+  - ✅ TypingAnimation pour texte coloré
+  - ✅ Style Polaroid avec progress bar
+
+#### 💜 Suggestions Pratiques
+
+- [ ] 💜 **Chanthana guide interactif** : Animation Chanthana qui pointe vers les plats du jour ou les nouveautés
+- [ ] 💜 **Animation "vol" ajout panier** : Effet image du plat qui vole vers l'icône panier (Framer Motion layoutId)
+- [ ] 💜 **Skeleton loading plats** : Squelettes animés pendant chargement (meilleure UX que spinner)
+- [ ] 💜 **Bottom sheet panier mobile** : Remplacer sidebar par bottom sheet glissant sur mobile
+- [ ] 💜 **Chanthana réactions contextuelles** : Animations différentes selon action (ajout=sourire, suppression=triste)
+- [ ] 💜 **Haptic feedback mobile** : Vibration légère au clic sur boutons (`navigator.vibrate` - gratuit, natif)
+- [ ] 💜 **Raccourci "Ma dernière commande"** : Bouton rapide pour recommander les mêmes plats que la dernière fois
 
 ### 🛍️ C. Page Panier (/panier)
 
@@ -1239,13 +1255,16 @@ npm run test:e2e
 
 #### ⚠️ Composant Créé mais NON Intégré
 
-- [ ] 🔥🔥 **BoutonTelechargerFacture** : Composant existe (`components/historique/BoutonTelechargerFacture.tsx` - 41 lignes) mais **NON utilisé** dans la page historique
+- [ ] 🔥🔥 **BoutonTelechargerFacture** : ⚠️ COMPOSANT ORPHELIN
+  - ✅ Fichier existe: `components/historique/BoutonTelechargerFacture.tsx` (41 lignes)
+  - ✅ Utilise `@react-pdf/renderer` pour génération PDF
+  - ❌ NON importé/utilisé nulle part dans l'application
   - À intégrer dans `CommandeActionButtons` pour commandes "Récupérée"
 
 #### 🔥🔥 Tâches Restantes
 
 - [ ] 🔥🔥 **Intégrer BoutonTelechargerFacture** : Ajouter dans ActionButtons.tsx pour statut "Récupérée"
-- [ ] 🔥🔥 **Bouton Devis/Facture événements** : Template PDF événement à créer
+- [ ] 🔥🔥 **Bouton Devis/Facture événements** : Template PDF événement à créer (`BoutonTelechargerDevis`)
 - [ ] 🔥🔥 **Bouton "Voir tout l'historique"** : Redirection vers `/historique/complet`
 - [ ] 🔥🔥 **"Commander à Nouveau"** : Bouton copie commande passée vers panier
 
@@ -1256,6 +1275,14 @@ npm run test:e2e
 - [ ] 🔥🔥 **Créer page `/historique/complet/page.tsx`** : Route Next.js manquante
 - [ ] 🔥🔥 **nuqs - Pagination** : Navigation pages avec URL state
 - [ ] 🔥 **Vue Calendrier** : Navigation visuelle commandes/événements passés
+
+#### 💜 Suggestions Pratiques
+
+- [ ] 💜 **Chanthana félicitations** : Animation Chanthana qui applaudit quand on atteint X commandes (ex: 5, 10, 20)
+- [ ] 💜 **Timeline visuelle commandes** : Vue chronologique verticale avec dates et photos des plats commandés
+- [ ] 💜 **Bouton "Recommander ce plat"** : Ajouter directement un plat de l'historique au panier actuel
+- [ ] 💜 **Prévisualisation facture** : Aperçu de la facture avant téléchargement (modal avec PDF viewer)
+- [ ] 💜 **Recherche intelligente** : Suggestions de recherche basées sur les plats déjà commandés
 
 ---
 
@@ -1284,9 +1311,24 @@ npm run test:e2e
 #### 🔥🔥 Tâches Restantes
 
 - [ ] 🔥🔥 **Intégrer BoutonTelechargerFacture** : Pour commandes "Récupérée"
+  - Composant existe mais non intégré dans cette page
 - [ ] 🔥🔥 **Notifications Push** : Changement statut via PWA + n8n
-- [ ] 🔥 **Contact Rapide** : Boutons `<a href="tel:">` et `<a href="sms:">`
-- [ ] 🔥 **Laisser un Avis** : Formulaire simple après "Récupérée"
+  - Infrastructure FCM existe (voir Phase 1)
+- [ ] 🔥 **Contact Rapide** : ❌ NON IMPLÉMENTÉ
+  - Boutons `<a href="tel:+33749283707">` et `<a href="sms:+33749283707">`
+  - Footer a les liens mais pas cette page
+- [ ] 🔥 **Laisser un Avis** : ❌ NON IMPLÉMENTÉ
+  - Formulaire simple après "Récupérée"
+  - Aucun composant de review existant
+
+#### 💜 Suggestions Pratiques
+
+- [ ] 💜 **Chanthana timeline animée** : Chanthana qui "marche" le long de la timeline selon le statut actuel
+- [ ] 💜 **Animation changement statut** : Confettis légers (`canvas-confetti`, gratuit) quand commande passe à "Prête"
+- [ ] 💜 **QR Code retrait** : Générer QR code avec `qrcode.react` (gratuit) pour identification rapide
+- [ ] 💜 **Bouton appel direct** : `<a href="tel:+33749283707">` avec icône téléphone bien visible
+- [ ] 💜 **Copier numéro commande** : Bouton copier dans presse-papier pour le numéro de commande
+- [ ] 💜 **Chanthana message personnalisé** : Message différent selon statut ("Je prépare !" / "C'est prêt !" / "Merci d'être venu !")
 
 ---
 
@@ -1348,36 +1390,226 @@ npm run test:e2e
 
 #### 🔥🔥 Tâches Restantes
 
-- [ ] 🔥🔥 **ProgressTimelineEvenement** : Chronologie visuelle (Demande → Contact → Devis → Confirmé → Réalisé)
-- [ ] 🔥🔥 **BoutonTelechargerDevis** : Template PDF événement
-- [ ] 🔥🔥 **Bouton "Accepter le devis"** : Webhook n8n + changement statut
-- [ ] 🔥 **Contact Rapide** : WhatsApp avec message pré-rempli
-- [ ] 🔥 **Rappels automatiques** : n8n avant événement + remerciement après
+- [ ] 🔥🔥 **ProgressTimelineEvenement** : ❌ N'EXISTE PAS
+  - À créer: Chronologie visuelle (Demande → Contact → Devis → Confirmé → Réalisé)
+  - Similaire à `ProgressTimeline.tsx` mais pour événements
+- [ ] 🔥🔥 **BoutonTelechargerDevis** : ❌ N'EXISTE PAS
+  - Template PDF événement à créer avec react-pdf
+- [ ] 🔥🔥 **Bouton "Accepter le devis"** : ❌ N'EXISTE PAS
+  - Webhook n8n + changement statut
+- [ ] 🔥 **Contact Rapide WhatsApp** : ❌ N'EXISTE PAS sur cette page
+  - À ajouter: `https://wa.me/33749283707?text=Bonjour, concernant mon événement...`
+- [ ] 🔥 **Rappels automatiques** : Infrastructure n8n à configurer
+
+#### 💜 Suggestions Pratiques
+
+- [ ] 💜 **Timeline événement visuelle** : Créer `ProgressTimelineEvenement` (Demande → Contact → Devis → Confirmé → Réalisé)
+- [ ] 💜 **Chanthana chef traiteur** : Générer visuel Chanthana en mode "traiteur/buffet" pour cette page
+- [ ] 💜 **Bouton WhatsApp pré-rempli** : `https://wa.me/33749283707?text=Bonjour, concernant mon événement du [date]...`
+- [ ] 💜 **Récapitulatif imprimable** : Bouton pour générer PDF récapitulatif de l'événement (react-pdf)
+- [ ] 💜 **Compte à rebours** : Afficher "J-X" avant l'événement avec animation
+
+---
 
 ### 👤 H. Page Profil (/profil) & Inscription (/auth/signup)
 
 #### ✅ Améliorations UI/UX Complétées
 
 - [x] ✅ **Sélecteur de date de naissance amélioré** : Composant `DateBirthSelector` (3 selects)
+  - ✅ Fichier: `components/forms/DateBirthSelector.tsx` (229 lignes)
+  - ✅ Validation dates impossibles (31 février, etc.)
+  - ✅ Mois en français
 - [x] ✅ **Harmonisation formulaire signup avec profil** :
   - "Adresse (numéro et rue)" identique
   - "Vos Préférences" → Textarea
   - "Comment avez-vous connu..." formulation identique
   - "Newsletter" → RadioGroup ("Oui, j'accepte" / "Non")
 
-#### 🔥🔥🔥 Gestion du Compte (Sécurité)
+#### 🔥🔥🔥 Gestion du Compte (Sécurité) - ✅ COMPLÉTÉ
 
-**Dépend de : Better Auth workflows ⏳**
+- [x] **Section "Sécurité et confidentialité"** : ✅ COMPLÉTÉ
+  - ✅ Fichier: `app/profil/page.tsx` (lignes 954-1031)
+  - ✅ 3 options avec icônes colorées: Email (amber), Password (blue), Delete (red)
 
-- [ ] **Modification Email Sécurisée** : Exiger password actuel + confirmation double email
-- [ ] **Suppression Compte** : Page dédiée avec confirmation password + GDPR compliance
-- [ ] **Mot de Passe Oublié** : Workflow complet reset password (déjà route créée)
-- [ ] **Design Boutons Auth** : Inverser "Se connecter" / "Créer un compte" + revoir icônes
+- [x] **Modification Email Sécurisée** : ✅ COMPLÉTÉ
+  - ✅ Page: `app/profil/change-email/page.tsx`
+  - ✅ Exige password actuel + double confirmation email
+  - ✅ Notice de vérification email
+
+- [x] **Modification Mot de Passe** : ✅ COMPLÉTÉ
+  - ✅ Page: `app/profil/change-password/page.tsx`
+  - ✅ Toggle visibilité pour les 3 champs (Eye/EyeOff icons)
+  - ✅ Validation force mot de passe
+
+- [x] **Suppression Compte (GDPR)** : ✅ COMPLÉTÉ
+  - ✅ Page: `app/profil/delete-account/page.tsx`
+  - ✅ Confirmation password + texte "SUPPRIMER MON COMPTE"
+  - ✅ Notice GDPR complète
+  - ✅ Option "pause" proposée
+
+- [x] **Mot de Passe Oublié** : ✅ Route existe
+  - ✅ Page: `app/auth/reset-password/page.tsx`
+  - ✅ Template email: `emails/ResetPasswordEmail.tsx`
+
+- [ ] **Design Boutons Auth** : Optionnel - UX déjà fonctionnelle
+
+#### 💜 Suggestions Pratiques
+
+- [ ] 💜 **Avatar Chanthana personnalisé** : Option d'avoir Chanthana comme avatar par défaut (avec variations)
+- [ ] 💜 **Indicateurs visuels allergies** : Icônes claires pour allergies communes (gluten, arachides, fruits de mer)
+- [ ] 💜 **Animation sauvegarde** : Micro-animation checkmark vert quand un champ est sauvegardé
+- [ ] 💜 **Mode daltonien** : Toggle pour adapter les couleurs (accessibilité, gratuit avec CSS)
+- [ ] 💜 **Chanthana anniversaire** : Animation spéciale si c'est l'anniversaire du client
 
 #### 🔥 Intégration n8n Communication
 
 - [ ] **Messages Anniversaire** : Cron quotidien envoi vœux automatiques
 - [ ] **Newsletter Actualités** : Système envoi emails offres spéciales (manuel/programmé)
+
+---
+
+### ✅ I. Page Confirmation Commande (/commander/confirmation)
+
+**Fichier** : `app/commander/confirmation/page.tsx` (59 lignes) - **PAGE SIMPLE**
+
+#### ✅ Fonctionnalités Existantes (Complètes)
+
+- [x] ✅ **Message confirmation visuel** : Card centrée avec CheckCircle2 vert
+- [x] ✅ **Redirection auto 10s** : Timer automatique vers page d'accueil
+- [x] ✅ **Bouton "Nouvelle commande"** : Redirection vers `/commander`
+- [x] ✅ **Bouton "Retour à l'accueil"** : Redirection vers `/`
+- [x] ✅ **Message email** : Indication "Vous recevrez un email de confirmation"
+- [x] ✅ **Design responsive** : Centré avec `min-h-screen` et `max-w-md`
+
+#### 💜 Suggestions Pratiques
+
+- [ ] 💜 **Animation Chanthana célébration** : Remplacer CheckCircle par Chanthana qui fait le wai avec confettis
+- [ ] 💜 **QR Code récapitulatif** : Afficher QR code de la commande pour présentation au restaurant
+- [ ] 💜 **Son de confirmation** : Petit son joyeux (ding) à l'affichage de la page
+
+---
+
+### ✏️ J. Page Modifier Événement (/modifier-evenement/[id])
+
+**Fichier** : `app/modifier-evenement/[id]/page.tsx` (647 lignes) - **PAGE TRÈS COMPLÈTE**
+
+#### ✅ Fonctionnalités Existantes (Complètes)
+
+- [x] ✅ **Formulaire complet événement** : Type, date/heure, nombre personnes, budget
+  - 6 types d'événements : Anniversaire, Repas d'entreprise, Fête de famille, Cocktail dînatoire, Buffet traiteur, Autre
+  - Sélecteurs date : Jour/Mois/Année (3 selects)
+  - Sélecteur heure : 9h00-23h00 par 15 minutes
+  - Minimum 10 personnes
+- [x] ✅ **Précision "Autre" type** : Champ texte si type = "Autre"
+- [x] ✅ **Sélection plats présélectionnés** : Checkboxes avec grid responsive + Tooltips photos
+- [x] ✅ **Demandes spéciales / Thème** : Textarea pour allergies, régimes
+- [x] ✅ **Chargement données existantes** : `usePrismaEvenementById()` hook
+- [x] ✅ **Mise à jour mutation** : `usePrismaUpdateEvenement()` hook
+- [x] ✅ **Vérification permissions** : Propriétaire uniquement (redirect si non autorisé)
+- [x] ✅ **Blocage modification** : Si statut "Réalisé" ou "Payé intégralement"
+- [x] ✅ **Bouton retour historique** : Navigation vers `/historique`
+- [x] ✅ **Header gradient** : Dégradé thai-green → thai-orange
+- [x] ✅ **Toast notifications** : Feedback succès/erreur
+- [x] ✅ **Responsive design** : Grid adaptatif 1-2 colonnes
+- [x] ✅ **AppLayout wrapper** : Navigation cohérente
+
+#### 🔥 Tâches Restantes
+
+- [ ] 🔥 **Confirmation avant sauvegarde** : Dialog récapitulatif modifications
+- [ ] 🔥🔥 **Notification admin via n8n** : Webhook si client modifie événement
+
+#### 💜 Suggestions Pratiques
+
+- [ ] 💜 **Comparaison avant/après** : Afficher diff des changements avant sauvegarde
+- [ ] 💜 **Chanthana traiteur** : Avatar Chanthana avec plateau dans le header
+
+---
+
+### 🔔 K. Page Préférences Notifications (/profil/notifications)
+
+**Fichier** : `app/profil/notifications/page.tsx` (399 lignes) - **PAGE COMPLÈTE**
+
+#### ✅ Fonctionnalités Existantes (Complètes)
+
+- [x] ✅ **Switch global notifications** : Activer/désactiver toutes les notifications
+- [x] ✅ **Notifications commandes** : 4 toggles (confirmée, préparation, prête, retard)
+- [x] ✅ **Notifications événements** : 4 toggles (confirmé, rappel 48h, rappel 24h, préparation)
+- [x] ✅ **Marketing & actualités** : 3 toggles (promotions, nouveautés, newsletter)
+- [x] ✅ **Autres notifications** : 2 toggles (rappel paiement, messages admin)
+- [x] ✅ **Server Actions** : `getNotificationPreferences()`, `updateNotificationPreferences()`
+- [x] ✅ **Sauvegarde instantanée** : Update à chaque toggle avec toast feedback
+- [x] ✅ **État loading** : Spinner pendant chargement initial
+- [x] ✅ **Gestion erreurs** : Restauration valeur si échec + toast erreur
+- [x] ✅ **Bouton retour** : Navigation avec `router.back()`
+- [x] ✅ **Note confidentialité** : Message RGPD en bas de page
+- [x] ✅ **Icônes par catégorie** : Bell, ShoppingCart, Calendar, Tag, MessageSquare
+- [x] ✅ **Désactivation conditionnelle** : Toggles grisés si notifications globales off
+
+#### 💜 Suggestions Pratiques
+
+- [ ] 💜 **Chanthana notifications** : Avatar Chanthana tenant une cloche dans le header
+- [ ] 💜 **Test notification** : Bouton "Envoyer une notification test"
+
+---
+
+### ✨ L. Page Actualités / Découvertes (/actualites)
+
+**Fichier** : `app/actualites/page.tsx` (189 lignes) - **PAGE STATIQUE**
+
+#### ✅ Fonctionnalités Existantes (Complètes)
+
+- [x] ✅ **Header animé** : Sparkles icon avec animation pulse
+- [x] ✅ **Section Plat du Moment** : Card avec placeholder image + boutons Commander/Voir menu
+- [x] ✅ **Section Nouveautés Menu** : Grid 3 cards (mockées)
+- [x] ✅ **Section Infos Pratiques** : Horaires, fermetures exceptionnelles, événements
+- [x] ✅ **Section Réseaux Sociaux** : Boutons Facebook + Instagram avec gradients
+- [x] ✅ **Bouton retour accueil** : CTA en bas de page
+- [x] ✅ **Metadata SEO** : Titre + description pour référencement
+- [x] ✅ **Design gradient** : `bg-gradient-thai` cohérent
+
+#### 🔥🔥 Tâches Restantes (Contenu Dynamique)
+
+- [ ] 🔥🔥 **Plat du moment dynamique** : Récupérer depuis DB ou admin config
+- [ ] 🔥🔥 **Nouveautés réelles** : Filtrer plats récents (`created_at` < 30 jours)
+- [ ] 🔥 **URLs réseaux sociaux** : Remplacer placeholders par vraies URLs
+- [ ] 🔥 **Fermetures exceptionnelles** : Lier à table `ruptures_exceptionnelles` ou config admin
+
+#### 💜 Suggestions Pratiques
+
+- [ ] 💜 **Chanthana nouveautés** : Animation Chanthana présentant un nouveau plat
+- [ ] 💜 **Instagram embed** : Intégrer feed Instagram réel (gratuit avec widget)
+- [ ] 💜 **Countdown prochaine ouverture** : Si fermé, afficher "Prochaine ouverture dans X heures"
+
+---
+
+### 📍 M. Page Nous Trouver (/nous-trouver)
+
+**Fichier** : `app/nous-trouver/page.tsx` (326 lignes) - **PAGE COMPLÈTE**
+
+#### ✅ Fonctionnalités Existantes (Complètes)
+
+- [x] ✅ **Carte Google Maps** : Iframe avec adresse complète
+- [x] ✅ **États carte** : Loading (spinner) + Error (fallback bouton)
+- [x] ✅ **Boutons itinéraires** : Google Maps + Waze avec liens directs
+- [x] ✅ **Coordonnées complètes** : Adresse, téléphone `tel:`, email `mailto:`
+- [x] ✅ **Contact direct** : Messenger + WhatsApp avec boutons stylés
+- [x] ✅ **Horaires d'ouverture** : Lun/Mer/Ven/Sam 18h00-20h30
+- [x] ✅ **Header gradient** : Orange → Gold avec MapPin icon
+- [x] ✅ **AppLayout wrapper** : Navigation cohérente
+- [x] ✅ **Bouton retour accueil** : Style cohérent avec autres pages
+- [x] ✅ **Responsive design** : Grid 1-2 colonnes selon breakpoint
+- [x] ✅ **Hover effects** : Animations subtiles sur les sections
+
+#### 🔥 Tâches Restantes
+
+- [ ] 🔥 **Clé API Google Maps** : Remplacer `VOTRE_CLE_API_GOOGLE_MAPS` par vraie clé
+- [ ] 🔥 **URL Facebook** : Remplacer `https://m.me/chanthanathaikok` par vraie page
+
+#### 💜 Suggestions Pratiques
+
+- [ ] 💜 **Chanthana accueil** : Avatar Chanthana faisant le wai "Bienvenue !"
+- [ ] 💜 **Photo du restaurant** : Ajouter photo extérieur/intérieur du restaurant
+- [ ] 💜 **Parking info** : Indiquer possibilités de stationnement
 
 ---
 
@@ -1410,60 +1642,125 @@ npm run test:e2e
 - [ ] **Impression tickets** : Workflow n8n impression auto si "Confirmée"
 - [ ] **Demande avis** : Email/SMS automatique 1h après "Récupérée"
 
+#### 💜 Suggestions Pratiques
+
+- [ ] 💜 **Son nouvelle commande** : Notification sonore (Audio API gratuit) quand nouvelle commande arrive
+- [ ] 💜 **Vue compacte/étendue** : Toggle pour voir plus/moins de détails par commande
+- [ ] 💜 **Drag & drop statuts** : Glisser-déposer commandes entre colonnes de statut (Kanban style)
+- [ ] 💜 **Timer préparation** : Chrono depuis passage en "En préparation" pour suivre le temps
+- [ ] 💜 **Raccourcis clavier** : Touches 1-5 pour changer rapidement le statut de la commande sélectionnée
+
 ### 🍲 B. Page Admin / Plats (/admin/plats)
 
-#### 🔥🔥 Système Ruptures Exceptionnelles
+#### 🔥🔥 Système Ruptures Exceptionnelles - ✅ COMPLÉTÉ
 
 **Objectif : Gestion stock par exception (dates spécifiques)**
 
-- [ ] **Modification Base de Données** :
-  - Table `ruptures_exceptionnelles` (plat_id, date_rupture, quantite_initiale, quantite_restante)
+- [x] **Table Base de Données** : ✅ COMPLÉTÉ
+  - ✅ Table: `plats_rupture_dates` (schema.prisma lignes 464-480)
+  - ✅ Colonnes: plat_id, date_rupture, raison_rupture, type_rupture, notes_rupture, is_active
+  - ✅ Indexes: `idx_plats_rupture_dates_date_active`, `idx_plats_rupture_dates_plat_date`
+  - ⚠️ Note: La table s'appelle `plats_rupture_dates`, PAS `ruptures_exceptionnelles`
 
-- [ ] **Interface Admin** :
-  - Composant `DateRuptureManager` : Définir rupture plat à date précise
-  - Option quantité limitée ou rupture totale
+- [x] **Interface Admin** : ✅ COMPLÉTÉ
+  - ✅ Composant: `components/admin/DateRuptureManager.tsx` (14 KB)
+  - ✅ Sélection date avec dates passées désactivées
+  - ✅ Types de rupture: stock, congés, maintenance, autre
+  - ✅ Champ raison (obligatoire) + notes (optionnel)
+  - ✅ Affichage ruptures actives/passées/désactivées
+  - ✅ Bouton "Ruptures" dans admin/plats (lignes 1410-1417)
+  - ✅ Hooks: `usePlatRuptures`, `useCreatePlatRupture`, `useDeletePlatRupture`
 
-- [ ] **Décompte Automatique** :
-  - Fonction Postgres : Décrémente `quantite_restante` à chaque commande "Confirmée"
+- [ ] **Décompte Automatique** : ❌ NON IMPLÉMENTÉ
+  - À créer: Fonction Postgres décrémente `quantite_restante` à chaque commande "Confirmée"
 
-- [ ] **Affichage Côté Client** :
-  - Pages `/commander` et `/modifier-commande`
-  - Badge "Plus que X disponibles !" si quantité limitée
-  - "Épuisé pour aujourd'hui" si rupture totale
+- [ ] **Affichage Côté Client** : ❌ NON IMPLÉMENTÉ
+  - À créer: Badge "Plus que X disponibles !" si quantité limitée
+  - À créer: "Épuisé pour aujourd'hui" si rupture totale
 
-#### 🔥 UX & Fonctionnalités
+#### 🔥 UX & Fonctionnalités - ✅ COMPLÉTÉ
 
-- [ ] **Confirmation suppression extra** : Dialog avant delete
-- [ ] **Transférer extra → menu** :
-  - Bouton "Ajouter au menu" sur chaque extra
-  - Modale création plat pré-remplie
-  - Proposition désactiver/supprimer extra d'origine (éviter doublons)
+- [x] **Confirmation suppression extra** : ✅ COMPLÉTÉ
+  - ✅ AlertDialog dans `app/admin/plats/page.tsx` (lignes 700-724)
+  - ✅ State: `extraToDelete` (ligne 307)
+  - ✅ Handler: `confirmDeleteExtra` (lignes 356-364)
+
+- [x] **Transférer extra → menu** : ✅ COMPLÉTÉ
+  - ✅ Bouton "Transformer en Plat Menu" avec icône Utensils (lignes 682-689)
+  - ✅ Handler: `handleTransformToPlat()` (lignes 369-410)
+  - ✅ Crée nouveau plat + supprime extra + rafraîchit les deux listes
+  - ✅ Toast succès: "Extra transformé en plat menu !"
+
+#### 💜 Suggestions Pratiques
+
+- [ ] 💜 **Duplication rapide plat** : Bouton "Dupliquer" pour créer variante d'un plat existant
+- [ ] 💜 **Prévisualisation mobile** : Voir comment le plat apparaît sur mobile avant de sauvegarder
+- [ ] 💜 **Tags allergènes visuels** : Icônes standardisées (gluten, lait, œuf, etc.) - génération avec Chanthana tenant chaque allergène
+- [ ] 💜 **Import photo par URL** : Coller une URL d'image au lieu d'uploader fichier
+- [ ] 💜 **Ordre personnalisé affichage** : Drag & drop pour réorganiser l'ordre des plats dans le menu
 
 ### 👥 C. Page Admin / Clients (/admin/clients)
 
-**🔥🔥 Création Client Manuel**
+**🔥🔥 Création Client Manuel - ✅ COMPLÉTÉ**
 
-- [ ] **Bouton "Nouveau Client"** : Sur page `/admin/clients`
-- [ ] **Route `/admin/clients/creer`** : Page dédiée création
-- [ ] **Formulaire création** :
-  - Champs : prénom, nom, email, téléphone, adresse, date naissance
-  - Validation Zod (dépend de : Schemas Zod ⏳)
-  - Création profil client sans compte auth (optionnel)
-- [ ] **Enregistrement** : Server Action + invalidation cache
+- [x] **Bouton "Nouveau Client"** : ✅ COMPLÉTÉ
+  - ✅ Fichier: `components/admin/clients/ClientCombobox.tsx` (lignes 137-146)
+  - ✅ Bouton vert avec icône Plus, hover scale + shadow
+  - ✅ Callback `onCreateNewClient` ouvre le modal
+
+- [x] **Modal création client** : ✅ COMPLÉTÉ (remplace route dédiée)
+  - ✅ Fichier: `components/admin/clients/CreateClientModal.tsx` (339 lignes)
+  - ✅ Orchestration: `app/admin/clients/page.tsx` (lignes 647-696)
+  - ~~Route `/admin/clients/creer`~~ : Non nécessaire (modal utilisé)
+
+- [x] **Formulaire création** : ✅ COMPLÉTÉ
+  - ✅ Champs: nom, prénom, email, téléphone, adresse, code_postal, ville, date_de_naissance, preference_client
+  - ✅ Validation champs requis (nom, prénom, email)
+  - ✅ Hook `usePrismaCreateClient()` pour mutation
+  - ✅ Auto-save + Toast notifications
+
+- [x] **Enregistrement** : ✅ COMPLÉTÉ
+  - ✅ Génère `auth_user_id` temporaire: `manual_${Date.now()}_${random}`
+  - ✅ Invalidation cache automatique via TanStack Query
+
+#### 💜 Suggestions Pratiques
+
+- [ ] 💜 **Recherche rapide clavier** : Raccourci Ctrl+K pour focus sur recherche client (cmdk library gratuite)
+- [ ] 💜 **Indicateur "Nouveau client"** : Badge visuel pour clients inscrits depuis moins de 7 jours
+- [ ] 💜 **Notes rapides** : Champ notes internes pour mémoriser préférences/infos importantes du client
+- [ ] 💜 **Dernière commande visible** : Afficher date et contenu de la dernière commande dans la fiche client
+- [ ] 💜 **Chanthana accueil client** : Animation Chanthana qui fait le wai quand on ouvre une fiche client fidèle
 
 ### ➕ D. Page Admin / Création Commande (/admin/commandes/creer)
 
-**🔥🔥 Création Commande Manuelle**
+**🔥🔥 Création Commande Manuelle - ❌ NON IMPLÉMENTÉ**
 
-- [ ] **Bouton "Nouvelle Commande"** : Sur page `/admin/commandes`
-- [ ] **Route `/admin/commandes/creer`** : Page dédiée création
-- [ ] **Formulaire multi-étapes** :
+> **Note** : Feature branch `feature/test-de-la-nouvelle-commande` existe mais non mergée dans main
+
+- [ ] **Bouton "Nouvelle Commande"** : ❌ À CRÉER sur page `/admin/commandes`
+- [ ] **Route `/admin/commandes/creer`** : ❌ À CRÉER - Page dédiée création
+- [ ] **Formulaire multi-étapes** : ❌ À IMPLÉMENTER
   - Étape 1 : Sélection client (recherche ou création à la volée)
   - Étape 2 : Composition commande (plats + extras + quantités)
   - Étape 3 : Détails (heure retrait, type livraison, commentaires)
   - Étape 4 : Récapitulatif + validation
 - [ ] **Validation** : Schemas Zod (dépend de : Schemas Zod ⏳)
 - [ ] **Enregistrement** : Server Action création commande complète
+
+**Ce qui EXISTE actuellement :**
+- ✅ `AddPlatModal` : Ajouter plats à commande existante (lignes 857-1316)
+- ✅ `AddComplementModal` : Ajouter extras à commande existante
+- ✅ `QuickActionsModal` : Notes et actions rapides (lignes 287-410)
+- ✅ Boutons (+) pour ajouter articles aux commandes existantes
+
+#### 💜 Suggestions Pratiques
+
+- [ ] 💜 **Son nouvelle commande** : Notification sonore (Audio API gratuit) quand nouvelle commande client arrive
+- [ ] 💜 **Vue compacte/étendue** : Toggle pour voir plus/moins de détails par commande
+- [ ] 💜 **Drag & drop statuts** : Glisser-déposer commandes entre colonnes de statut (Kanban style avec @hello-pangea/dnd)
+- [ ] 💜 **Timer préparation** : Chrono depuis passage en "En préparation" pour suivre le temps
+- [ ] 💜 **Raccourcis clavier** : Touches 1-5 pour changer rapidement le statut de la commande sélectionnée
+- [ ] 💜 **Chanthana préparation** : Animation Chanthana qui cuisine pendant le statut "En préparation"
 
 ### 🎬 E. Page Admin / Hero Media (/admin/hero-media) ✅
 
@@ -1517,6 +1814,13 @@ npm run test:e2e
 - [ ] **Tests permissions** : Seul admin peut modifier ⚠️ À faire
 - [ ] **Tests performance** : Lazy loading, optimisation vidéos ⚠️ À faire
 
+#### 💜 Suggestions Pratiques
+
+- [ ] 💜 **Prévisualisation carousel** : Voir le rendu final du carousel en temps réel pendant l'édition
+- [ ] 💜 **Compression automatique** : Compresser vidéos côté client avant upload (ffmpeg.wasm gratuit)
+- [ ] 💜 **Templates Hero** : Présets de carousel (accueil festif, promo saison, minimal)
+- [ ] 💜 **Chanthana dans carousel** : Ajouter facilement Chanthana en overlay sur les médias
+
 ### 🔔 F. Page Admin / Test Visuel Toasts (/admin/testvisuel/toasts) ✅
 
 **Fichier** : `app/admin/testvisuel/toasts/page.tsx` (~1650 lignes)
@@ -1568,6 +1872,12 @@ npm run test:e2e
 - [x] Bouton "Afficher Toast" (test réel)
 - [x] Info balises couleur/style (Dialog)
 
+#### 💜 Suggestions Pratiques
+
+- [ ] 💜 **Bibliothèque templates** : Sauvegarder configs de toast en templates réutilisables
+- [ ] 💜 **Export config JSON** : Exporter/importer configuration toast pour backup
+- [ ] 💜 **Toast Chanthana** : Preset avec avatar Chanthana animé intégré
+
 ### 🎬 G. Page Admin / Test Visuel Modal (/admin/testvisuel/modal) ✅
 
 **Fichier** : `app/admin/testvisuel/modal/page.tsx` (~1798 lignes)
@@ -1612,6 +1922,270 @@ npm run test:e2e
 
 - [x] `components/ui/ModalVideo.tsx` (805 lignes)
 - [x] `ModalVideoContent` : Contenu réutilisable (standalone ou dialog)
+
+#### 💜 Suggestions Pratiques
+
+- [ ] 💜 **Bibliothèque modals** : Sauvegarder configs de modal en templates réutilisables
+- [ ] 💜 **Preview multi-device** : Voir rendu sur mobile/tablet/desktop côte à côte
+- [ ] 💜 **Modal Chanthana promo** : Template modal avec Chanthana pour annoncer plats du jour
+
+### 💬 H. Page Admin / Messages n8n (/admin/messages) - 🆕 À CRÉER
+
+**🔥🔥🔥 PRIORITÉ HAUTE - Interface Human-in-the-Loop pour n8n + IA/RAG**
+
+**Concept :**
+```
+Client (WhatsApp/SMS/Email) → n8n + IA/RAG analyse → Page Admin → Tu valides → n8n répond au client
+```
+
+#### Structure Base de Données
+
+- [ ] 🔥🔥🔥 **Table `messages_pending`** : À CRÉER
+  - Colonnes: id, canal (whatsapp/sms/email), numero_client, contenu_original, ia_analyse, ia_reponse_proposee, type_message (commande/question/evenement/modification/autre), statut (pending/approved/rejected/modified), created_at, processed_at, processed_by
+
+#### Interface Admin
+
+- [ ] 🔥🔥🔥 **Inbox temps réel** : Liste messages en attente avec polling/websocket
+- [ ] 🔥🔥🔥 **Card message** :
+  - Canal (icône WhatsApp/SMS/Email)
+  - Numéro/email client
+  - Message original du client
+  - Analyse IA (ex: "Commande détectée: 2 Pad Thai, 1 Tom Yum")
+  - Réponse proposée par IA (éditable)
+- [ ] 🔥🔥🔥 **Actions rapides** :
+  - [✓ Approuver] → n8n envoie la réponse proposée
+  - [✏️ Modifier] → Textarea pour éditer la réponse avant envoi
+  - [✗ Refuser] → n8n envoie message d'erreur/excuse
+- [ ] 🔥🔥 **Badge non-lus** : Nombre de messages en attente dans sidebar admin
+- [ ] 🔥🔥 **Son notification** : Ding quand nouveau message arrive
+- [ ] 🔥 **Auto-refresh** : Polling toutes les 5-10 secondes ou WebSocket
+
+#### Workflows n8n Associés
+
+- [ ] 🔥🔥🔥 **Webhook réception** : POST /api/n8n/message-received (depuis WhatsApp/SMS/Email)
+- [ ] 🔥🔥🔥 **Webhook validation** : POST /api/n8n/message-validated (déclenche réponse client)
+- [ ] **Types de messages** :
+  - `commande` : Client veut commander → IA extrait plats → Tu confirmes → Commande créée en DB
+  - `question` : Client pose question → IA génère réponse → Tu valides → Réponse envoyée
+  - `evenement` : Demande traiteur → IA prépare infos → Tu complètes
+  - `modification` : Client veut modifier commande → IA propose action → Tu valides
+  - `autre` : Message non classifié → Tu réponds manuellement
+
+#### 💜 Suggestions Pratiques
+
+- [ ] 💜 **Swipe mobile** : Glisser droite = Approuver, Glisser gauche = Refuser
+- [ ] 💜 **Réponses rapides** : Templates de réponses fréquentes (1 tap)
+- [ ] 💜 **Timeout visuel** : Message non traité > 5min = badge rouge clignotant
+- [ ] 💜 **Push admin** : Notification sur téléphone même app fermée
+- [ ] 💜 **Chanthana IA** : Avatar Chanthana à côté de l'analyse IA
+
+### 📢 I. Page Admin / Publications n8n (/admin/publications) - 🆕 À CRÉER
+
+**🔥🔥 PRIORITÉ MOYENNE - Créateur de Contenu Réseaux Sociaux via n8n**
+
+**Concept :**
+```
+Admin upload image + écrit message → n8n génère formats adaptés → Publie sur Facebook, Instagram, X
+```
+
+#### Interface Admin
+
+- [ ] 🔥🔥 **Zone upload image** : Drag & drop ou sélection fichier
+  - Formats acceptés : JPG, PNG, WebP
+  - Taille max : 10MB
+  - Preview de l'image uploadée
+  - Recadrage optionnel (react-image-crop déjà installé)
+- [ ] 🔥🔥 **Textarea message** : Texte de la publication
+  - Compteur caractères (280 pour X, illimité pour FB/IG)
+  - Suggestions hashtags populaires (#ThaïFood, #Marigny, #ChanthanaCook)
+  - Emojis picker optionnel
+- [ ] 🔥🔥 **Sélection réseaux** : Checkboxes
+  - [ ] Facebook
+  - [ ] Instagram
+  - [ ] X (Twitter)
+  - Bouton "Tout sélectionner / Désélectionner"
+- [ ] 🔥🔥 **Bouton "Créer la pub"** : Envoie à n8n
+- [ ] 🔥 **Preview par réseau** : Aperçu du rendu sur chaque plateforme (optionnel)
+
+#### Workflow n8n
+
+- [ ] 🔥🔥 **Webhook réception** : POST /api/n8n/create-publication
+  - Payload : `{ image_base64, message, networks: ['facebook', 'instagram', 'x'] }`
+- [ ] 🔥🔥 **Redimensionnement auto** :
+  - Facebook : 1200x630px (lien) ou 1080x1080px (post)
+  - Instagram : 1080x1080px (carré) ou 1080x1350px (portrait)
+  - X/Twitter : 1200x675px
+- [ ] 🔥🔥 **Publication via APIs** :
+  - Facebook Graph API (Page Token)
+  - Instagram Graph API (Business Account)
+  - X API v2 (OAuth 2.0)
+- [ ] 🔥 **Retour statut** : Webhook callback avec URLs des posts créés
+
+#### Options Avancées (Optionnel)
+
+- [ ] 💜 **Planification** : Date/heure de publication différée
+- [ ] 💜 **Templates** : Modèles de messages pré-enregistrés (Plat du jour, Fermeture exceptionnelle, Nouveau plat)
+- [ ] 💜 **Historique** : Liste des dernières publications avec liens vers les posts
+
+#### 💜 Suggestions Pratiques
+
+- [ ] 💜 **Loading Chanthana** : Animation Chanthana pendant génération/publication
+- [ ] 💜 **Toast succès** : "Publication créée sur 3 réseaux !" avec liens cliquables
+- [ ] 💜 **Toast erreur** : Message explicite si échec (token expiré, limite API, etc.)
+- [ ] 💜 **Brouillons** : Sauvegarder sans publier pour plus tard
+- [ ] 💜 **Copier depuis plat** : Bouton pour pré-remplir avec photo/description d'un plat existant
+
+#### Prérequis n8n
+
+**Tokens à configurer dans n8n (gratuits pour usage restaurant) :**
+- Facebook : Page Access Token (via Facebook Developer)
+- Instagram : Business Account ID + Token (via Meta Business Suite)
+- X/Twitter : API Key + Secret + Bearer Token
+
+---
+
+### 🏠 J. Page Admin / Dashboard (/admin) - ⚠️ REFONTE SUGGÉRÉE
+
+**Problème actuel : Stats inutiles (CA, évolution %, graphiques) - Restaurant familial, pas une startup**
+
+#### ❌ À SUPPRIMER (inutile)
+
+- [ ] 💜 Supprimer KPI "CA Aujourd'hui" et "CA Semaine" (visible en caisse)
+- [ ] 💜 Supprimer "Évolution % hebdo" (statistique corporate)
+- [ ] 💜 Supprimer graphique "Tendance 7 derniers jours" (gadget)
+- [ ] 💜 Supprimer "Taux de service" (KPI entreprise)
+- [ ] 💜 Supprimer "Clients actifs" (inutile)
+- [ ] 💜 Supprimer horloge temps réel (on a l'heure sur le téléphone)
+
+#### ✅ À GARDER (simplifié)
+
+- Commandes en attente de confirmation (URGENT - visible)
+- Commandes en préparation (en cours)
+- Commandes prêtes à récupérer (action requise)
+- Alertes plats épuisés (stock)
+
+#### 💜 NOUVEAU DESIGN SUGGÉRÉ
+
+- [ ] 💜 **Vue Kanban commandes** : 4 colonnes swipeable (En attente → Confirmée → En préparation → Prête)
+- [ ] 💜 **Timeline du jour** : Liste verticale commandes avec heure de retrait, triée chronologiquement
+- [ ] 💜 **Quick actions** : Boutons grosses icônes "Confirmer", "Prête", "Retard" accessibles au pouce
+- [ ] 💜 **Alertes visuelles** : Badge rouge clignotant si commande en attente > 5min
+- [ ] 💜 **Section événements** : "Prochains traiteur" avec J-7, J-3, J-1 (simple liste)
+- [ ] 💜 **Chanthana statut** : Avatar Chanthana qui change selon charge (zen, occupée, débordée)
+- [ ] 💜 **Son notification** : Ding discret nouvelle commande (Audio API)
+
+### 📊 K. Page Admin / Statistiques (/admin/statistiques) - ⚠️ SIMPLIFIER OU SUPPRIMER
+
+**Problème : Trop de stats marketing (insights, projections, objectifs €10k)**
+
+#### État Actuel (TROP COMPLEXE)
+
+- 3 modes : Overview, Detailed, Trends
+- Top 5 plats, tendances 30j, satisfaction client
+- Objectifs revenue €10k, projections, recommandations auto
+
+#### ❌ À SUPPRIMER
+
+- [ ] 💜 Supprimer "Insights & Recommandations" (paternaliste)
+- [ ] 💜 Supprimer "Objectif revenue €10k" (pression inutile)
+- [ ] 💜 Supprimer "Projections fin de mois" (boule de cristal)
+- [ ] 💜 Supprimer "Taux de rétention" (marketing)
+- [ ] 💜 Supprimer vue "Detailed" (trop complexe)
+
+#### ✅ À GARDER (si page conservée)
+
+- Top 5 plats les plus commandés (utile pour savoir quoi préparer)
+- Nombre de commandes par jour de la semaine (pour planning)
+
+#### 💜 OU OPTION RADICALE
+
+- [ ] 💜 **Supprimer la page entière** : Fusionner les 2-3 infos utiles dans /admin/courses (stock)
+
+### ⚙️ L. Page Admin / Paramètres (/admin/parametres) - ✅ EXISTE
+
+**Fichier** : `app/admin/parametres/page.tsx`
+
+**6 catégories de paramètres :**
+- Général : Nom restaurant, description, horaires, téléphone, adresse, max commandes/créneau
+- Notifications : Email/SMS, alertes nouvelle commande, alertes stock, email admin
+- Sécurité : Timeout session, vérification téléphone, tentatives login, exigences mot de passe
+- Paiements : Méthodes paiement, montant minimum, frais livraison, taux TVA
+- Apparence : Couleurs thème, infos nutritionnelles, allergènes, langue
+- Intégrations : Google Analytics, Facebook Pixel, Google Reviews, contact WhatsApp
+
+### 📦 M. Page Admin / Courses (/admin/courses) - ✅ EXISTE
+
+**Fichier** : `app/admin/courses/page.tsx`
+
+**Gestion stock & listes de courses :**
+- Onglet "Articles du Catalogue" : Inventaire produits avec statut (Disponible/Rupture/En commande)
+- Onglet "Listes de Courses" : Gestion listes achats avec statut (Brouillon/Validée/Commandée/Livrée)
+- Métriques : Total articles, articles en rupture, valeur stock, coût estimé listes actives
+
+### 🔧 N. Page Admin / Avancé (/admin/advanced) - ✅ EXISTE
+
+**Fichier** : `app/admin/advanced/page.tsx`
+
+**Configuration technique (6 catégories) :**
+- Base de données : Connexion, pool, timeout, SSL, backups auto
+- Sécurité : JWT, rate limiting, IPs autorisées, 2FA, durée session
+- Performance : Cache, TTL, gzip, CDN, workers
+- API & Webhooks : Version API, CORS, secrets webhooks, throttling
+- Monitoring : Alertes, rétention métriques, niveau logs
+- Backup : Fréquence, rétention, compression, encryption
+
+---
+
+## 📱 Phase 3.5 : Responsive & Mobile (🔥🔥 HAUTE)
+
+**Objectif : Optimiser l'expérience mobile client ET admin**
+
+### État Actuel du Code
+
+**Hooks existants** (`hooks/use-mobile.tsx`) :
+- ✅ `useIsMobile()` - Détecte < 768px
+- ✅ `useIsTablet()` - Détecte 768-1023px
+- ✅ `useBreakpoints()` - Retourne {isMobile, isTablet, isDesktop}
+
+**Composants responsive existants** :
+- ✅ `Sidebar.tsx` - Hamburger menu mobile, sidebar desktop
+- ✅ `Header.tsx` - Navigation responsive
+- ✅ `Drawer` (Vaul) - Bottom-up drawer mobile
+- ✅ `Sheet` - Side panel responsive
+- ✅ `ResponsiveDateSelector.tsx` - Sélecteur date adaptatif
+
+**PWA existante** :
+- ✅ Service Worker registration
+- ✅ Apple Web App metadata
+- ✅ `SectionPWA.tsx` - UI installation
+- ✅ `OfflineBanner.tsx` - Indicateur hors-ligne
+
+### 💜 Améliorations Mobile à Implémenter
+
+#### Navigation Mobile Client
+
+- [ ] 💜 **Bottom Navigation Bar** : Barre fixe en bas avec icônes (Accueil, Commander, Panier, Profil) - pattern mobile 2025
+- [ ] 💜 **Pull-to-refresh** : Geste natif pour rafraîchir les données (react-pull-to-refresh)
+- [ ] 💜 **Swipe gestures** : Glisser pour supprimer du panier, changer statut commande
+
+#### Panier Mobile
+
+- [ ] 💜 **Bottom Sheet panier** : Remplacer sidebar par bottom sheet glissant (Vaul déjà installé)
+- [ ] 💜 **Sticky cart button** : Bouton panier flottant avec badge quantité
+- [ ] 💜 **Haptic feedback** : Vibration au clic sur boutons (navigator.vibrate - gratuit, natif)
+
+#### Admin Mobile
+
+- [ ] 💜 **Vue Kanban swipeable** : Colonnes swipeable horizontalement sur mobile
+- [ ] 💜 **Quick actions pouce** : Boutons grosses icônes accessibles d'un pouce
+- [ ] 💜 **Notifications push admin** : Alerte nouvelle commande même app fermée
+
+#### PWA Améliorations
+
+- [ ] 💜 **Splash screen Chanthana** : Écran de démarrage personnalisé avec logo animé
+- [ ] 💜 **App shortcuts** : Raccourcis PWA (Commander, Historique) depuis l'icône
+- [ ] 💜 **Badge notifications** : Badge sur icône PWA (nombre commandes non lues)
+- [ ] 💜 **Background sync** : Sync commandes hors-ligne quand connexion revient
 
 ---
 
@@ -1682,6 +2256,129 @@ Next.js App → Webhook POST → n8n → Fan-out multicanal
 - [ ] 🔥 **Résumé quotidien** : Cron 8h30 - Email admin stats jour (commandes/événements)
 - [ ] 🔥 **Alertes anomalies** : Détection commandes sans client, doublons, erreurs
 
+#### 💜 Suggestions Pratiques n8n
+
+- [ ] 💜 **Backup workflows** : Export automatique JSON des workflows n8n (cron hebdo vers Git)
+- [ ] 💜 **Dashboard monitoring** : Page admin affichant statut des derniers webhooks (succès/erreurs)
+- [ ] 💜 **Mode test workflows** : Flag "test_mode" pour envoyer tous les emails à admin seulement
+
+---
+
+### 🆕 F. Templates n8n.io Recommandés (Ne pas réinventer la roue !)
+
+**Source : [n8n.io/workflows](https://n8n.io/workflows/) - Templates gratuits prêts à l'emploi**
+
+#### 📱 WhatsApp Business Automation
+
+| Template | Lien | Adaptation Restaurant |
+|----------|------|----------------------|
+| **AI-Powered WhatsApp Assistant for Restaurants** | [n8n #3043](https://n8n.io/workflows/3043-ai-powered-whatsapp-assistant-for-restaurants-and-delivery-automation/) | Chatbot IA pour prises de commandes WhatsApp, statuts automatiques |
+| **Restaurant Order & Menu Management with Google Gemini** | [n8n #5096](https://n8n.io/workflows/5096-ai-powered-restaurant-order-and-menu-management-with-whatsapp-and-google-gemini/) | Menu dans Google Sheets, IA répond "C'est épicé ?" en FR/TH/EN |
+| **WhatsApp Starter Workflow** | [n8n #2162](https://n8n.io/workflows/2162-whatsapp-starter-workflow/) | Auto-réponses basiques "Merci pour votre commande !" |
+| **Product Training & Customer Support via WhatsApp + GPT-4** | [n8n #3379](https://n8n.io/workflows/3379-automate-product-training-and-customer-support-via-whatsapp-gpt-4-and-google-sheets/) | FAQ automatisée ("Vous êtes ouverts quand ?") |
+
+#### 📸 Réseaux Sociaux (Instagram/Facebook/X)
+
+| Template | Lien | Adaptation Restaurant |
+|----------|------|----------------------|
+| **Instagram Single Image Post avec Facebook API** | [n8n #2537](https://n8n.io/workflows/2537-simple-social-instagram-single-image-post-with-facebook-api/) | Post quotidien plat du jour (pas de rate limiting) |
+| **Instagram & Facebook avec System User Tokens** | [n8n #5457](https://n8n.io/workflows/5457-automate-instagram-and-facebook-posting-with-meta-graph-api-and-system-user-tokens/) | Tokens sécurisés, planification avancée |
+| **Instagram Posts avec Google Drive + AI Captions** | [n8n #3478](https://n8n.io/workflows/3478-automate-instagram-posts-with-google-drive-ai-captions-and-facebook-api/) | Photos dans Drive, IA génère légendes automatiques |
+| **Social Media Content AI (IG, FB, LinkedIn, X)** | [n8n #4637](https://n8n.io/workflows/4637-automate-social-media-content-with-ai-for-instagram-facebook-linkedin-and-x/) | Multi-plateformes, génération idées + images |
+
+#### 📧 Notifications Email
+
+| Template | Lien | Adaptation Restaurant |
+|----------|------|----------------------|
+| **E-commerce Order Processing avec Email & Webhooks** | [n8n #7518](https://n8n.io/workflows/7518-automate-e-commerce-order-processing-with-email-notifications-and-webhooks/) | Email client + notification cuisine + email livreur |
+| **Delivery Confirmation (Telegram + Gmail)** | [n8n #3204](https://n8n.io/workflows/3204-automate-delivery-confirmation-with-telegram-bot-google-drive-and-gmail/) | Email remerciement + reçu automatique |
+
+#### 📲 SMS Automation (Twilio)
+
+| Template | Lien | Adaptation Restaurant |
+|----------|------|----------------------|
+| **Send SMS/WhatsApp avec Twilio** | [n8n #401](https://n8n.io/workflows/401-send-an-smswhatsapp-message-with-twilio/) | "Votre commande #123 est prête !" |
+| **Appointment Reminders via SMS + Webhook** | [n8n #6932](https://n8n.io/workflows/6932-send-automated-appointment-reminders-via-sms-with-twilio-webhook/) | Rappel réservation table 1h avant |
+| **Google Sheets + Twilio Bulk SMS** | [n8n #8684](https://n8n.io/workflows/8684-google-sheets-send-sms-with-twilio-bulk-sms-automation-simplified/) | SMS promo ("Plat du jour : Pad Krapow !") |
+| **AI-Powered SMS Support (Twilio + GPT-4 + PostgreSQL)** | [n8n #9220](https://n8n.io/workflows/9220-build-an-ai-powered-sms-support-system-with-twilio-gpt-4-and-postgresql/) | Réponses IA aux questions SMS |
+
+#### 📊 Google Sheets & Reporting
+
+| Template | Lien | Adaptation Restaurant |
+|----------|------|----------------------|
+| **Restaurant Food Waste Prediction (Gemini AI)** | [n8n #5982](https://n8n.io/workflows/5982-predict-restaurant-food-waste-with-gemini-ai-and-google-sheets-reporting/) | Prédiction demande "Samedi = +30% green curry" |
+| **Restaurant Sales & Inventory Forecasting** | [n8n #5983](https://n8n.io/workflows/5983-automate-restaurant-sales-and-inventory-forecasting-with-gemini-ai-and-google-sheets/) | Recommandations stock (20kg riz, 5L lait coco) |
+| **Workflow Inventory Dashboard** | [n8n #9113](https://n8n.io/workflows/9113-create-workflow-inventory-dashboard-with-n8n-api-and-google-sheets/) | Dashboard stock temps réel |
+| **Google Business Reviews + AI Responses** | [n8n #6590](https://n8n.io/workflows/6590-automate-google-business-reviews-with-ai-responses-slack-alerts-and-sheets-logging/) | Réponses automatiques avis Google, alertes 1 étoile |
+
+#### 🔐 Webhooks Sécurisés
+
+| Template | Lien | Adaptation Restaurant |
+|----------|------|----------------------|
+| **Creating a Secure Webhook (MUST HAVE)** | [n8n #5174](https://n8n.io/workflows/5174-creating-a-secure-webhook-must-have/) | Clé API obligatoire sur webhooks |
+| **Dynamic Workflows via Webhooks & n8n API** | [n8n #4544](https://n8n.io/workflows/4544-create-dynamic-workflows-programmatically-via-webhooks-and-n8n-api/) | Création workflows programmatique |
+
+#### 🍽️ Templates Spéciaux Restaurant
+
+| Template | Lien | Adaptation Restaurant |
+|----------|------|----------------------|
+| **Restaurant Marketing & Booking (Excel + VAPI Voice)** | [n8n #5890](https://n8n.io/workflows/5890-automate-restaurant-marketing-and-booking-with-excel-vapi-voice-agent-and-calendar/) | Agent vocal pour réservations téléphoniques |
+| **AI Restaurant Order Chatbot (GPT-4o + POS)** | [n8n #3942](https://n8n.io/workflows/3942-ai-powered-restaurant-order-chatbot-with-gpt-4o-for-pos-integration/) | Chatbot commandes avec intégration caisse |
+| **Restaurant Order & Delivery (WhatsApp + GPT-4o + Supabase)** | [n8n #7298](https://n8n.io/workflows/7298-restaurant-order-and-delivery-system-for-whatsapp-with-gpt-4o-and-supabase/) | Système complet WhatsApp → Supabase |
+
+---
+
+### 💜 G. Plan de Déploiement Recommandé (Progressif)
+
+**Objectif : Déployer en 5 semaines, en ordre de valeur ajoutée**
+
+#### Semaine 1 : Commandes WhatsApp (Gratuit)
+- [ ] 💜 Déployer template **#5096** (WhatsApp + Gemini)
+- [ ] 💜 Créer Google Sheet avec menu (plats, prix, descriptions)
+- [ ] 💜 Configurer WhatsApp Business API (gratuit)
+- [ ] 💜 Tester avec numéro personnel d'abord
+
+#### Semaine 2 : Notifications Client (15€/mois Twilio)
+- [ ] 💜 Déployer template **#7518** (Email commandes)
+- [ ] 💜 Déployer template **#401** (SMS Twilio basique)
+- [ ] 💜 Configurer webhooks `/api/n8n/commande-status`
+- [ ] 💜 Tester flux complet : Commande → Email → SMS "Prête"
+
+#### Semaine 3 : Réseaux Sociaux (Gratuit)
+- [ ] 💜 Déployer template **#3478** (Instagram + Drive + AI)
+- [ ] 💜 Créer dossier Google Drive "Photos Plats"
+- [ ] 💜 Configurer tokens Meta Graph API
+- [ ] 💜 Planifier posts automatiques 18h (heure dîner)
+
+#### Semaine 4 : Reporting & Prédiction (Gratuit)
+- [ ] 💜 Déployer template **#5982** (Prédiction gaspillage)
+- [ ] 💜 Créer Sheet "Ventes Quotidiennes"
+- [ ] 💜 Configurer email rapport hebdomadaire
+- [ ] 💜 Tester recommandations stock
+
+#### Semaine 5 : Avis & Réputation (Gratuit)
+- [ ] 💜 Déployer template **#6590** (Google Reviews)
+- [ ] 💜 Configurer alerte Telegram avis négatifs
+- [ ] 💜 Paramétrer réponses IA personnalisées
+- [ ] 💜 Créer dashboard avis Google Sheets
+
+---
+
+### 💰 H. Estimation Coûts (Tier Gratuit vs Payant)
+
+| Service | Tier Gratuit | Payant (si dépassement) |
+|---------|--------------|------------------------|
+| **n8n** | Self-hosted OU Cloud free (5 workflows) | 20€/mois (illimité) |
+| **WhatsApp Business API** | ✅ Gratuit (messages initiés par client) | 0.05€/message initié par business |
+| **Google Gemini AI** | ✅ 15 req/min gratuit | 0.001€/1K tokens |
+| **Google Sheets** | ✅ 15GB gratuit | - |
+| **Twilio SMS** | 15€ crédits offerts (~40 SMS FR) | 0.08€/SMS FR |
+| **Meta Graph API** | ✅ Gratuit (compte Business) | - |
+| **Gmail/SMTP** | ✅ 500 emails/jour | Brevo 20€/mois (10K emails) |
+
+**Budget minimum : 0€/mois** (tout en tier gratuit, SMS limités)
+**Budget confortable : 35€/mois** (n8n cloud + Twilio recharge)
+
 ---
 
 ## 📧 Phase 5 : React Email - Templates Détaillés (🔥 BASSE)
@@ -1733,6 +2430,12 @@ Next.js App → Webhook POST → n8n → Fan-out multicanal
 - [ ] Tests dark mode (Apple Mail, Gmail)
 - [ ] Tests accessibilité (screen readers, contraste couleurs)
 
+#### 💜 Suggestions Pratiques React Email
+
+- [ ] 💜 **Preview live emails** : Page admin `/admin/emails/preview` pour voir rendu temps réel
+- [ ] 💜 **Chanthana header** : Bannière Chanthana réutilisable dans tous les emails (composant partagé)
+- [ ] 💜 **Footer personnalisé** : Signature "La famille Chanthana" avec mini-avatar animé GIF
+
 ---
 
 ## 🌍 Phase 6 : Internationalization (🔥 BASSE)
@@ -1760,6 +2463,12 @@ Next.js App → Webhook POST → n8n → Fan-out multicanal
 - [ ] Tests SSR (génération pages statiques par langue)
 - [ ] Tests SEO (hreflang tags, URLs multilingues)
 - [ ] Validation traductions thaï (review native speaker)
+
+#### 💜 Suggestions Pratiques i18n
+
+- [ ] 💜 **Drapeau animé** : Animation drapeau au clic sur LocaleSwitcher (CSS keyframes)
+- [ ] 💜 **Chanthana polyglotte** : Avatar Chanthana qui change de tenue selon la langue (wai thaï, béret français, etc.)
+- [ ] 💜 **Détection automatique** : Proposer automatiquement le thaï aux visiteurs avec navigateur en thaï
 
 ---
 
@@ -1797,6 +2506,16 @@ Next.js App → Webhook POST → n8n → Fan-out multicanal
 - [ ] Guide déploiement : Steps production Hetzner
 - [ ] Guide contribution : Pour futurs développeurs
 - [ ] Changelog : Documenter toutes versions majeures
+
+#### 💜 Suggestions Pratiques Production
+
+- [ ] 💜 **View Transitions API** : Transitions fluides entre pages (natif Chrome/Edge 2025, gratuit)
+- [ ] 💜 **Scroll-driven animations** : Animations au scroll avec CSS natif `animation-timeline` (gratuit)
+- [ ] 💜 **Prefers-reduced-motion** : Respecter les préférences utilisateur pour animations (accessibilité)
+- [ ] 💜 **Image placeholders LQIP** : Blur-up images avec plaiceholder (gratuit, Next.js natif)
+- [ ] 💜 **Service Worker amélioré** : Background Sync pour commandes hors-ligne (retry auto quand connexion revient)
+- [ ] 💜 **Page 404 Chanthana** : Page d'erreur avec Chanthana perdue qui cherche avec une loupe (animation Lottie)
+- [ ] 💜 **Loading skeleton Chanthana** : Remplacer spinners par skeleton avec silhouette Chanthana
 
 ---
 
@@ -1876,6 +2595,30 @@ Fallback logic: Push PWA → Email → SMS/WhatsApp
 - Cohérence visuelle avec mascotte unique du restaurant
 - Humanisation et authenticité de l'expérience client
 - Identité de marque forte et mémorable
+
+#### 💜 Visuels Chanthana à Générer (IA Générative)
+
+- [ ] 💜 **Chanthana wai accueil** : Animation 3s de Chanthana faisant le salut thaï traditionnel (format Lottie ou GIF)
+- [ ] 💜 **Chanthana cuisine** : Animation de Chanthana qui remue un wok (pour loading states)
+- [ ] 💜 **Chanthana pouce levé** : Animation rapide (1s) pour confirmations et succès
+- [ ] 💜 **Chanthana triste** : Animation légère pour erreurs ou suppressions (empathique, pas dramatique)
+- [ ] 💜 **Chanthana fête** : Animation avec confettis pour célébrations (commande prête, anniversaire)
+- [ ] 💜 **Chanthana traiteur** : Version Chanthana avec plateau/buffet pour page événements
+- [ ] 💜 **Chanthana épices** : Animation avec différents niveaux de piment (0-3 flammes)
+- [ ] 💜 **Chanthana cherche** : Chanthana avec loupe pour page 404 ou recherche vide
+- [ ] 💜 **Chanthana timer** : Animation chrono/sablier pour états d'attente
+- [ ] 💜 **Chanthana nuit** : Version avec toque de nuit pour mode sombre (futur)
+
+#### 💜 Composants 21st.dev à Intégrer (Gratuits, shadcn-compatible)
+
+- [ ] 💜 **Tilt Card 3D** : `npx shadcn@latest add "https://21st.dev/r/llaxmi/tilt-card"` - Effet 3D sur les cards plats au hover
+- [ ] 💜 **Glassmorphism Card** : Effet verre dépoli moderne pour le Hero overlay
+- [ ] 💜 **Glow Effect Card** : Effet lueur au hover pour les plats vedettes
+- [ ] 💜 **Magic Card** : Effet reflet arc-en-ciel au mouvement de souris
+- [ ] 💜 **Animated Cards** : Collection de cards avec animations modernes pour NavigationCards
+- [ ] 💜 **3D Interactive Element** : Potentiel pour animation Chanthana 3D interactive
+
+**Installation** : `npx shadcn@latest add "https://21st.dev/r/[author]/[component]"`
 
 ### Budget Mensuel Estimé (Nov 2025)
 

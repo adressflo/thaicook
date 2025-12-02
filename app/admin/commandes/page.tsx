@@ -1,11 +1,20 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { toSafeNumber } from "@/lib/serialization"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { DateSelector } from "@/components/forms/DateSelector"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import {
   Select,
   SelectContent,
@@ -14,79 +23,68 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
 import { useSession } from "@/lib/auth-client"
+import { toSafeNumber } from "@/lib/serialization"
 import { useRouter } from "next/navigation"
-import { DateSelector } from "@/components/forms/DateSelector"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog"
-import { Textarea } from "@/components/ui/textarea"
-import { Label } from "@/components/ui/label"
+import { useEffect, useState } from "react"
 // import { UnifiedExtraModal } from '@/components/admin/UnifiedExtraModal'; // Temporarily commented out
+import { SmartSpice } from "@/components/shared/SmartSpice"
+import { Spice } from "@/components/shared/Spice"
+import { useImageUpload } from "@/hooks/useImageUpload"
 import {
-  ShoppingBasket,
-  Clock,
-  CheckCircle,
-  Eye,
-  Search,
-  Calendar,
-  Euro,
-  User,
+  usePrismaAddExtraToCommande,
+  usePrismaAddPlatToCommande,
+  usePrismaCommandeById,
+  usePrismaCommandes,
+  usePrismaCreateExtra,
+  usePrismaExtras,
+  usePrismaPlats,
+  usePrismaRemovePlatFromCommande,
+  usePrismaToggleEpingleCommande,
+  usePrismaToggleOffertDetail,
+  usePrismaUpdateCommande,
+  usePrismaUpdatePlatQuantite,
+  usePrismaUpdateSpiceDistribution,
+  usePrismaUpdateSpiceLevel,
+} from "@/hooks/usePrismaData"
+import { useCommandesRealtime } from "@/hooks/useSupabaseData"
+import { spiceLevelToText } from "@/lib/spice-helpers"
+import type { CommandeUI, CommandeUpdate } from "@/types/app"
+import { format, isFuture, isPast, isToday } from "date-fns"
+import { fr } from "date-fns/locale"
+import {
   AlertTriangle,
-  Package,
-  Download,
-  RefreshCw,
-  X,
+  ArrowLeft,
+  Calendar,
+  Check,
+  CheckCircle,
   ChefHat,
-  MessageSquare,
-  MessageCircle,
-  Plus,
-  Trash2,
   ClipboardCheck,
+  Clock,
+  Download,
+  Euro,
+  Eye,
+  Gift,
+  Loader2,
+  MapPin,
+  MessageCircle,
+  MessageSquare,
+  Package,
   Package2,
   PackageCheck,
-  Check,
-  ArrowLeft,
-  MapPin,
   Phone,
   Pin,
   PinOff,
-  Gift,
-  Loader2,
+  Plus,
+  RefreshCw,
+  Search,
+  ShoppingBasket,
+  Trash2,
+  User,
+  X,
 } from "lucide-react"
-import {
-  usePrismaCommandes,
-  usePrismaUpdateCommande,
-  usePrismaToggleEpingleCommande,
-  usePrismaToggleOffertDetail,
-  usePrismaUpdatePlatQuantite,
-  usePrismaUpdateSpiceLevel,
-  usePrismaUpdateSpiceDistribution,
-  usePrismaRemovePlatFromCommande,
-  usePrismaAddPlatToCommande,
-  usePrismaPlats,
-  usePrismaCommandeById,
-  usePrismaExtras,
-  usePrismaCreateExtra,
-  usePrismaAddExtraToCommande,
-} from "@/hooks/usePrismaData"
-import { useCommandesRealtime } from "@/hooks/useSupabaseData"
-import { useImageUpload } from "@/hooks/useImageUpload"
-import { format, isToday, isPast, isFuture } from "date-fns"
-import { fr } from "date-fns/locale"
-import type { CommandeUI, CommandeUpdate } from "@/types/app"
-import { spiceLevelToText, getSpiceFlameCount } from "@/lib/spice-helpers"
-import { SmartSpice } from "@/components/shared/SmartSpice"
-import { getDistributionText } from "@/lib/spice-helpers"
-import { Spice } from "@/components/shared/Spice"
-import { Flame, Leaf } from "lucide-react"
 
 // Composant pour les actions rapides selon le statut
 const QuickActionButtons = ({
@@ -141,7 +139,7 @@ const QuickActionButtons = ({
   return (
     <div className="flex min-h-[32px] items-center">
       <Select value={displayStatus} onValueChange={handleStatusChange} disabled={isLoading}>
-        <SelectTrigger className="border-thai-orange/40 to-thai-cream/20 hover:from-thai-orange/10 hover:to-thai-orange/20 hover:border-thai-orange focus:border-thai-orange group h-12 w-auto max-w-[250px] min-w-[200px] rounded-xl border-2 bg-gradient-to-r from-white text-xl font-bold shadow-lg backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-xl">
+        <SelectTrigger className="border-thai-orange/40 to-thai-cream/20 hover:from-thai-orange/10 hover:to-thai-orange/20 hover:border-thai-orange focus:border-thai-orange group h-12 w-auto max-w-[250px] min-w-[200px] rounded-xl border-2 bg-linear-to-r from-white text-xl font-bold shadow-lg backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-xl">
           <SelectValue />
           {isLoading && <RefreshCw className="text-thai-orange ml-2 h-4 w-4 animate-spin" />}
         </SelectTrigger>
@@ -1648,7 +1646,7 @@ export default function AdminCommandes() {
 
           {/* Navigation par date */}
           <div className="border-thai-orange/10 border-b px-6 pb-4">
-            <div className="from-thai-cream/30 to-thai-gold/10 flex flex-col items-center justify-between gap-3 rounded-lg bg-gradient-to-r p-4 sm:flex-row">
+            <div className="from-thai-cream/30 to-thai-gold/10 flex flex-col items-center justify-between gap-3 rounded-lg bg-linear-to-r p-4 sm:flex-row">
               <div className="flex flex-wrap items-center justify-center gap-2">
                 <Button
                   variant="outline"
@@ -2274,7 +2272,7 @@ const CommandeCard = ({
           {commande.date_et_heure_de_retrait_souhaitees && (
             <div className="absolute top-4 left-1/2 z-10 -translate-x-1/2 transform">
               <div className="group relative">
-                <div className="from-thai-green to-thai-orange flex min-w-[200px] transform flex-col items-center justify-center rounded-xl bg-gradient-to-br px-6 py-4 text-white shadow-lg transition-all duration-200 hover:scale-105 hover:-rotate-1 hover:shadow-xl">
+                <div className="from-thai-green to-thai-orange flex min-w-[200px] transform flex-col items-center justify-center rounded-xl bg-linear-to-br px-6 py-4 text-white shadow-lg transition-all duration-200 hover:scale-105 hover:-rotate-1 hover:shadow-xl">
                   <div className="mb-2 flex items-center gap-3">
                     <Calendar className="h-6 w-6 transition-transform duration-200 group-hover:scale-110" />
                     <div className="text-center text-2xl font-black">
@@ -2303,7 +2301,7 @@ const CommandeCard = ({
                     </div>
                   )}
                 </div>
-                <div className="from-thai-green/60 to-thai-orange/60 absolute -inset-0.5 rounded-xl bg-gradient-to-br opacity-0 transition-opacity duration-200 group-hover:opacity-40" />
+                <div className="from-thai-green/60 to-thai-orange/60 absolute -inset-0.5 rounded-xl bg-linear-to-br opacity-0 transition-opacity duration-200 group-hover:opacity-40" />
               </div>
             </div>
           )}
@@ -2311,7 +2309,7 @@ const CommandeCard = ({
           {/* Interface de modification d'heure - design Thai */}
           {commande.date_et_heure_de_retrait_souhaitees && isEditingTime && (
             <div className="absolute top-32 left-1/2 z-20 -translate-x-1/2 transform">
-              <div className="from-thai-cream border-thai-orange/20 flex flex-col items-center gap-3 rounded-xl border-2 bg-gradient-to-br to-white p-4 shadow-xl">
+              <div className="from-thai-cream border-thai-orange/20 flex flex-col items-center gap-3 rounded-xl border-2 bg-linear-to-br to-white p-4 shadow-xl">
                 <div className="text-thai-green mb-1 text-sm font-medium">
                   Nouvelle heure de retrait
                 </div>
@@ -3174,16 +3172,16 @@ const CommandeDetailsModal = ({
             </CardHeader>
             <CardContent className="space-y-4">
               {/* Informations client - Disposition améliorée */}
-              <div className="from-thai-orange/10 to-thai-gold/10 flex gap-4 rounded-lg bg-gradient-to-r p-4">
+              <div className="from-thai-orange/10 to-thai-gold/10 flex gap-4 rounded-lg bg-linear-to-r p-4">
                 {/* Photo/Avatar */}
                 {commande.client?.photo_client ? (
                   <img
                     src={commande.client.photo_client}
                     alt={`${commande.client?.prenom || ""} ${commande.client?.nom || ""}`.trim()}
-                    className="border-thai-orange/20 h-16 w-16 flex-shrink-0 rounded-full border-2 object-cover"
+                    className="border-thai-orange/20 h-16 w-16 shrink-0 rounded-full border-2 object-cover"
                   />
                 ) : (
-                  <div className="bg-thai-orange border-thai-orange/20 flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full border-2 text-xl font-bold text-white">
+                  <div className="bg-thai-orange border-thai-orange/20 flex h-16 w-16 shrink-0 items-center justify-center rounded-full border-2 text-xl font-bold text-white">
                     {commande.client?.prenom ? commande.client.prenom.charAt(0).toUpperCase() : "C"}
                   </div>
                 )}
@@ -3204,7 +3202,7 @@ const CommandeDetailsModal = ({
                     commande.client?.code_postal ||
                     commande.client?.ville) && (
                     <div className="flex items-start gap-2">
-                      <MapPin className="text-thai-orange mt-0.5 h-4 w-4 flex-shrink-0" />
+                      <MapPin className="text-thai-orange mt-0.5 h-4 w-4 shrink-0" />
                       <div className="text-sm text-gray-700">
                         {commande.client?.adresse_numero_et_rue && (
                           <div className="font-medium">{commande.client.adresse_numero_et_rue}</div>
@@ -3223,7 +3221,7 @@ const CommandeDetailsModal = ({
                   {/* 3. Email */}
                   {commande.client?.email && (
                     <div className="flex items-center gap-2">
-                      <MessageSquare className="text-thai-green h-4 w-4 flex-shrink-0" />
+                      <MessageSquare className="text-thai-green h-4 w-4 shrink-0" />
                       <a
                         href={`mailto:${commande.client.email}`}
                         className="text-thai-green hover:text-thai-green-dark text-sm font-medium transition-colors hover:underline"
@@ -3236,7 +3234,7 @@ const CommandeDetailsModal = ({
                   {/* 4. Numéro de téléphone avec lien d'appel */}
                   {commande.client?.numero_de_telephone && (
                     <div className="flex items-center gap-2">
-                      <Phone className="text-thai-orange h-4 w-4 flex-shrink-0" />
+                      <Phone className="text-thai-orange h-4 w-4 shrink-0" />
                       <a
                         href={`tel:${commande.client.numero_de_telephone}`}
                         className="text-thai-orange hover:text-thai-orange-dark flex items-center gap-1 text-sm font-medium transition-colors hover:underline"
@@ -3289,7 +3287,7 @@ const CommandeDetailsModal = ({
           {commande?.date_et_heure_de_retrait_souhaitees && (
             <div className="mb-6">
               <div className="group relative">
-                <div className="from-thai-green to-thai-orange mx-auto flex min-w-[200px] transform flex-col items-center justify-center rounded-xl bg-gradient-to-br px-6 py-4 text-white shadow-lg transition-all duration-200 hover:scale-105 hover:-rotate-1 hover:shadow-xl">
+                <div className="from-thai-green to-thai-orange mx-auto flex min-w-[200px] transform flex-col items-center justify-center rounded-xl bg-linear-to-br px-6 py-4 text-white shadow-lg transition-all duration-200 hover:scale-105 hover:-rotate-1 hover:shadow-xl">
                   <div className="mb-2 flex items-center gap-3">
                     <Calendar className="h-6 w-6 transition-transform duration-200 group-hover:scale-110" />
                     <div className="text-center text-2xl font-black">
@@ -3318,7 +3316,7 @@ const CommandeDetailsModal = ({
                     </div>
                   )}
                 </div>
-                <div className="from-thai-green/60 to-thai-orange/60 absolute -inset-0.5 rounded-xl bg-gradient-to-br opacity-0 transition-opacity duration-200 group-hover:opacity-40" />
+                <div className="from-thai-green/60 to-thai-orange/60 absolute -inset-0.5 rounded-xl bg-linear-to-br opacity-0 transition-opacity duration-200 group-hover:opacity-40" />
               </div>
             </div>
           )}
@@ -3326,7 +3324,7 @@ const CommandeDetailsModal = ({
           {/* Interface de modification d'heure dans le modal */}
           {commande?.date_et_heure_de_retrait_souhaitees && isEditingTime && (
             <div className="mb-6 flex justify-center">
-              <div className="from-thai-cream border-thai-orange/20 flex min-w-[280px] flex-col items-center gap-3 rounded-xl border-2 bg-gradient-to-br to-white p-4 shadow-xl">
+              <div className="from-thai-cream border-thai-orange/20 flex min-w-[280px] flex-col items-center gap-3 rounded-xl border-2 bg-linear-to-br to-white p-4 shadow-xl">
                 <div className="text-thai-green mb-1 text-sm font-medium">
                   Nouvelle heure de retrait
                 </div>
@@ -3403,7 +3401,7 @@ const CommandeDetailsModal = ({
                     }}
                     disabled={isStatusLoading}
                   >
-                    <SelectTrigger className="border-thai-orange/40 to-thai-cream/20 hover:from-thai-orange/10 hover:to-thai-orange/20 hover:border-thai-orange focus:border-thai-orange group h-10 w-auto max-w-[200px] min-w-[160px] rounded-xl border-2 bg-gradient-to-r from-white text-sm font-bold shadow-lg backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-xl">
+                    <SelectTrigger className="border-thai-orange/40 to-thai-cream/20 hover:from-thai-orange/10 hover:to-thai-orange/20 hover:border-thai-orange focus:border-thai-orange group h-10 w-auto max-w-[200px] min-w-[160px] rounded-xl border-2 bg-linear-to-r from-white text-sm font-bold shadow-lg backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-xl">
                       <SelectValue />
                       {isStatusLoading && (
                         <RefreshCw className="text-thai-orange ml-2 h-4 w-4 animate-spin" />
@@ -3568,7 +3566,7 @@ const CommandeDetailsModal = ({
       {/* Dialog d'ajout de plat */}
       {showAddPlatDialog && (
         <div
-          className="bg-opacity-50 fixed inset-0 z-[60] flex items-center justify-center bg-black p-4"
+          className="bg-opacity-50 fixed inset-0 z-60 flex items-center justify-center bg-black p-4"
           onClick={(e) => {
             // Fermer le modal si on clique sur l'arrière-plan
             if (e.target === e.currentTarget) {
@@ -3730,7 +3728,7 @@ const CommandeDetailsModal = ({
       {/* Modal Ajouter un Extra */}
       {false && (
         <div
-          className="bg-opacity-50 fixed inset-0 z-[70] flex items-center justify-center bg-black p-4"
+          className="bg-opacity-50 fixed inset-0 z-70 flex items-center justify-center bg-black p-4"
           onClick={(e) => {
             // Fermer le modal si on clique sur l'arrière-plan
             if (e.target === e.currentTarget) {

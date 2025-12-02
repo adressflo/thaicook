@@ -1,75 +1,75 @@
-﻿'use client';
+﻿"use client"
 
-import Link from 'next/link';
-import { AppLayout } from '@/components/layout/AppLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { MapPin, Phone, Mail, MessageCircle, Navigation, Home, Loader2, AlertCircle, ExternalLink } from 'lucide-react';
-import { useState } from 'react';
+import { AppLayout } from "@/components/layout/AppLayout"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  AlertCircle,
+  ExternalLink,
+  Home,
+  Loader2,
+  Mail,
+  MapPin,
+  MessageCircle,
+  Navigation,
+  Phone,
+} from "lucide-react"
+import Link from "next/link"
+import { useState } from "react"
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic"
 
 export default function NousTrouverPage() {
-  const [mapLoading, setMapLoading] = useState(true);
-  const [mapError, setMapError] = useState(false);
-  
-  const address = '2 impasse de la poste, 37120 Marigny-Marmande, France';
-  const encodedAddress = encodeURIComponent(address);
+  const [mapLoading, setMapLoading] = useState(true)
+  const [mapError, setMapError] = useState(false)
+
+  const address = "2 impasse de la poste, 37120 Marigny-Marmande, France"
+  const encodedAddress = encodeURIComponent(address)
 
   // URL pour le bouton d'itinéraire Google Maps (ouvre Google Maps)
-  const googleMapsDirectionUrl = `https://maps.google.com/?q=${encodedAddress}`;
+  const googleMapsDirectionUrl = `https://maps.google.com/?q=${encodedAddress}`
   // URL pour le bouton d'itinéraire Waze
-  const wazeUrl = `https://waze.com/ul?q=${encodedAddress}&navigate=yes`;
+  const wazeUrl = `https://waze.com/ul?q=${encodedAddress}&navigate=yes`
   // URL pour l'iframe Google Maps (carte intégrée)
   // IMPORTANT : N'oubliez pas de remplacer VOTRE_CLE_API_GOOGLE_MAPS par votre véritable clé API.
-  const googleMapsEmbedUrl = `https://maps.google.com/maps?q=${encodedAddress}&hl=fr&z=15&output=embed&key=VOTRE_CLE_API_GOOGLE_MAPS`;
+  const googleMapsEmbedUrl = `https://maps.google.com/maps?q=${encodedAddress}&hl=fr&z=15&output=embed&key=VOTRE_CLE_API_GOOGLE_MAPS`
 
   const handleMessengerClick = () => {
-    window.open('https://m.me/chanthanathaikok', '_blank');
-  };
+    window.open("https://m.me/chanthanathaikok", "_blank")
+  }
 
   const handleWhatsAppClick = () => {
     // Assurez-vous que le numéro est au format international sans '+' ni '00' au début pour wa.me
-    const whatsappNumber = '33749283707';
-    window.open(`https://wa.me/${whatsappNumber}`, '_blank');
-  };
+    const whatsappNumber = "33749283707"
+    window.open(`https://wa.me/${whatsappNumber}`, "_blank")
+  }
 
   return (
     <AppLayout>
-      <div className="min-h-screen bg-gradient-thai py-8 px-4">
+      <div className="bg-gradient-thai min-h-screen px-4 py-8">
         <div className="container mx-auto max-w-4xl">
           {/* Bouton retour optimisé - même style que page profil */}
           <div className="mb-6 flex justify-start">
             <Link href="/" passHref>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 size="sm"
-                className="
-                  bg-white/90 backdrop-blur-sm hover:bg-white 
-                  border-thai-orange/20 hover:border-thai-orange/40
-                  text-thai-green hover:text-thai-green 
-                  transition-all duration-200 
-                  shadow-md hover:shadow-lg
-                  rounded-full px-4 py-2
-                  group
-                "
+                className="border-thai-orange/20 hover:border-thai-orange/40 text-thai-green hover:text-thai-green group rounded-full bg-white/90 px-4 py-2 shadow-md backdrop-blur-sm transition-all duration-200 hover:bg-white hover:shadow-lg"
               >
-                <Home className="mr-2 h-4 w-4 group-hover:scale-110 transition-transform duration-200" />
+                <Home className="mr-2 h-4 w-4 transition-transform duration-200 group-hover:scale-110" />
                 <span className="hidden sm:inline">Retour à l'accueil</span>
                 <span className="sm:hidden">Accueil</span>
               </Button>
             </Link>
           </div>
-          
-          <Card className="shadow-xl border-thai-orange/20 mb-8 overflow-hidden animate-fade-in">
-            <CardHeader className="text-center bg-gradient-to-r from-thai-orange to-thai-gold text-white py-6">
-              <div className="flex items-center justify-center mb-2">
-                <MapPin className="h-8 w-8 mr-2" />
-                <CardTitle className="text-3xl font-bold">
-                  Nous Trouver
-                </CardTitle>
+
+          <Card className="border-thai-orange/20 animate-fade-in mb-8 overflow-hidden shadow-xl">
+            <CardHeader className="from-thai-orange to-thai-gold bg-linear-to-r py-6 text-center text-white">
+              <div className="mb-2 flex items-center justify-center">
+                <MapPin className="mr-2 h-8 w-8" />
+                <CardTitle className="text-3xl font-bold">Nous Trouver</CardTitle>
               </div>
-              <p className="text-white/90 text-sm mt-1">
+              <p className="mt-1 text-sm text-white/90">
                 2 impasse de la poste
                 <br />
                 37120 Marigny Marmande
@@ -78,35 +78,25 @@ export default function NousTrouverPage() {
             <CardContent className="p-4 sm:p-6 md:p-8">
               {/* Section Itinéraires optimisée */}
               <div className="mb-8">
-                <h3 className="text-lg font-semibold text-thai-green mb-4 text-center">
+                <h3 className="text-thai-green mb-4 text-center text-lg font-semibold">
                   🗺️ Obtenir un itinéraire
                 </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
                   <Button
-                    onClick={() => window.open(googleMapsDirectionUrl, '_blank')}
-                    className="
-                      w-full bg-blue-500 hover:bg-blue-600 text-white 
-                      py-3 rounded-lg shadow-md 
-                      transition-all duration-200 hover:scale-105 hover:shadow-lg
-                      group
-                    "
+                    onClick={() => window.open(googleMapsDirectionUrl, "_blank")}
+                    className="group w-full rounded-lg bg-blue-500 py-3 text-white shadow-md transition-all duration-200 hover:scale-105 hover:bg-blue-600 hover:shadow-lg"
                   >
-                    <Navigation className="h-4 w-4 sm:h-5 sm:w-5 mr-2 group-hover:scale-110 transition-transform" />
+                    <Navigation className="mr-2 h-4 w-4 transition-transform group-hover:scale-110 sm:h-5 sm:w-5" />
                     <span className="text-sm sm:text-base">Google Maps</span>
-                    <ExternalLink className="h-3 w-3 ml-2 opacity-70" />
+                    <ExternalLink className="ml-2 h-3 w-3 opacity-70" />
                   </Button>
                   <Button
-                    onClick={() => window.open(wazeUrl, '_blank')}
-                    className="
-                      w-full bg-cyan-500 hover:bg-cyan-600 text-white 
-                      py-3 rounded-lg shadow-md 
-                      transition-all duration-200 hover:scale-105 hover:shadow-lg
-                      group
-                    "
+                    onClick={() => window.open(wazeUrl, "_blank")}
+                    className="group w-full rounded-lg bg-cyan-500 py-3 text-white shadow-md transition-all duration-200 hover:scale-105 hover:bg-cyan-600 hover:shadow-lg"
                   >
-                    <Navigation className="h-4 w-4 sm:h-5 sm:w-5 mr-2 group-hover:scale-110 transition-transform" />
+                    <Navigation className="mr-2 h-4 w-4 transition-transform group-hover:scale-110 sm:h-5 sm:w-5" />
                     <span className="text-sm sm:text-base">Waze</span>
-                    <ExternalLink className="h-3 w-3 ml-2 opacity-70" />
+                    <ExternalLink className="ml-2 h-3 w-3 opacity-70" />
                   </Button>
                 </div>
               </div>
@@ -114,15 +104,15 @@ export default function NousTrouverPage() {
               {/* Carte Google Maps intégrée avec états de chargement */}
               <div className="mb-8">
                 <div className="relative">
-                  <h3 className="text-lg font-semibold text-thai-green mb-4 text-center">
+                  <h3 className="text-thai-green mb-4 text-center text-lg font-semibold">
                     📍 Notre localisation
                   </h3>
-                  
+
                   {/* État de chargement */}
                   {mapLoading && (
-                    <div className="absolute inset-0 bg-gray-100 rounded-lg flex items-center justify-center z-10">
+                    <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-gray-100">
                       <div className="flex flex-col items-center gap-3">
-                        <Loader2 className="h-8 w-8 animate-spin text-thai-orange" />
+                        <Loader2 className="text-thai-orange h-8 w-8 animate-spin" />
                         <p className="text-sm text-gray-600">Chargement de la carte...</p>
                       </div>
                     </div>
@@ -130,17 +120,15 @@ export default function NousTrouverPage() {
 
                   {/* État d'erreur */}
                   {mapError && (
-                    <div className="bg-orange-50 border border-orange-200 rounded-lg p-6 text-center">
-                      <AlertCircle className="h-8 w-8 text-orange-500 mx-auto mb-3" />
-                      <p className="text-orange-700 mb-4">
-                        Impossible de charger la carte. 
-                      </p>
+                    <div className="rounded-lg border border-orange-200 bg-orange-50 p-6 text-center">
+                      <AlertCircle className="mx-auto mb-3 h-8 w-8 text-orange-500" />
+                      <p className="mb-4 text-orange-700">Impossible de charger la carte.</p>
                       <Button
-                        onClick={() => window.open(googleMapsDirectionUrl, '_blank')}
+                        onClick={() => window.open(googleMapsDirectionUrl, "_blank")}
                         variant="outline"
                         className="border-orange-300 text-orange-700 hover:bg-orange-50"
                       >
-                        <ExternalLink className="h-4 w-4 mr-2" />
+                        <ExternalLink className="mr-2 h-4 w-4" />
                         Ouvrir dans Google Maps
                       </Button>
                     </div>
@@ -156,42 +144,34 @@ export default function NousTrouverPage() {
                       allowFullScreen
                       loading="lazy"
                       referrerPolicy="no-referrer-when-downgrade"
-                      className="rounded-lg shadow-lg w-full"
+                      className="w-full rounded-lg shadow-lg"
                       title="Carte de localisation Chanthanacook"
                       onLoad={() => setMapLoading(false)}
                       onError={() => {
-                        setMapLoading(false);
-                        setMapError(true);
+                        setMapLoading(false)
+                        setMapError(true)
                       }}
                     />
                   )}
                 </div>
               </div>
 
-              <div className="grid md:grid-cols-2 gap-x-6 lg:gap-x-8 gap-y-8">
+              <div className="grid gap-x-6 gap-y-8 md:grid-cols-2 lg:gap-x-8">
                 {/* Informations de contact */}
                 <div className="space-y-6">
-                  <div className="flex items-center justify-center md:justify-start mb-6">
-                    <img 
-                      src="/logo.ico" 
-                      alt="Chanthana Thai Cook" 
-                      className="w-8 h-8 mr-3"
-                    />
-                    <h3 className="text-xl font-semibold text-thai-green">
-                      Nos coordonnées
-                    </h3>
+                  <div className="mb-6 flex items-center justify-center md:justify-start">
+                    <img src="/logo.ico" alt="Chanthana Thai Cook" className="mr-3 h-8 w-8" />
+                    <h3 className="text-thai-green text-xl font-semibold">Nos coordonnées</h3>
                   </div>
-                  
+
                   {/* Adresse */}
-                  <div className="group flex items-start space-x-4 p-3 rounded-lg hover:bg-thai-cream/30 transition-all duration-200">
-                    <div className="p-2 bg-thai-orange/10 rounded-full group-hover:bg-thai-orange/20 transition-colors">
-                      <MapPin className="w-5 h-5 text-thai-orange" />
+                  <div className="group hover:bg-thai-cream/30 flex items-start space-x-4 rounded-lg p-3 transition-all duration-200">
+                    <div className="bg-thai-orange/10 group-hover:bg-thai-orange/20 rounded-full p-2 transition-colors">
+                      <MapPin className="text-thai-orange h-5 w-5" />
                     </div>
                     <div className="flex-1">
-                      <h4 className="font-semibold text-thai-green text-lg mb-1">
-                        Adresse
-                      </h4>
-                      <p className="text-sm text-thai-green/80 leading-relaxed">
+                      <h4 className="text-thai-green mb-1 text-lg font-semibold">Adresse</h4>
+                      <p className="text-thai-green/80 text-sm leading-relaxed">
                         2 impasse de la poste
                         <br />
                         37120 Marigny-Marmande
@@ -202,17 +182,15 @@ export default function NousTrouverPage() {
                   </div>
 
                   {/* Téléphone */}
-                  <div className="group flex items-start space-x-4 p-3 rounded-lg hover:bg-thai-cream/30 transition-all duration-200">
-                    <div className="p-2 bg-thai-orange/10 rounded-full group-hover:bg-thai-orange/20 transition-colors">
-                      <Phone className="w-5 h-5 text-thai-orange" />
+                  <div className="group hover:bg-thai-cream/30 flex items-start space-x-4 rounded-lg p-3 transition-all duration-200">
+                    <div className="bg-thai-orange/10 group-hover:bg-thai-orange/20 rounded-full p-2 transition-colors">
+                      <Phone className="text-thai-orange h-5 w-5" />
                     </div>
                     <div className="flex-1">
-                      <h4 className="font-semibold text-thai-green text-lg mb-1">
-                        Téléphone
-                      </h4>
+                      <h4 className="text-thai-green mb-1 text-lg font-semibold">Téléphone</h4>
                       <a
                         href="tel:+33749283707"
-                        className="text-base text-thai-orange hover:text-thai-orange-dark transition-colors font-medium hover:underline"
+                        className="text-thai-orange hover:text-thai-orange-dark text-base font-medium transition-colors hover:underline"
                       >
                         07 49 28 37 07
                       </a>
@@ -220,17 +198,15 @@ export default function NousTrouverPage() {
                   </div>
 
                   {/* Email */}
-                  <div className="group flex items-start space-x-4 p-3 rounded-lg hover:bg-thai-cream/30 transition-all duration-200">
-                    <div className="p-2 bg-thai-orange/10 rounded-full group-hover:bg-thai-orange/20 transition-colors">
-                      <Mail className="w-5 h-5 text-thai-orange" />
+                  <div className="group hover:bg-thai-cream/30 flex items-start space-x-4 rounded-lg p-3 transition-all duration-200">
+                    <div className="bg-thai-orange/10 group-hover:bg-thai-orange/20 rounded-full p-2 transition-colors">
+                      <Mail className="text-thai-orange h-5 w-5" />
                     </div>
                     <div className="flex-1">
-                      <h4 className="font-semibold text-thai-green text-lg mb-1">
-                        Email
-                      </h4>
+                      <h4 className="text-thai-green mb-1 text-lg font-semibold">Email</h4>
                       <a
                         href="mailto:chanthanacook@gmail.com"
-                        className="text-sm text-thai-orange hover:text-thai-orange-dark transition-colors hover:underline break-all"
+                        className="text-thai-orange hover:text-thai-orange-dark text-sm break-all transition-colors hover:underline"
                       >
                         chanthanacook@gmail.com
                       </a>
@@ -239,40 +215,30 @@ export default function NousTrouverPage() {
                 </div>
                 {/* Section contact direct */}
                 <div className="space-y-6">
-                  <h3 className="text-xl font-semibold text-thai-green mb-6 text-center md:text-left">
+                  <h3 className="text-thai-green mb-6 text-center text-xl font-semibold md:text-left">
                     💬 Contact direct
                   </h3>
-                  
+
                   {/* Messenger */}
                   <Button
                     onClick={handleMessengerClick}
-                    className="
-                      w-full bg-[#0084FF] hover:bg-[#0073E0] text-white 
-                      py-4 rounded-lg shadow-md 
-                      transition-all duration-200 hover:scale-105 hover:shadow-lg
-                      group
-                    "
+                    className="group w-full rounded-lg bg-[#0084FF] py-4 text-white shadow-md transition-all duration-200 hover:scale-105 hover:bg-[#0073E0] hover:shadow-lg"
                   >
-                    <MessageCircle className="h-5 w-5 mr-3 group-hover:scale-110 transition-transform" />
+                    <MessageCircle className="mr-3 h-5 w-5 transition-transform group-hover:scale-110" />
                     <div className="flex flex-col text-left">
                       <span className="font-semibold">Messenger</span>
                       <span className="text-xs opacity-90">Réponse rapide</span>
                     </div>
-                    <ExternalLink className="h-4 w-4 ml-auto opacity-70" />
+                    <ExternalLink className="ml-auto h-4 w-4 opacity-70" />
                   </Button>
-                  
+
                   {/* WhatsApp */}
                   <Button
                     onClick={handleWhatsAppClick}
-                    className="
-                      w-full bg-[#25D366] hover:bg-[#1EBE54] text-white 
-                      py-4 rounded-lg shadow-md 
-                      transition-all duration-200 hover:scale-105 hover:shadow-lg
-                      group
-                    "
+                    className="group w-full rounded-lg bg-[#25D366] py-4 text-white shadow-md transition-all duration-200 hover:scale-105 hover:bg-[#1EBE54] hover:shadow-lg"
                   >
                     <svg
-                      className="h-5 w-5 mr-3 fill-current group-hover:scale-110 transition-transform"
+                      className="mr-3 h-5 w-5 fill-current transition-transform group-hover:scale-110"
                       viewBox="0 0 24 24"
                       xmlns="http://www.w3.org/2000/svg"
                     >
@@ -282,34 +248,31 @@ export default function NousTrouverPage() {
                       <span className="font-semibold">WhatsApp</span>
                       <span className="text-xs opacity-90">07 49 28 37 07</span>
                     </div>
-                    <ExternalLink className="h-4 w-4 ml-auto opacity-70" />
+                    <ExternalLink className="ml-auto h-4 w-4 opacity-70" />
                   </Button>
-                  
                 </div>
               </div>
 
               {/* Section Horaires optimisée */}
-              <div className="mt-12 pt-8 border-t border-thai-orange/20">
-                <div className="text-center max-w-lg mx-auto">
-                  <h3 className="text-xl font-semibold text-thai-green mb-6">
+              <div className="border-thai-orange/20 mt-12 border-t pt-8">
+                <div className="mx-auto max-w-lg text-center">
+                  <h3 className="text-thai-green mb-6 text-xl font-semibold">
                     🕒 Nos Horaires de Commande
                   </h3>
-                  
-                  <div className="bg-gradient-to-r from-thai-orange/10 to-thai-gold/10 rounded-xl p-6 border border-thai-orange/20">
+
+                  <div className="from-thai-orange/10 to-thai-gold/10 border-thai-orange/20 rounded-xl border bg-linear-to-r p-6">
                     <div className="space-y-3">
-                      <div className="text-lg font-semibold text-thai-green">
+                      <div className="text-thai-green text-lg font-semibold">
                         Lundi • Mercredi • Vendredi • Samedi
                       </div>
-                      <div className="text-2xl font-bold text-thai-orange">
-                        18h00 - 20h30
-                      </div>
-                      <div className="text-sm text-thai-green/70 italic">
+                      <div className="text-thai-orange text-2xl font-bold">18h00 - 20h30</div>
+                      <div className="text-thai-green/70 text-sm italic">
                         Sur commande uniquement
                       </div>
                     </div>
-                    
-                    <div className="mt-4 pt-4 border-t border-thai-orange/20">
-                      <p className="text-xs text-thai-green/60">
+
+                    <div className="border-thai-orange/20 mt-4 border-t pt-4">
+                      <p className="text-thai-green/60 text-xs">
                         💡 Conseil : Commandez à l'avance pour garantir la disponibilité
                       </p>
                     </div>
@@ -321,5 +284,5 @@ export default function NousTrouverPage() {
         </div>
       </div>
     </AppLayout>
-  );
+  )
 }
