@@ -850,7 +850,7 @@ export function ModalVideo({
             "data-[state=closed]:animate-none! data-[state=closed]:duration-0!",
           // Si Manga Explosion est actif, on désactive les animations par défaut de Radix/Tailwind
           mangaExplosion &&
-            "manga-explosion-modal-exit data-[state=closed]:zoom-out-100! data-[state=closed]:fade-out-100! data-[state=closed]:slide-out-to-left-1/2! data-[state=closed]:slide-out-to-top-[50%]! data-[state=closed]:animate-none!"
+            "manga-explosion-modal-exit data-[state=closed]:zoom-out-100! data-[state=closed]:fade-out-100! data-[state=closed]:slide-out-to-left-1/2! data-[state=closed]:slide-out-to-top-[50%]! data-[state=closed]:duration-500!"
         )}
         style={{
           // Forcer styles en mode polaroid
