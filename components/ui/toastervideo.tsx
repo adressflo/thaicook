@@ -222,6 +222,8 @@ interface ToastVideoItemProps {
   redirectUrl?: string
   redirectBehavior?: RedirectBehavior
   showCloseButton?: boolean
+  animateOut?: boolean
+  mangaExplosion?: boolean
   className?: string
   [key: string]: unknown
 }
@@ -268,6 +270,8 @@ function ToastVideoItem({
   redirectUrl,
   redirectBehavior = "auto",
   showCloseButton = true,
+  animateOut = true,
+  mangaExplosion = false,
   ...props
 }: ToastVideoItemProps) {
   // Défauts différents selon le mode polaroid
@@ -520,6 +524,10 @@ function ToastVideoItem({
           rotation && "-rotate-2 hover:rotate-0",
           maxWidthMap[maxWidth],
           animateBorder && "overflow-visible!",
+          !animateOut &&
+            !mangaExplosion &&
+            "data-[state=closed]:animate-none! data-[state=closed]:duration-0!",
+          mangaExplosion && "manga-explosion-exit data-[state=closed]:duration-500!",
           props.className
         )}
       >
@@ -581,6 +589,10 @@ function ToastVideoItem({
         "min-w-[320px] overflow-hidden rounded-xl border-solid p-0",
         borderColorClass,
         maxWidthMap[maxWidth],
+        !animateOut &&
+          !mangaExplosion &&
+          "data-[state=closed]:animate-none! data-[state=closed]:duration-0!",
+        mangaExplosion && "manga-explosion-exit data-[state=closed]:duration-500!",
         props.className
       )}
       style={{ borderWidth: `${borderWidthValue}px`, ...getMovingBorderStyle() }}

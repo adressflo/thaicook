@@ -133,6 +133,18 @@ function ToasterPlayground() {
       shadowSize: props.shadowSize,
       maxWidth: props.maxWidth,
       titleColor: props.titleColor,
+      titleFontWeight: props.titleFontWeight,
+      descriptionColor: props.descriptionColor,
+      descriptionFontWeight: props.descriptionFontWeight,
+      animateBorder: props.animateBorder,
+      hoverScale: props.hoverScale,
+      rotation: props.rotation,
+      position: props.position,
+      customX: props.position === "custom" ? props.customX : undefined,
+      customY: props.position === "custom" ? props.customY : undefined,
+      redirectUrl: props.redirectUrl,
+      redirectBehavior: props.redirectBehavior,
+      typingAnimation: props.typingAnimation,
       typingSpeed: props.typingAnimation ? props.typingSpeed : undefined,
       mangaExplosion: props.mangaExplosion,
       animateOut: props.animateOut,
@@ -249,10 +261,12 @@ function ToasterPlayground() {
                 params.set("customY", props.customY)
                 params.set("redirectUrl", props.redirectUrl)
                 params.set("redirectBehavior", props.redirectBehavior)
-                params.set("typingAnimation", props.typingAnimation.toString())
+                params.set("redirectBehavior", props.redirectBehavior)
                 params.set("typingAnimation", props.typingAnimation.toString())
                 params.set("typingSpeed", props.typingSpeed.toString())
+                params.set("mangaExplosion", props.mangaExplosion.toString())
                 params.set("animateOut", props.animateOut.toString())
+                params.set("rotation", props.rotation.toString())
                 params.set("scrollingText", props.scrollingText.toString())
                 params.set("scrollDuration", props.scrollDuration.toString())
 
@@ -1077,7 +1091,11 @@ function ToasterVideoPlayground() {
                 params.set("polaroidPaddingTop", props.polaroidPaddingTop.toString())
                 params.set("polaroidPaddingBottom", props.polaroidPaddingBottom.toString())
                 params.set("titleFontWeight", props.titleFontWeight)
+                params.set("titleFontWeight", props.titleFontWeight)
                 params.set("descriptionFontWeight", props.descriptionFontWeight)
+                params.set("mangaExplosion", props.mangaExplosion.toString())
+                params.set("animateOut", props.animateOut.toString())
+                params.set("rotation", props.rotation.toString())
 
                 const channel = new BroadcastChannel("preview_channel")
                 channel.postMessage({
@@ -1830,6 +1848,16 @@ export default function ToastsPlaygroundPage() {
                       <strong>descriptionColor</strong>: "thai-green" | "thai-orange" | "gray" |
                       "black" | "inherit"
                     </li>
+                    <li>
+                      <strong>position</strong>: "bottom-right" | "bottom-left" | "top-right" |
+                      "top-left" | "center" | "custom"
+                    </li>
+                    <li>
+                      <strong>customX</strong> (string): Position X (si custom)
+                    </li>
+                    <li>
+                      <strong>customY</strong> (string): Position Y (si custom)
+                    </li>
                   </ul>
                 </div>
                 <Separator />
@@ -1844,6 +1872,29 @@ export default function ToastsPlaygroundPage() {
                     </li>
                     <li>
                       <strong>hoverScale</strong> (boolean): Effet scale au hover
+                    </li>
+                    <li>
+                      <strong>rotation</strong> (boolean): Animation rotation (-rotate-2
+                      hover:rotate-0)
+                    </li>
+                    <li>
+                      <strong>mangaExplosion</strong> (boolean): Animation Manga Explosion (Orange
+                      Thai)
+                    </li>
+                    <li>
+                      <strong>animateOut</strong> (boolean): Animation de sortie (Fade + Zoom Out)
+                    </li>
+                    <li>
+                      <strong>typingAnimation</strong> (boolean): Animation dactylographie
+                    </li>
+                    <li>
+                      <strong>typingSpeed</strong> (number): Vitesse typing (ms/char)
+                    </li>
+                    <li>
+                      <strong>scrollingText</strong> (boolean): Texte défilant (marquee)
+                    </li>
+                    <li>
+                      <strong>scrollDuration</strong> (number): Durée défilement (s)
                     </li>
                     <li>
                       <strong>duration</strong> (number): Duree en ms (defaut: 5000)
@@ -1910,7 +1961,14 @@ export default function ToastsPlaygroundPage() {
                   <h4 className="text-thai-orange font-semibold">Position & Format</h4>
                   <ul className="list-disc space-y-1 pl-5 text-sm text-gray-600">
                     <li>
-                      <strong>position</strong>: "bottom-right" | "center" | "bottom-left"
+                      <strong>position</strong>: "bottom-right" | "bottom-left" | "top-right" |
+                      "top-left" | "center" | "custom"
+                    </li>
+                    <li>
+                      <strong>customX</strong> (string): Position X (si custom)
+                    </li>
+                    <li>
+                      <strong>customY</strong> (string): Position Y (si custom)
                     </li>
                     <li>
                       <strong>aspectRatio</strong>: "16:9" | "4:5" | "1:1"

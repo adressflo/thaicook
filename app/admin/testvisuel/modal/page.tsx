@@ -435,7 +435,10 @@ function ModalVideoPlayground() {
                   params.set("animateBorder", previewProps.animateBorder.toString())
                   params.set("titleFontWeight", previewProps.titleFontWeight)
                   params.set("descriptionColor", previewProps.descriptionColor)
+                  params.set("descriptionColor", previewProps.descriptionColor)
                   params.set("descriptionFontWeight", previewProps.descriptionFontWeight)
+                  params.set("mangaExplosion", previewProps.mangaExplosion.toString())
+                  params.set("animateOut", previewProps.animateOut.toString())
 
                   const channel = new BroadcastChannel("preview_channel")
                   channel.postMessage({
@@ -1478,6 +1481,7 @@ function ModalVideoPlayground() {
         scrollSyncWithVideo={previewProps.scrollSyncWithVideo}
         animateBorder={previewProps.animateBorder}
         animateOut={previewProps.animateOut}
+        mangaExplosion={previewProps.mangaExplosion}
         titleFontWeight={previewProps.titleFontWeight}
         descriptionColor={previewProps.descriptionColor}
         descriptionFontWeight={previewProps.descriptionFontWeight}
@@ -1883,14 +1887,98 @@ export default function ModalsTestPage() {
                     <strong>scrollDuration</strong> (number): Durée scroll en secondes
                   </li>
                   <li>
+                    <strong>scrollSyncWithVideo</strong> (boolean): Synchro durée texte/vidéo
+                  </li>
+                  <li>
                     <strong>loopCount</strong> (number): 0 = infini, 1 = une fois, n = n fois
                   </li>
                   <li>
-                    <strong>cancelText</strong> (string): Texte bouton Annuler (défaut: "Annuler")
+                    <strong>buttonLayout</strong> ("vertical" | "horizontal"): Disposition des
+                    boutons
                   </li>
                   <li>
-                    <strong>confirmText</strong> (string): Texte bouton Confirmer (défaut:
-                    "Confirmer")
+                    <strong>cancelText</strong> (string): Texte bouton Annuler
+                  </li>
+                  <li>
+                    <strong>confirmText</strong> (string): Texte bouton Confirmer
+                  </li>
+                  <li>
+                    <strong>thirdButtonText</strong> (string): Texte 3ème bouton
+                  </li>
+                  <li>
+                    <strong>rotation</strong> (boolean): Animation rotation légère
+                  </li>
+                  <li>
+                    <strong>hoverScale</strong> (boolean): Effet zoom au survol
+                  </li>
+                  <li>
+                    <strong>maxWidth</strong> ("sm" | "md" | "lg" | "xl" | "2xl" | "custom"):
+                    Largeur max
+                  </li>
+                  <li>
+                    <strong>customWidth</strong> (string): Largeur personnalisée (si
+                    maxWidth="custom")
+                  </li>
+                  <li>
+                    <strong>customHeight</strong> (string): Hauteur personnalisée (si
+                    maxWidth="custom")
+                  </li>
+                  <li>
+                    <strong>borderColor</strong> (string): Couleur de bordure
+                  </li>
+                  <li>
+                    <strong>borderWidth</strong> (number): Épaisseur de bordure
+                  </li>
+                  <li>
+                    <strong>shadowSize</strong> (string): Taille de l'ombre
+                  </li>
+                  <li>
+                    <strong>polaroidPaddingSides</strong> (number): Padding latéral Polaroid
+                  </li>
+                  <li>
+                    <strong>polaroidPaddingTop</strong> (number): Padding haut Polaroid
+                  </li>
+                  <li>
+                    <strong>polaroidPaddingBottom</strong> (number): Padding bas Polaroid
+                  </li>
+                  <li>
+                    <strong>autoClose</strong> (boolean): Fermeture auto à la fin de la vidéo
+                  </li>
+                  <li>
+                    <strong>cancelLink</strong> (string): Lien bouton Annuler
+                  </li>
+                  <li>
+                    <strong>confirmLink</strong> (string): Lien bouton Confirmer
+                  </li>
+                  <li>
+                    <strong>thirdButtonLink</strong> (string): Lien 3ème bouton
+                  </li>
+                  <li>
+                    <strong>position</strong> (string): Position du modal (center, custom, etc.)
+                  </li>
+                  <li>
+                    <strong>customX</strong> (string): Position X (si custom)
+                  </li>
+                  <li>
+                    <strong>customY</strong> (string): Position Y (si custom)
+                  </li>
+                  <li>
+                    <strong>titleColor</strong> (string): Couleur du titre
+                  </li>
+                  <li>
+                    <strong>typingAnimation</strong> (boolean): Animation machine à écrire
+                  </li>
+                  <li>
+                    <strong>typingSpeed</strong> (number): Vitesse de frappe
+                  </li>
+                  <li>
+                    <strong>animateBorder</strong> (boolean): Animation bordure mouvante
+                  </li>
+                  <li>
+                    <strong>mangaExplosion</strong> (boolean): Animation explosion manga
+                  </li>
+                  <li>
+                    <strong>animateOut</strong> (boolean): Animation de sortie
                   </li>
                   <li>
                     <strong>onCancel</strong> (function): Callback bouton Annuler

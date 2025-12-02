@@ -89,7 +89,7 @@ const ToastViewport = React.forwardRef<
   <ToastPrimitives.Viewport
     ref={ref}
     className={cn(
-      "pointer-events-none fixed top-0 z-100 flex max-h-screen w-full flex-col-reverse p-4 sm:top-auto sm:right-0 sm:bottom-0 sm:w-auto sm:flex-col md:max-w-fit",
+      "pointer-events-none fixed top-0 z-100 flex max-h-screen w-full flex-col-reverse p-4 sm:w-auto sm:flex-col md:max-w-fit",
       className
     )}
     {...props}
@@ -385,11 +385,15 @@ const Toast = React.forwardRef<
           isTilted &&
             "rotate-(--toast-angle) transition-all duration-300 hover:scale-105 hover:rotate-0",
           // Animation de sortie
+          // Animation de sortie
+          !animateOut &&
+            !mangaExplosion &&
+            "data-[state=closed]:animate-none! data-[state=closed]:duration-0!",
           animateOut &&
             !mangaExplosion &&
             "data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=closed]:duration-300",
           // Animation Manga Explosion
-          mangaExplosion && "manga-explosion-exit",
+          mangaExplosion && "manga-explosion-exit data-[state=closed]:duration-500!",
           className
         )}
         style={
