@@ -1,6 +1,8 @@
 "use client"
 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { TypingAnimation } from "@/components/ui/typing-animation"
+import { toastVideo } from "@/hooks/use-toast-video"
 import { cn } from "@/lib/utils"
 import { motion } from "framer-motion"
 import { Flame, Leaf } from "lucide-react"
@@ -73,6 +75,50 @@ export function Spice({
         newDistribution[index] += 1
         break
       }
+    }
+
+    // Afficher le toast "Attention, ça pique !" quand on sélectionne le niveau 3 (Piment Thaï)
+    const wasLevel3Selected = parsedDistribution[3] > 0
+    const isLevel3NowSelected = newDistribution[3] > 0
+
+    if (!wasLevel3Selected && isLevel3NowSelected) {
+      toastVideo({
+        title: (
+          <div className="flex flex-nowrap items-center justify-center gap-2 whitespace-nowrap">
+            <TypingAnimation duration={10} className="inline-flex items-center">
+              <span>
+                Attention, ça&nbsp;<span className="text-thai-orange">pique</span> !
+              </span>
+            </TypingAnimation>
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-linear-to-br from-red-500 to-red-700 shadow-md">
+              <div className="flex flex-col items-center gap-0">
+                <Flame className="h-3 w-3 text-white" />
+                <div className="-mt-0.5 flex gap-0">
+                  <Flame className="h-3 w-3 text-white" />
+                  <Flame className="h-3 w-3 text-white" />
+                </div>
+              </div>
+            </div>
+          </div>
+        ),
+        description: (
+          <TypingAnimation duration={10} className="font-semibold">
+            Vous avez choisi le niveau <span className="text-thai-orange">Piment Thaï</span>.
+            C&apos;est vraiment très <span className="text-thai-orange">fort</span> !
+          </TypingAnimation>
+        ),
+        media: "/media/avatars/panier1.svg",
+        position: "center",
+        aspectRatio: "1:1",
+        polaroid: true,
+        borderColor: "thai-green",
+        maxWidth: "sm",
+        animateBorder: true,
+        hoverScale: true,
+        rotation: true,
+        customDuration: 1000,
+        mangaExplosion: true,
+      })
     }
 
     onDistributionChange(newDistribution)

@@ -2,8 +2,8 @@
 
 import { getClientProfile } from "@/app/profil/actions"
 import { CalendarIcon } from "@/components/historique/CalendarIcon"
-import { DishDetailsModalComplex } from "@/components/historique/DishDetailsModalComplex"
 import { StatusBadge } from "@/components/historique/StatusBadge"
+import { CommandePlatModalTrigger } from "@/components/shared/CommandePlatModal"
 import { AppLayout } from "@/components/layout/AppLayout"
 import { ProgressTimeline } from "@/components/suivi-commande/ProgressTimeline"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -205,7 +205,7 @@ const SuiviCommande = memo(() => {
                         const platDetails = detail.plat
                         const extraDetails = detail.extra
 
-                        // Adapter les données pour DishDetailsModal
+                        // Adapter les données pour CommandePlatModal
                         const detailForModal = {
                           ...detail,
                           plat: platDetails || null,
@@ -213,10 +213,15 @@ const SuiviCommande = memo(() => {
                         } as any // Type casting pour compatibilité Prisma types
 
                         return (
-                          <DishDetailsModalComplex
+                          <CommandePlatModalTrigger
                             key={`${detail.plat_r || "unknown"}-${index}`}
+                            plat={platDetails as any}
+                            extra={extraDetails as any}
                             detail={detailForModal}
                             formatPrix={formatPrix}
+                            mode="readonly"
+                            showPriceDetails={true}
+                            showBadgePanier={false}
                           >
                             <div
                               className="group animate-fadeIn relative cursor-pointer hover:z-10"
@@ -298,7 +303,7 @@ const SuiviCommande = memo(() => {
                                 </div>
                               </div>
                             </div>
-                          </DishDetailsModalComplex>
+                          </CommandePlatModalTrigger>
                         )
                       })}
 

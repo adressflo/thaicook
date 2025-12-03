@@ -1,7 +1,7 @@
 "use client"
 
 import { getClientProfile } from "@/app/profil/actions"
-import { DishDetailsModal } from "@/components/historique/DishDetailsModal"
+import { CommandePlatModalTrigger } from "@/components/shared/CommandePlatModal"
 import { AppLayout } from "@/components/layout/AppLayout"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
@@ -319,10 +319,14 @@ const SuiviEvenement = memo(() => {
                             } as any // Type casting pour compatibilité Prisma types
 
                             return (
-                              <DishDetailsModal
+                              <CommandePlatModalTrigger
                                 key={plat.id}
+                                plat={plat as any}
                                 detail={detailForModal}
                                 formatPrix={formatPrix}
+                                mode="readonly"
+                                showPriceDetails={true}
+                                showBadgePanier={false}
                               >
                                 <Card
                                   className="border-thai-orange/20 hover:border-thai-orange hover:ring-thai-orange/30 animate-fadeIn cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-xl hover:ring-2"
@@ -348,7 +352,7 @@ const SuiviEvenement = memo(() => {
                                     )}
                                   </CardContent>
                                 </Card>
-                              </DishDetailsModal>
+                              </CommandePlatModalTrigger>
                             )
                           })}
                         </div>

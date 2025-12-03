@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 import { Flame } from "lucide-react"
+import Image from "next/image"
 
 interface ProductCardProps {
   title: string
@@ -42,10 +43,12 @@ export function ProductCard({
     >
       {imageSrc && (
         <div className="relative aspect-video overflow-hidden rounded-t-lg">
-          <img
+          <Image
             src={imageSrc}
             alt={title}
-            className="h-full w-full object-cover transition-transform duration-300 hover:scale-110"
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            className="object-cover transition-transform duration-300 hover:scale-110"
           />
           {/* Badge Disponible en haut à gauche */}
           <div className="absolute top-2 left-2">

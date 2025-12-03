@@ -12,7 +12,6 @@ import { useToast } from "@/hooks/use-toast"
 import { toastVideo } from "@/hooks/use-toast-video"
 
 import { OfflineBannerCompact } from "@/components/pwa/OfflineBanner"
-import { TypingAnimation } from "@/components/ui/typing-animation"
 import { useOnlineStatus } from "@/hooks/useOnlineStatus"
 import {
   AlertCircle,
@@ -22,6 +21,7 @@ import {
   Loader2,
   MapPin,
   Phone,
+  Plus,
   Search,
   ShoppingCart,
   Star,
@@ -153,6 +153,10 @@ const Commander = memo(() => {
         position: "bottom-right",
         aspectRatio: "1:1",
         polaroid: true,
+        borderColor: "thai-green",
+        animateBorder: true,
+        hoverScale: true,
+        typingAnimation: true,
       })
     }
     prevIsOnline.current = isOnline
@@ -340,10 +344,17 @@ const Commander = memo(() => {
 
     // Vérifier qu'un jour, une date et une heure sont sélectionnés
     if (!jourSelectionne || !dateRetrait || !heureRetrait) {
-      toast({
-        title: "Informations requises",
+      toastVideo({
+        title: "Oups ! 📅",
         description: "Veuillez d'abord sélectionner un jour, une date et une heure de retrait.",
-        variant: "destructive",
+        media: "/media/animations/toasts/ajoutpaniernote.mp4",
+        position: "center",
+        aspectRatio: "1:1",
+        polaroid: true,
+        borderColor: "thai-orange",
+        animateBorder: true,
+        hoverScale: true,
+        rotation: true,
       })
       return
     }
@@ -373,7 +384,7 @@ const Commander = memo(() => {
     toastVideo({
       title: uniqueId ? "Panier mis à jour !" : "Plat ajouté !",
       description: (
-        <TypingAnimation duration={5}>
+        <>
           <span className="text-thai-green font-medium">{quantite}</span>
           <span className="text-thai-orange font-medium">
             {" "}
@@ -390,9 +401,19 @@ const Commander = memo(() => {
           </span>
           <span className="text-thai-green font-medium"> à </span>
           <span className="text-thai-orange font-medium">{heureRetrait}</span>
-        </TypingAnimation>
+        </>
       ),
       media: "/media/animations/toasts/ajoutpaniernote.mp4",
+      aspectRatio: "1:1",
+      polaroid: true,
+      borderColor: "thai-green",
+      maxWidth: "xs",
+      animateBorder: true,
+      hoverScale: true,
+      rotation: true,
+      typingAnimation: true,
+      typingSpeed: 10,
+      mangaExplosion: true,
     })
   }
 
@@ -405,6 +426,10 @@ const Commander = memo(() => {
         position: "center",
         aspectRatio: "1:1",
         polaroid: true,
+        borderColor: "thai-orange",
+        animateBorder: true,
+        hoverScale: true,
+        rotation: true,
       })
       setTimeout(() => router.push("/auth/login"), 2000)
       return
@@ -418,6 +443,10 @@ const Commander = memo(() => {
         position: "center",
         aspectRatio: "1:1",
         polaroid: true,
+        borderColor: "thai-orange",
+        animateBorder: true,
+        hoverScale: true,
+        rotation: true,
       })
       return
     }
@@ -499,6 +528,8 @@ const Commander = memo(() => {
         animateBorder: true,
         hoverScale: true,
         showCloseButton: false,
+        mangaExplosion: true,
+        typingAnimation: true,
       })
 
       // Nettoyer le panier et les états
@@ -526,10 +557,16 @@ const Commander = memo(() => {
       console.error("❌ Erreur validation commande:", error)
       const errorMessage =
         error instanceof Error ? error.message : "Erreur lors de l'enregistrement de la commande."
-      toast({
+      toastVideo({
         title: "Erreur commande",
         description: errorMessage,
-        variant: "destructive",
+        media: "/media/animations/toasts/ajoutpaniernote.mp4",
+        position: "center",
+        aspectRatio: "1:1",
+        polaroid: true,
+        borderColor: "thai-orange",
+        animateBorder: true,
+        hoverScale: true,
       })
     } finally {
       setIsSubmitting(false)
@@ -1012,15 +1049,41 @@ const Commander = memo(() => {
                                       const diff = qty - item.quantite
                                       modifierQuantite(item.uniqueId!, qty)
                                       if (diff > 0) {
-                                        toast({
-                                          title: "Quantité mise à jour",
-                                          description: `Une portion de ${item.nom} ajoutée.`,
+                                        toastVideo({
+                                          title: (
+                                            <span>
+                                              Portion ajoutée !{" "}
+                                              <Plus
+                                                className="text-thai-orange inline-block h-6 w-6"
+                                                strokeWidth={3}
+                                              />
+                                            </span>
+                                          ),
+                                          description: (
+                                            <span>
+                                              Une portion de{" "}
+                                              <span className="text-thai-orange">{item.nom}</span>{" "}
+                                              ajoutée.
+                                            </span>
+                                          ),
+                                          media: "/media/animations/toasts/ajoutpaniernote.mp4",
+                                          position: "bottom-right",
+                                          aspectRatio: "1:1",
+                                          polaroid: true,
+                                          borderColor: "thai-green",
+                                          maxWidth: "xs",
                                           duration: 2000,
                                         })
                                       } else if (diff < 0) {
-                                        toast({
-                                          title: "Quantité mise à jour",
+                                        toastVideo({
+                                          title: "Portion retirée ➖",
                                           description: `Une portion de ${item.nom} retirée.`,
+                                          media: "/media/animations/toasts/ajoutpaniernote.mp4",
+                                          position: "bottom-right",
+                                          aspectRatio: "1:1",
+                                          polaroid: true,
+                                          borderColor: "thai-orange",
+                                          maxWidth: "xs",
                                           duration: 2000,
                                         })
                                       }
@@ -1028,10 +1091,16 @@ const Commander = memo(() => {
                                     onRemove={() => {
                                       supprimerDuPanier(item.uniqueId!)
                                       toastVideo({
-                                        title: "Plat supprimé",
+                                        title: "Plat supprimé 🗑️",
                                         description: `${item.nom} retiré du panier.`,
-                                        media: "/media/animations/toasts/ajoutpaniernote.mp4",
+                                        media: "/media/animations/toasts/poubelleok.mp4",
                                         position: "center",
+                                        aspectRatio: "1:1",
+                                        polaroid: true,
+                                        borderColor: "thai-orange",
+                                        animateBorder: true,
+                                        hoverScale: true,
+                                        rotation: true,
                                       })
                                     }}
                                     onClick={() =>
@@ -1078,10 +1147,16 @@ const Commander = memo(() => {
                                         onClick={() => {
                                           supprimerDuPanier(item.uniqueId!)
                                           toastVideo({
-                                            title: "Plat supprimé",
+                                            title: "Plat supprimé 🗑️",
                                             description: `${item.nom} retiré du panier.`,
-                                            media: "/media/animations/toasts/ajoutpaniernote.mp4",
+                                            media: "/media/animations/toasts/poubelleok.mp4",
                                             position: "center",
+                                            aspectRatio: "1:1",
+                                            polaroid: true,
+                                            borderColor: "thai-orange",
+                                            animateBorder: true,
+                                            hoverScale: true,
+                                            rotation: true,
                                           })
                                         }}
                                         className="h-8 w-8 p-0 text-gray-400 hover:text-red-500"
@@ -1134,6 +1209,9 @@ const Commander = memo(() => {
                                 position: "bottom-right",
                                 aspectRatio: "1:1",
                                 polaroid: true,
+                                borderColor: "thai-green",
+                                animateBorder: true,
+                                hoverScale: true,
                                 duration: 3000,
                               })
                             }
@@ -1213,14 +1291,14 @@ const Commander = memo(() => {
         onOpenChange={setIsClearCartModalOpen}
         title="<orange>Vider</orange> le panier ?"
         description="Êtes-vous sûr de vouloir <bold><orange>supprimer</orange></bold> tous les plats de votre panier ?"
-        media="/media/animations/toasts/ajoutpaniernote.mp4"
+        media="/media/animations/toasts/poubelleok.mp4"
         aspectRatio="1:1"
         polaroid={true}
         buttonLayout="double"
         cancelText="Annuler"
         confirmText="Tout supprimer"
         maxWidth="sm"
-        borderColor="thai-green"
+        borderColor="thai-orange"
         borderWidth={2}
         shadowSize="2xl"
         onCancel={() => setIsClearCartModalOpen(false)}
@@ -1228,10 +1306,16 @@ const Commander = memo(() => {
           viderPanier()
           setIsClearCartModalOpen(false)
           toastVideo({
-            title: "Panier vidé",
+            title: "Panier vidé 🗑️",
             description: "Votre panier est maintenant vide.",
-            media: "/media/animations/toasts/ajoutpaniernote.mp4",
+            media: "/media/animations/toasts/poubelleok.mp4",
             position: "center",
+            aspectRatio: "1:1",
+            polaroid: true,
+            borderColor: "thai-orange",
+            animateBorder: true,
+            hoverScale: true,
+            rotation: true,
           })
         }}
       />

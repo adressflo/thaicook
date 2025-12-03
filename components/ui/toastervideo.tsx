@@ -25,7 +25,7 @@ import { TypingAnimation } from "@/components/ui/typing-animation"
 import { useToastVideo } from "@/hooks/use-toast-video"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 
 import { cn } from "@/lib/utils"
 
@@ -165,7 +165,7 @@ export function ToasterVideo() {
           )}
           <ToastViewport
             className={cn(
-              "fixed z-50 flex max-h-screen w-full flex-col-reverse p-4 md:max-w-fit",
+              "fixed z-9999 flex max-h-screen w-full flex-col-reverse p-4 md:max-w-fit",
               position === "custom" ? "" : positionClassMap[position as ToastPosition]
             )}
             style={
@@ -317,8 +317,8 @@ function ToastVideoItem({
     }
   }, [scrollSyncWithVideo, isVideo, targetPlayCount, media, videoElement])
 
-  // Fonction de fermeture avec redirection
-  const handleDismiss = () => {
+  // Fonction de fermeture avec redirection - stabilisée avec useCallback
+  const handleDismiss = useCallback(() => {
     setDismissCalled(true)
     dismiss(id)
 
@@ -330,20 +330,25 @@ function ToastVideoItem({
       }
       // Pour "button", la redirection est gérée par le bouton
     }
-  }
+  }, [dismiss, id, redirectUrl, redirectBehavior, router])
+
+  // useEffect pour customDuration - indépendant de videoElement
+  // Ceci garantit que le toast se ferme après customDuration ms même si le ref n'est pas encore set
+  useEffect(() => {
+    if (customDuration && customDuration > 0) {
+      const timer = setTimeout(handleDismiss, customDuration)
+      return () => clearTimeout(timer)
+    }
+  }, [customDuration, handleDismiss])
 
   useEffect(() => {
     if (!media || !videoElement) return
 
     const element = videoElement
 
-    // Si customDuration est défini, utiliser un timer fixe (pour images ET videos)
-    // customDuration est en millisecondes
+    // Si customDuration est défini, le timer est déjà géré par le useEffect ci-dessus
     if (customDuration && customDuration > 0) {
-      const timer = setTimeout(() => {
-        handleDismiss()
-      }, customDuration)
-      return () => clearTimeout(timer)
+      return
     }
 
     // Pour les videos : compter les lectures
@@ -366,7 +371,7 @@ function ToastVideoItem({
       }, delay)
       return () => clearTimeout(timer)
     }
-  }, [media, id, customDuration, targetPlayCount])
+  }, [media, id, customDuration, targetPlayCount, videoElement])
 
   // Map aspect ratio to Tailwind classes
   const aspectRatioClassMap: Record<string, string> = {

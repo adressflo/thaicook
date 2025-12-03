@@ -3,8 +3,9 @@ import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Users, Calendar, Utensils, Sparkles, Receipt, Star } from 'lucide-react';
 import type { EvenementUI, DetailCommande, Plat, Extra, CommandeUI } from '@/types/app';
-import { DishDetailsModalComplex } from './DishDetailsModalComplex';
+import { CommandePlatModalTrigger } from '@/components/shared/CommandePlatModal';
 import { CalendarIcon } from './CalendarIcon';
+import Image from 'next/image';
 
 interface FormattedPriceProps {
   prix: number;
@@ -57,19 +58,14 @@ export const FormattedPrice = React.memo<FormattedPriceProps>(({ prix, formatPri
                         <div className="flex items-center justify-between gap-2">
                           <div className="flex items-center gap-2 flex-1">
                             {/* Miniature photo du plat ou extra */}
-                            <img
+                            <Image
                               src={
                                 detail.extra?.photo_url || 'https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png'
                               }
                               alt={platName}
-                              className="w-5 h-5 flex-shrink-0 rounded-full object-cover border border-thai-orange/60 shadow-sm"
-                              onError={(e) => {
-                                if (isExtra) {
-                                  e.currentTarget.src = 'https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png';
-                                } else {
-                                  e.currentTarget.style.display = 'none';
-                                }
-                              }}
+                              width={20}
+                              height={20}
+                              className="flex-shrink-0 rounded-full object-cover border border-thai-orange/60 shadow-sm"
                             />
                             <span className="text-sm text-gray-800 font-bold truncate">{platName}</span>
                             <span className="text-xs bg-thai-orange/20 text-thai-orange px-1 py-0.5 rounded-full font-semibold shrink-0">×{quantite}</span>
@@ -229,10 +225,17 @@ export const DishList = React.memo<DishListProps>(({ details, formatPrix, extras
         const isDeleted = !isExtra && !detail.plat?.plat;
 
         return (
-          <DishDetailsModalComplex
+          <CommandePlatModalTrigger
             key={`${detail.plat?.idplats || 'unknown'}-${index}`}
-            detail={detail}
+            plat={detail.plat as any}
+            extra={detail.extra as any}
+            detail={detail as any}
             formatPrix={formatPrix}
+            mode="readonly"
+            showPriceDetails={true}
+            showBadgePanier={false}
+            modalSize="sm"
+            disableScroll={true}
           >
             <div
               className="group relative animate-fadeIn hover:z-10 p-1"
@@ -305,7 +308,7 @@ export const DishList = React.memo<DishListProps>(({ details, formatPrix, extras
                 <div className="absolute inset-0 bg-gradient-to-br from-thai-green/15 via-transparent to-thai-red/15 rounded-md opacity-0 group-hover:opacity-100 transition-all duration-500 -z-10 blur-sm" />
               )}
             </div>
-          </DishDetailsModalComplex>
+          </CommandePlatModalTrigger>
         );
       })}
     </div>

@@ -33,196 +33,6 @@ import type { PlatUI } from "@/types/app"
 import { CheckCircle2, CreditCard, Info, Settings, Trash2, User } from "lucide-react"
 import { useEffect, useState } from "react"
 
-// Composant Playground pour CommandePlatModal
-function CommandePlatPlayground({ plats }: { plats: PlatUI[] }) {
-  // Sélection du plat de base
-  const [selectedPlatId, setSelectedPlatId] = useState<string>(plats[0]?.id?.toString() || "")
-
-  // État pour les propriétés personnalisées
-  const [customProps, setCustomProps] = useState({
-    plat: "",
-    description: "",
-    prix: "0",
-    photo_du_plat: "",
-    niveau_epice: 0,
-  })
-
-  // État pour le modal réel
-  const [isModalOpen, setIsModalOpen] = useState(false)
-
-  // Mettre à jour les props quand on change de plat
-  useEffect(() => {
-    const plat = plats.find((p) => p.id === Number(selectedPlatId))
-    if (plat) {
-      setCustomProps({
-        plat: plat.plat,
-        description: plat.description || "",
-        prix: plat.prix || "0",
-        photo_du_plat: plat.photo_du_plat || "",
-        niveau_epice: plat.niveau_epice || 0,
-      })
-    }
-  }, [selectedPlatId, plats])
-
-  // Plat combiné pour le rendu
-  const displayPlat: PlatUI = {
-    ...(plats.find((p) => p.id === Number(selectedPlatId)) || plats[0]),
-    ...customProps,
-    id: Number(selectedPlatId) || 0,
-  }
-
-  return (
-    <div className="grid gap-8 lg:grid-cols-2">
-      {/* Colonne de gauche : Contrôles */}
-      <div className="space-y-4">
-        <div className="border-thai-orange/20 rounded-lg border bg-white p-6 shadow-sm">
-          <div className="mb-4 flex items-center justify-between">
-            <h4 className="text-thai-green flex items-center gap-2 text-lg font-semibold">
-              <span className="text-xl">🎛️</span>
-              Contrôles
-            </h4>
-            <Button
-              size="sm"
-              onClick={() => setIsModalOpen(true)}
-              className="bg-thai-orange hover:bg-thai-orange/90 text-white shadow-md transition-all hover:shadow-lg"
-            >
-              🎬 Ouvrir Modal Réel
-            </Button>
-          </div>
-
-          <div className="space-y-4">
-            {/* Sélection du plat de base */}
-            <div className="space-y-2">
-              <Label>Basé sur le plat</Label>
-              <select
-                className="focus:border-thai-orange focus:ring-thai-orange w-full rounded-md border border-gray-300 p-2 text-sm focus:ring-1 focus:outline-none"
-                value={selectedPlatId}
-                onChange={(e) => setSelectedPlatId(e.target.value)}
-              >
-                {plats.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.plat}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Inputs Texte */}
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label>Nom du plat</Label>
-                <Input
-                  value={customProps.plat}
-                  onChange={(e) => setCustomProps({ ...customProps, plat: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Prix (€)</Label>
-                <Input
-                  type="number"
-                  step="0.1"
-                  value={customProps.prix}
-                  onChange={(e) => setCustomProps({ ...customProps, prix: e.target.value })}
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Description</Label>
-              <textarea
-                className="focus:border-thai-orange focus:ring-thai-orange w-full rounded-md border border-gray-300 p-2 text-sm focus:ring-1 focus:outline-none"
-                rows={3}
-                value={customProps.description}
-                onChange={(e) => setCustomProps({ ...customProps, description: e.target.value })}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>URL Image</Label>
-              <div className="flex gap-2">
-                <Input
-                  value={customProps.photo_du_plat}
-                  onChange={(e) =>
-                    setCustomProps({ ...customProps, photo_du_plat: e.target.value })
-                  }
-                  className="flex-1"
-                />
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => setCustomProps({ ...customProps, photo_du_plat: "" })}
-                  title="Supprimer l'image"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-
-            {/* Toggles */}
-            <div className="flex gap-4">
-              <div className="flex items-center gap-2">
-                <Label className="cursor-pointer">Niveau épice 🌶️</Label>
-                <select
-                  className="focus:border-thai-orange focus:ring-thai-orange rounded-md border border-gray-300 p-1 text-sm focus:ring-1 focus:outline-none"
-                  value={customProps.niveau_epice}
-                  onChange={(e) =>
-                    setCustomProps({ ...customProps, niveau_epice: parseInt(e.target.value) })
-                  }
-                >
-                  <option value={0}>0 - Non épicé</option>
-                  <option value={1}>1 - Peu épicé</option>
-                  <option value={2}>2 - Moyennement épicé</option>
-                  <option value={3}>3 - Très épicé</option>
-                </select>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Colonne de droite : Aperçu */}
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <h4 className="flex items-center gap-2 text-lg font-semibold text-gray-600">
-            <span className="text-xl">👁️</span>
-            Aperçu Visuel
-          </h4>
-        </div>
-
-        <div className="relative mx-auto flex h-[600px] w-full max-w-sm flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-2xl">
-          <CommandePlatContent
-            onOpenChange={() => {}}
-            plat={displayPlat}
-            formatPrix={(p) => `${parseFloat(p.toString()).toFixed(2)}€`}
-            currentQuantity={1}
-            currentSpiceDistribution={[1, 0, 0, 0]}
-            dateRetrait={new Date()}
-            standalone={true}
-            onAddToCart={(p, q, s, d) =>
-              console.log("🛒 Action Panier (Preview):", { plat: p.plat, q, s, d })
-            }
-          />
-        </div>
-      </div>
-
-      {/* Modal Réel */}
-      <CommandePlatModal
-        isOpen={isModalOpen}
-        onOpenChange={setIsModalOpen}
-        plat={displayPlat}
-        formatPrix={(p) => `${parseFloat(p.toString()).toFixed(2)}€`}
-        currentQuantity={1}
-        currentSpiceDistribution={[1, 0, 0, 0]}
-        dateRetrait={new Date()}
-        onAddToCart={(p, q, s, d) => {
-          console.log("🛒 Action Panier (Réel):", { plat: p.plat, q, s, d })
-          setIsModalOpen(false)
-        }}
-      />
-    </div>
-  )
-}
-
 // Composant Playground interactif pour ModalVideo
 function ModalVideoPlayground() {
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -1493,6 +1303,491 @@ function ModalVideoPlayground() {
   )
 }
 
+// Composant Playground pour les variantes Readonly de CommandePlatModal
+function ReadonlyModalPlayground({ plats }: { plats: PlatUI[] }) {
+  const [selectedPlatId, setSelectedPlatId] = useState<string>(plats[0]?.id?.toString() || "")
+  const [activeVariant, setActiveVariant] = useState<string>("interactive")
+  const [isModalOpen, setIsModalOpen] = useState(false)
+
+  // Nouveaux états pour les contrôles
+  const [modalSize, setModalSize] = useState<"sm" | "md" | "lg" | "xl" | "custom">("md")
+  const [imageFormat, setImageFormat] = useState<"16:9" | "4:5" | "1:1" | "auto">("auto")
+  const [modalPosition, setModalPosition] = useState<"center" | "bottom-right" | "bottom-left" | "top-right" | "top-left" | "custom">("center")
+
+  // Toggles pour les sections
+  const [showImage, setShowImage] = useState(true)
+  const [showBadge, setShowBadge] = useState(true)
+  const [showBadgeDisponible, setShowBadgeDisponible] = useState(true)
+  const [showBadgeExtra, setShowBadgeExtra] = useState(true)
+  const [showBadgePanier, setShowBadgePanier] = useState(true)
+  const [showDescription, setShowDescription] = useState(true)
+  const [showPrice, setShowPrice] = useState(true)
+  const [showQuantitySelector, setShowQuantitySelector] = useState(true)
+  const [showSpiceSelector, setShowSpiceSelector] = useState(true)
+  const [showAddToCartButton, setShowAddToCartButton] = useState(true)
+  const [show3DTilt, setShow3DTilt] = useState(true)
+
+  // Animation & Style fermeture
+  const [exitAnimation, setExitAnimation] = useState<"fade-zoom" | "fade-out" | "manga-explosion" | "none">("fade-zoom")
+  const [showCloseButton, setShowCloseButton] = useState(false)
+
+  const selectedPlat = plats.find((p) => p.id === Number(selectedPlatId)) || plats[0]
+
+  // Options de toggle pour les sections
+  const sectionToggles = [
+    { id: "image", label: "Image", state: showImage, setter: setShowImage },
+    { id: "badge", label: "Badges (tous)", state: showBadge, setter: setShowBadge },
+    { id: "description", label: "Description", state: showDescription, setter: setShowDescription },
+    { id: "price", label: "Prix", state: showPrice, setter: setShowPrice },
+    { id: "quantity", label: "Sélecteur quantité", state: showQuantitySelector, setter: setShowQuantitySelector },
+    { id: "spice", label: "Sélecteur épice", state: showSpiceSelector, setter: setShowSpiceSelector },
+    { id: "button", label: "Bouton panier", state: showAddToCartButton, setter: setShowAddToCartButton },
+    { id: "tilt", label: "Effet 3D Tilt", state: show3DTilt, setter: setShow3DTilt },
+  ]
+
+  // Options de toggle pour les badges individuels
+  const badgeToggles = [
+    { id: "disponible", label: "🟢 Disponible", state: showBadgeDisponible, setter: setShowBadgeDisponible, color: "bg-thai-green" },
+    { id: "extra", label: "🟡 Extra", state: showBadgeExtra, setter: setShowBadgeExtra, color: "bg-thai-gold" },
+    { id: "panier", label: "🟠 Panier", state: showBadgePanier, setter: setShowBadgePanier, color: "bg-thai-orange" },
+  ]
+
+  // Options de taille
+  const sizeOptions = [
+    { id: "sm", label: "sm" },
+    { id: "md", label: "md" },
+    { id: "lg", label: "lg" },
+    { id: "xl", label: "xl" },
+    { id: "custom", label: "custom" },
+  ]
+
+  // Options de format d'image
+  const imageFormatOptions = [
+    { id: "16:9", label: "16:9" },
+    { id: "4:5", label: "4:5" },
+    { id: "1:1", label: "1:1" },
+    { id: "auto", label: "auto" },
+  ]
+
+  // Options de position
+  const positionOptions = [
+    { id: "bottom-right", label: "Bas droite" },
+    { id: "bottom-left", label: "Bas gauche" },
+    { id: "top-right", label: "Haut droite" },
+    { id: "top-left", label: "Haut gauche" },
+    { id: "center", label: "Centre" },
+    { id: "custom", label: "Custom" },
+  ]
+
+  // Variantes de test
+  const variants = [
+    {
+      id: "readonly-simple",
+      label: "Readonly Simple",
+      description: "Photo + nom + description + badge (pour suivi-evenement)",
+      props: { mode: "readonly" as const, showPriceDetails: false },
+    },
+    {
+      id: "readonly-prix",
+      label: "Readonly avec Prix",
+      description: "Cartes quantité/prix/sous-total (pour suivi-commande)",
+      props: {
+        mode: "readonly" as const,
+        showPriceDetails: true,
+        detail: { quantite_plat_commande: 3 },
+      },
+    },
+    {
+      id: "readonly-extra",
+      label: "Readonly Extra",
+      description: "Affichage d'un extra avec badge 'Extra'",
+      props: {
+        mode: "readonly" as const,
+        showPriceDetails: true,
+        extra: {
+          idextra: 1,
+          nom_extra: "Riz parfumé thaï",
+          description: "Riz jasmin cuit à la vapeur",
+          prix: "3.50",
+          photo_url: "https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png",
+          created_at: new Date().toISOString(),
+        },
+        detail: { quantite_plat_commande: 2, type: "extra" as const },
+      },
+    },
+    {
+      id: "interactive",
+      label: "Interactive (actuel)",
+      description: "Quantité + Spice + bouton panier (pour /commander)",
+      props: { mode: "interactive" as const },
+    },
+  ]
+
+  const currentVariant = variants.find((v) => v.id === activeVariant) || variants[0]
+
+  const formatPrix = (prix: number) => `${prix.toFixed(2)}€`
+
+  return (
+    <div className="grid gap-8 lg:grid-cols-2">
+      {/* Colonne gauche : Contrôles */}
+      <div className="space-y-4">
+        <div className="border-thai-orange/20 rounded-lg border bg-white p-6 shadow-sm">
+          <div className="mb-4 flex items-center justify-between">
+            <h4 className="text-thai-green flex items-center gap-2 text-lg font-semibold">
+              <span className="text-xl">🎛️</span>
+              Contrôles Variantes
+            </h4>
+            <Button
+              size="sm"
+              onClick={() => setIsModalOpen(true)}
+              className="bg-thai-orange hover:bg-thai-orange/90 text-white shadow-md transition-all hover:shadow-lg"
+            >
+              🎬 Ouvrir Modal
+            </Button>
+          </div>
+
+          <div className="space-y-4">
+            {/* Sélection du plat */}
+            <div className="space-y-2">
+              <Label>Plat de base</Label>
+              <select
+                className="focus:border-thai-orange focus:ring-thai-orange w-full rounded-md border border-gray-300 p-2 text-sm focus:ring-1 focus:outline-none"
+                value={selectedPlatId}
+                onChange={(e) => setSelectedPlatId(e.target.value)}
+              >
+                {plats.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.plat} - {formatPrix(parseFloat(p.prix || "0"))}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Sélection de la variante */}
+            <div className="space-y-2">
+              <Label>Variante à tester</Label>
+              <div className="space-y-2">
+                {variants.map((variant) => (
+                  <button
+                    key={variant.id}
+                    onClick={() => setActiveVariant(variant.id)}
+                    className={cn(
+                      "w-full rounded-lg border-2 p-3 text-left transition-all",
+                      activeVariant === variant.id
+                        ? "border-thai-orange bg-thai-orange/5"
+                        : "border-gray-200 hover:border-thai-orange/50"
+                    )}
+                  >
+                    <div className="flex items-center gap-2">
+                      <div
+                        className={cn(
+                          "h-3 w-3 rounded-full",
+                          activeVariant === variant.id ? "bg-thai-orange" : "bg-gray-300"
+                        )}
+                      />
+                      <span className="font-medium">{variant.label}</span>
+                    </div>
+                    <p className="mt-1 text-xs text-gray-500">{variant.description}</p>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Taille modal */}
+            <div className="hover:bg-thai-cream/20 hover:border-thai-orange hover:ring-thai-orange/30 space-y-2 rounded-lg border border-gray-200 bg-white p-3 transition-all duration-300 hover:scale-[1.01] hover:shadow-lg hover:ring-2">
+              <Label className="text-thai-green font-medium">📐 Taille modal</Label>
+              <div className="flex flex-wrap gap-2">
+                {sizeOptions.map((option) => (
+                  <button
+                    key={option.id}
+                    onClick={() => setModalSize(option.id as typeof modalSize)}
+                    className={cn(
+                      "rounded-md border px-3 py-1.5 text-sm font-medium transition-all duration-200 hover:scale-105",
+                      modalSize === option.id
+                        ? "border-thai-orange bg-thai-orange text-white shadow-md"
+                        : "border-gray-300 bg-white text-gray-700 hover:border-thai-orange/50 hover:shadow-sm"
+                    )}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Format d'image */}
+            <div className="hover:bg-thai-cream/20 hover:border-thai-orange hover:ring-thai-orange/30 space-y-2 rounded-lg border border-gray-200 bg-white p-3 transition-all duration-300 hover:scale-[1.01] hover:shadow-lg hover:ring-2">
+              <Label className="text-thai-green font-medium">🖼️ Format d'image</Label>
+              <div className="flex flex-wrap gap-2">
+                {imageFormatOptions.map((option) => (
+                  <button
+                    key={option.id}
+                    onClick={() => setImageFormat(option.id as typeof imageFormat)}
+                    className={cn(
+                      "rounded-md border px-3 py-1.5 text-sm font-medium transition-all duration-200 hover:scale-105",
+                      imageFormat === option.id
+                        ? "border-thai-orange bg-thai-orange text-white shadow-md"
+                        : "border-gray-300 bg-white text-gray-700 hover:border-thai-orange/50 hover:shadow-sm"
+                    )}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Position du Modal */}
+            <div className="hover:bg-thai-cream/20 hover:border-thai-orange hover:ring-thai-orange/30 space-y-2 rounded-lg border border-gray-200 bg-white p-3 transition-all duration-300 hover:scale-[1.01] hover:shadow-lg hover:ring-2">
+              <Label className="text-thai-green font-medium">📍 Position du Modal</Label>
+              <div className="flex flex-wrap gap-2">
+                {positionOptions.map((option) => (
+                  <button
+                    key={option.id}
+                    onClick={() => setModalPosition(option.id as typeof modalPosition)}
+                    className={cn(
+                      "rounded-md border px-3 py-1.5 text-sm font-medium transition-all duration-200 hover:scale-105",
+                      modalPosition === option.id
+                        ? "border-thai-orange bg-thai-orange text-white shadow-md"
+                        : "border-gray-300 bg-white text-gray-700 hover:border-thai-orange/50 hover:shadow-sm"
+                    )}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Sections activées/désactivées */}
+            <div className="hover:bg-thai-cream/20 hover:border-thai-green hover:ring-thai-green/30 space-y-2 rounded-lg border border-gray-200 bg-white p-3 transition-all duration-300 hover:scale-[1.01] hover:shadow-lg hover:ring-2">
+              <Label className="text-thai-green font-medium">👁️ Sections (activé/désactivé)</Label>
+              <div className="grid grid-cols-2 gap-2">
+                {sectionToggles.map((toggle) => (
+                  <button
+                    key={toggle.id}
+                    onClick={() => toggle.setter(!toggle.state)}
+                    className={cn(
+                      "flex items-center justify-between rounded-md border px-3 py-2 text-sm font-medium transition-all duration-200 hover:scale-[1.02]",
+                      toggle.state
+                        ? "border-green-500 bg-green-50 text-green-700 hover:bg-green-100 hover:shadow-sm"
+                        : "border-red-300 bg-red-50 text-red-600 hover:bg-red-100 hover:shadow-sm"
+                    )}
+                  >
+                    <span>{toggle.label}</span>
+                    <span className="text-xs">
+                      {toggle.state ? "✓" : "✗"}
+                    </span>
+                  </button>
+                ))}
+              </div>
+
+              {/* Badges individuels (sous-section) */}
+              {showBadge && (
+                <div className="mt-3 space-y-2 border-t border-gray-200 pt-3">
+                  <span className="text-xs font-medium text-gray-600">🏷️ Badges individuels</span>
+                  <div className="flex flex-wrap gap-2">
+                    {badgeToggles.map((badge) => (
+                      <button
+                        key={badge.id}
+                        onClick={() => badge.setter(!badge.state)}
+                        className={cn(
+                          "flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all duration-200 hover:scale-105",
+                          badge.state
+                            ? `${badge.color} border-transparent text-white shadow-md`
+                            : "border-gray-300 bg-gray-100 text-gray-500 hover:border-gray-400"
+                        )}
+                      >
+                        <span>{badge.label}</span>
+                        <span className="text-[10px]">{badge.state ? "✓" : "✗"}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Style & Animation fermeture */}
+            <div className="hover:bg-purple-100/50 hover:border-purple-400 hover:ring-purple-300/50 space-y-2 rounded-lg border border-purple-200 bg-purple-50/50 p-3 transition-all duration-300 hover:scale-[1.01] hover:shadow-lg hover:ring-2">
+              <Label className="font-medium text-purple-700">✨ Style & Animation fermeture</Label>
+
+              {/* Animation de sortie */}
+              <div className="space-y-1.5">
+                <span className="text-xs text-gray-600">Animation de sortie</span>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { id: "fade-zoom", label: "Fade + Zoom Out" },
+                    { id: "fade-out", label: "Fade Out" },
+                    { id: "manga-explosion", label: "🧨 Manga Explosion" },
+                    { id: "none", label: "Aucune" },
+                  ].map((option) => (
+                    <button
+                      key={option.id}
+                      onClick={() => setExitAnimation(option.id as typeof exitAnimation)}
+                      className={cn(
+                        "rounded-md border px-3 py-1.5 text-sm font-medium transition-all duration-200 hover:scale-105",
+                        exitAnimation === option.id
+                          ? "border-purple-500 bg-purple-500 text-white shadow-md"
+                          : "border-gray-300 bg-white text-gray-700 hover:border-purple-400 hover:shadow-sm"
+                      )}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Bouton X de fermeture */}
+              <div className="flex items-center justify-between pt-2">
+                <span className="text-xs text-gray-600">Afficher bouton X de fermeture</span>
+                <button
+                  onClick={() => setShowCloseButton(!showCloseButton)}
+                  className={cn(
+                    "rounded-md border px-3 py-1.5 text-sm font-medium transition-all duration-200 hover:scale-105",
+                    showCloseButton
+                      ? "border-green-500 bg-green-50 text-green-700 hover:bg-green-100 hover:shadow-sm"
+                      : "border-gray-300 bg-white text-gray-500 hover:border-gray-400 hover:shadow-sm"
+                  )}
+                >
+                  {showCloseButton ? "✓ Visible" : "✗ Masqué"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Colonne droite : Aperçu */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <h4 className="flex items-center gap-2 text-lg font-semibold text-gray-600">
+            <span className="text-xl">👁️</span>
+            Aperçu - {currentVariant.label}
+          </h4>
+        </div>
+
+        <div className="relative mx-auto flex h-[600px] w-full max-w-sm flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-2xl">
+          <CommandePlatContent
+            plat={currentVariant.id === "readonly-extra" ? null : selectedPlat}
+            onOpenChange={() => {}}
+            formatPrix={formatPrix}
+            onAddToCart={
+              currentVariant.props.mode === "interactive"
+                ? (plat, qty) => console.log(`Ajout: ${plat.plat} x${qty}`)
+                : undefined
+            }
+            currentQuantity={1}
+            standalone={true}
+            // Props de visibilité
+            showImage={showImage}
+            showBadge={showBadge}
+            showBadgeDisponible={showBadgeDisponible}
+            showBadgeExtra={showBadgeExtra}
+            showBadgePanier={showBadgePanier}
+            showDescription={showDescription}
+            showPrice={showPrice}
+            showQuantitySelector={showQuantitySelector}
+            showSpiceSelector={showSpiceSelector}
+            showAddToCartButton={showAddToCartButton}
+            show3DTilt={show3DTilt}
+            // Props de style
+            imageFormat={imageFormat}
+            {...currentVariant.props}
+          />
+        </div>
+
+        {/* Code généré */}
+        <div className="border-thai-orange/20 mt-4 rounded-lg border bg-gray-900 p-4">
+          <div className="mb-2 flex items-center justify-between">
+            <span className="text-xs font-medium text-gray-400">Props générées</span>
+            <button
+              onClick={() => {
+                const code = generatePropsCode()
+                navigator.clipboard.writeText(code)
+              }}
+              className="text-thai-orange hover:text-thai-orange/80 text-xs transition-colors"
+            >
+              📋 Copier
+            </button>
+          </div>
+          <pre className="overflow-x-auto text-xs text-green-400">
+            <code>{generatePropsCode()}</code>
+          </pre>
+        </div>
+      </div>
+
+      {/* Modal réel */}
+      <CommandePlatModal
+        plat={currentVariant.id === "readonly-extra" ? null : selectedPlat}
+        isOpen={isModalOpen}
+        onOpenChange={setIsModalOpen}
+        formatPrix={formatPrix}
+        onAddToCart={
+          currentVariant.props.mode === "interactive"
+            ? (plat, qty) => {
+                console.log(`Ajout: ${plat.plat} x${qty}`)
+                setIsModalOpen(false)
+              }
+            : undefined
+        }
+        // Props de visibilité
+        showImage={showImage}
+        showBadge={showBadge}
+        showBadgeDisponible={showBadgeDisponible}
+        showBadgeExtra={showBadgeExtra}
+        showBadgePanier={showBadgePanier}
+        showDescription={showDescription}
+        showPrice={showPrice}
+        showQuantitySelector={showQuantitySelector}
+        showSpiceSelector={showSpiceSelector}
+        showAddToCartButton={showAddToCartButton}
+        show3DTilt={show3DTilt}
+        // Props de style
+        modalSize={modalSize}
+        imageFormat={imageFormat}
+        modalPosition={modalPosition}
+        // Props animation fermeture
+        exitAnimation={exitAnimation}
+        showCloseButton={showCloseButton}
+        {...currentVariant.props}
+      />
+    </div>
+  )
+
+  // Fonction pour générer le code des props
+  function generatePropsCode() {
+    const props: string[] = []
+
+    // Props de visibilité (n'afficher que si différent de la valeur par défaut)
+    if (!showImage) props.push('showImage={false}')
+    if (!showBadge) props.push('showBadge={false}')
+    if (!showBadgeDisponible) props.push('showBadgeDisponible={false}')
+    if (!showBadgeExtra) props.push('showBadgeExtra={false}')
+    if (!showBadgePanier) props.push('showBadgePanier={false}')
+    if (!showDescription) props.push('showDescription={false}')
+    if (!showPrice) props.push('showPrice={false}')
+    if (!showQuantitySelector) props.push('showQuantitySelector={false}')
+    if (!showSpiceSelector) props.push('showSpiceSelector={false}')
+    if (!showAddToCartButton) props.push('showAddToCartButton={false}')
+    if (!show3DTilt) props.push('show3DTilt={false}')
+
+    // Props de style
+    if (modalSize !== "md") props.push(`modalSize="${modalSize}"`)
+    if (imageFormat !== "auto") props.push(`imageFormat="${imageFormat}"`)
+    if (modalPosition !== "center") props.push(`modalPosition="${modalPosition}"`)
+
+    // Props animation fermeture
+    if (exitAnimation !== "fade-zoom") props.push(`exitAnimation="${exitAnimation}"`)
+    if (showCloseButton) props.push('showCloseButton={true}')
+
+    // Mode
+    props.push(`mode="${currentVariant.props.mode}"`)
+
+    if (props.length === 1) {
+      return `<CommandePlatModal\n  ${props[0]}\n/>`
+    }
+
+    return `<CommandePlatModal\n  ${props.join('\n  ')}\n/>`
+  }
+}
+
 export default function ModalsTestPage() {
   const { plats, isLoading } = useData()
 
@@ -1778,7 +2073,7 @@ export default function ModalsTestPage() {
           <div>
             <CardTitle className="text-thai-green">3. Modales Métier</CardTitle>
             <CardDescription className="mt-1.5">
-              Composants modaux spécifiques à l'application (ex: Détails Plat)
+              Composants modaux spécifiques à l'application avec modes readonly et interactive
               <br />
               <code className="text-xs text-gray-500">components\shared\CommandePlatModal.tsx</code>
             </CardDescription>
@@ -1798,7 +2093,7 @@ export default function ModalsTestPage() {
               <div className="grid gap-4 py-4">
                 <ul className="list-disc space-y-2 pl-5 text-sm text-gray-600">
                   <li>
-                    <strong>plat</strong> (Plat): Objet plat complet (Requis)
+                    <strong>plat</strong> (Plat | null): Objet plat complet
                   </li>
                   <li>
                     <strong>isOpen</strong> (boolean): État d'ouverture du modal
@@ -1813,13 +2108,19 @@ export default function ModalsTestPage() {
                     <strong>onAddToCart</strong> (function): Callback ajout au panier
                   </li>
                   <li>
-                    <strong>currentQuantity</strong> (number): Quantité initiale (défaut: 0)
+                    <strong>mode</strong> ("interactive" | "readonly"): Mode d'affichage
                   </li>
                   <li>
-                    <strong>currentSpiceDistribution</strong> (number[]): Répartition épices
+                    <strong>extra</strong> (Extra | null): Données d'un extra
                   </li>
                   <li>
-                    <strong>dateRetrait</strong> (Date): Date de retrait affichée
+                    <strong>detail</strong> (DetailCommande | null): Données de commande
+                  </li>
+                  <li>
+                    <strong>showPriceDetails</strong> (boolean): Afficher quantité/prix/sous-total
+                  </li>
+                  <li>
+                    <strong>closeOnClick</strong> (boolean): Fermer au click (défaut: true en readonly)
                   </li>
                 </ul>
               </div>
@@ -1827,12 +2128,12 @@ export default function ModalsTestPage() {
           </Dialog>
         </CardHeader>
         <CardContent>
-          {/* CommandePlatModal Playground */}
+          {/* CommandePlatModal Playground avec variantes */}
           <div className="col-span-2">
             {isLoading ? (
               <div className="p-4 text-sm text-gray-500">Chargement des données...</div>
             ) : plats && plats.length > 0 ? (
-              <CommandePlatPlayground plats={plats} />
+              <ReadonlyModalPlayground plats={plats} />
             ) : (
               <div className="p-4 text-sm text-red-500">Aucune donnée disponible</div>
             )}
@@ -1996,6 +2297,7 @@ export default function ModalsTestPage() {
           <ModalVideoPlayground />
         </CardContent>
       </Card>
+
     </div>
   )
 }
