@@ -1,12 +1,12 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import Image from "next/image"
-import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Trash2 } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
 import { ModalVideo } from "@/components/ui/ModalVideo"
+import { cn } from "@/lib/utils"
+import { Trash2 } from "lucide-react"
+import Image from "next/image"
+import { useEffect, useState } from "react"
 import { SmartSpice } from "./SmartSpice"
 
 interface CartItemCardProps {
@@ -141,7 +141,7 @@ export function CartItemCard({
       {/* Layout principal : Col sur mobile (comme ProductCard), Row sur desktop */}
       <div className="flex flex-col gap-0 sm:flex-row sm:items-stretch sm:gap-4">
         {/* Image du plat */}
-        <div className="w-full sm:w-auto sm:flex-shrink-0">
+        <div className="w-full sm:w-auto sm:shrink-0">
           <div className="relative" onClick={onClick}>
             <div
               className={cn(
@@ -151,7 +151,7 @@ export function CartItemCard({
                   {
                     "w-16": "sm:w-16",
                     "w-20": "sm:w-20",
-                    "w-22": "sm:w-[5.5rem]",
+                    "w-22": "sm:w-22",
                     "w-24": "sm:w-24",
                     "w-32": "sm:w-32",
                     "w-40": "sm:w-40",
