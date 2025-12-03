@@ -23,7 +23,7 @@ import type {
   TitleColor,
   ToastPosition,
 } from "@/components/ui/toast"
-import { toast } from "@/hooks/use-toast"
+import { DEFAULT_TOAST_OPTIONS, toast } from "@/hooks/use-toast"
 import { toastVideo } from "@/hooks/use-toast-video"
 import { cn } from "@/lib/utils"
 import { Info } from "lucide-react"
@@ -76,8 +76,8 @@ function ToasterPlayground() {
     variant: "default",
     tilted: false,
     tiltedAngle: -3,
-    duration: 5000,
-    borderColor: "thai-orange",
+    duration: DEFAULT_TOAST_OPTIONS.duration ?? 5000,
+    borderColor: DEFAULT_TOAST_OPTIONS.borderColor ?? "thai-orange",
     customBorderColor: "border-purple-500",
     borderWidth: 2,
     customBorderWidth: 3,
@@ -87,19 +87,19 @@ function ToasterPlayground() {
     titleFontWeight: "bold",
     descriptionColor: "thai-green",
     descriptionFontWeight: "semibold",
-    animateBorder: false,
-    hoverScale: false,
-    rotation: false,
+    animateBorder: DEFAULT_TOAST_OPTIONS.animateBorder ?? false,
+    hoverScale: DEFAULT_TOAST_OPTIONS.hoverScale ?? false,
+    rotation: DEFAULT_TOAST_OPTIONS.rotation ?? false,
     position: "bottom-right",
     customX: "50%",
     customY: "50%",
     redirectUrl: "",
     redirectBehavior: "auto",
     // Animation typing
-    typingAnimation: false,
-    typingSpeed: 100,
+    typingAnimation: DEFAULT_TOAST_OPTIONS.typingAnimation ?? false,
+    typingSpeed: DEFAULT_TOAST_OPTIONS.typingSpeed ?? 100,
     // Animation fermeture
-    mangaExplosion: false,
+    mangaExplosion: DEFAULT_TOAST_OPTIONS.mangaExplosion ?? false,
     animateOut: false,
     // Marquee
     scrollingText: false,
@@ -1703,7 +1703,7 @@ function ToasterVideoPlayground() {
               min="0"
               max="60"
             />
-            <span className="text-xs text-gray-600">secondes (0 = desactive)</span>
+            <span className="text-xs text-gray-600">ms (0 = désactive)</span>
           </div>
         </div>
 

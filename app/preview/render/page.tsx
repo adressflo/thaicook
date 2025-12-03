@@ -104,6 +104,9 @@ function RenderContent() {
     polaroidPaddingSides: parseInt(searchParams.get("polaroidPaddingSides") || "3"),
     polaroidPaddingTop: parseInt(searchParams.get("polaroidPaddingTop") || "3"),
     polaroidPaddingBottom: parseInt(searchParams.get("polaroidPaddingBottom") || "8"),
+    // Animation de sortie
+    animateOut: searchParams.get("animateOut") === "true",
+    mangaExplosion: searchParams.get("mangaExplosion") === "true",
     // Props spécifiques ModalVideo
     loopCount: parseInt(searchParams.get("loopCount") || "0"),
     buttonLayout: searchParams.get("buttonLayout") || "double",
@@ -202,6 +205,8 @@ function RenderContent() {
                 polaroidPaddingBottom: newProps.polaroidPaddingBottom,
                 titleFontWeight: newProps.titleFontWeight,
                 descriptionFontWeight: newProps.descriptionFontWeight,
+                animateOut: newProps.animateOut,
+                mangaExplosion: newProps.mangaExplosion,
               })
             }, 100)
           }
@@ -286,6 +291,8 @@ function RenderContent() {
           polaroidPaddingBottom: props.polaroidPaddingBottom,
           titleFontWeight: props.titleFontWeight,
           descriptionFontWeight: props.descriptionFontWeight,
+          animateOut: props.animateOut,
+          mangaExplosion: props.mangaExplosion,
         })
       }, 500)
     }
@@ -459,6 +466,8 @@ function RenderContent() {
                   polaroidPaddingBottom: props.polaroidPaddingBottom,
                   titleFontWeight: props.titleFontWeight,
                   descriptionFontWeight: props.descriptionFontWeight,
+                  animateOut: props.animateOut,
+                  mangaExplosion: props.mangaExplosion,
                 })
               }}
               className="bg-thai-orange hover:bg-thai-orange/90 text-white shadow-lg transition-all duration-200 hover:shadow-xl"

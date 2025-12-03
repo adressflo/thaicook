@@ -184,6 +184,18 @@ function dispatch(action: Action) {
 
 type Toast = Omit<ToasterToast, "id">
 
+// Valeurs par défaut pour tous les toasts de l'application
+const DEFAULT_TOAST_OPTIONS: Partial<Toast> = {
+  duration: 1500,
+  borderColor: "thai-green",
+  animateBorder: true,
+  hoverScale: true,
+  rotation: true,
+  typingAnimation: true,
+  typingSpeed: 10,
+  mangaExplosion: true,
+}
+
 function toast({ ...props }: Toast) {
   const id = genId()
 
@@ -197,6 +209,7 @@ function toast({ ...props }: Toast) {
   dispatch({
     type: "ADD_TOAST",
     toast: {
+      ...DEFAULT_TOAST_OPTIONS,
       ...props,
       id,
       open: true,
@@ -233,4 +246,4 @@ function useToast() {
   }
 }
 
-export { toast, useToast }
+export { DEFAULT_TOAST_OPTIONS, toast, useToast }

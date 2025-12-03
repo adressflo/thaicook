@@ -338,10 +338,11 @@ function ToastVideoItem({
     const element = videoElement
 
     // Si customDuration est défini, utiliser un timer fixe (pour images ET videos)
+    // customDuration est en millisecondes
     if (customDuration && customDuration > 0) {
       const timer = setTimeout(() => {
         handleDismiss()
-      }, customDuration * 1000)
+      }, customDuration)
       return () => clearTimeout(timer)
     }
 
