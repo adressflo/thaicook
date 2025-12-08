@@ -2219,15 +2219,15 @@ Admin upload image + écrit message → n8n génère formats adaptés → Publie
 
 #### Navigation Mobile Client
 
-- [ ] 💜 **Bottom Navigation Bar** : Barre fixe en bas avec icônes (Accueil, Commander, Panier, Profil) - pattern mobile 2025
+- [x] ✅ **Bottom Navigation Bar** : Barre fixe en bas (Mobile Nav) - ✅ COMPLÉTÉ
 - [ ] 💜 **Pull-to-refresh** : Geste natif pour rafraîchir les données (react-pull-to-refresh)
-- [ ] 💜 **Swipe gestures** : Glisser pour supprimer du panier, changer statut commande
+- [x] ✅ **Swipe gestures** : Glisser pour supprimer du panier (Swipeable List) - ✅ COMPLÉTÉ
 
 #### Panier Mobile
 
-- [ ] 💜 **Bottom Sheet panier** : Remplacer sidebar par bottom sheet glissant (Vaul déjà installé)
-- [ ] 💜 **Sticky cart button** : Bouton panier flottant avec badge quantité
-- [ ] 💜 **Haptic feedback** : Vibration au clic sur boutons (navigator.vibrate - gratuit, natif)
+- [x] ✅ **Bottom Sheet panier** : Panier dans un Drawer responsive (Vaul) - ✅ COMPLÉTÉ
+- [x] ✅ **Docked Cart / Sticky button** : Barre de panier fixe avec résumé - ✅ COMPLÉTÉ
+- [x] ✅ **Haptic feedback** : Vibration au clic et interactions (`useHaptic`) - ✅ COMPLÉTÉ
 
 #### Admin Mobile
 
