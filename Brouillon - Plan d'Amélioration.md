@@ -1286,7 +1286,7 @@ npm run test:e2e
 - [x] ✅ **Offline Banner** : `OfflineBannerCompact` (ligne 307)
 - [x] ✅ **Résumé résultats filtrés** : Affichage count commandes + événements (lignes 293-308)
 - [x] ✅ **Séparation En Cours / Historique** : 4 sections distinctes
-- [x] ✅ **Limite 10 dernières commandes historique** : `.slice(0, 10)` (ligne 254)
+- [x] ✅ **Limite 3 dernières commandes historique** : `.slice(0, 3)` (ligne 254)
 - [x] ✅ **StatusBadge** : Composant couleurs statuts (ligne 47)
 - [x] ✅ **CommandeActionButtons** : Boutons Voir/Modifier (ligne 35-37)
 - [x] ✅ **EvenementActionButtons** : Boutons Voir/Modifier (ligne 35-37)
