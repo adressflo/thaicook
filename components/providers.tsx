@@ -1,56 +1,56 @@
-'use client';
+"use client"
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
-import { createAsyncStoragePersister } from '@tanstack/query-async-storage-persister';
-import { get, set, del } from 'idb-keyval';
-import { DataProvider } from '../contexts/DataContext';
-import { CartProvider } from '../contexts/CartContext';
-import { NotificationProvider } from '../contexts/NotificationContext';
-import { ReactNode, useState, useEffect } from 'react';
+import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister"
+import { QueryClient } from "@tanstack/react-query"
+import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client"
+import { del, get, set } from "idb-keyval"
+import { ReactNode, useEffect, useState } from "react"
+import { CartProvider } from "../contexts/CartContext"
+import { DataProvider } from "../contexts/DataContext"
+import { NotificationProvider } from "../contexts/NotificationContext"
 
 interface ProvidersProps {
-  children: ReactNode;
+  children: ReactNode
 }
 
 // Créer le persister avec IndexedDB (via idb-keyval)
 const createPersister = () => {
-  if (typeof window === 'undefined') {
+  if (typeof window === "undefined") {
     // Côté serveur, retourner un persister no-op
     return {
       persistClient: async () => {},
       restoreClient: async () => undefined,
       removeClient: async () => {},
-    };
+    }
   }
 
   return createAsyncStoragePersister({
     storage: {
       getItem: async (key) => {
         try {
-          return await get(key);
+          return await get(key)
         } catch (error) {
-          console.error('Error reading from IndexedDB:', error);
-          return null;
+          console.error("Error reading from IndexedDB:", error)
+          return null
         }
       },
       setItem: async (key, value) => {
         try {
-          await set(key, value);
+          await set(key, value)
         } catch (error) {
-          console.error('Error writing to IndexedDB:', error);
+          console.error("Error writing to IndexedDB:", error)
         }
       },
       removeItem: async (key) => {
         try {
-          await del(key);
+          await del(key)
         } catch (error) {
-          console.error('Error deleting from IndexedDB:', error);
+          console.error("Error deleting from IndexedDB:", error)
         }
       },
     },
-  });
-};
+  })
+}
 
 export function Providers({ children }: ProvidersProps) {
   const [queryClient] = useState(
@@ -61,38 +61,38 @@ export function Providers({ children }: ProvidersProps) {
             staleTime: 5 * 60 * 1000, // 5 minutes
             gcTime: 24 * 60 * 60 * 1000, // Garder données 24h (anciennement cacheTime)
             refetchOnWindowFocus: false,
-            networkMode: 'offlineFirst', // ⭐ Enable offline-first mode
+            networkMode: "offlineFirst", // ⭐ Enable offline-first mode
             retry: (failureCount, error) => {
               // Ne pas retry si offline
-              if (typeof navigator !== 'undefined' && !navigator.onLine) {
-                return false;
+              if (typeof navigator !== "undefined" && !navigator.onLine) {
+                return false
               }
-              return failureCount < 3;
+              return failureCount < 3
             },
           },
         },
       })
-  );
+  )
 
-  const [persister] = useState(() => createPersister());
+  const [persister] = useState(() => createPersister())
 
   // Nettoyer les données expirées au montage du composant
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (typeof window === "undefined") return
 
     const cleanup = async () => {
       try {
         // Importer dynamiquement pour éviter erreurs SSR
-        const { offlineStorage } = await import('@/lib/offlineStorage');
-        await offlineStorage.cleanup();
-        console.log('✅ Offline storage cleanup completed');
+        const { offlineStorage } = await import("@/lib/offlineStorage")
+        await offlineStorage.cleanup()
+        console.log("✅ Offline storage cleanup completed")
       } catch (error) {
-        console.error('Error during offline storage cleanup:', error);
+        console.error("Error during offline storage cleanup:", error)
       }
-    };
+    }
 
-    cleanup();
-  }, []);
+    cleanup()
+  }, [])
 
   return (
     <PersistQueryClientProvider
@@ -103,7 +103,7 @@ export function Providers({ children }: ProvidersProps) {
         dehydrateOptions: {
           // Ne pas persister les queries avec des erreurs
           shouldDehydrateQuery: (query) => {
-            return query.state.status !== 'error';
+            return query.state.status !== "error"
           },
         },
       }}
@@ -114,5 +114,5 @@ export function Providers({ children }: ProvidersProps) {
         </CartProvider>
       </DataProvider>
     </PersistQueryClientProvider>
-  );
+  )
 }

@@ -1,20 +1,4 @@
 "use client"
-
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
-import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer"
-import { useMediaQuery } from "@/hooks/use-media-query"
-import type { DetailCommande, Extra, PlatUI as Plat } from "@/types/app"
-import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
-import { FileText, Minus, Plus, RefreshCw, ShoppingCart, X } from "lucide-react"
-import Image from "next/image"
 import React from "react"
 
 import { Spice } from "@/components/shared/Spice"
@@ -564,6 +548,13 @@ export const CommandePlatModal = React.memo<CommandePlatModalProps>((props) => {
           className={`mx-auto flex max-h-[90vh] ${sizeClasses} ${positionClasses} transform flex-col overflow-hidden rounded-xl border-0 bg-white p-0 shadow-2xl transition-all duration-300 ${getExitAnimationClasses()} ${showCloseButton ? "" : "[&>button]:hidden"} ${closeOnClick ? "cursor-pointer" : ""}`}
           onClick={closeOnClick ? handleContentClick : (e) => e.stopPropagation()}
         >
+          <VisuallyHidden>
+            <DialogTitle>{props.plat?.plat || "Détails du plat"}</DialogTitle>
+            <DialogDescription>
+              Personnalisez votre plat : options, épices et quantité.
+            </DialogDescription>
+          </VisuallyHidden>
+
           {/* Bouton X de fermeture personnalisé */}
           {showCloseButton && (
             <button
@@ -588,6 +579,9 @@ export const CommandePlatModal = React.memo<CommandePlatModalProps>((props) => {
       <DrawerContent className="max-h-[85vh] outline-none">
         <VisuallyHidden>
           <DrawerTitle>{props.plat?.plat || "Détails du plat"}</DrawerTitle>
+          <DrawerDescription>
+            Personnalisez votre plat : options, épices et quantité.
+          </DrawerDescription>
         </VisuallyHidden>
         {/* Container interne scrollable */}
         <div className="flex h-full flex-col overflow-hidden rounded-t-[10px]">

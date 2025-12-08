@@ -1,435 +1,406 @@
-﻿'use client';
+﻿"use client"
 
-import Link from 'next/link';
-import Image from 'next/image';
-import { useState, useEffect, ChangeEvent, useRef, memo } from 'react';
-import type { Route } from 'next';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { useToast } from '@/hooks/use-toast';
-import { ValidationErrorDisplay, useValidationErrors } from '@/components/forms/ValidationErrorDisplay';
-import { safeValidate, clientUpdateSchema } from '@/lib/validations';
+import { saveNotificationToken } from "@/app/actions/notifications"
+import { DateBirthSelector } from "@/components/forms/DateBirthSelector"
+import { useValidationErrors } from "@/components/forms/ValidationErrorDisplay"
+import { FloatingUserIcon } from "@/components/layout/FloatingUserIcon"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Textarea } from "@/components/ui/textarea"
+import { useToast } from "@/hooks/use-toast"
+import { authClient, useSession } from "@/lib/auth-client"
+import { requestNotificationPermission } from "@/lib/fcm"
+import { cn } from "@/lib/utils"
+import { format, isValid as isValidDate, parse } from "date-fns"
 import {
-  LogIn,
-  UserPlus,
-  LogOut,
-  Save,
-  Edit3,
+  AlertCircle,
+  ArrowLeft,
   Camera,
   CheckSquare,
-  XSquare,
-  Loader2,
-  Trash2,
+  Edit3,
   Home,
-  AlertCircle,
+  Loader2,
   Lock,
-  ArrowLeft,
-} from 'lucide-react';
-import { format, parse, isValid as isValidDate, startOfDay } from 'date-fns';
-import { fr } from 'date-fns/locale';
-import { cn } from '@/lib/utils';
-import { authClient } from '@/lib/auth-client';
-import ReactCrop, {
-  type Crop,
-  centerCrop,
-  makeAspectCrop,
-} from 'react-image-crop';
-import 'react-image-crop/dist/ReactCrop.css';
-import { FloatingUserIcon } from '@/components/layout/FloatingUserIcon';
-import { useSession } from '@/lib/auth-client';
-import { updateUserProfile, getClientProfile, updateProfilePhoto as updateProfilePhotoAction, deleteProfilePhotoAction } from './actions';
-import { DateBirthSelector } from '@/components/forms/DateBirthSelector';
-import { requestNotificationPermission } from '@/lib/fcm';
-import { saveNotificationToken } from '@/app/actions/notifications';
-
-import type { ClientInputData } from '@/types/app';
+  LogIn,
+  LogOut,
+  Save,
+  Trash2,
+  UserPlus,
+  XSquare,
+} from "lucide-react"
+import type { Route } from "next"
+import Link from "next/link"
+import { ChangeEvent, memo, useEffect, useRef, useState } from "react"
+import ReactCrop, { type Crop, centerCrop, makeAspectCrop } from "react-image-crop"
+import "react-image-crop/dist/ReactCrop.css"
 import {
-  uploadProfilePhoto,
+  deleteProfilePhotoAction,
+  getClientProfile,
+  updateProfilePhoto as updateProfilePhotoAction,
+  updateUserProfile,
+} from "./actions"
+
+import {
+  deleteProfilePhoto,
   getCroppedImg,
   resizeImage,
-  deleteProfilePhoto,
-} from '@/services/photoService';
+  uploadProfilePhoto,
+} from "@/services/photoService"
 
-const DATE_FORMAT_DB = 'yyyy-MM-dd';
+const DATE_FORMAT_DB = "yyyy-MM-dd"
 
-function centerAspectCrop(
-  mediaWidth: number,
-  mediaHeight: number,
-  aspect: number
-): Crop {
+function centerAspectCrop(mediaWidth: number, mediaHeight: number, aspect: number): Crop {
   return centerCrop(
-    makeAspectCrop({ unit: '%', width: 90 }, aspect, mediaWidth, mediaHeight),
+    makeAspectCrop({ unit: "%", width: 90 }, aspect, mediaWidth, mediaHeight),
     mediaWidth,
     mediaHeight
-  );
+  )
 }
 
 interface FormDataState {
-  nom: string;
-  prenom: string;
-  preferenceClient: string;
-  numeroTelephone: string;
-  adresseNumeroRue: string;
-  codePostal: string;
-  ville: string;
-  commentConnuChanthana: string[];
-  newsletterPreference: "Oui, j'accepte" | 'non';
+  nom: string
+  prenom: string
+  preferenceClient: string
+  numeroTelephone: string
+  adresseNumeroRue: string
+  codePostal: string
+  ville: string
+  commentConnuChanthana: string[]
+  newsletterPreference: "Oui, j'accepte" | "non"
 }
 
 const initialFormData: FormDataState = {
-  nom: '',
-  prenom: '',
-  preferenceClient: '',
-  numeroTelephone: '',
-  adresseNumeroRue: '',
-  codePostal: '',
-  ville: '',
+  nom: "",
+  prenom: "",
+  preferenceClient: "",
+  numeroTelephone: "",
+  adresseNumeroRue: "",
+  codePostal: "",
+  ville: "",
   commentConnuChanthana: [],
-  newsletterPreference: 'non',
-};
+  newsletterPreference: "non",
+}
 
 const Profil = memo(() => {
-  const { toast } = useToast();
+  const { toast } = useToast()
 
   // Better Auth session
-  const { data: session, isPending: isLoadingAuth } = useSession();
-  const currentUser = session?.user;
+  const { data: session, isPending: isLoadingAuth } = useSession()
+  const currentUser = session?.user
 
   // Client profile state
-  const [currentUserProfile, setCurrentUserProfile] = useState<any>(null);
-  const [isLoadingUserRole, setIsLoadingUserRole] = useState(true);
+  const [currentUserProfile, setCurrentUserProfile] = useState<any>(null)
+  const [isLoadingUserRole, setIsLoadingUserRole] = useState(true)
 
   // Fonction pour charger/recharger le profil
   const refetchClient = async () => {
     if (!currentUser) {
-      setCurrentUserProfile(null);
-      setIsLoadingUserRole(false);
-      return;
+      setCurrentUserProfile(null)
+      setIsLoadingUserRole(false)
+      return
     }
 
-    setIsLoadingUserRole(true);
+    setIsLoadingUserRole(true)
     try {
-      const profile = await getClientProfile();
-      setCurrentUserProfile(profile);
+      const profile = await getClientProfile()
+      setCurrentUserProfile(profile)
     } catch (error) {
-      console.error('Erreur lors du chargement du profil:', error);
+      console.error("Erreur lors du chargement du profil:", error)
     } finally {
-      setIsLoadingUserRole(false);
+      setIsLoadingUserRole(false)
     }
-  };
+  }
 
   // Charger le profil au montage et quand l'utilisateur change
   useEffect(() => {
-    refetchClient();
-  }, [currentUser?.id]);
+    refetchClient()
+  }, [currentUser?.id])
 
   // Demander automatiquement la permission FCM et sauvegarder le token
   useEffect(() => {
-    if (!currentUser) return;
+    if (!currentUser) return
 
     // Vérifier si FCM est configuré avant de demander les permissions
-    const vapidKey = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY;
-    if (!vapidKey || vapidKey === 'YOUR_VAPID_KEY_HERE') {
+    const vapidKey = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY
+    if (!vapidKey || vapidKey === "YOUR_VAPID_KEY_HERE") {
       // FCM non configuré - feature optionnelle, retour silencieux
-      return;
+      return
     }
 
     // Demander permission et obtenir token FCM
-    requestNotificationPermission().then(token => {
+    requestNotificationPermission().then((token) => {
       if (token) {
         // Sauvegarder token dans la base de données
-        saveNotificationToken(token, 'web').then(result => {
-          if (result.success && process.env.NODE_ENV === 'development') {
-            console.log('✅ Token FCM sauvegardé automatiquement');
+        saveNotificationToken(token, "web").then((result) => {
+          if (result.success && process.env.NODE_ENV === "development") {
+            console.log("✅ Token FCM sauvegardé automatiquement")
           }
-        });
+        })
       }
-    });
-  }, [currentUser]);
+    })
+  }, [currentUser])
 
   // ✅ GESTION ERREURS DE VALIDATION ZOD
-  const { validationError, setValidationError, clearValidationError, handleValidationError } = useValidationErrors();
+  const { validationError, setValidationError, clearValidationError, handleValidationError } =
+    useValidationErrors()
 
-  const [loginEmail, setLoginEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [loginEmail, setLoginEmail] = useState("")
+  const [password, setPassword] = useState("")
   // États d'authentification
-  const [authError, setAuthError] = useState<string | null>(null);
+  const [authError, setAuthError] = useState<string | null>(null)
 
   // États du profil
-  const [profileEmail, setProfileEmail] = useState('');
-  const [isLoadingProfile, setIsLoadingProfile] = useState(false);
-  const [birthDate, setBirthDate] = useState<Date | undefined>();
-  const [formData, setFormData] = useState<FormDataState>(initialFormData);
+  const [profileEmail, setProfileEmail] = useState("")
+  const [isLoadingProfile, setIsLoadingProfile] = useState(false)
+  const [birthDate, setBirthDate] = useState<Date | undefined>()
+  const [formData, setFormData] = useState<FormDataState>(initialFormData)
 
   // États de la photo
-  const defaultProfilePhoto = '/logo.ico';
-  const [profilePhotoPreview, setProfilePhotoPreview] = useState<string>(defaultProfilePhoto);
-  const [selectedPhotoFile, setSelectedPhotoFile] = useState<File | null>(null);
-  const [imgSrcForCrop, setImgSrcForCrop] = useState<string>('');
-  const [crop, setCrop] = useState<Crop>();
-  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
-  const imgCropRef = useRef<HTMLImageElement>(null);
-  const [aspectRatio] = useState<number | undefined>(1);
+  const defaultProfilePhoto = "/logo.ico"
+  const [profilePhotoPreview, setProfilePhotoPreview] = useState<string>(defaultProfilePhoto)
+  const [selectedPhotoFile, setSelectedPhotoFile] = useState<File | null>(null)
+  const [imgSrcForCrop, setImgSrcForCrop] = useState<string>("")
+  const [crop, setCrop] = useState<Crop>()
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false)
+  const imgCropRef = useRef<HTMLImageElement>(null)
+  const [aspectRatio] = useState<number | undefined>(1)
 
   useEffect(() => {
     if (currentUser) {
-      setProfileEmail(currentUser.email || '');
+      setProfileEmail(currentUser.email || "")
     }
     if (currentUserProfile) {
       setFormData({
-        nom: currentUserProfile.nom || '',
-        prenom: currentUserProfile.prenom || '',
-        preferenceClient: currentUserProfile.preference_client || '',
-        numeroTelephone: currentUserProfile.numero_de_telephone || '',
-        adresseNumeroRue: currentUserProfile.adresse_numero_et_rue || '',
-        codePostal: currentUserProfile.code_postal?.toString() || '',
-        ville: currentUserProfile.ville || '',
+        nom: currentUserProfile.nom || "",
+        prenom: currentUserProfile.prenom || "",
+        preferenceClient: currentUserProfile.preference_client || "",
+        numeroTelephone: currentUserProfile.numero_de_telephone || "",
+        adresseNumeroRue: currentUserProfile.adresse_numero_et_rue || "",
+        codePostal: currentUserProfile.code_postal?.toString() || "",
+        ville: currentUserProfile.ville || "",
         commentConnuChanthana: currentUserProfile.comment_avez_vous_connu || [],
-        newsletterPreference:
-          currentUserProfile.souhaitez_vous_recevoir_actualites
-            ? "Oui, j'accepte"
-            : 'non',
-      });
-      setProfilePhotoPreview(
-        currentUserProfile.photo_client || defaultProfilePhoto
-      );
+        newsletterPreference: currentUserProfile.souhaitez_vous_recevoir_actualites
+          ? "Oui, j'accepte"
+          : "non",
+      })
+      setProfilePhotoPreview(currentUserProfile.photo_client || defaultProfilePhoto)
       if (currentUserProfile.date_de_naissance) {
-        const parsedDate = parse(
-          currentUserProfile.date_de_naissance,
-          DATE_FORMAT_DB,
-          new Date()
-        );
+        const parsedDate = parse(currentUserProfile.date_de_naissance, DATE_FORMAT_DB, new Date())
         if (isValidDate(parsedDate)) {
-          setBirthDate(parsedDate);
+          setBirthDate(parsedDate)
         }
       } else {
-        setBirthDate(undefined);
+        setBirthDate(undefined)
       }
     } else {
-      setFormData(initialFormData);
+      setFormData(initialFormData)
     }
-  }, [currentUser, currentUserProfile]);
+  }, [currentUser, currentUserProfile])
 
-  const handleAuthAction = async (action: 'login' | 'signup') => {
-    setAuthError(null);
+  const handleAuthAction = async (action: "login" | "signup") => {
+    setAuthError(null)
     try {
-      if (action === 'signup') {
+      if (action === "signup") {
         const result = await authClient.signUp.email({
           email: loginEmail,
           password: password,
-          name: 'Nouvel utilisateur', // Sera mis à jour dans le profil
-        });
+          name: "Nouvel utilisateur", // Sera mis à jour dans le profil
+        })
 
         if (result.error) {
-          throw new Error(result.error.message);
+          throw new Error(result.error.message)
         }
       } else {
         const result = await authClient.signIn.email({
           email: loginEmail,
           password: password,
-        });
+        })
 
         if (result.error) {
-          throw new Error(result.error.message);
+          throw new Error(result.error.message)
         }
       }
-      toast({ title: action === 'signup' ? 'Compte créé !' : 'Connecté !' });
+      toast({ title: action === "signup" ? "Compte créé !" : "Connecté !" })
     } catch (error: unknown) {
-      setAuthError(
-        error instanceof Error ? error.message : 'Une erreur est survenue'
-      );
+      setAuthError(error instanceof Error ? error.message : "Une erreur est survenue")
       toast({
-        title: 'Erreur',
-        description:
-          error instanceof Error ? error.message : 'Une erreur est survenue',
-        variant: 'destructive',
-      });
+        title: "Erreur",
+        description: error instanceof Error ? error.message : "Une erreur est survenue",
+        variant: "destructive",
+      })
     }
-  };
+  }
 
   const handleLogout = async () => {
     try {
-      await authClient.signOut();
-      toast({ title: 'Déconnexion réussie' });
+      await authClient.signOut()
+      toast({ title: "Déconnexion réussie" })
     } catch (error) {
       toast({
-        title: 'Erreur de déconnexion',
-        description: 'Une erreur est survenue lors de la déconnexion',
-        variant: 'destructive',
-      });
+        title: "Erreur de déconnexion",
+        description: "Une erreur est survenue lors de la déconnexion",
+        variant: "destructive",
+      })
     }
-  };
+  }
 
   const handleFormInputChange = (
     field: keyof FormDataState,
     value: string | boolean | Date | string[]
   ) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
+    setFormData((prev) => ({ ...prev, [field]: value }))
+  }
   const handleCommentConnuChange = (option: string, checked: boolean) => {
-    const current = formData.commentConnuChanthana;
-    const newSelection = checked
-      ? [...current, option]
-      : current.filter(item => item !== option);
-    handleFormInputChange('commentConnuChanthana', newSelection);
-  };
+    const current = formData.commentConnuChanthana
+    const newSelection = checked ? [...current, option] : current.filter((item) => item !== option)
+    handleFormInputChange("commentConnuChanthana", newSelection)
+  }
   const handlePhotoChange = async (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+    const file = event.target.files?.[0]
+    if (!file) return
 
     // Vérifier le type de fichier
-    if (!file.type.startsWith('image/')) {
+    if (!file.type.startsWith("image/")) {
       toast({
-        title: 'Erreur',
-        description: 'Veuillez sélectionner un fichier image',
-        variant: 'destructive',
-      });
-      return;
+        title: "Erreur",
+        description: "Veuillez sélectionner un fichier image",
+        variant: "destructive",
+      })
+      return
     }
 
     // Vérifier la taille (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       toast({
-        title: 'Erreur',
+        title: "Erreur",
         description: "L'image ne doit pas dépasser 5MB",
-        variant: 'destructive',
-      });
-      return;
+        variant: "destructive",
+      })
+      return
     }
 
     try {
       // Redimensionner l'image si nécessaire
-      const resizedFile = await resizeImage(file, 800, 800, 0.9);
-      setSelectedPhotoFile(resizedFile);
+      const resizedFile = await resizeImage(file, 800, 800, 0.9)
+      setSelectedPhotoFile(resizedFile)
 
       // Créer une URL pour l'affichage dans le crop
-      const reader = new FileReader();
+      const reader = new FileReader()
       reader.onload = () => {
-        setImgSrcForCrop(reader.result as string);
-      };
-      reader.readAsDataURL(resizedFile);
+        setImgSrcForCrop(reader.result as string)
+      }
+      reader.readAsDataURL(resizedFile)
     } catch (error) {
       toast({
-        title: 'Erreur',
+        title: "Erreur",
         description: "Impossible de traiter l'image",
-        variant: 'destructive',
-      });
+        variant: "destructive",
+      })
     }
-  };
+  }
 
   const onImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    const { width, height } = e.currentTarget;
-    const cropValue = centerAspectCrop(width, height, aspectRatio || 1);
-    setCrop(cropValue);
-  };
+    const { width, height } = e.currentTarget
+    const cropValue = centerAspectCrop(width, height, aspectRatio || 1)
+    setCrop(cropValue)
+  }
 
   const handleApplyCrop = async () => {
-    if (!imgCropRef.current || !crop || !selectedPhotoFile || !currentUser)
-      return;
+    if (!imgCropRef.current || !crop || !selectedPhotoFile || !currentUser) return
 
-    setIsUploadingPhoto(true);
+    setIsUploadingPhoto(true)
     try {
       // Créer l'image croppée
       const croppedFile = await getCroppedImg(
         imgCropRef.current,
         crop,
         `profile-${currentUser.id}.jpg`
-      );
+      )
 
       // Uploader vers Supabase
-      const uploadResult = await uploadProfilePhoto(
-        croppedFile,
-        currentUser.id
-      );
+      const uploadResult = await uploadProfilePhoto(croppedFile, currentUser.id)
 
       if (uploadResult.success && uploadResult.url) {
         // Mettre à jour le profil avec la nouvelle URL
-        const result = await updateProfilePhotoAction(uploadResult.url);
+        const result = await updateProfilePhotoAction(uploadResult.url)
 
         if (!result.success) {
-          throw new Error(result.error || 'Erreur lors de la mise à jour du profil');
+          throw new Error(result.error || "Erreur lors de la mise à jour du profil")
         }
 
-        setProfilePhotoPreview(uploadResult.url);
-        setImgSrcForCrop('');
-        setSelectedPhotoFile(null);
+        setProfilePhotoPreview(uploadResult.url)
+        setImgSrcForCrop("")
+        setSelectedPhotoFile(null)
 
         toast({
-          title: 'Photo mise à jour !',
-          description: 'Votre photo de profil a été sauvegardée',
-        });
+          title: "Photo mise à jour !",
+          description: "Votre photo de profil a été sauvegardée",
+        })
 
-        refetchClient();
+        refetchClient()
       } else {
-        throw new Error(uploadResult.error || 'Erreur upload');
+        throw new Error(uploadResult.error || "Erreur upload")
       }
     } catch (error: unknown) {
       toast({
-        title: 'Erreur',
-        description:
-          error instanceof Error
-            ? error.message
-            : 'Impossible de sauvegarder la photo',
-        variant: 'destructive',
-      });
+        title: "Erreur",
+        description: error instanceof Error ? error.message : "Impossible de sauvegarder la photo",
+        variant: "destructive",
+      })
     } finally {
-      setIsUploadingPhoto(false);
+      setIsUploadingPhoto(false)
     }
-  };
+  }
   const handleDeletePhoto = async () => {
-    if (!currentUser || !currentUserProfile?.photo_client) return;
+    if (!currentUser || !currentUserProfile?.photo_client) return
 
-    setIsUploadingPhoto(true);
+    setIsUploadingPhoto(true)
     try {
       // Supprimer de Supabase Storage
-      const deleteSuccess = await deleteProfilePhoto(currentUser.id);
+      const deleteSuccess = await deleteProfilePhoto(currentUser.id)
 
       if (deleteSuccess) {
         // Mettre à jour le profil en supprimant l'URL de la photo
-        const result = await deleteProfilePhotoAction();
+        const result = await deleteProfilePhotoAction()
 
         if (!result.success) {
-          throw new Error(result.error || 'Erreur lors de la mise à jour du profil');
+          throw new Error(result.error || "Erreur lors de la mise à jour du profil")
         }
 
-        setProfilePhotoPreview(defaultProfilePhoto);
+        setProfilePhotoPreview(defaultProfilePhoto)
 
         toast({
-          title: 'Photo supprimée',
-          description: 'Votre photo de profil a été supprimée',
-        });
+          title: "Photo supprimée",
+          description: "Votre photo de profil a été supprimée",
+        })
 
-        refetchClient();
+        refetchClient()
       } else {
-        throw new Error('Impossible de supprimer la photo');
+        throw new Error("Impossible de supprimer la photo")
       }
     } catch (error: unknown) {
       toast({
-        title: 'Erreur',
-        description:
-          error instanceof Error
-            ? error.message
-            : 'Impossible de supprimer la photo',
-        variant: 'destructive',
-      });
+        title: "Erreur",
+        description: error instanceof Error ? error.message : "Impossible de supprimer la photo",
+        variant: "destructive",
+      })
     } finally {
-      setIsUploadingPhoto(false);
+      setIsUploadingPhoto(false)
     }
-  };
+  }
 
   const handleCancelCrop = () => {
-    setImgSrcForCrop('');
-    setSelectedPhotoFile(null);
-  };
+    setImgSrcForCrop("")
+    setSelectedPhotoFile(null)
+  }
 
   const handleSubmitProfile = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!currentUser?.email) return;
+    e.preventDefault()
+    if (!currentUser?.email) return
 
     // On conserve toute la préparation de dataToSave
     const dataToSave = {
@@ -439,76 +410,72 @@ const Profil = memo(() => {
       preference_client: formData.preferenceClient || null,
       numero_de_telephone: formData.numeroTelephone || null,
       adresse_numero_et_rue: formData.adresseNumeroRue || null,
-      code_postal: formData.codePostal && !isNaN(parseInt(formData.codePostal))
-        ? parseInt(formData.codePostal)
-        : null,
+      code_postal:
+        formData.codePostal && !isNaN(parseInt(formData.codePostal))
+          ? parseInt(formData.codePostal)
+          : null,
       ville: formData.ville || null,
       comment_avez_vous_connu: formData.commentConnuChanthana,
-      souhaitez_vous_recevoir_actualites:
-        formData.newsletterPreference === "Oui, j'accepte",
-      date_de_naissance: birthDate && !isNaN(birthDate.getTime())
-        ? format(birthDate, DATE_FORMAT_DB)
-        : null,
-      photo_client:
-        profilePhotoPreview !== defaultProfilePhoto
-          ? profilePhotoPreview
-          : null,
-    };
+      souhaitez_vous_recevoir_actualites: formData.newsletterPreference === "Oui, j'accepte",
+      date_de_naissance:
+        birthDate && !isNaN(birthDate.getTime()) ? format(birthDate, DATE_FORMAT_DB) : null,
+      photo_client: profilePhotoPreview !== defaultProfilePhoto ? profilePhotoPreview : null,
+    }
 
     // On convertit l'objet en FormData pour la Server Action
-    const formDataForAction = new FormData();
+    const formDataForAction = new FormData()
     Object.entries(dataToSave).forEach(([key, value]) => {
       if (value !== null && value !== undefined) {
         if (Array.isArray(value)) {
-          value.forEach(item => formDataForAction.append(key, item));
+          value.forEach((item) => formDataForAction.append(key, item))
         } else {
-          formDataForAction.append(key, String(value));
+          formDataForAction.append(key, String(value))
         }
       }
-    });
+    })
 
-    setIsLoadingProfile(true);
+    setIsLoadingProfile(true)
 
     // On appelle la Server Action avec le bon format
-    const result = await updateUserProfile(formDataForAction);
+    const result = await updateUserProfile(formDataForAction)
 
-    setIsLoadingProfile(false);
+    setIsLoadingProfile(false)
 
     if (result.success) {
-      toast({ title: 'Profil mis à jour !' });
-      refetchClient();
+      toast({ title: "Profil mis à jour !" })
+      refetchClient()
     } else {
       toast({
-        title: 'Erreur de sauvegarde',
+        title: "Erreur de sauvegarde",
         description: result.error,
-        variant: 'destructive',
-      });
+        variant: "destructive",
+      })
     }
-  };
+  }
 
-  const isLoading = isLoadingAuth || isLoadingUserRole;
+  const isLoading = isLoadingAuth || isLoadingUserRole
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-thai">
-        <div className="text-center space-y-4">
-          <Loader2 className="w-16 h-16 animate-spin text-thai-orange mx-auto" />
+      <div className="bg-gradient-thai flex min-h-screen flex-col items-center justify-center">
+        <div className="space-y-4 text-center">
+          <Loader2 className="text-thai-orange mx-auto h-16 w-16 animate-spin" />
           <p className="text-thai-green font-medium">Chargement de votre profil...</p>
         </div>
       </div>
-    );
+    )
   }
 
   const optionsCommentConnu = [
-    'Bouche à oreille',
-    'Réseaux sociaux',
-    'Recherche Google',
-    'En passant devant',
+    "Bouche à oreille",
+    "Réseaux sociaux",
+    "Recherche Google",
+    "En passant devant",
     "Recommandation d'un ami",
-    'Autre',
-  ];
+    "Autre",
+  ]
 
   return (
-    <div className="min-h-screen bg-gradient-thai py-8 px-4">
+    <div className="bg-gradient-thai min-h-screen px-4 py-8">
       <div className="container mx-auto max-w-2xl">
         {/* Bouton retour optimisé - responsive et élégant */}
         <div className="mb-6 flex justify-start">
@@ -516,17 +483,9 @@ const Profil = memo(() => {
             <Button
               variant="outline"
               size="sm"
-              className="
-                bg-white/90 backdrop-blur-sm hover:bg-white
-                border-thai-orange/20 hover:border-thai-orange/40
-                text-thai-green hover:text-thai-green
-                transition-all duration-200
-                shadow-md hover:shadow-lg
-                rounded-full px-4 py-2
-                group
-              "
+              className="border-thai-orange/20 hover:border-thai-orange/40 text-thai-green hover:text-thai-green group rounded-full bg-white/90 px-4 py-2 shadow-md backdrop-blur-sm transition-all duration-200 hover:bg-white hover:shadow-lg"
             >
-              <Home className="mr-2 h-4 w-4 group-hover:scale-110 transition-transform duration-200" />
+              <Home className="mr-2 h-4 w-4 transition-transform duration-200 group-hover:scale-110" />
               <span className="hidden sm:inline">Retour à l'accueil</span>
               <span className="sm:hidden">Accueil</span>
             </Button>
@@ -536,64 +495,62 @@ const Profil = memo(() => {
         <Card className="shadow-xl">
           <CardContent className="p-6 md:p-8">
             {authError && (
-              <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm animate-fade-in">
+              <div className="animate-fade-in mb-4 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
                 <div className="flex items-center">
-                  <AlertCircle className="w-4 h-4 mr-2 text-red-500" />
+                  <AlertCircle className="mr-2 h-4 w-4 text-red-500" />
                   <p>{authError}</p>
                 </div>
               </div>
             )}
             {!currentUser ? (
               <div className="space-y-6">
-                <div className="text-center mb-8">
-                  <div className="w-24 h-24 mx-auto mb-4 bg-thai-orange/10 rounded-full flex items-center justify-center">
+                <div className="mb-8 text-center">
+                  <div className="bg-thai-orange/10 mx-auto mb-4 flex h-24 w-24 items-center justify-center rounded-full">
                     <img
                       src={defaultProfilePhoto}
                       alt="Logo Chanthana Thai Cook"
-                      className="w-16 h-16 rounded-full object-contain"
+                      className="h-16 w-16 rounded-full object-contain"
                     />
                   </div>
-                  <h2 className="text-2xl font-bold text-thai-green">
-                    Accéder à mon compte
-                  </h2>
-                  <p className="text-sm text-thai-green/70 mt-2">
+                  <h2 className="text-thai-green text-2xl font-bold">Accéder à mon compte</h2>
+                  <p className="text-thai-green/70 mt-2 text-sm">
                     Connectez-vous pour accéder à votre profil
                   </p>
                 </div>
-                <div className="space-y-2 mb-2">
+                <div className="mb-2 space-y-2">
                   <Label htmlFor="auth-email">Email *</Label>
                   <Input
                     id="auth-email"
                     type="email"
                     value={loginEmail}
-                    onChange={e => {
-                      setLoginEmail(e.target.value);
-                      setAuthError(null);
+                    onChange={(e) => {
+                      setLoginEmail(e.target.value)
+                      setAuthError(null)
                     }}
                     placeholder="votreadresse@email.com"
                     required
                   />
                 </div>
-                <div className="space-y-2 mb-4">
+                <div className="mb-4 space-y-2">
                   <Label htmlFor="auth-password">Mot de passe *</Label>
                   <Input
                     id="auth-password"
                     type="password"
                     value={password}
-                    onChange={e => {
-                      setPassword(e.target.value);
-                      setAuthError(null);
+                    onChange={(e) => {
+                      setPassword(e.target.value)
+                      setAuthError(null)
                     }}
                     placeholder="6 caractères min."
                     required
                   />
                 </div>
-                <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex flex-col gap-4 sm:flex-row">
                   <Button
-                    onClick={() => handleAuthAction('login')}
+                    onClick={() => handleAuthAction("login")}
                     disabled={isLoadingAuth}
                     variant="secondary"
-                    className="flex-1 h-12 text-base transition-all duration-200 hover:shadow-md"
+                    className="h-12 flex-1 text-base transition-all duration-200 hover:shadow-md"
                   >
                     {isLoadingAuth ? (
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -603,9 +560,9 @@ const Profil = memo(() => {
                     Se connecter
                   </Button>
                   <Button
-                    onClick={() => handleAuthAction('signup')}
+                    onClick={() => handleAuthAction("signup")}
                     disabled={isLoadingAuth}
-                    className="flex-1 h-12 text-base transition-all duration-200 hover:shadow-md"
+                    className="h-12 flex-1 text-base transition-all duration-200 hover:shadow-md"
                   >
                     {isLoadingAuth ? (
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -619,20 +576,20 @@ const Profil = memo(() => {
             ) : (
               <div className="space-y-6">
                 <div className="flex flex-col items-center space-y-3 pt-4">
-                  <div className="relative group">
+                  <div className="group relative">
                     {/* Photo de profil */}
                     <img
                       src={profilePhotoPreview || defaultProfilePhoto}
                       alt="Profil"
-                      className="w-32 h-32 rounded-full object-cover border-4 border-thai-orange shadow-lg transition-all duration-300 group-hover:shadow-xl"
+                      className="border-thai-orange h-32 w-32 rounded-full border-4 object-cover shadow-lg transition-all duration-300 group-hover:shadow-xl"
                     />
 
                     {/* Bouton d'upload */}
                     <Label
                       htmlFor="photo-upload"
                       className={cn(
-                        'absolute bottom-1 right-1 bg-thai-green text-white p-2 rounded-full cursor-pointer hover:bg-thai-green/80 transition-colors shadow-lg',
-                        isUploadingPhoto && 'opacity-50 cursor-not-allowed'
+                        "bg-thai-green hover:bg-thai-green/80 absolute right-1 bottom-1 cursor-pointer rounded-full p-2 text-white shadow-lg transition-colors",
+                        isUploadingPhoto && "cursor-not-allowed opacity-50"
                       )}
                     >
                       {isUploadingPhoto ? (
@@ -657,8 +614,8 @@ const Profil = memo(() => {
                           onClick={handleDeletePhoto}
                           disabled={isUploadingPhoto}
                           className={cn(
-                            'absolute top-1 right-1 bg-red-500 text-white p-1.5 rounded-full hover:bg-red-600 transition-colors shadow-lg',
-                            isUploadingPhoto && 'opacity-50 cursor-not-allowed'
+                            "absolute top-1 right-1 rounded-full bg-red-500 p-1.5 text-white shadow-lg transition-colors hover:bg-red-600",
+                            isUploadingPhoto && "cursor-not-allowed opacity-50"
                           )}
                           title="Supprimer la photo"
                         >
@@ -670,13 +627,13 @@ const Profil = memo(() => {
                   {/* Aide pour l'utilisateur */}
                   {imgSrcForCrop && (
                     <Card className="mt-4 w-full p-4">
-                      <h4 className="text-center text-lg font-medium text-thai-green mb-2">
+                      <h4 className="text-thai-green mb-2 text-center text-lg font-medium">
                         Recadrer votre photo
                       </h4>
-                      <div className="flex justify-center items-center max-h-96 overflow-hidden">
+                      <div className="flex max-h-96 items-center justify-center overflow-hidden">
                         <ReactCrop
                           crop={crop}
-                          onChange={c => setCrop(c)}
+                          onChange={(c) => setCrop(c)}
                           aspect={aspectRatio}
                           minWidth={100}
                           minHeight={100}
@@ -686,11 +643,11 @@ const Profil = memo(() => {
                             alt="Crop me"
                             src={imgSrcForCrop}
                             onLoad={onImageLoad}
-                            style={{ maxHeight: '350px', objectFit: 'contain' }}
+                            style={{ maxHeight: "350px", objectFit: "contain" }}
                           />
                         </ReactCrop>
                       </div>
-                      <div className="flex justify-center gap-4 mt-4">
+                      <div className="mt-4 flex justify-center gap-4">
                         <Button
                           onClick={handleApplyCrop}
                           variant="secondary"
@@ -719,47 +676,47 @@ const Profil = memo(() => {
                       </div>
                     </Card>
                   )}
-                  <div className="text-center space-y-2">
-                    <h2 className="text-2xl md:text-3xl font-bold text-thai-green">
+                  <div className="space-y-2 text-center">
+                    <h2 className="text-thai-green text-2xl font-bold md:text-3xl">
                       {formData.prenom
                         ? `Bonjour ${formData.prenom} !`
                         : profileEmail || currentUser.email}
                     </h2>
-                    <Button
-                      onClick={handleLogout}
-                      disabled={isLoadingAuth}
-                      variant="ghost"
-                      size="sm"
-                      className="text-thai-orange hover:text-thai-orange/80 transition-colors duration-200"
-                    >
-                      <LogOut className="mr-1 h-4 w-4" />
-                      Déconnexion
-                    </Button>
+                    <div className="flex justify-center gap-2">
+                      <Button
+                        onClick={handleLogout}
+                        disabled={isLoadingAuth}
+                        variant="ghost"
+                        size="sm"
+                        className="text-thai-orange hover:text-thai-orange/80 transition-colors duration-200"
+                      >
+                        <LogOut className="mr-1 h-4 w-4" />
+                        Déconnexion
+                      </Button>
+                    </div>
                   </div>
                 </div>
                 {!imgSrcForCrop && (
                   <form
                     onSubmit={handleSubmitProfile}
-                    className="space-y-6 border-t border-thai-orange/10 pt-6"
+                    className="border-thai-orange/10 space-y-6 border-t pt-6"
                   >
-                    <div className="flex items-center justify-center mb-4">
-                      <div className="w-8 h-8 bg-thai-orange/10 rounded-full flex items-center justify-center mr-3">
-                        <Edit3 className="w-4 h-4 text-thai-orange" />
+                    <div className="mb-4 flex items-center justify-center">
+                      <div className="bg-thai-orange/10 mr-3 flex h-8 w-8 items-center justify-center rounded-full">
+                        <Edit3 className="text-thai-orange h-4 w-4" />
                       </div>
-                      <h3 className="text-xl font-semibold text-thai-green">
+                      <h3 className="text-thai-green text-xl font-semibold">
                         Mes informations personnelles
                       </h3>
                     </div>
-                    <div className="grid md:grid-cols-2 gap-4">
+                    <div className="grid gap-4 md:grid-cols-2">
                       <div>
                         <Label htmlFor="nom">Nom *</Label>
                         <Input
                           id="nom"
                           name="nom"
-                          value={formData.nom || ''}
-                          onChange={e =>
-                            handleFormInputChange('nom', e.target.value)
-                          }
+                          value={formData.nom || ""}
+                          onChange={(e) => handleFormInputChange("nom", e.target.value)}
                           required
                         />
                       </div>
@@ -768,36 +725,25 @@ const Profil = memo(() => {
                         <Input
                           id="prenom"
                           name="prenom"
-                          value={formData.prenom || ''}
-                          onChange={e =>
-                            handleFormInputChange('prenom', e.target.value)
-                          }
+                          value={formData.prenom || ""}
+                          onChange={(e) => handleFormInputChange("prenom", e.target.value)}
                           required
                         />
                       </div>
                     </div>
                     <div>
-                      <Label htmlFor="numeroTelephone">
-                        Numéro de téléphone *
-                      </Label>
+                      <Label htmlFor="numeroTelephone">Numéro de téléphone *</Label>
                       <Input
                         id="numeroTelephone"
                         name="numeroTelephone"
                         type="tel"
-                        value={formData.numeroTelephone || ''}
-                        onChange={e =>
-                          handleFormInputChange(
-                            'numeroTelephone',
-                            e.target.value
-                          )
-                        }
+                        value={formData.numeroTelephone || ""}
+                        onChange={(e) => handleFormInputChange("numeroTelephone", e.target.value)}
                         required
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="profile-email">
-                        Email de votre compte
-                      </Label>
+                      <Label htmlFor="profile-email">Email de votre compte</Label>
                       <Input
                         id="profile-email"
                         type="email"
@@ -806,26 +752,20 @@ const Profil = memo(() => {
                         className="bg-gray-100/50"
                       />
                       <p className="text-xs text-gray-500">
-                        Pour modifier votre email, utilisez la section "Sécurité et confidentialité" ci-dessous.
+                        Pour modifier votre email, utilisez la section "Sécurité et confidentialité"
+                        ci-dessous.
                       </p>
                     </div>
                     <div>
-                      <Label htmlFor="adresseNumeroRue">
-                        Adresse (numéro et rue)
-                      </Label>
+                      <Label htmlFor="adresseNumeroRue">Adresse (numéro et rue)</Label>
                       <Input
                         id="adresseNumeroRue"
                         name="adresseNumeroRue"
-                        value={formData.adresseNumeroRue || ''}
-                        onChange={e =>
-                          handleFormInputChange(
-                            'adresseNumeroRue',
-                            e.target.value
-                          )
-                        }
+                        value={formData.adresseNumeroRue || ""}
+                        onChange={(e) => handleFormInputChange("adresseNumeroRue", e.target.value)}
                       />
                     </div>
-                    <div className="grid md:grid-cols-2 gap-4">
+                    <div className="grid gap-4 md:grid-cols-2">
                       <div>
                         <Label htmlFor="codePostal">Code Postal</Label>
                         <Input
@@ -833,10 +773,8 @@ const Profil = memo(() => {
                           name="codePostal"
                           type="text"
                           pattern="[0-9]*"
-                          value={formData.codePostal || ''}
-                          onChange={e =>
-                            handleFormInputChange('codePostal', e.target.value)
-                          }
+                          value={formData.codePostal || ""}
+                          onChange={(e) => handleFormInputChange("codePostal", e.target.value)}
                         />
                       </div>
                       <div>
@@ -844,51 +782,34 @@ const Profil = memo(() => {
                         <Input
                           id="ville"
                           name="ville"
-                          value={formData.ville || ''}
-                          onChange={e =>
-                            handleFormInputChange('ville', e.target.value)
-                          }
+                          value={formData.ville || ""}
+                          onChange={(e) => handleFormInputChange("ville", e.target.value)}
                         />
                       </div>
                     </div>
-                    <DateBirthSelector
-                      value={birthDate}
-                      onChange={setBirthDate}
-                    />
+                    <DateBirthSelector value={birthDate} onChange={setBirthDate} />
                     <div>
                       <Label htmlFor="preferenceClient">Vos Préférences</Label>
                       <Textarea
                         id="preferenceClient"
                         name="preferenceClient"
-                        value={formData.preferenceClient || ''}
-                        onChange={e =>
-                          handleFormInputChange(
-                            'preferenceClient',
-                            e.target.value
-                          )
-                        }
+                        value={formData.preferenceClient || ""}
+                        onChange={(e) => handleFormInputChange("preferenceClient", e.target.value)}
                         rows={3}
                         placeholder="Allergies, végan, plat préféré..."
                       />
                     </div>
                     <div className="space-y-3">
                       <Label>Comment avez-vous connu ChanthanaThaiCook ?</Label>
-                      <div className="grid md:grid-cols-2 gap-3">
-                        {optionsCommentConnu.map(o => (
+                      <div className="grid gap-3 md:grid-cols-2">
+                        {optionsCommentConnu.map((o) => (
                           <div key={o} className="flex items-center space-x-2">
                             <Checkbox
                               id={`connu-${o}`}
-                              checked={formData.commentConnuChanthana.includes(
-                                o
-                              )}
-                              onCheckedChange={c =>
-                                handleCommentConnuChange(o, c as boolean)
-                              }
+                              checked={formData.commentConnuChanthana.includes(o)}
+                              onCheckedChange={(c) => handleCommentConnuChange(o, c as boolean)}
                             />
-                            <Label
-                              htmlFor={`connu-${o}`}
-                              className="text-sm font-normal"
-                            >
+                            <Label htmlFor={`connu-${o}`} className="text-sm font-normal">
                               {o}
                             </Label>
                           </div>
@@ -896,14 +817,11 @@ const Profil = memo(() => {
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <Label>
-                        Souhaitez-vous recevoir les actualités et offres par
-                        e-mail ?
-                      </Label>
+                      <Label>Souhaitez-vous recevoir les actualités et offres par e-mail ?</Label>
                       <RadioGroup
                         value={formData.newsletterPreference}
                         onValueChange={(v: string) =>
-                          handleFormInputChange('newsletterPreference', v)
+                          handleFormInputChange("newsletterPreference", v)
                         }
                         className="flex gap-4 pt-1"
                       >
@@ -929,17 +847,19 @@ const Profil = memo(() => {
                         !formData.prenom ||
                         !formData.numeroTelephone
                       }
-                      className="w-full h-12 text-base font-medium transition-all duration-200 hover:shadow-md"
+                      className="h-12 w-full text-base font-medium transition-all duration-200 hover:shadow-md"
                     >
                       {isLoadingProfile ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          {currentUserProfile?.idclient ? 'Mise à jour...' : 'Sauvegarde...'}
+                          {currentUserProfile?.idclient ? "Mise à jour..." : "Sauvegarde..."}
                         </>
                       ) : (
                         <>
                           <Save className="mr-2 h-4 w-4" />
-                          {currentUserProfile?.idclient ? 'Mettre à jour mon profil' : 'Sauvegarder mon profil'}
+                          {currentUserProfile?.idclient
+                            ? "Mettre à jour mon profil"
+                            : "Sauvegarder mon profil"}
                         </>
                       )}
                     </Button>
@@ -952,78 +872,82 @@ const Profil = memo(() => {
 
         {/* Account Management Section - Only shown when logged in */}
         {currentUser && (
-          <Card className="shadow-xl mt-6 border-2 border-gray-100">
+          <Card className="mt-6 border-2 border-gray-100 shadow-xl">
             <CardContent className="p-6">
-              <div className="flex items-center justify-center mb-4">
-                <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center mr-3">
-                  <Lock className="w-4 h-4 text-gray-600" />
+              <div className="mb-4 flex items-center justify-center">
+                <div className="mr-3 flex h-8 w-8 items-center justify-center rounded-full bg-gray-100">
+                  <Lock className="h-4 w-4 text-gray-600" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900">
-                  Sécurité et confidentialité
-                </h3>
+                <h3 className="text-xl font-semibold text-gray-900">Sécurité et confidentialité</h3>
               </div>
 
               <div className="space-y-3">
                 {/* Change Email */}
                 <Link href={"/profil/change-email" as Route} className="block">
-                  <div className="p-4 border border-gray-200 rounded-lg hover:border-amber-300 hover:bg-amber-50/50 transition-all duration-200 group">
+                  <div className="group rounded-lg border border-gray-200 p-4 transition-all duration-200 hover:border-amber-300 hover:bg-amber-50/50">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <div className="p-2 bg-amber-100 rounded-lg group-hover:bg-amber-200 transition-colors">
+                        <div className="rounded-lg bg-amber-100 p-2 transition-colors group-hover:bg-amber-200">
                           <AlertCircle className="h-5 w-5 text-amber-700" />
                         </div>
                         <div>
                           <h4 className="font-medium text-gray-900">Changer mon adresse email</h4>
-                          <p className="text-sm text-gray-600">Modifier l'email associé à votre compte</p>
+                          <p className="text-sm text-gray-600">
+                            Modifier l'email associé à votre compte
+                          </p>
                         </div>
                       </div>
-                      <ArrowLeft className="h-5 w-5 text-gray-400 rotate-180 group-hover:text-amber-600 transition-colors" />
+                      <ArrowLeft className="h-5 w-5 rotate-180 text-gray-400 transition-colors group-hover:text-amber-600" />
                     </div>
                   </div>
                 </Link>
 
                 {/* Change Password */}
                 <Link href={"/profil/change-password" as Route} className="block">
-                  <div className="p-4 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50/50 transition-all duration-200 group">
+                  <div className="group rounded-lg border border-gray-200 p-4 transition-all duration-200 hover:border-blue-300 hover:bg-blue-50/50">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <div className="p-2 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
+                        <div className="rounded-lg bg-blue-100 p-2 transition-colors group-hover:bg-blue-200">
                           <Lock className="h-5 w-5 text-blue-700" />
                         </div>
                         <div>
                           <h4 className="font-medium text-gray-900">Changer mon mot de passe</h4>
-                          <p className="text-sm text-gray-600">Sécurisez votre compte avec un nouveau mot de passe</p>
+                          <p className="text-sm text-gray-600">
+                            Sécurisez votre compte avec un nouveau mot de passe
+                          </p>
                         </div>
                       </div>
-                      <ArrowLeft className="h-5 w-5 text-gray-400 rotate-180 group-hover:text-blue-600 transition-colors" />
+                      <ArrowLeft className="h-5 w-5 rotate-180 text-gray-400 transition-colors group-hover:text-blue-600" />
                     </div>
                   </div>
                 </Link>
 
                 {/* Delete Account */}
                 <Link href={"/profil/delete-account" as Route} className="block">
-                  <div className="p-4 border border-gray-200 rounded-lg hover:border-red-300 hover:bg-red-50/50 transition-all duration-200 group">
+                  <div className="group rounded-lg border border-gray-200 p-4 transition-all duration-200 hover:border-red-300 hover:bg-red-50/50">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <div className="p-2 bg-red-100 rounded-lg group-hover:bg-red-200 transition-colors">
+                        <div className="rounded-lg bg-red-100 p-2 transition-colors group-hover:bg-red-200">
                           <Trash2 className="h-5 w-5 text-red-700" />
                         </div>
                         <div>
                           <h4 className="font-medium text-gray-900">Supprimer mon compte</h4>
-                          <p className="text-sm text-gray-600">Suppression définitive de votre compte et de vos données</p>
+                          <p className="text-sm text-gray-600">
+                            Suppression définitive de votre compte et de vos données
+                          </p>
                         </div>
                       </div>
-                      <ArrowLeft className="h-5 w-5 text-gray-400 rotate-180 group-hover:text-red-600 transition-colors" />
+                      <ArrowLeft className="h-5 w-5 rotate-180 text-gray-400 transition-colors group-hover:text-red-600" />
                     </div>
                   </div>
                 </Link>
               </div>
 
               {/* Privacy Notice */}
-              <div className="mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+              <div className="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-3">
                 <p className="text-xs text-gray-600">
-                  <strong className="text-gray-700">🔒 Vos données sont protégées.</strong> Nous respectons votre vie privée
-                  et sécurisons vos informations selon le RGPD.
+                  <strong className="text-gray-700">🔒 Vos données sont protégées.</strong> Nous
+                  respectons votre vie privée et sécurisons vos informations selon le RGPD.
                 </p>
               </div>
             </CardContent>
@@ -1034,9 +958,9 @@ const Profil = memo(() => {
         <FloatingUserIcon />
       </div>
     </div>
-  );
-});
+  )
+})
 
-Profil.displayName = 'Profil';
+Profil.displayName = "Profil"
 
-export default Profil;
+export default Profil

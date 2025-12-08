@@ -584,7 +584,7 @@ const Commander = memo(() => {
 
   return (
     <AppLayout>
-      <div className="bg-gradient-thai min-h-screen px-2 py-8 sm:px-4">
+      <div className="bg-gradient-thai min-h-screen px-2 pt-8 pb-40 sm:px-4">
         <div
           className={`mx-auto transition-all duration-500 ${
             panier.length > 0
