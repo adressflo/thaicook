@@ -7,24 +7,28 @@ Notre feuille de route pour faire évoluer l'expérience ChanthanaThaiCook. Ce d
 ## ⚠️ REGLES D'OR (TOUS LES AGENTS)
 
 ### Priorites Absolues
+
 - **JAMAIS de simplification destructive** : Ne jamais supprimer ou simplifier du code existant sans accord explicite
 - **JAMAIS de reecriture complete** : Toujours modifier de facon ciblee, jamais reecrire un fichier entier
 - **Lecture avant ecriture** : OBLIGATOIRE - Toujours lire un fichier avant de le modifier
 - **Preuves > Suppositions** : Verifier avant d'agir, ne jamais supposer
 
 ### Workflow EPCT Obligatoire
+
 1. **Explorer** : Analyser le code existant et le contexte
 2. **Planifier** : Creer un plan d'action detaille
 3. **Coder** : Implementer de maniere propre et coherente
 4. **Tester** : Valider que les changements fonctionnent
 
 ### Securite
+
 - Chemins absolus uniquement
 - Jamais de `sudo` ou elevation de privileges
 - Suppression de fichiers = confirmation User obligatoire
 - Jamais logger/afficher secrets, cles API, mots de passe
 
 ### Communication
+
 - Concis et direct (1-3 phrases si possible)
 - Pas de preambule ("Voici le code...")
 - Pas de postambule ("J'ai termine...")
@@ -32,12 +36,14 @@ Notre feuille de route pour faire évoluer l'expérience ChanthanaThaiCook. Ce d
 - Transparence totale sur le processus
 
 ### Avant Toute Modification
+
 1. Verifier les dependances dans `package.json`
 2. Analyser le code environnant (conventions, patterns)
 3. Consulter la documentation si technologie complexe
 4. Demander validation User si action importante
 
 ### User = DECIDEUR
+
 - Aucune tache importante sans validation prealable
 - Exemples: creer workflow, rediger email, modifier API, creer composant majeur
 
@@ -1294,15 +1300,15 @@ npm run test:e2e
 
 #### ⚠️ Composant Créé mais NON Intégré
 
-- [ ] 🔥🔥 **BoutonTelechargerFacture** : ⚠️ COMPOSANT ORPHELIN
+- [x] ✅ **BoutonTelechargerFacture** : ⚠️ COMPOSANT INTÉGRÉ
   - ✅ Fichier existe: `components/historique/BoutonTelechargerFacture.tsx` (41 lignes)
   - ✅ Utilise `@react-pdf/renderer` pour génération PDF
-  - ❌ NON importé/utilisé nulle part dans l'application
-  - À intégrer dans `CommandeActionButtons` pour commandes "Récupérée"
+  - ✅ Importé/utilisé dans `CommandeActionButtons` et `suivi-commande/[id]/page.tsx`
+  - Intégré dans `CommandeActionButtons` pour commandes "Récupérée"
 
 #### 🔥🔥 Tâches Restantes
 
-- [ ] 🔥🔥 **Intégrer BoutonTelechargerFacture** : Ajouter dans ActionButtons.tsx pour statut "Récupérée"
+- [x] ✅ **Intégrer BoutonTelechargerFacture** : Ajouter dans ActionButtons.tsx pour statut "Récupérée"
 - [ ] 🔥🔥 **Bouton Devis/Facture événements** : Template PDF événement à créer (`BoutonTelechargerDevis`)
 - [ ] 🔥🔥 **Bouton "Voir tout l'historique"** : Redirection vers `/historique/complet`
 - [ ] 🔥🔥 **"Commander à Nouveau"** : Bouton copie commande passée vers panier
@@ -1787,6 +1793,7 @@ npm run test:e2e
 - [ ] **Enregistrement** : Server Action création commande complète
 
 **Ce qui EXISTE actuellement :**
+
 - ✅ `AddPlatModal` : Ajouter plats à commande existante (lignes 857-1316)
 - ✅ `AddComplementModal` : Ajouter extras à commande existante
 - ✅ `QuickActionsModal` : Notes et actions rapides (lignes 287-410)
@@ -1973,6 +1980,7 @@ npm run test:e2e
 **🔥🔥🔥 PRIORITÉ HAUTE - Interface Human-in-the-Loop pour n8n + IA/RAG**
 
 **Concept :**
+
 ```
 Client (WhatsApp/SMS/Email) → n8n + IA/RAG analyse → Page Admin → Tu valides → n8n répond au client
 ```
@@ -2023,6 +2031,7 @@ Client (WhatsApp/SMS/Email) → n8n + IA/RAG analyse → Page Admin → Tu valid
 **🔥🔥 PRIORITÉ MOYENNE - Créateur de Contenu Réseaux Sociaux via n8n**
 
 **Concept :**
+
 ```
 Admin upload image + écrit message → n8n génère formats adaptés → Publie sur Facebook, Instagram, X
 ```
@@ -2077,6 +2086,7 @@ Admin upload image + écrit message → n8n génère formats adaptés → Publie
 #### Prérequis n8n
 
 **Tokens à configurer dans n8n (gratuits pour usage restaurant) :**
+
 - Facebook : Page Access Token (via Facebook Developer)
 - Instagram : Business Account ID + Token (via Meta Business Suite)
 - X/Twitter : API Key + Secret + Bearer Token
@@ -2145,6 +2155,7 @@ Admin upload image + écrit message → n8n génère formats adaptés → Publie
 **Fichier** : `app/admin/parametres/page.tsx`
 
 **6 catégories de paramètres :**
+
 - Général : Nom restaurant, description, horaires, téléphone, adresse, max commandes/créneau
 - Notifications : Email/SMS, alertes nouvelle commande, alertes stock, email admin
 - Sécurité : Timeout session, vérification téléphone, tentatives login, exigences mot de passe
@@ -2157,6 +2168,7 @@ Admin upload image + écrit message → n8n génère formats adaptés → Publie
 **Fichier** : `app/admin/courses/page.tsx`
 
 **Gestion stock & listes de courses :**
+
 - Onglet "Articles du Catalogue" : Inventaire produits avec statut (Disponible/Rupture/En commande)
 - Onglet "Listes de Courses" : Gestion listes achats avec statut (Brouillon/Validée/Commandée/Livrée)
 - Métriques : Total articles, articles en rupture, valeur stock, coût estimé listes actives
@@ -2166,6 +2178,7 @@ Admin upload image + écrit message → n8n génère formats adaptés → Publie
 **Fichier** : `app/admin/advanced/page.tsx`
 
 **Configuration technique (6 catégories) :**
+
 - Base de données : Connexion, pool, timeout, SSL, backups auto
 - Sécurité : JWT, rate limiting, IPs autorisées, 2FA, durée session
 - Performance : Cache, TTL, gzip, CDN, workers
@@ -2182,11 +2195,13 @@ Admin upload image + écrit message → n8n génère formats adaptés → Publie
 ### État Actuel du Code
 
 **Hooks existants** (`hooks/use-mobile.tsx`) :
+
 - ✅ `useIsMobile()` - Détecte < 768px
 - ✅ `useIsTablet()` - Détecte 768-1023px
 - ✅ `useBreakpoints()` - Retourne {isMobile, isTablet, isDesktop}
 
 **Composants responsive existants** :
+
 - ✅ `Sidebar.tsx` - Hamburger menu mobile, sidebar desktop
 - ✅ `Header.tsx` - Navigation responsive
 - ✅ `Drawer` (Vaul) - Bottom-up drawer mobile
@@ -2194,6 +2209,7 @@ Admin upload image + écrit message → n8n génère formats adaptés → Publie
 - ✅ `ResponsiveDateSelector.tsx` - Sélecteur date adaptatif
 
 **PWA existante** :
+
 - ✅ Service Worker registration
 - ✅ Apple Web App metadata
 - ✅ `SectionPWA.tsx` - UI installation
@@ -2309,61 +2325,61 @@ Next.js App → Webhook POST → n8n → Fan-out multicanal
 
 #### 📱 WhatsApp Business Automation
 
-| Template | Lien | Adaptation Restaurant |
-|----------|------|----------------------|
-| **AI-Powered WhatsApp Assistant for Restaurants** | [n8n #3043](https://n8n.io/workflows/3043-ai-powered-whatsapp-assistant-for-restaurants-and-delivery-automation/) | Chatbot IA pour prises de commandes WhatsApp, statuts automatiques |
-| **Restaurant Order & Menu Management with Google Gemini** | [n8n #5096](https://n8n.io/workflows/5096-ai-powered-restaurant-order-and-menu-management-with-whatsapp-and-google-gemini/) | Menu dans Google Sheets, IA répond "C'est épicé ?" en FR/TH/EN |
-| **WhatsApp Starter Workflow** | [n8n #2162](https://n8n.io/workflows/2162-whatsapp-starter-workflow/) | Auto-réponses basiques "Merci pour votre commande !" |
-| **Product Training & Customer Support via WhatsApp + GPT-4** | [n8n #3379](https://n8n.io/workflows/3379-automate-product-training-and-customer-support-via-whatsapp-gpt-4-and-google-sheets/) | FAQ automatisée ("Vous êtes ouverts quand ?") |
+| Template                                                     | Lien                                                                                                                            | Adaptation Restaurant                                              |
+| ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| **AI-Powered WhatsApp Assistant for Restaurants**            | [n8n #3043](https://n8n.io/workflows/3043-ai-powered-whatsapp-assistant-for-restaurants-and-delivery-automation/)               | Chatbot IA pour prises de commandes WhatsApp, statuts automatiques |
+| **Restaurant Order & Menu Management with Google Gemini**    | [n8n #5096](https://n8n.io/workflows/5096-ai-powered-restaurant-order-and-menu-management-with-whatsapp-and-google-gemini/)     | Menu dans Google Sheets, IA répond "C'est épicé ?" en FR/TH/EN     |
+| **WhatsApp Starter Workflow**                                | [n8n #2162](https://n8n.io/workflows/2162-whatsapp-starter-workflow/)                                                           | Auto-réponses basiques "Merci pour votre commande !"               |
+| **Product Training & Customer Support via WhatsApp + GPT-4** | [n8n #3379](https://n8n.io/workflows/3379-automate-product-training-and-customer-support-via-whatsapp-gpt-4-and-google-sheets/) | FAQ automatisée ("Vous êtes ouverts quand ?")                      |
 
 #### 📸 Réseaux Sociaux (Instagram/Facebook/X)
 
-| Template | Lien | Adaptation Restaurant |
-|----------|------|----------------------|
-| **Instagram Single Image Post avec Facebook API** | [n8n #2537](https://n8n.io/workflows/2537-simple-social-instagram-single-image-post-with-facebook-api/) | Post quotidien plat du jour (pas de rate limiting) |
-| **Instagram & Facebook avec System User Tokens** | [n8n #5457](https://n8n.io/workflows/5457-automate-instagram-and-facebook-posting-with-meta-graph-api-and-system-user-tokens/) | Tokens sécurisés, planification avancée |
-| **Instagram Posts avec Google Drive + AI Captions** | [n8n #3478](https://n8n.io/workflows/3478-automate-instagram-posts-with-google-drive-ai-captions-and-facebook-api/) | Photos dans Drive, IA génère légendes automatiques |
-| **Social Media Content AI (IG, FB, LinkedIn, X)** | [n8n #4637](https://n8n.io/workflows/4637-automate-social-media-content-with-ai-for-instagram-facebook-linkedin-and-x/) | Multi-plateformes, génération idées + images |
+| Template                                            | Lien                                                                                                                           | Adaptation Restaurant                              |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------- |
+| **Instagram Single Image Post avec Facebook API**   | [n8n #2537](https://n8n.io/workflows/2537-simple-social-instagram-single-image-post-with-facebook-api/)                        | Post quotidien plat du jour (pas de rate limiting) |
+| **Instagram & Facebook avec System User Tokens**    | [n8n #5457](https://n8n.io/workflows/5457-automate-instagram-and-facebook-posting-with-meta-graph-api-and-system-user-tokens/) | Tokens sécurisés, planification avancée            |
+| **Instagram Posts avec Google Drive + AI Captions** | [n8n #3478](https://n8n.io/workflows/3478-automate-instagram-posts-with-google-drive-ai-captions-and-facebook-api/)            | Photos dans Drive, IA génère légendes automatiques |
+| **Social Media Content AI (IG, FB, LinkedIn, X)**   | [n8n #4637](https://n8n.io/workflows/4637-automate-social-media-content-with-ai-for-instagram-facebook-linkedin-and-x/)        | Multi-plateformes, génération idées + images       |
 
 #### 📧 Notifications Email
 
-| Template | Lien | Adaptation Restaurant |
-|----------|------|----------------------|
+| Template                                              | Lien                                                                                                                   | Adaptation Restaurant                               |
+| ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
 | **E-commerce Order Processing avec Email & Webhooks** | [n8n #7518](https://n8n.io/workflows/7518-automate-e-commerce-order-processing-with-email-notifications-and-webhooks/) | Email client + notification cuisine + email livreur |
-| **Delivery Confirmation (Telegram + Gmail)** | [n8n #3204](https://n8n.io/workflows/3204-automate-delivery-confirmation-with-telegram-bot-google-drive-and-gmail/) | Email remerciement + reçu automatique |
+| **Delivery Confirmation (Telegram + Gmail)**          | [n8n #3204](https://n8n.io/workflows/3204-automate-delivery-confirmation-with-telegram-bot-google-drive-and-gmail/)    | Email remerciement + reçu automatique               |
 
 #### 📲 SMS Automation (Twilio)
 
-| Template | Lien | Adaptation Restaurant |
-|----------|------|----------------------|
-| **Send SMS/WhatsApp avec Twilio** | [n8n #401](https://n8n.io/workflows/401-send-an-smswhatsapp-message-with-twilio/) | "Votre commande #123 est prête !" |
-| **Appointment Reminders via SMS + Webhook** | [n8n #6932](https://n8n.io/workflows/6932-send-automated-appointment-reminders-via-sms-with-twilio-webhook/) | Rappel réservation table 1h avant |
-| **Google Sheets + Twilio Bulk SMS** | [n8n #8684](https://n8n.io/workflows/8684-google-sheets-send-sms-with-twilio-bulk-sms-automation-simplified/) | SMS promo ("Plat du jour : Pad Krapow !") |
-| **AI-Powered SMS Support (Twilio + GPT-4 + PostgreSQL)** | [n8n #9220](https://n8n.io/workflows/9220-build-an-ai-powered-sms-support-system-with-twilio-gpt-4-and-postgresql/) | Réponses IA aux questions SMS |
+| Template                                                 | Lien                                                                                                                | Adaptation Restaurant                     |
+| -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
+| **Send SMS/WhatsApp avec Twilio**                        | [n8n #401](https://n8n.io/workflows/401-send-an-smswhatsapp-message-with-twilio/)                                   | "Votre commande #123 est prête !"         |
+| **Appointment Reminders via SMS + Webhook**              | [n8n #6932](https://n8n.io/workflows/6932-send-automated-appointment-reminders-via-sms-with-twilio-webhook/)        | Rappel réservation table 1h avant         |
+| **Google Sheets + Twilio Bulk SMS**                      | [n8n #8684](https://n8n.io/workflows/8684-google-sheets-send-sms-with-twilio-bulk-sms-automation-simplified/)       | SMS promo ("Plat du jour : Pad Krapow !") |
+| **AI-Powered SMS Support (Twilio + GPT-4 + PostgreSQL)** | [n8n #9220](https://n8n.io/workflows/9220-build-an-ai-powered-sms-support-system-with-twilio-gpt-4-and-postgresql/) | Réponses IA aux questions SMS             |
 
 #### 📊 Google Sheets & Reporting
 
-| Template | Lien | Adaptation Restaurant |
-|----------|------|----------------------|
-| **Restaurant Food Waste Prediction (Gemini AI)** | [n8n #5982](https://n8n.io/workflows/5982-predict-restaurant-food-waste-with-gemini-ai-and-google-sheets-reporting/) | Prédiction demande "Samedi = +30% green curry" |
-| **Restaurant Sales & Inventory Forecasting** | [n8n #5983](https://n8n.io/workflows/5983-automate-restaurant-sales-and-inventory-forecasting-with-gemini-ai-and-google-sheets/) | Recommandations stock (20kg riz, 5L lait coco) |
-| **Workflow Inventory Dashboard** | [n8n #9113](https://n8n.io/workflows/9113-create-workflow-inventory-dashboard-with-n8n-api-and-google-sheets/) | Dashboard stock temps réel |
-| **Google Business Reviews + AI Responses** | [n8n #6590](https://n8n.io/workflows/6590-automate-google-business-reviews-with-ai-responses-slack-alerts-and-sheets-logging/) | Réponses automatiques avis Google, alertes 1 étoile |
+| Template                                         | Lien                                                                                                                             | Adaptation Restaurant                               |
+| ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
+| **Restaurant Food Waste Prediction (Gemini AI)** | [n8n #5982](https://n8n.io/workflows/5982-predict-restaurant-food-waste-with-gemini-ai-and-google-sheets-reporting/)             | Prédiction demande "Samedi = +30% green curry"      |
+| **Restaurant Sales & Inventory Forecasting**     | [n8n #5983](https://n8n.io/workflows/5983-automate-restaurant-sales-and-inventory-forecasting-with-gemini-ai-and-google-sheets/) | Recommandations stock (20kg riz, 5L lait coco)      |
+| **Workflow Inventory Dashboard**                 | [n8n #9113](https://n8n.io/workflows/9113-create-workflow-inventory-dashboard-with-n8n-api-and-google-sheets/)                   | Dashboard stock temps réel                          |
+| **Google Business Reviews + AI Responses**       | [n8n #6590](https://n8n.io/workflows/6590-automate-google-business-reviews-with-ai-responses-slack-alerts-and-sheets-logging/)   | Réponses automatiques avis Google, alertes 1 étoile |
 
 #### 🔐 Webhooks Sécurisés
 
-| Template | Lien | Adaptation Restaurant |
-|----------|------|----------------------|
-| **Creating a Secure Webhook (MUST HAVE)** | [n8n #5174](https://n8n.io/workflows/5174-creating-a-secure-webhook-must-have/) | Clé API obligatoire sur webhooks |
+| Template                                     | Lien                                                                                                           | Adaptation Restaurant             |
+| -------------------------------------------- | -------------------------------------------------------------------------------------------------------------- | --------------------------------- |
+| **Creating a Secure Webhook (MUST HAVE)**    | [n8n #5174](https://n8n.io/workflows/5174-creating-a-secure-webhook-must-have/)                                | Clé API obligatoire sur webhooks  |
 | **Dynamic Workflows via Webhooks & n8n API** | [n8n #4544](https://n8n.io/workflows/4544-create-dynamic-workflows-programmatically-via-webhooks-and-n8n-api/) | Création workflows programmatique |
 
 #### 🍽️ Templates Spéciaux Restaurant
 
-| Template | Lien | Adaptation Restaurant |
-|----------|------|----------------------|
-| **Restaurant Marketing & Booking (Excel + VAPI Voice)** | [n8n #5890](https://n8n.io/workflows/5890-automate-restaurant-marketing-and-booking-with-excel-vapi-voice-agent-and-calendar/) | Agent vocal pour réservations téléphoniques |
-| **AI Restaurant Order Chatbot (GPT-4o + POS)** | [n8n #3942](https://n8n.io/workflows/3942-ai-powered-restaurant-order-chatbot-with-gpt-4o-for-pos-integration/) | Chatbot commandes avec intégration caisse |
-| **Restaurant Order & Delivery (WhatsApp + GPT-4o + Supabase)** | [n8n #7298](https://n8n.io/workflows/7298-restaurant-order-and-delivery-system-for-whatsapp-with-gpt-4o-and-supabase/) | Système complet WhatsApp → Supabase |
+| Template                                                       | Lien                                                                                                                           | Adaptation Restaurant                       |
+| -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------- |
+| **Restaurant Marketing & Booking (Excel + VAPI Voice)**        | [n8n #5890](https://n8n.io/workflows/5890-automate-restaurant-marketing-and-booking-with-excel-vapi-voice-agent-and-calendar/) | Agent vocal pour réservations téléphoniques |
+| **AI Restaurant Order Chatbot (GPT-4o + POS)**                 | [n8n #3942](https://n8n.io/workflows/3942-ai-powered-restaurant-order-chatbot-with-gpt-4o-for-pos-integration/)                | Chatbot commandes avec intégration caisse   |
+| **Restaurant Order & Delivery (WhatsApp + GPT-4o + Supabase)** | [n8n #7298](https://n8n.io/workflows/7298-restaurant-order-and-delivery-system-for-whatsapp-with-gpt-4o-and-supabase/)         | Système complet WhatsApp → Supabase         |
 
 ---
 
@@ -2372,30 +2388,35 @@ Next.js App → Webhook POST → n8n → Fan-out multicanal
 **Objectif : Déployer en 5 semaines, en ordre de valeur ajoutée**
 
 #### Semaine 1 : Commandes WhatsApp (Gratuit)
+
 - [ ] 💜 Déployer template **#5096** (WhatsApp + Gemini)
 - [ ] 💜 Créer Google Sheet avec menu (plats, prix, descriptions)
 - [ ] 💜 Configurer WhatsApp Business API (gratuit)
 - [ ] 💜 Tester avec numéro personnel d'abord
 
 #### Semaine 2 : Notifications Client (15€/mois Twilio)
+
 - [ ] 💜 Déployer template **#7518** (Email commandes)
 - [ ] 💜 Déployer template **#401** (SMS Twilio basique)
 - [ ] 💜 Configurer webhooks `/api/n8n/commande-status`
 - [ ] 💜 Tester flux complet : Commande → Email → SMS "Prête"
 
 #### Semaine 3 : Réseaux Sociaux (Gratuit)
+
 - [ ] 💜 Déployer template **#3478** (Instagram + Drive + AI)
 - [ ] 💜 Créer dossier Google Drive "Photos Plats"
 - [ ] 💜 Configurer tokens Meta Graph API
 - [ ] 💜 Planifier posts automatiques 18h (heure dîner)
 
 #### Semaine 4 : Reporting & Prédiction (Gratuit)
+
 - [ ] 💜 Déployer template **#5982** (Prédiction gaspillage)
 - [ ] 💜 Créer Sheet "Ventes Quotidiennes"
 - [ ] 💜 Configurer email rapport hebdomadaire
 - [ ] 💜 Tester recommandations stock
 
 #### Semaine 5 : Avis & Réputation (Gratuit)
+
 - [ ] 💜 Déployer template **#6590** (Google Reviews)
 - [ ] 💜 Configurer alerte Telegram avis négatifs
 - [ ] 💜 Paramétrer réponses IA personnalisées
@@ -2405,15 +2426,15 @@ Next.js App → Webhook POST → n8n → Fan-out multicanal
 
 ### 💰 H. Estimation Coûts (Tier Gratuit vs Payant)
 
-| Service | Tier Gratuit | Payant (si dépassement) |
-|---------|--------------|------------------------|
-| **n8n** | Self-hosted OU Cloud free (5 workflows) | 20€/mois (illimité) |
+| Service                   | Tier Gratuit                             | Payant (si dépassement)           |
+| ------------------------- | ---------------------------------------- | --------------------------------- |
+| **n8n**                   | Self-hosted OU Cloud free (5 workflows)  | 20€/mois (illimité)               |
 | **WhatsApp Business API** | ✅ Gratuit (messages initiés par client) | 0.05€/message initié par business |
-| **Google Gemini AI** | ✅ 15 req/min gratuit | 0.001€/1K tokens |
-| **Google Sheets** | ✅ 15GB gratuit | - |
-| **Twilio SMS** | 15€ crédits offerts (~40 SMS FR) | 0.08€/SMS FR |
-| **Meta Graph API** | ✅ Gratuit (compte Business) | - |
-| **Gmail/SMTP** | ✅ 500 emails/jour | Brevo 20€/mois (10K emails) |
+| **Google Gemini AI**      | ✅ 15 req/min gratuit                    | 0.001€/1K tokens                  |
+| **Google Sheets**         | ✅ 15GB gratuit                          | -                                 |
+| **Twilio SMS**            | 15€ crédits offerts (~40 SMS FR)         | 0.08€/SMS FR                      |
+| **Meta Graph API**        | ✅ Gratuit (compte Business)             | -                                 |
+| **Gmail/SMTP**            | ✅ 500 emails/jour                       | Brevo 20€/mois (10K emails)       |
 
 **Budget minimum : 0€/mois** (tout en tier gratuit, SMS limités)
 **Budget confortable : 35€/mois** (n8n cloud + Twilio recharge)
@@ -2708,19 +2729,19 @@ Phase 4-7 (Optimisations) → Continu, non bloquant
 
 ### A. Nettoyage Console.log (20+ instances à supprimer)
 
-| Fichier | Lignes | Action |
-|---------|--------|--------|
-| `hooks/useSupabaseData.ts` | 204, 217, 229, 233, 247, 259, 263, 268, 286, 294, 298, 312, 320, 324, 341, 350, 354 | ❌ Supprimer logs debug |
-| `app/admin/commandes/page.tsx` | 2938 | ❌ Supprimer `console.log("🔍 DEBUG - Extras...")` |
-| `hooks/usePWAInstalled.ts` | 57, 68, 72 | ❌ Remplacer par logger conditionnel |
-| `hooks/useRealtimeNotifications.ts` | 25, 51, 84 | ❌ Supprimer logs payload |
+| Fichier                             | Lignes                                                                              | Action                                             |
+| ----------------------------------- | ----------------------------------------------------------------------------------- | -------------------------------------------------- |
+| `hooks/useSupabaseData.ts`          | 204, 217, 229, 233, 247, 259, 263, 268, 286, 294, 298, 312, 320, 324, 341, 350, 354 | ❌ Supprimer logs debug                            |
+| `app/admin/commandes/page.tsx`      | 2938                                                                                | ❌ Supprimer `console.log("🔍 DEBUG - Extras...")` |
+| `hooks/usePWAInstalled.ts`          | 57, 68, 72                                                                          | ❌ Remplacer par logger conditionnel               |
+| `hooks/useRealtimeNotifications.ts` | 25, 51, 84                                                                          | ❌ Supprimer logs payload                          |
 
 #### 💜 Suggestion : Logger Centralisé
 
 - [ ] 💜 **Créer `lib/logger.ts`** : Logger avec niveaux (debug/info/warn/error) et désactivation automatique en production
   ```typescript
   const logger = {
-    debug: (...args) => process.env.NODE_ENV === 'development' && console.log(...args),
+    debug: (...args) => process.env.NODE_ENV === "development" && console.log(...args),
     info: (...args) => console.info(...args),
     warn: (...args) => console.warn(...args),
     error: (...args) => console.error(...args),
@@ -2729,36 +2750,36 @@ Phase 4-7 (Optimisations) → Continu, non bloquant
 
 ### B. TODO/FIXME à Compléter (11 items)
 
-| Fichier | Ligne | TODO | Priorité |
-|---------|-------|------|----------|
-| `app/page.tsx` | 82 | `photoUploadedRecently = false // TODO: Implémenter logique date` | 🔥 |
-| `app/auth/verify-email/[token]/page.tsx` | 63 | `// TODO: Get user email from session` | 🔥🔥 |
-| `app/admin/testvisuel/modal/page.tsx` | 376 | `// TODO: Add toast notification "✅ Code copié !"` | 🔥 |
-| `app/profil/actions.ts` | 216, 300 | `// TODO: Send confirmation emails` (2x) | 🔥🔥🔥 |
-| `app/modifier-commande/[id]/page.tsx` | 1177 | `// TODO: Ajouter support épices dans PlatPanier` | 🔥 |
-| `components/shared/ErrorBoundary.tsx` | 30 | `// TODO: Intégrer Sentry/LogRocket` | 🔥🔥 |
-| `components/pwa/OfflineIndicator.tsx` | 187, 190 | `// TODO: Intégrer système toast` (2x) | 🔥 |
-| `proxy.ts` | 43 | `// TODO: Vérifier rôle admin côté Server Component` | 🔥🔥🔥 |
-| `tests/offline.spec.ts` | 114, 141, 192 | `// TODO: Ajouter auth Playwright` (3x) | 🔥 |
+| Fichier                                  | Ligne         | TODO                                                              | Priorité |
+| ---------------------------------------- | ------------- | ----------------------------------------------------------------- | -------- |
+| `app/page.tsx`                           | 82            | `photoUploadedRecently = false // TODO: Implémenter logique date` | 🔥       |
+| `app/auth/verify-email/[token]/page.tsx` | 63            | `// TODO: Get user email from session`                            | 🔥🔥     |
+| `app/admin/testvisuel/modal/page.tsx`    | 376           | `// TODO: Add toast notification "✅ Code copié !"`               | 🔥       |
+| `app/profil/actions.ts`                  | 216, 300      | `// TODO: Send confirmation emails` (2x)                          | 🔥🔥🔥   |
+| `app/modifier-commande/[id]/page.tsx`    | 1177          | `// TODO: Ajouter support épices dans PlatPanier`                 | 🔥       |
+| `components/shared/ErrorBoundary.tsx`    | 30            | `// TODO: Intégrer Sentry/LogRocket`                              | 🔥🔥     |
+| `components/pwa/OfflineIndicator.tsx`    | 187, 190      | `// TODO: Intégrer système toast` (2x)                            | 🔥       |
+| `proxy.ts`                               | 43            | `// TODO: Vérifier rôle admin côté Server Component`              | 🔥🔥🔥   |
+| `tests/offline.spec.ts`                  | 114, 141, 192 | `// TODO: Ajouter auth Playwright` (3x)                           | 🔥       |
 
 ### C. TypeScript `any` à Typer
 
-| Fichier | Variable | Type suggéré |
-|---------|----------|--------------|
-| `app/actions/commandes.ts` | `updateData: any` | `Partial<CommandeUpdateInput>` |
-| `app/actions/evenements.ts` | `updateData: any` | `Partial<EvenementUpdateInput>` |
-| `app/actions/notifications.ts` | `quietHoursData: any` | `QuietHoursConfig` |
+| Fichier                             | Variable                  | Type suggéré                                       |
+| ----------------------------------- | ------------------------- | -------------------------------------------------- |
+| `app/actions/commandes.ts`          | `updateData: any`         | `Partial<CommandeUpdateInput>`                     |
+| `app/actions/evenements.ts`         | `updateData: any`         | `Partial<EvenementUpdateInput>`                    |
+| `app/actions/notifications.ts`      | `quietHoursData: any`     | `QuietHoursConfig`                                 |
 | `app/admin/commandes/page.tsx:2911` | `router: any, toast: any` | `AppRouterInstance`, `ReturnType<typeof useToast>` |
 
 ### D. Composants Trop Volumineux (À Découper)
 
-| Fichier | Lignes | Sous-composants suggérés |
-|---------|--------|--------------------------|
-| `app/admin/commandes/page.tsx` | **3900** | `CommandeCard`, `CommandeFilters`, `CommandeActions`, `CommandeStats` |
-| `app/admin/clients/[id]/orders/page.tsx` | **3267** | `OrderList`, `OrderDetails`, `OrderModals` |
-| `app/modifier-commande/[id]/page.tsx` | **1345** | `ModifyCartSection`, `ModifyPaymentSection` |
-| `app/commander/page.tsx` | **1264** | `MenuSection`, `CartSidebar`, `CheckoutFlow` |
-| `components/ui/ModalVideo.tsx` | **922** | `ModalWrapper`, `MediaContent`, `ModalControls` |
+| Fichier                                  | Lignes   | Sous-composants suggérés                                              |
+| ---------------------------------------- | -------- | --------------------------------------------------------------------- |
+| `app/admin/commandes/page.tsx`           | **3900** | `CommandeCard`, `CommandeFilters`, `CommandeActions`, `CommandeStats` |
+| `app/admin/clients/[id]/orders/page.tsx` | **3267** | `OrderList`, `OrderDetails`, `OrderModals`                            |
+| `app/modifier-commande/[id]/page.tsx`    | **1345** | `ModifyCartSection`, `ModifyPaymentSection`                           |
+| `app/commander/page.tsx`                 | **1264** | `MenuSection`, `CartSidebar`, `CheckoutFlow`                          |
+| `components/ui/ModalVideo.tsx`           | **922**  | `ModalWrapper`, `MediaContent`, `ModalControls`                       |
 
 ---
 
@@ -2768,33 +2789,33 @@ Phase 4-7 (Optimisations) → Continu, non bloquant
 
 ### A. Remplacer `window.confirm()` par AlertDialog (8 instances)
 
-| Fichier | Instances | Action |
-|---------|-----------|--------|
-| `app/admin/clients/[id]/orders/page.tsx` | 3 | ⚠️ Utiliser `<AlertDialog>` |
-| `app/admin/commandes/page.tsx` | 3 | ⚠️ Utiliser `<AlertDialog>` |
-| `app/admin/hero-media/page.tsx` | 2 | ⚠️ Utiliser `<AlertDialog>` |
+| Fichier                                  | Instances | Action                      |
+| ---------------------------------------- | --------- | --------------------------- |
+| `app/admin/clients/[id]/orders/page.tsx` | 3         | ⚠️ Utiliser `<AlertDialog>` |
+| `app/admin/commandes/page.tsx`           | 3         | ⚠️ Utiliser `<AlertDialog>` |
+| `app/admin/hero-media/page.tsx`          | 2         | ⚠️ Utiliser `<AlertDialog>` |
 
 **Composant existant** : `components/ui/alert-dialog.tsx` (déjà utilisé dans HeroCarousel)
 
 ### B. Ajouter Breadcrumbs aux Routes Imbriquées
 
-| Route | Breadcrumb suggéré |
-|-------|-------------------|
-| `/admin/clients/[id]/orders` | Admin > Clients > [Nom Client] > Commandes |
-| `/modifier-commande/[id]` | Accueil > Mes Commandes > Modifier #123 |
-| `/admin/clients/[id]/contact` | Admin > Clients > [Nom Client] > Contact |
-| `/admin/clients/[id]/events` | Admin > Clients > [Nom Client] > Événements |
+| Route                         | Breadcrumb suggéré                          |
+| ----------------------------- | ------------------------------------------- |
+| `/admin/clients/[id]/orders`  | Admin > Clients > [Nom Client] > Commandes  |
+| `/modifier-commande/[id]`     | Accueil > Mes Commandes > Modifier #123     |
+| `/admin/clients/[id]/contact` | Admin > Clients > [Nom Client] > Contact    |
+| `/admin/clients/[id]/events`  | Admin > Clients > [Nom Client] > Événements |
 
 **Composant existant** : `components/ui/breadcrumb.tsx` (non utilisé en production, à intégrer)
 
 ### C. Ajouter Empty States aux Pages Admin
 
-| Page | Empty State manquant | Message suggéré |
-|------|---------------------|-----------------|
-| `/admin/clients` | ❌ Aucun | "Aucun client pour le moment. Les clients s'inscriront via le site." |
-| `/admin/commandes` | ❌ Aucun | "Aucune commande aujourd'hui. Profitez-en pour préparer !" |
-| `/admin/plats` | ❌ Aucun | "Aucun plat dans le menu. Ajoutez votre premier plat !" |
-| `/admin/evenements` | ❌ Aucun | "Aucun événement programmé." |
+| Page                | Empty State manquant | Message suggéré                                                      |
+| ------------------- | -------------------- | -------------------------------------------------------------------- |
+| `/admin/clients`    | ❌ Aucun             | "Aucun client pour le moment. Les clients s'inscriront via le site." |
+| `/admin/commandes`  | ❌ Aucun             | "Aucune commande aujourd'hui. Profitez-en pour préparer !"           |
+| `/admin/plats`      | ❌ Aucun             | "Aucun plat dans le menu. Ajoutez votre premier plat !"              |
+| `/admin/evenements` | ❌ Aucun             | "Aucun événement programmé."                                         |
 
 **Composant existant** : `components/historique/EmptyState.tsx` (à réutiliser/adapter)
 
@@ -2813,23 +2834,23 @@ Phase 4-7 (Optimisations) → Continu, non bloquant
 
 ### A. Web Share API
 
-| Page | Utilisation | Bouton |
-|------|-------------|--------|
-| `/commander` | Partager un plat vedette | "Partager ce plat" |
+| Page          | Utilisation                    | Bouton                 |
+| ------------- | ------------------------------ | ---------------------- |
+| `/commander`  | Partager un plat vedette       | "Partager ce plat"     |
 | `/historique` | Partager confirmation commande | "Partager ma commande" |
-| `/panier` | Partager panier avec amis | "Envoyer mon panier" |
-| `/a-propos` | Partager infos restaurant | "Recommander" |
+| `/panier`     | Partager panier avec amis      | "Envoyer mon panier"   |
+| `/a-propos`   | Partager infos restaurant      | "Recommander"          |
 
 - [ ] 💜 **Créer `hooks/useWebShare.ts`** : Hook wrapper autour de `navigator.share()` avec fallback
 
 ### B. Clipboard API
 
-| Page | Utilisation | Bouton |
-|------|-------------|--------|
-| `/panier` | Copier récapitulatif commande | "Copier le récap" |
-| `/historique` | Copier numéro facture | Icône copie |
-| `/admin/commandes` | Copier détails commande | Icône copie |
-| `/suivi-commande/[id]` | Copier numéro commande | "Copier #CMD-XXX" |
+| Page                   | Utilisation                   | Bouton            |
+| ---------------------- | ----------------------------- | ----------------- |
+| `/panier`              | Copier récapitulatif commande | "Copier le récap" |
+| `/historique`          | Copier numéro facture         | Icône copie       |
+| `/admin/commandes`     | Copier détails commande       | Icône copie       |
+| `/suivi-commande/[id]` | Copier numéro commande        | "Copier #CMD-XXX" |
 
 - [ ] 💜 **Créer `hooks/useClipboard.ts`** : Hook avec toast de confirmation "Copié !"
 
@@ -2857,17 +2878,18 @@ Phase 4-7 (Optimisations) → Continu, non bloquant
 
 ### A. Fichiers SEO Manquants à Créer
 
-| Fichier | Contenu | Priorité |
-|---------|---------|----------|
-| `app/sitemap.ts` | Sitemap dynamique (pages statiques + plats + événements) | 🔥🔥🔥 |
-| `app/robots.ts` | Configuration robots.txt (autoriser crawl, exclure admin) | 🔥🔥 |
-| `app/opengraph-image.tsx` | Image OG dynamique pour accueil (1200x630) | 🔥 |
+| Fichier                   | Contenu                                                   | Priorité |
+| ------------------------- | --------------------------------------------------------- | -------- |
+| `app/sitemap.ts`          | Sitemap dynamique (pages statiques + plats + événements)  | 🔥🔥🔥   |
+| `app/robots.ts`           | Configuration robots.txt (autoriser crawl, exclure admin) | 🔥🔥     |
+| `app/opengraph-image.tsx` | Image OG dynamique pour accueil (1200x630)                | 🔥       |
 
 ### B. Twitter Cards (Manquantes)
 
 **Fichier** : `app/layout.tsx`
 
 - [ ] Ajouter métadonnées Twitter :
+
 ```typescript
 twitter: {
   card: "summary_large_image",
@@ -2880,13 +2902,13 @@ twitter: {
 
 ### C. Structured Data JSON-LD
 
-| Type Schema | Page | Contenu |
-|-------------|------|---------|
-| `Restaurant` | `/` (accueil) | Nom, adresse, horaires, téléphone, cuisine |
-| `Menu` + `MenuItem` | `/commander` | Liste des plats avec prix |
-| `Organization` | Footer global | Logo, réseaux sociaux, contact |
-| `Event` | `/evenements` | Événements traiteur |
-| `LocalBusiness` | `/nous-trouver` | Coordonnées GPS, horaires |
+| Type Schema         | Page            | Contenu                                    |
+| ------------------- | --------------- | ------------------------------------------ |
+| `Restaurant`        | `/` (accueil)   | Nom, adresse, horaires, téléphone, cuisine |
+| `Menu` + `MenuItem` | `/commander`    | Liste des plats avec prix                  |
+| `Organization`      | Footer global   | Logo, réseaux sociaux, contact             |
+| `Event`             | `/evenements`   | Événements traiteur                        |
+| `LocalBusiness`     | `/nous-trouver` | Coordonnées GPS, horaires                  |
 
 - [ ] 💜 **Créer `components/seo/StructuredData.tsx`** : Composant réutilisable pour JSON-LD
 
@@ -2898,25 +2920,26 @@ twitter: {
 
 ### A. Convertir `<img>` vers `next/image`
 
-| Fichier | Images à convertir |
-|---------|-------------------|
-| `app/a-propos/page.tsx` | Images équipe/restaurant |
+| Fichier                                  | Images à convertir          |
+| ---------------------------------------- | --------------------------- |
+| `app/a-propos/page.tsx`                  | Images équipe/restaurant    |
 | `app/admin/clients/[id]/orders/page.tsx` | Images plats dans commandes |
-| `app/admin/commandes/page.tsx` | Images produits |
-| `components/ui/ModalVideo.tsx` | Media dans modal |
+| `app/admin/commandes/page.tsx`           | Images produits             |
+| `components/ui/ModalVideo.tsx`           | Media dans modal            |
 
 ### B. Ajouter Suspense Boundaries
 
-| Page | Section à wrapper | Fallback suggéré |
-|------|------------------|------------------|
-| `/commander` | Liste des plats | Skeleton cards plats |
-| `/historique` | Liste commandes | Skeleton liste |
-| `/admin/commandes` | Table commandes | Skeleton table |
-| `/profil` | Données utilisateur | Skeleton form |
+| Page               | Section à wrapper   | Fallback suggéré     |
+| ------------------ | ------------------- | -------------------- |
+| `/commander`       | Liste des plats     | Skeleton cards plats |
+| `/historique`      | Liste commandes     | Skeleton liste       |
+| `/admin/commandes` | Table commandes     | Skeleton table       |
+| `/profil`          | Données utilisateur | Skeleton form        |
 
 ### C. App Shortcuts PWA (manifest.ts)
 
 - [ ] Ajouter raccourcis dans `app/manifest.ts` :
+
 ```typescript
 shortcuts: [
   { name: "Commander", short_name: "Menu", url: "/commander", icons: [...] },
@@ -2934,12 +2957,12 @@ shortcuts: [
 
 ### A. Ajouter aria-label aux Boutons Icônes
 
-| Composant | Boutons concernés | aria-label suggéré |
-|-----------|------------------|-------------------|
-| `ModalVideo.tsx` | Bouton fermer (X) | "Fermer la vidéo" |
-| `FloatingUserIcon.tsx` | Menu utilisateur | "Menu utilisateur" |
-| `CartSidebar` | Bouton panier | "Voir mon panier" |
-| Toutes les modales | Boutons close | "Fermer" |
+| Composant              | Boutons concernés | aria-label suggéré |
+| ---------------------- | ----------------- | ------------------ |
+| `ModalVideo.tsx`       | Bouton fermer (X) | "Fermer la vidéo"  |
+| `FloatingUserIcon.tsx` | Menu utilisateur  | "Menu utilisateur" |
+| `CartSidebar`          | Bouton panier     | "Voir mon panier"  |
+| Toutes les modales     | Boutons close     | "Fermer"           |
 
 ### B. Améliorer Navigation Clavier
 
@@ -2962,21 +2985,21 @@ shortcuts: [
 
 ### A. Tests Composants (Priorité Haute)
 
-| Composant | Lignes | Tests suggérés |
-|-----------|--------|----------------|
-| `CartItemCard.tsx` | 386 | Ajout/suppression, calcul prix, options |
-| `CommandePlatModal.tsx` | 339 | Sélection options, validation, soumission |
-| `CreateClientModal.tsx` | 338 | Validation formulaire, création, erreurs |
-| `DateRuptureManager.tsx` | 369 | Gestion dates, validation plages, suppression |
+| Composant                | Lignes | Tests suggérés                                |
+| ------------------------ | ------ | --------------------------------------------- |
+| `CartItemCard.tsx`       | 386    | Ajout/suppression, calcul prix, options       |
+| `CommandePlatModal.tsx`  | 339    | Sélection options, validation, soumission     |
+| `CreateClientModal.tsx`  | 338    | Validation formulaire, création, erreurs      |
+| `DateRuptureManager.tsx` | 369    | Gestion dates, validation plages, suppression |
 
 ### B. Tests E2E Manquants
 
-| Flow | Fichier test | Scénarios |
-|------|-------------|-----------|
-| Checkout complet | `tests/checkout.e2e.spec.ts` | Panier → Paiement → Confirmation |
-| Profil utilisateur | `tests/profile.e2e.spec.ts` | Modification infos, changement password |
-| Dashboard admin | `tests/admin-dashboard.e2e.spec.ts` | Navigation, actions rapides |
-| Real-time updates | `tests/realtime.e2e.spec.ts` | Notifications, mise à jour statuts |
+| Flow               | Fichier test                        | Scénarios                               |
+| ------------------ | ----------------------------------- | --------------------------------------- |
+| Checkout complet   | `tests/checkout.e2e.spec.ts`        | Panier → Paiement → Confirmation        |
+| Profil utilisateur | `tests/profile.e2e.spec.ts`         | Modification infos, changement password |
+| Dashboard admin    | `tests/admin-dashboard.e2e.spec.ts` | Navigation, actions rapides             |
+| Real-time updates  | `tests/realtime.e2e.spec.ts`        | Notifications, mise à jour statuts      |
 
 ### C. Compléter Tests Offline
 
@@ -2994,26 +3017,27 @@ shortcuts: [
 
 ### A. Fusionner Modales Historique (3 → 1)
 
-| Fichier actuel | Action |
-|----------------|--------|
-| `DishDetailsModal.tsx` | ✅ Garder comme base |
-| `DishDetailsModalComplex.tsx` | ❌ Fusionner |
-| `DishDetailsModalInteractive.tsx` | ❌ Fusionner |
+| Fichier actuel                    | Action               |
+| --------------------------------- | -------------------- |
+| `DishDetailsModal.tsx`            | ✅ Garder comme base |
+| `DishDetailsModalComplex.tsx`     | ❌ Fusionner         |
+| `DishDetailsModalInteractive.tsx` | ❌ Fusionner         |
 
 **Résultat** : 1 composant `DishDetailsModal` avec prop `variant: 'simple' | 'complex' | 'interactive'`
 
 ### B. Unifier Sélecteurs Date (3 → 1)
 
-| Fichier actuel | Utilisation |
-|----------------|-------------|
-| `DateSelector.tsx` | Sélection date générique |
-| `DateBirthSelector.tsx` | Date de naissance (3 selects) |
-| `ResponsiveDateSelector.tsx` | Version mobile-first |
+| Fichier actuel               | Utilisation                   |
+| ---------------------------- | ----------------------------- |
+| `DateSelector.tsx`           | Sélection date générique      |
+| `DateBirthSelector.tsx`      | Date de naissance (3 selects) |
+| `ResponsiveDateSelector.tsx` | Version mobile-first          |
 
 **Résultat** : 1 composant `DatePicker` avec props :
+
 ```typescript
 type DatePickerProps = {
-  type: 'default' | 'birth' | 'responsive'
+  type: "default" | "birth" | "responsive"
   value: Date | null
   onChange: (date: Date) => void
   minDate?: Date
@@ -3025,16 +3049,16 @@ type DatePickerProps = {
 
 ## 📊 Résumé Nouvelles Phases (Décembre 2025)
 
-| Phase | Priorité | Items principaux | Effort estimé |
-|-------|----------|------------------|---------------|
-| **Phase 8** : Dette Technique | 🔥🔥🔥 HAUTE | 20+ console.log, 11 TODOs, 4 `any`, 5 gros composants | 2-3 jours |
-| **Phase 9** : UX/UI | 🔥🔥 MOYENNE | 8 confirm(), breadcrumbs, empty states, error.tsx | 1-2 jours |
-| **Phase 10** : APIs Modernes | 🔥 BASSE | Web Share, Clipboard, Geolocation, Payment | 1 semaine |
-| **Phase 11** : SEO | 🔥🔥 MOYENNE | sitemap, robots, Twitter Cards, JSON-LD | 2-3 jours |
-| **Phase 12** : Performance | 🔥🔥 MOYENNE | next/image, Suspense, PWA shortcuts | 3-4 jours |
-| **Phase 13** : Accessibilité | 🔥🔥 MOYENNE | aria-labels, keyboard nav, screen readers | 2-3 jours |
-| **Phase 14** : Tests | 🔥🔥🔥 HAUTE | Tests composants, E2E, offline | 1-2 semaines |
-| **Phase 15** : Refactoring | 🔥 BASSE | Modales, DatePickers | 1-2 jours |
+| Phase                         | Priorité     | Items principaux                                      | Effort estimé |
+| ----------------------------- | ------------ | ----------------------------------------------------- | ------------- |
+| **Phase 8** : Dette Technique | 🔥🔥🔥 HAUTE | 20+ console.log, 11 TODOs, 4 `any`, 5 gros composants | 2-3 jours     |
+| **Phase 9** : UX/UI           | 🔥🔥 MOYENNE | 8 confirm(), breadcrumbs, empty states, error.tsx     | 1-2 jours     |
+| **Phase 10** : APIs Modernes  | 🔥 BASSE     | Web Share, Clipboard, Geolocation, Payment            | 1 semaine     |
+| **Phase 11** : SEO            | 🔥🔥 MOYENNE | sitemap, robots, Twitter Cards, JSON-LD               | 2-3 jours     |
+| **Phase 12** : Performance    | 🔥🔥 MOYENNE | next/image, Suspense, PWA shortcuts                   | 3-4 jours     |
+| **Phase 13** : Accessibilité  | 🔥🔥 MOYENNE | aria-labels, keyboard nav, screen readers             | 2-3 jours     |
+| **Phase 14** : Tests          | 🔥🔥🔥 HAUTE | Tests composants, E2E, offline                        | 1-2 semaines  |
+| **Phase 15** : Refactoring    | 🔥 BASSE     | Modales, DatePickers                                  | 1-2 jours     |
 
 **Total estimé : 3-4 semaines de travail supplémentaire**
 

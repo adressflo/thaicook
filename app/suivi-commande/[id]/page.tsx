@@ -1,10 +1,11 @@
 "use client"
 
 import { getClientProfile } from "@/app/profil/actions"
+import BoutonTelechargerFacture from "@/components/historique/BoutonTelechargerFacture"
 import { CalendarIcon } from "@/components/historique/CalendarIcon"
 import { StatusBadge } from "@/components/historique/StatusBadge"
-import { CommandePlatModalTrigger } from "@/components/shared/CommandePlatModal"
 import { AppLayout } from "@/components/layout/AppLayout"
+import { CommandePlatModalTrigger } from "@/components/shared/CommandePlatModal"
 import { ProgressTimeline } from "@/components/suivi-commande/ProgressTimeline"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
@@ -516,10 +517,16 @@ const SuiviCommande = memo(() => {
 
                     {commande.statut_commande === "Récupérée" && (
                       <div className="rounded-lg border border-green-200 bg-green-50 p-4 transition-all duration-200 hover:bg-green-100 hover:shadow-md">
-                        <p className="text-center text-sm font-medium text-green-800">
+                        <p className="mb-3 text-center text-sm font-medium text-green-800">
                           🍽️ Commande récupérée avec succès ! Bon appétit et merci de votre
                           confiance.
                         </p>
+                        <div className="flex justify-center">
+                          <BoutonTelechargerFacture
+                            commande={commande}
+                            className="text-thai-green hover:bg-thai-green/10 border-thai-green/20"
+                          />
+                        </div>
                       </div>
                     )}
 

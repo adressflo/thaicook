@@ -1,15 +1,18 @@
 import { Button } from "@/components/ui/button"
+import type { CommandeUI } from "@/types/app"
 import { Edit, Eye } from "lucide-react"
 import Link from "next/link"
 import React from "react"
+import BoutonTelechargerFacture from "./BoutonTelechargerFacture"
 
 interface CommandeActionButtonsProps {
   commandeId: number
   canEdit: boolean
+  commande?: CommandeUI
 }
 
 export const CommandeActionButtons = React.memo<CommandeActionButtonsProps>(
-  ({ commandeId, canEdit }) => (
+  ({ commandeId, canEdit, commande }) => (
     <div className="flex w-full min-w-[140px] items-center justify-center gap-2">
       <Button
         asChild
@@ -34,6 +37,9 @@ export const CommandeActionButtons = React.memo<CommandeActionButtonsProps>(
             <span className="font-medium">Modifier</span>
           </Link>
         </Button>
+      )}
+      {commande && commande.statut_commande === "Récupérée" && (
+        <BoutonTelechargerFacture commande={commande} />
       )}
     </div>
   )

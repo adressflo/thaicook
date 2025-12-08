@@ -420,7 +420,11 @@ const HistoriquePage = memo(() => {
                             </div>
                             <div className="flex min-h-10 flex-col items-center justify-center gap-3 text-center md:-ml-8">
                               <StatusBadge statut={c.statut_commande} type="commande" />
-                              <CommandeActionButtons commandeId={c.idcommande} canEdit={canEdit} />
+                              <CommandeActionButtons
+                                commandeId={c.idcommande}
+                                canEdit={canEdit}
+                                commande={c}
+                              />
                             </div>
                           </div>
                         </div>
@@ -501,7 +505,11 @@ const HistoriquePage = memo(() => {
                           </div>
                           <div className="flex flex-col items-center justify-center gap-3 text-center md:-ml-8">
                             <StatusBadge statut={c.statut_commande} type="commande" />
-                            <CommandeActionButtons commandeId={c.idcommande} canEdit={false} />
+                            <CommandeActionButtons
+                              commandeId={c.idcommande}
+                              canEdit={false}
+                              commande={c}
+                            />
                           </div>
                         </div>
                       </div>
