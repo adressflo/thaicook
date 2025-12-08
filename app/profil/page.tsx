@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { saveNotificationToken } from "@/app/actions/notifications"
 import { DateBirthSelector } from "@/components/forms/DateBirthSelector"
@@ -60,6 +60,10 @@ function centerAspectCrop(mediaWidth: number, mediaHeight: number, aspect: numbe
     mediaHeight
   )
 }
+
+// ... (rest of imports are fine, inserting ModeToggle import at top would be cleaner but this works if I replace a block)
+// Actually I will just insert the import at the top of the file in a separate block to be safe,
+// and then modify the JSX.
 
 interface FormDataState {
   nom: string

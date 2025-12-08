@@ -1,7 +1,23 @@
 "use client"
 import React from "react"
 
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer"
+import { details_commande_db, extras_db, plats_db } from "@/generated/prisma/client"
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
+import { FileText, Minus, Plus, RefreshCw, ShoppingCart, X } from "lucide-react"
+import NextImage from "next/image"
+
 import { Spice } from "@/components/shared/Spice"
+import { useMediaQuery } from "@/hooks/use-media-query"
 import { useHaptic } from "@/hooks/useHaptic"
 import { getDistributionText } from "@/lib/spice-helpers"
 
@@ -50,12 +66,12 @@ const Floating3DCard = ({
 }
 
 export interface CommandePlatModalProps {
-  plat: Plat | null
+  plat: plats_db | null
   isOpen: boolean
   onOpenChange: (open: boolean) => void
   formatPrix: (prix: number) => string
   onAddToCart?: (
-    plat: Plat,
+    plat: plats_db,
     quantity: number,
     spicePreference?: string,
     spiceDistribution?: number[],
@@ -67,8 +83,8 @@ export interface CommandePlatModalProps {
   uniqueId?: string
   // Nouvelles props pour mode readonly
   mode?: "interactive" | "readonly"
-  extra?: Extra | null
-  detail?: DetailCommande | null
+  extra?: extras_db | null
+  detail?: details_commande_db | null
   showPriceDetails?: boolean
   closeOnClick?: boolean
   isDeleted?: boolean
@@ -246,7 +262,7 @@ export const CommandePlatContent = React.memo<
                 className={`from-thai-orange/10 to-thai-gold/10 relative ${imageHeightClass} overflow-hidden rounded-b-xl bg-linear-to-br`}
               >
                 {itemPhoto && !isDeleted ? (
-                  <Image
+                  <NextImage
                     src={itemPhoto}
                     alt={itemName}
                     fill

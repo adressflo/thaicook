@@ -106,7 +106,7 @@ export function Providers({ children }: ProvidersProps) {
             return query.state.status !== "error"
           },
         },
-      }}
+      }} // Fix closing brace for persistOptions
     >
       <DataProvider>
         <CartProvider>

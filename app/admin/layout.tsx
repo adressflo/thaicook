@@ -100,9 +100,9 @@ const adminNavItems = [
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
     <PermissionGuard requireAdmin={true}>
-      <div className="from-thai-cream/30 to-thai-gold/10 min-h-screen bg-gradient-to-br">
+      <div className="from-thai-cream/30 to-thai-gold/10 min-h-screen bg-linear-to-br">
         {/* Header Admin */}
-        <header className="from-thai-green to-thai-orange border-thai-orange/20 hidden border-b bg-gradient-to-r text-white shadow-xl lg:block">
+        <header className="from-thai-green to-thai-orange border-thai-orange/20 hidden border-b bg-linear-to-r text-white shadow-xl lg:block">
           <div className="container mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
