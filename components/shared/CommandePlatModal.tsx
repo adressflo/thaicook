@@ -10,11 +10,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import type { DetailCommande, Extra, PlatUI as Plat } from "@/types/app"
-import { Calculator, Euro, FileText, Hash, Minus, Plus, RefreshCw, ShoppingCart, X } from "lucide-react"
+import { FileText, Minus, Plus, RefreshCw, ShoppingCart, X } from "lucide-react"
 import Image from "next/image"
 import React from "react"
 
 import { Spice } from "@/components/shared/Spice"
+import { useHaptic } from "@/hooks/useHaptic"
 import { getDistributionText } from "@/lib/spice-helpers"
 
 // Composant 3D Card avec effet tilt au survol
@@ -146,6 +147,7 @@ export const CommandePlatContent = React.memo<
     const [quantity, setQuantity] = React.useState(1)
     // Par défaut, toutes les portions sont "Non épicé"
     const [spiceDistribution, setSpiceDistribution] = React.useState<number[]>([1, 0, 0, 0])
+    const haptic = useHaptic()
 
     // Détection du mode effectif
     const effectiveMode = mode || (onAddToCart ? "interactive" : "readonly")
@@ -163,17 +165,16 @@ export const CommandePlatContent = React.memo<
       : plat?.plat || "Plat supprimé"
 
     const itemPhoto = isExtra
-      ? extra?.photo_url || "https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png"
+      ? extra?.photo_url ||
+        "https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png"
       : plat?.photo_du_plat
 
-    const itemDescription = isExtra
-      ? extra?.description
-      : plat?.description
+    const itemDescription = isExtra ? extra?.description : plat?.description
 
     // Prix selon le type et le contexte
     const prixUnitaire = isExtra
-      ? parseFloat(detail?.prix_unitaire || extra?.prix || "0")
-      : parseFloat(plat?.prix || "0")
+      ? parseFloat(String(detail?.prix_unitaire || extra?.prix || "0"))
+      : parseFloat(String(plat?.prix || "0"))
 
     // Quantité depuis detail ou props
     const displayQuantity = detail?.quantite_plat_commande || currentQuantity || quantity
@@ -214,6 +215,7 @@ export const CommandePlatContent = React.memo<
         const spicePreference =
           maxSpiceLevel > 0 ? getDistributionText(spiceDistribution) : undefined
         const distribution = maxSpiceLevel > 0 ? spiceDistribution : undefined
+        haptic.medium()
         onAddToCart(plat, quantity, spicePreference, distribution, uniqueId)
         onOpenChange(false)
       }
@@ -240,7 +242,7 @@ export const CommandePlatContent = React.memo<
       "16:9": "h-48 md:h-56",
       "4:5": "h-64 md:h-80",
       "1:1": "h-56 md:h-64",
-      "auto": "h-48 md:h-56",
+      auto: "h-48 md:h-56",
     }[imageFormat]
 
     // Composant wrapper conditionnel pour 3D tilt
@@ -253,7 +255,9 @@ export const CommandePlatContent = React.memo<
           {/* Header avec photo et effet 3D tilt conditionnel */}
           {showImage && (
             <ImageWrapper {...imageWrapperProps}>
-              <div className={`from-thai-orange/10 to-thai-gold/10 relative ${imageHeightClass} overflow-hidden rounded-b-xl bg-linear-to-br`}>
+              <div
+                className={`from-thai-orange/10 to-thai-gold/10 relative ${imageHeightClass} overflow-hidden rounded-b-xl bg-linear-to-br`}
+              >
                 {itemPhoto && !isDeleted ? (
                   <Image
                     src={itemPhoto}
@@ -310,7 +314,9 @@ export const CommandePlatContent = React.memo<
             <DialogHeader>
               {standalone ? (
                 <>
-                  <h2 className={`text-lg font-bold ${isDeleted ? "text-gray-600" : "text-thai-green"}`}>
+                  <h2
+                    className={`text-lg font-bold ${isDeleted ? "text-gray-600" : "text-thai-green"}`}
+                  >
                     {itemName}
                   </h2>
                   <p className="sr-only">
@@ -321,7 +327,9 @@ export const CommandePlatContent = React.memo<
                 </>
               ) : (
                 <>
-                  <DialogTitle className={`text-lg font-bold ${isDeleted ? "text-gray-600" : "text-thai-green"}`}>
+                  <DialogTitle
+                    className={`text-lg font-bold ${isDeleted ? "text-gray-600" : "text-thai-green"}`}
+                  >
                     {itemName}
                   </DialogTitle>
                   <DialogDescription className="sr-only">
@@ -340,9 +348,7 @@ export const CommandePlatContent = React.memo<
                   <FileText className="h-3.5 w-3.5" />
                   Description
                 </h4>
-                <p className="text-xs leading-relaxed text-gray-700">
-                  {itemDescription}
-                </p>
+                <p className="text-xs leading-relaxed text-gray-700">{itemDescription}</p>
               </div>
             )}
 
@@ -447,7 +453,7 @@ export const CommandePlatContent = React.memo<
 
                 {/* Sélecteur de répartition épicée (uniquement si le plat est épicé) */}
                 {showSpiceSelector && maxSpiceLevel > 0 && (
-                  <div className="hover:bg-red-50/50 hover:border-red-400 hover:ring-red-300/50 animate-fadeIn rounded-lg border-2 border-gray-200 bg-white p-3 shadow-sm transition-all duration-300 hover:scale-[1.01] hover:shadow-lg hover:ring-2">
+                  <div className="animate-fadeIn rounded-lg border-2 border-gray-200 bg-white p-3 shadow-sm transition-all duration-300 hover:scale-[1.01] hover:border-red-400 hover:bg-red-50/50 hover:shadow-lg hover:ring-2 hover:ring-red-300/50">
                     <Spice
                       distribution={spiceDistribution}
                       onDistributionChange={setSpiceDistribution}
@@ -460,7 +466,7 @@ export const CommandePlatContent = React.memo<
 
                 {/* Informations sur la date de retrait */}
                 {dateRetrait && (
-                  <div className="hover:border-blue-400 hover:ring-blue-300/50 rounded-lg border border-blue-200 bg-blue-50 p-2 text-center transition-all duration-300 hover:scale-[1.01] hover:shadow-lg hover:ring-2">
+                  <div className="rounded-lg border border-blue-200 bg-blue-50 p-2 text-center transition-all duration-300 hover:scale-[1.01] hover:border-blue-400 hover:shadow-lg hover:ring-2 hover:ring-blue-300/50">
                     <p className="text-xs font-medium text-blue-800">
                       📅 Sera ajouté pour le retrait du {dateRetrait.toLocaleDateString("fr-FR")}
                     </p>
@@ -574,7 +580,8 @@ export const CommandePlatModal = React.memo<CommandePlatModalProps>((props) => {
 CommandePlatModal.displayName = "CommandePlatModal"
 
 // Wrapper component pour utiliser CommandePlatModal avec le pattern "children" (comme DishDetailsModal)
-interface CommandePlatModalTriggerProps extends Omit<CommandePlatModalProps, "isOpen" | "onOpenChange"> {
+interface CommandePlatModalTriggerProps
+  extends Omit<CommandePlatModalProps, "isOpen" | "onOpenChange"> {
   children: React.ReactNode
 }
 

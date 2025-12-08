@@ -620,6 +620,17 @@ const Commander = memo(() => {
                   Horaire : Lundi, Mercredi, Vendredi, Samedi de 18h00 à 20h30
                 </p>
               </CardHeader>
+              <CardContent className="p-4">
+                <Link href={"/evenements" as any} className="w-full">
+                  <Button
+                    variant="outline"
+                    className="border-thai-orange/30 text-thai-orange hover:bg-thai-orange/10 hover:text-thai-orange w-full"
+                  >
+                    <CalendarIconLucide className="mr-2 h-4 w-4" />
+                    Voir nos prochains événements
+                  </Button>
+                </Link>
+              </CardContent>
             </Card>
 
             {/* Section 2: Sélection du jour et recherche */}

@@ -206,6 +206,17 @@ function toast({ ...props }: Toast) {
     })
   const dismiss = () => dispatch({ type: "DISMISS_TOAST", toastId: id })
 
+  // Haptic Feedback for Toast
+  if (typeof navigator !== "undefined" && navigator.vibrate) {
+    const isDestructive = props.variant === "destructive"
+    try {
+      // Pattern Error vs Pattern Success/Info
+      navigator.vibrate(isDestructive ? [50, 100, 50, 100, 50] : [10, 30, 10])
+    } catch (e) {
+      // Ignore errors
+    }
+  }
+
   dispatch({
     type: "ADD_TOAST",
     toast: {

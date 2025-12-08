@@ -82,7 +82,7 @@ const TableauDeBord = memo(() => {
   const photoUploadedRecently = false // TODO: Implémenter la logique de calcul de date
 
   return (
-    <div className="bg-gradient-thai flex min-h-screen flex-col">
+    <div className="bg-gradient-thai flex min-h-screen flex-col pb-16 md:pb-0">
       {/* Hero Carousel avec médias dynamiques */}
       {!isLoadingHeroMedias && (
         <HeroCarousel medias={heroMedias} isAuthenticated={isAuthenticated} />

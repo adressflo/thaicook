@@ -1,26 +1,26 @@
 ﻿"use client"
 
 import { PermissionGuard } from "@/components/shared/PermissionGuard"
-import Link from "next/link"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
+  BarChart3,
+  Beaker,
+  Bot,
+  ChevronLeft,
+  Home,
   LayoutGrid,
+  Package,
+  Settings,
   ShoppingCart,
   Users,
-  BarChart3,
-  Settings,
   Utensils,
-  Package,
-  Bot,
-  Zap,
-  Home,
-  ChevronLeft,
   Video,
-  Beaker,
+  Zap,
 } from "lucide-react"
-import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { cn } from "@/lib/utils"
+import Link from "next/link"
+
+import { AdminMobileNav } from "@/components/layout/AdminMobileNav"
 
 const adminNavItems = [
   {
@@ -147,8 +147,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
         </nav>
 
+        {/* Mobile Nav Admin */}
+        <AdminMobileNav />
+
         {/* Contenu principal */}
-        <main className="container mx-auto px-4 py-8">{children}</main>
+        <main className="container mx-auto px-4 py-8 pb-20 lg:pb-8">{children}</main>
       </div>
     </PermissionGuard>
   )

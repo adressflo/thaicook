@@ -12,7 +12,6 @@ import {
   CookingPot,
   History,
   MapPin,
-  Menu,
   Settings,
   Shield,
   ShoppingBasket,
@@ -82,18 +81,7 @@ export const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => {
 
   return (
     <>
-      {/* Bouton hamburger pour mobile uniquement */}
-      {isMobile && (
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setIsOpen(!isOpen)}
-          className="text-thai-orange hover:bg-thai-orange/10 fixed top-4 left-4 z-60 bg-white/90 shadow-md backdrop-blur-sm md:hidden"
-          aria-label={isOpen ? "Fermer le menu" : "Ouvrir le menu"}
-        >
-          <Menu className="h-6 w-6" />
-        </Button>
-      )}
+      {/* Hamburger button removed - replaced by MobileNav */}
 
       <div
         className={cn(

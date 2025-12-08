@@ -1,20 +1,21 @@
-﻿import type { Metadata, Viewport } from "next"
+﻿import { MobileNav } from "@/components/layout/MobileNav"
+import { Toaster } from "@/components/ui/toaster"
+import { ToasterVideo } from "@/components/ui/toastervideo"
+import type { Metadata, Viewport } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
 import { Providers } from "../components/providers"
 import "./globals.css" // This is a side-effect import
-import { Toaster } from "@/components/ui/toaster"
-import { ToasterVideo } from "@/components/ui/toastervideo"
 
-import { Toaster as Sonner } from "@/components/ui/sonner"
-import { TooltipProvider } from "@/components/ui/tooltip"
+import { RestaurantFooter } from "@/components/Footer"
 import { FloatingUserIcon } from "@/components/layout/FloatingUserIcon"
-import ErrorBoundary from "@/components/shared/ErrorBoundary"
-import { NuqsAdapter } from "nuqs/adapters/next/app"
-import { PWARegister } from "@/components/pwa/PWARegister"
 import { OfflineBanner } from "@/components/pwa/OfflineBanner"
 import { OfflineIndicator } from "@/components/pwa/OfflineIndicator"
+import { PWARegister } from "@/components/pwa/PWARegister"
 import { ChunkErrorBoundary } from "@/components/shared/ChunkErrorBoundary"
-import { RestaurantFooter } from "@/components/Footer"
+import ErrorBoundary from "@/components/shared/ErrorBoundary"
+import { Toaster as Sonner } from "@/components/ui/sonner"
+import { TooltipProvider } from "@/components/ui/tooltip"
+import { NuqsAdapter } from "nuqs/adapters/next/app"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -76,6 +77,7 @@ export default function RootLayout({
                 <NuqsAdapter>
                   {children}
                   <RestaurantFooter />
+                  <MobileNav />
                 </NuqsAdapter>
                 <FloatingUserIcon />
                 <OfflineIndicator position="bottom-right" />
