@@ -46,10 +46,10 @@ export function OfflineIndicator({
 
   // Classes CSS selon la position
   const positionClasses = {
-    "top-left": "top-4 left-4",
-    "top-right": "top-4 right-4",
-    "bottom-left": "bottom-20 md:bottom-4 left-4",
-    "bottom-right": "bottom-20 md:bottom-4 right-4",
+    "top-left": "top-20 md:top-4 left-4",
+    "top-right": "top-20 md:top-4 right-4",
+    "bottom-left": "bottom-24 md:bottom-4 left-4",
+    "bottom-right": "bottom-24 md:bottom-4 right-4",
   }
 
   return (

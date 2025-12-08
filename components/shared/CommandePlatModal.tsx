@@ -9,9 +9,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { Drawer, DrawerContent } from "@/components/ui/drawer"
+import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer"
 import { useMediaQuery } from "@/hooks/use-media-query"
 import type { DetailCommande, Extra, PlatUI as Plat } from "@/types/app"
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
 import { FileText, Minus, Plus, RefreshCw, ShoppingCart, X } from "lucide-react"
 import Image from "next/image"
 import React from "react"
@@ -585,6 +586,9 @@ export const CommandePlatModal = React.memo<CommandePlatModalProps>((props) => {
     <Drawer open={props.isOpen} onOpenChange={props.onOpenChange}>
       {/* max-h-[90vh] pour éviter de couvrir tout l'écran et laisser la barre de grab visible */}
       <DrawerContent className="max-h-[85vh] outline-none">
+        <VisuallyHidden>
+          <DrawerTitle>{props.plat?.plat || "Détails du plat"}</DrawerTitle>
+        </VisuallyHidden>
         {/* Container interne scrollable */}
         <div className="flex h-full flex-col overflow-hidden rounded-t-[10px]">
           <div className="flex-1 overflow-y-auto">

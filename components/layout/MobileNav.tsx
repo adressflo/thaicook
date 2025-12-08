@@ -68,7 +68,7 @@ export function MobileNav() {
     ...(isAuthenticated ? [{ name: "Historique", href: "/historique", icon: History }] : []),
     { name: "Contact", href: "/nous-trouver", icon: MapPin },
     // Profil : STRICTEMENT AUCUN BADGE ICI
-    { name: "Profil", href: "/profil", icon: User, badge: null },
+    { name: "Mon Profil", href: "/profil", icon: User, badge: null },
   ]
 
   return (
@@ -127,7 +127,7 @@ export function MobileNav() {
                 if (item.onClick) item.onClick(e)
               }}
               className={cn(
-                "flex flex-col items-center justify-center space-y-1 rounded-lg px-3 py-1 transition-all duration-200",
+                "relative flex flex-col items-center justify-center space-y-1 rounded-lg px-3 py-1 transition-all duration-200",
                 active
                   ? "text-thai-orange"
                   : "text-thai-green/70 hover:text-thai-green hover:bg-thai-green/5"
