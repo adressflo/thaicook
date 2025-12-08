@@ -22,7 +22,6 @@ import {
   Clock,
   Euro,
   History,
-  Loader2,
   PartyPopper,
   Users,
   Utensils,
@@ -44,6 +43,7 @@ import {
   FormattedPrice,
   PersonCount,
 } from "@/components/historique/FormattedDisplay"
+import { HistoriqueSkeleton } from "@/components/historique/HistoriqueSkeleton"
 import { StatusBadge } from "@/components/historique/StatusBadge"
 
 export const dynamic = "force-dynamic"
@@ -354,9 +354,7 @@ const HistoriquePage = memo(() => {
             </CardHeader>
             <CardContent>
               {isLoadingCommandes || isLoadingExtras ? (
-                <div className="flex justify-center py-10">
-                  <Loader2 className="text-thai-orange h-8 w-8 animate-spin" />
-                </div>
+                <HistoriqueSkeleton />
               ) : error ? (
                 <Alert variant="destructive">
                   <AlertDescription>{error.message}</AlertDescription>
@@ -533,9 +531,7 @@ const HistoriquePage = memo(() => {
             </CardHeader>
             <CardContent>
               {isLoadingEvenements ? (
-                <div className="flex justify-center py-10">
-                  <Loader2 className="text-thai-orange h-8 w-8 animate-spin" />
-                </div>
+                <HistoriqueSkeleton />
               ) : errorEvenements ? (
                 <Alert variant="destructive">
                   <AlertDescription>{errorEvenements.message}</AlertDescription>

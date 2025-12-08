@@ -1,39 +1,131 @@
 "use client"
 
+import { useCart } from "@/contexts/CartContext"
 import { usePermissions } from "@/hooks/usePermissions"
 import { cn } from "@/lib/utils"
+import { AnimatePresence, motion } from "framer-motion"
 import { History, Home, MapPin, ShoppingCart, User } from "lucide-react"
+import Image from "next/image"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
 
 export function MobileNav() {
+  // MobileNav Refined v3 (Green Badges + Strict Profil Fix)
   const pathname = usePathname()
-  const { isAuthenticated, clientProfile } = usePermissions()
-  const currentUserRole = clientProfile?.role
+  const router = useRouter()
+  const { isAuthenticated } = usePermissions()
+  const { totalArticles, totalPrix } = useCart()
+  const [showCartBar, setShowCartBar] = useState(false)
+
+  // Masquer/Afficher la barre de résumé si panier > 0
+  useEffect(() => {
+    setShowCartBar(totalArticles > 0)
+  }, [totalArticles])
 
   const isActive = (path: string) => pathname === path
 
-  // Masquer la navigation mobile sur les routes admin
+  const handleCartClick = (e: React.MouseEvent) => {
+    if (pathname === "/commander") {
+      e.preventDefault()
+      const cartSection = document.getElementById("validate-order-btn")
+      if (cartSection) {
+        cartSection.scrollIntoView({ behavior: "smooth" })
+      }
+    }
+  }
+
+  const handleBarClick = () => {
+    if (pathname === "/commander") {
+      const cartSection = document.getElementById("validate-order-btn")
+      if (cartSection) {
+        cartSection.scrollIntoView({ behavior: "smooth" })
+      }
+    } else {
+      router.push("/commander")
+    }
+  }
+
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat("fr-FR", {
+      style: "currency",
+      currency: "EUR",
+    }).format(price)
+  }
+
   if (pathname?.startsWith("/admin")) return null
 
   const navigation = [
     { name: "Accueil", href: "/", icon: Home },
-    { name: "Commander", href: "/commander", icon: ShoppingCart },
+    {
+      name: "Commander",
+      href: "/commander",
+      icon: ShoppingCart,
+      // Le badge est UNIQUEMENT sur l'icône Commander (Panier)
+      badge: totalArticles > 0 ? totalArticles : null,
+      onClick: handleCartClick,
+    },
     ...(isAuthenticated ? [{ name: "Historique", href: "/historique", icon: History }] : []),
     { name: "Contact", href: "/nous-trouver", icon: MapPin },
-    { name: "Profil", href: "/profil", icon: User },
+    // Profil : STRICTEMENT AUCUN BADGE ICI
+    { name: "Profil", href: "/profil", icon: User, badge: null },
   ]
 
   return (
-    <div className="border-thai-orange/20 pb-safe fixed bottom-0 left-0 z-50 w-full border-t bg-white/95 backdrop-blur-md md:hidden">
-      <nav className="flex h-16 items-center justify-around px-2">
+    <div className="fixed bottom-0 left-0 z-50 w-full md:hidden">
+      {/* Barre de Résumé "Docked" au-dessus de la nav */}
+      <AnimatePresence>
+        {showCartBar && (
+          <motion.div
+            initial={{ y: "100%", opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: "100%", opacity: 0 }}
+            transition={{ type: "spring", stiffness: 400, damping: 30 }}
+            onClick={handleBarClick}
+            className="group border-thai-green bg-thai-cream hover:bg-thai-green absolute bottom-[calc(100%-1px)] left-0 w-full cursor-pointer border-t px-4 py-3 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] backdrop-blur-md transition-all duration-300"
+          >
+            <div className="flex items-center justify-between gap-2">
+              {/* Gauche: Icone Panier + Badge Quantité */}
+              <div className="relative flex shrink-0 items-center">
+                {/* Image "Full Rond" sans padding (p-0) et object-cover */}
+                <div className="border-thai-green/20 relative h-10 w-10 overflow-hidden rounded-full border bg-white">
+                  <Image
+                    src="/media/avatars/panier1.svg"
+                    alt="Panier"
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+                {/* Badge Quantité: FOND VERT (demande user) */}
+                <div className="bg-thai-green absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold text-white shadow-sm">
+                  {totalArticles}
+                </div>
+              </div>
+
+              {/* Centre: Texte "Total Commande" */}
+              <div className="text-thai-green grow text-center text-base font-bold transition-colors duration-300 group-hover:text-white">
+                Total Commande
+              </div>
+
+              {/* Droite: Badge Prix */}
+              <div className="bg-thai-orange shrink-0 rounded-full px-3 py-1 text-base font-bold whitespace-nowrap text-white shadow-sm ring-1 ring-white/50">
+                {formatPrice(totalPrix)}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <nav className="border-thai-orange/20 pb-safe flex h-16 w-full items-center justify-around border-t bg-white/95 px-2 backdrop-blur-md">
         {navigation.map((item) => {
           const active = isActive(item.href)
           return (
             <Link
               key={item.name}
               href={item.href as any}
-              onClick={() => haptic.light()}
+              onClick={(e) => {
+                if (item.onClick) item.onClick(e)
+              }}
               className={cn(
                 "flex flex-col items-center justify-center space-y-1 rounded-lg px-3 py-1 transition-all duration-200",
                 active
@@ -47,6 +139,11 @@ export function MobileNav() {
                   active ? "scale-110 stroke-[2.5px]" : "stroke-current"
                 )}
               />
+              {item.badge && item.name === "Commander" && (
+                <span className="bg-thai-green absolute top-1 right-2 flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-bold text-white shadow-sm ring-2 ring-white">
+                  {item.badge}
+                </span>
+              )}
               <span className={cn("text-[10px] font-medium", active ? "font-bold" : "")}>
                 {item.name}
               </span>

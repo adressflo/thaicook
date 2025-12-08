@@ -55,6 +55,7 @@ import { PolaroidThankYouModal } from "@/components/commander/PolaroidThankYouMo
 import { CartItemCard } from "@/components/shared/CartItemCard"
 import { CommandePlatModal } from "@/components/shared/CommandePlatModal"
 import { ProductCard as SharedProductCard } from "@/components/shared/ProductCard"
+import { ProductCardSkeleton } from "@/components/shared/ProductCardSkeleton"
 import { ModalVideo } from "@/components/ui/ModalVideo"
 import { useCart } from "@/contexts/CartContext"
 import { usePrismaCreateCommande } from "@/hooks/usePrismaData"
@@ -918,8 +919,10 @@ const Commander = memo(() => {
                   </h3>
 
                   {dataIsLoading ? (
-                    <div className="py-6 text-center">
-                      <Loader2 className="text-thai-orange mx-auto h-6 w-6 animate-spin" />
+                    <div className="grid gap-4 md:grid-cols-2">
+                      {Array.from({ length: 6 }).map((_, i) => (
+                        <ProductCardSkeleton key={i} />
+                      ))}
                     </div>
                   ) : platsDisponibles.length === 0 ? (
                     <div className="bg-thai-cream/30 rounded-lg py-6 text-center">
@@ -964,7 +967,10 @@ const Commander = memo(() => {
           {panier.length > 0 && (
             <div className="w-full">
               {/* Desktop Sidebar - 30% fixe */}
-              <div className="flex flex-col md:sticky md:top-8 md:max-h-[calc(100vh-4rem)]">
+              <div
+                id="cart-section"
+                className="flex flex-col md:sticky md:top-8 md:max-h-[calc(100vh-4rem)]"
+              >
                 <Card className="border-thai-orange/20 flex h-full flex-col overflow-hidden shadow-xl">
                   <CardHeader className="from-thai-orange to-thai-gold relative rounded-t-lg bg-linear-to-r py-4 text-white">
                     <div className="text-center">
@@ -1122,61 +1128,8 @@ const Commander = memo(() => {
                                         uniqueId: item.uniqueId,
                                       })
                                     }
-                                    showSpiceSelector={
-                                      !!(
-                                        item.demandeSpeciale &&
-                                        item.demandeSpeciale.includes("épicé")
-                                      )
-                                    }
-                                    spiceDistribution={item.spiceDistribution}
-                                    onSpiceDistributionChange={(newDist) =>
-                                      modifierDistributionEpice(item.uniqueId!, newDist)
-                                    }
-                                    className="mb-2"
                                   />
-                                ) : (
-                                  <div
-                                    key={itemKey}
-                                    className="flex items-start gap-3 rounded-lg border border-gray-200 bg-white p-3 opacity-50"
-                                  >
-                                    <div className="flex h-12 w-16 items-center justify-center rounded-lg bg-gray-200">
-                                      <span className="text-lg text-gray-400">🍽️</span>
-                                    </div>
-                                    <div className="flex-1">
-                                      <h4 className="mb-1 text-base font-medium text-gray-500">
-                                        {item.nom}
-                                      </h4>
-                                      <p className="text-sm text-gray-400">Plat supprimé</p>
-                                    </div>
-                                    <div className="text-right">
-                                      <div className="mb-3 text-lg font-bold text-gray-400">
-                                        {formatPrix(parseFloat(item.prix) * item.quantite)}
-                                      </div>
-                                      <Button
-                                        size="sm"
-                                        variant="ghost"
-                                        onClick={() => {
-                                          supprimerDuPanier(item.uniqueId!)
-                                          toastVideo({
-                                            title: "Plat supprimé 🗑️",
-                                            description: `${item.nom} retiré du panier.`,
-                                            media: "/media/animations/toasts/poubelleok.mp4",
-                                            position: "center",
-                                            aspectRatio: "1:1",
-                                            polaroid: true,
-                                            borderColor: "thai-orange",
-                                            animateBorder: true,
-                                            hoverScale: true,
-                                            rotation: true,
-                                          })
-                                        }}
-                                        className="h-8 w-8 p-0 text-gray-400 hover:text-red-500"
-                                      >
-                                        <Trash2 className="h-4 w-4" />
-                                      </Button>
-                                    </div>
-                                  </div>
-                                )
+                                ) : null
                               })}
                             </div>
                           </div>
@@ -1258,7 +1211,10 @@ const Commander = memo(() => {
                     </Card>
                   </CardContent>
 
-                  <div className="shrink-0 rounded-b-lg border-t bg-white p-4">
+                  <div
+                    id="validate-order-btn"
+                    className="shrink-0 rounded-b-lg border-t bg-white p-4"
+                  >
                     <Button
                       onClick={validerCommande}
                       disabled={createCommande.isPending || !currentUser || !idclient || !isOnline}
@@ -1269,7 +1225,7 @@ const Commander = memo(() => {
                       ) : (
                         <CreditCard className="mr-2 h-6 w-6" />
                       )}
-                      Valider ma commande ({formatPrix(totalPrix)})
+                      Valider ma commande {formatPrix(totalPrix)}
                     </Button>
                   </div>
                 </Card>

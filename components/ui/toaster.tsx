@@ -30,6 +30,16 @@ export function Toaster() {
     {} as Record<ToastPosition, typeof toasts>
   )
 
+  // Mapping position to swipe direction
+  const swipeDirectionMap: Record<string, "right" | "left" | "up" | "down"> = {
+    "bottom-right": "right",
+    "top-right": "right",
+    "bottom-left": "left",
+    "top-left": "left",
+    center: "right",
+    custom: "right",
+  }
+
   // Generer le style custom pour les positions personnalisees
   const getCustomPositionStyle = (customX?: string, customY?: string) => {
     if (!customX && !customY) return {}
@@ -43,7 +53,7 @@ export function Toaster() {
   return (
     <>
       {Object.entries(toastsByPosition).map(([position, positionToasts]) => (
-        <ToastProvider key={position}>
+        <ToastProvider key={position} swipeDirection={swipeDirectionMap[position] || "right"}>
           {positionToasts.map(function ({
             id,
             title,

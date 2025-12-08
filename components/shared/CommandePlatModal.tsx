@@ -9,6 +9,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { Drawer, DrawerContent } from "@/components/ui/drawer"
+import { useMediaQuery } from "@/hooks/use-media-query"
 import type { DetailCommande, Extra, PlatUI as Plat } from "@/types/app"
 import { FileText, Minus, Plus, RefreshCw, ShoppingCart, X } from "lucide-react"
 import Image from "next/image"
@@ -506,6 +508,7 @@ export const CommandePlatContent = React.memo<
 CommandePlatContent.displayName = "CommandePlatContent"
 
 export const CommandePlatModal = React.memo<CommandePlatModalProps>((props) => {
+  const isDesktop = useMediaQuery("(min-width: 768px)")
   const effectiveMode = props.mode || (props.onAddToCart ? "interactive" : "readonly")
   const isReadonly = effectiveMode === "readonly"
   const closeOnClick = props.closeOnClick ?? isReadonly
@@ -518,7 +521,7 @@ export const CommandePlatModal = React.memo<CommandePlatModalProps>((props) => {
     }
   }
 
-  // Classes de taille modal
+  // Classes de taille modal (Desktop uniquement)
   const sizeClasses = {
     sm: "max-w-sm",
     md: "max-w-lg",
@@ -527,7 +530,7 @@ export const CommandePlatModal = React.memo<CommandePlatModalProps>((props) => {
     custom: "max-w-lg",
   }[props.modalSize ?? "md"]
 
-  // Classes de position
+  // Classes de position (Desktop uniquement)
   const positionClasses = {
     center: "",
     "bottom-right": "fixed bottom-4 right-4 top-auto left-auto translate-x-0 translate-y-0",
@@ -553,27 +556,44 @@ export const CommandePlatModal = React.memo<CommandePlatModalProps>((props) => {
     }
   }
 
+  if (isDesktop) {
+    return (
+      <Dialog open={props.isOpen} onOpenChange={props.onOpenChange}>
+        <DialogContent
+          className={`mx-auto flex max-h-[90vh] ${sizeClasses} ${positionClasses} transform flex-col overflow-hidden rounded-xl border-0 bg-white p-0 shadow-2xl transition-all duration-300 ${getExitAnimationClasses()} ${showCloseButton ? "" : "[&>button]:hidden"} ${closeOnClick ? "cursor-pointer" : ""}`}
+          onClick={closeOnClick ? handleContentClick : (e) => e.stopPropagation()}
+        >
+          {/* Bouton X de fermeture personnalisé */}
+          {showCloseButton && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                props.onOpenChange(false)
+              }}
+              className="absolute top-3 right-3 z-50 rounded-full bg-white/80 p-1.5 shadow-md backdrop-blur-sm transition-all hover:scale-110 hover:bg-white"
+            >
+              <X className="h-5 w-5 text-gray-700" />
+            </button>
+          )}
+          <CommandePlatContent {...props} />
+        </DialogContent>
+      </Dialog>
+    )
+  }
+
   return (
-    <Dialog open={props.isOpen} onOpenChange={props.onOpenChange}>
-      <DialogContent
-        className={`mx-auto flex max-h-[90vh] ${sizeClasses} ${positionClasses} transform flex-col overflow-hidden rounded-xl border-0 bg-white p-0 shadow-2xl transition-all duration-300 ${getExitAnimationClasses()} ${showCloseButton ? "" : "[&>button]:hidden"} ${closeOnClick ? "cursor-pointer" : ""}`}
-        onClick={closeOnClick ? handleContentClick : (e) => e.stopPropagation()}
-      >
-        {/* Bouton X de fermeture personnalisé */}
-        {showCloseButton && (
-          <button
-            onClick={(e) => {
-              e.stopPropagation()
-              props.onOpenChange(false)
-            }}
-            className="absolute top-3 right-3 z-50 rounded-full bg-white/80 p-1.5 shadow-md backdrop-blur-sm transition-all hover:scale-110 hover:bg-white"
-          >
-            <X className="h-5 w-5 text-gray-700" />
-          </button>
-        )}
-        <CommandePlatContent {...props} />
-      </DialogContent>
-    </Dialog>
+    <Drawer open={props.isOpen} onOpenChange={props.onOpenChange}>
+      {/* max-h-[90vh] pour éviter de couvrir tout l'écran et laisser la barre de grab visible */}
+      <DrawerContent className="max-h-[85vh] outline-none">
+        {/* Container interne scrollable */}
+        <div className="flex h-full flex-col overflow-hidden rounded-t-[10px]">
+          <div className="flex-1 overflow-y-auto">
+            {/* standalone={true} pour éviter l'erreur DialogTitle manquant */}
+            <CommandePlatContent {...props} standalone={true} />
+          </div>
+        </div>
+      </DrawerContent>
+    </Drawer>
   )
 })
 

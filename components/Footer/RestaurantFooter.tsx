@@ -81,7 +81,7 @@ const NAV_LINKS_GUEST: Array<{ label: string; href: string }> = [
 const NAV_LINKS_AUTH: Array<{ label: string; href: string }> = [
   { label: "Accueil", href: "/" },
   { label: "Commander", href: "/commander" },
-  { label: "Suivi", href: "/suivi" },
+  { label: "Suivi", href: "/historique" },
   { label: "Mon Profil", href: "/profil" },
   { label: "Événements", href: "/evenements" },
   { label: "Actualités", href: "/actualites" },
