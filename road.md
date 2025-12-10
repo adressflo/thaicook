@@ -3047,19 +3047,48 @@ type DatePickerProps = {
 
 ---
 
-## 📊 Résumé Nouvelles Phases (Décembre 2025)
+## 📊 Résumé des Nouvelles Phases
 
-| Phase                         | Priorité     | Items principaux                                      | Effort estimé |
-| ----------------------------- | ------------ | ----------------------------------------------------- | ------------- |
-| **Phase 8** : Dette Technique | 🔥🔥🔥 HAUTE | 20+ console.log, 11 TODOs, 4 `any`, 5 gros composants | 2-3 jours     |
-| **Phase 9** : UX/UI           | 🔥🔥 MOYENNE | 8 confirm(), breadcrumbs, empty states, error.tsx     | 1-2 jours     |
-| **Phase 10** : APIs Modernes  | 🔥 BASSE     | Web Share, Clipboard, Geolocation, Payment            | 1 semaine     |
-| **Phase 11** : SEO            | 🔥🔥 MOYENNE | sitemap, robots, Twitter Cards, JSON-LD               | 2-3 jours     |
-| **Phase 12** : Performance    | 🔥🔥 MOYENNE | next/image, Suspense, PWA shortcuts                   | 3-4 jours     |
-| **Phase 13** : Accessibilité  | 🔥🔥 MOYENNE | aria-labels, keyboard nav, screen readers             | 2-3 jours     |
-| **Phase 14** : Tests          | 🔥🔥🔥 HAUTE | Tests composants, E2E, offline                        | 1-2 semaines  |
-| **Phase 15** : Refactoring    | 🔥 BASSE     | Modales, DatePickers                                  | 1-2 jours     |
+| Phase                          | Priorité     | Items principaux                                      |
+| ------------------------------ | ------------ | ----------------------------------------------------- |
+| **Phase 8** : Dette Technique  | 🔥🔥🔥 HAUTE | 20+ console.log, 11 TODOs, 4 `any`, 5 gros composants |
+| **Phase 9** : UX/UI            | 🔥🔥 MOYENNE | 8 confirm(), breadcrumbs, empty states, error.tsx     |
+| **Phase 10** : APIs Modernes   | 🔥 BASSE     | Web Share, Clipboard, Geolocation, Payment            |
+| **Phase 11** : SEO             | 🔥🔥 MOYENNE | sitemap, robots, Twitter Cards, JSON-LD               |
+| **Phase 12** : Performance     | 🔥🔥 MOYENNE | next/image, Suspense, PWA shortcuts                   |
+| **Phase 13** : Accessibilité   | 🔥🔥 MOYENNE | aria-labels, keyboard nav, screen readers             |
+| **Phase 14** : Tests           | 🔥🔥🔥 HAUTE | Tests composants, E2E, offline                        |
+| **Phase 15** : Refactoring     | 🔥 BASSE     | Modales, DatePickers                                  |
+| **Phase 16** : Migration Infra | 🔥🔥🔥 HAUTE | Hetzner, Coolify, MinIO, Docker                       |
 
-**Total estimé : 3-4 semaines de travail supplémentaire**
+---
+
+## 🚀 Phase 16 : Migration & Optimisation Infrastructure (🔥🔥 CRITIQUE)
+
+**Objectif : Indépendance infrastructure (Hetzner) et Performance (Supabase Quotas)**
+
+### A. Optimisation Bandwidth (Supabase)
+
+- [x] ✅ **Audit & Fix Images** : Remplacement des `<img>` par `next/image` dans `evenements`, `commander`, `suivi-commande`
+- [x] ✅ **Refactoring Composants** : `ProductCard` et tooltips optimisés
+
+### B. Migration Infrastructure (Hetzner + Coolify)
+
+- [x] ✅ **Setup Serveur** : Installation Coolify sur Hetzner (VPS)
+- [x] ✅ **Projet Coolify** : Création projet "Chanthana" et configuration
+- [x] ✅ **Base de Données** : Provisionning PostgreSQL (Supabase image) + Configuration publique temporaire
+
+### C. Migration Données
+
+- [x] ✅ **Audit Connexions** : Récupération clés Supabase et Coolify
+- [x] ✅ **Migration Schema + Data** : Transfert via Pipe Docker (`pg_dump | psql`)
+- [x] ✅ **Vérification Intégrité** : Validation des données (6 clients vérifiés)
+- [ ] 🔥 **Migration Stockage** : Setup MinIO (S3 compatible) et transfert des images (Prochaine étape)
+
+### D. Finalisation
+
+- [ ] 🔥 **Déploiement App** : Configurer Next.js sur Coolify (Env vars, Build)
+- [ ] 🔥 **Switch DNS** : Pointer `cthaicook.com` vers nouvelle IP
+- [ ] 🔥 **Arrêt Supabase** : Désactivation progressive des services cloud
 
 ---
