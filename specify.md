@@ -1,48 +1,45 @@
-# Feature Specification: Iterate 1 - Technical Debt (Phase 8)
+# Feature Specification: Iterate 2 - UX Improvements (Phase 2)
 
-**Version**: 1.0 (Phase 8 Focus)
-**Status**: Planned
-**Context**: Cleanup iteration to improve code quality and maintainability without affecting features.
+**Version**: 1.1 (UX Focus)
+**Status**: In Progress
+**Context**: Implementation of missing UX features from `road.md` Sections D, E, and F.
 
 ## 1. Objective
 
-Execute **Phase 8: Dette Technique** from `road.md`. Focus on removing development artifacts (`console.log`), resolving high-priority technical TODOs, and fixing strict type errors (`any`).
+Enhance user experience on History, Order Tracking, and Edit Order pages by adding navigation, documentation, and safety features.
 
 ## 2. Scope & Requirements
 
-### A. Remove Console Logs
+### A. Page Historique Complet (`/historique/complet`)
 
-**Rule**: Remove all `console.log` entries listed in `road.md` that were used for debugging.
-**Targets**:
+**Source**: `road.md` Section D - "Tâches Restantes"
 
-- `hooks/useSupabaseData.ts`: ~17 instances (lines 204-354).
-- `app/admin/commandes/page.tsx`: Line 2938 (`🔍 DEBUG - Extras...`).
-- `hooks/usePWAInstalled.ts`: Lines 57, 68, 72.
-- `hooks/useRealtimeNotifications.ts`: Lines 25, 51, 84.
+- **Pagination**: Implement pagination using `nuqs` to synchronize state with the URL.
+- **Filters**: Implement filtering capabilities (Search command, Statut, Date) similar to the main history page.
+- **Goal**: Provide a dedicated view for the full order history, separating it from the "Active/Recent" view on the main page.
 
-### B. Fix TypeScript `any`
+### B. Page Suivi de Commande (`/suivi-commande/[id]`)
 
-**Rule**: Replace `any` with specific types to ensure type safety.
-**Targets**:
+**Source**: `road.md` Section E - "Tâches Restantes"
 
-- `app/actions/commandes.ts`: `updateData: any` -> `Partial<CommandeUpdateInput>`.
-- `app/actions/evenements.ts`: `updateData: any` -> `Partial<EvenementUpdateInput>`.
-- `app/actions/notifications.ts`: `quietHoursData: any` -> `QuietHoursConfig`.
-- `app/admin/commandes/page.tsx`: `router: any, toast: any` -> `AppRouterInstance`, `ReturnType<typeof useToast>`.
+- **Invoice Download**: Integrate the `BoutonTelechargerFacture` component.
+- **Condition**: Button must only appear when the order status is "Récupérée" (Completed).
+- **Placement**: Prominently displayed, likely near the Total or Order Summary.
 
-### C. Clean Unused Imports
+### C. Page Modifier Commande (`/modifier-commande/[id]`)
 
-**Rule**: Identify and remove unused imports across the project.
-**Method**: Use `eslint` or manual review during file editing.
+**Source**: `road.md` Section F - "Tâches Restantes"
 
-## 3. Non-Goals
+- **Save Confirmation Dialog**: Implement an `AlertDialog` triggered by the "Sauvegarder" button.
+- **Content**:
+  - Display a summary of changes (Old Total vs. New Total).
+  - Show the calculated price difference (positive or negative).
+  - Display the change in item count.
+  - **Warning**: Explicitly state that saving will reset the order status to "En attente de confirmation".
+- **Action**: Clicking "Confirmer" executes the save logic (`sauvegarderModifications`).
 
-- No new features.
-- No UI changes.
-- No database schema changes.
+## 3. Verification
 
-## 4. Verification
-
-- **Build**: `npm run build` must pass without TypeScript errors.
-- **Lint**: `npm run lint` should show reduced warnings.
-- **Runtime**: Application must start (`npm run dev`) and key flows (Admin Orders) must work without regressions.
+- **Historique**: Verify `?page=x` and filter parameters update the URL and list.
+- **Suivi**: Verify PDF downloads correctly for completed orders.
+- **Modifier**: Verify dialog appears on save, shows correct math, and prevents accidental submission.

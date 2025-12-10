@@ -32,6 +32,17 @@ import { memo, useEffect, useMemo, useRef, useState } from "react"
 
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -114,6 +125,21 @@ const ModifierCommande = memo(() => {
     heureOriginale: string
     demandesOriginales: string
   } | null>(null)
+
+  // Calcul du total original pour le comparatif
+  const originalTotal = useMemo(() => {
+    if (!commande?.details) return 0
+    return commande.details.reduce((total: number, detail: DetailCommande) => {
+      const quantite = detail.quantite_plat_commande || 0
+      const isExtra = !!detail.extra
+      const prixUnitaire = isExtra
+        ? toSafeNumber(detail.extra?.prix || detail.prix_unitaire)
+        : toSafeNumber(detail.plat?.prix || detail.prix_unitaire)
+      return total + prixUnitaire * quantite
+    }, 0)
+  }, [commande])
+
+  // State for the shared modal
 
   // State for the shared modal
   const [selectedPlat, setSelectedPlat] = useState<Plat | null>(null)
@@ -1048,20 +1074,86 @@ const ModifierCommande = memo(() => {
             >
               <Link href={`/suivi-commande/${commande.idcommande}`}>Annuler les modifications</Link>
             </Button>
-            <Button
-              onClick={sauvegarderModifications}
-              disabled={createCommande.isPending || deleteCommande.isPending || !hasChanges}
-              className="bg-thai-orange flex-1 py-6 text-lg"
-            >
-              {createCommande.isPending || deleteCommande.isPending ? (
-                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-              ) : (
-                <Save className="mr-2 h-5 w-5" />
-              )}
-              {panierModification.length === 0
-                ? "Annuler la commande"
-                : `Sauvegarder (${formatPrix(totalPrixModification)})`}
-            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  disabled={createCommande.isPending || deleteCommande.isPending || !hasChanges}
+                  className="bg-thai-orange flex-1 py-6 text-lg"
+                >
+                  {createCommande.isPending || deleteCommande.isPending ? (
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  ) : (
+                    <Save className="mr-2 h-5 w-5" />
+                  )}
+                  {panierModification.length === 0
+                    ? "Annuler la commande"
+                    : `Sauvegarder (${formatPrix(totalPrixModification)})`}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent className="border-thai-orange border-2">
+                <AlertDialogHeader>
+                  <AlertDialogTitle className="text-thai-green text-xl font-bold">
+                    Confirmer les modifications ?
+                  </AlertDialogTitle>
+                  <AlertDialogDescription className="space-y-4 pt-2 text-base text-gray-600">
+                    <p>Voici le résumé de vos changements :</p>
+                    <div className="bg-thai-cream/20 space-y-2 rounded-lg p-4">
+                      <div className="flex justify-between">
+                        <span>Ancien total :</span>
+                        <span className="font-semibold">{formatPrix(originalTotal)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Nouveau total :</span>
+                        <span className="text-thai-orange text-lg font-bold">
+                          {formatPrix(totalPrixModification)}
+                        </span>
+                      </div>
+                      <div className="border-thai-orange/20 flex justify-between border-t pt-2">
+                        <span>Différence :</span>
+                        <span
+                          className={cn(
+                            "font-bold",
+                            totalPrixModification > originalTotal
+                              ? "text-thai-orange"
+                              : "text-green-600"
+                          )}
+                        >
+                          {totalPrixModification > originalTotal ? "+" : ""}
+                          {formatPrix(totalPrixModification - originalTotal)}
+                        </span>
+                      </div>
+                      <div className="border-thai-orange/20 flex justify-between border-t pt-2 text-sm">
+                        <span>Articles :</span>
+                        <span>
+                          {commande.details?.length || 0} →{" "}
+                          {panierModification.reduce((acc, item) => acc + item.quantite, 0)}
+                        </span>
+                      </div>
+                    </div>
+                    {dateRetrait &&
+                      originalData?.dateOriginale &&
+                      !isSameDay(dateRetrait, originalData.dateOriginale) && (
+                        <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-2 text-sm text-yellow-800">
+                          Attention : La date de retrait a été modifiée.
+                        </div>
+                      )}
+                    <p>
+                      Votre commande sera mise à jour et repassera en statut{" "}
+                      <strong>"En attente de confirmation"</strong>.
+                    </p>
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel className="hover:bg-gray-100">Annuler</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={sauvegarderModifications}
+                    className="bg-thai-orange hover:bg-thai-orange/90 text-white"
+                  >
+                    Confirmer et Sauvegarder
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </div>
 

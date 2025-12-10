@@ -253,14 +253,24 @@ const HistoriquePage = memo(() => {
       )
       .slice(0, 10)
 
+    // FIX: Gestion robuste des status événements (clés Enum Prisma vs valeurs affichées)
+    const STATUS_TERMINES = [
+      "Réalisé",
+      "R_alis_",
+      "Annulé",
+      "Annul_",
+      "Payé intégralement",
+      "Pay__int_gralement",
+      "Facturé / Solde à payer",
+      "Factur____Solde___payer",
+    ]
+
     const evenementsEnCours = filteredEvenements.filter(
-      (e: EvenementUI) =>
-        (e.statut_evenement as any) !== "Réalisé" && (e.statut_evenement as any) !== "Annulé"
+      (e: EvenementUI) => !STATUS_TERMINES.includes(e.statut_evenement as any)
     )
 
-    const evenementsHistorique = filteredEvenements.filter(
-      (e: EvenementUI) =>
-        (e.statut_evenement as any) === "Réalisé" || (e.statut_evenement as any) === "Annulé"
+    const evenementsHistorique = filteredEvenements.filter((e: EvenementUI) =>
+      STATUS_TERMINES.includes(e.statut_evenement as any)
     )
 
     return {
@@ -279,6 +289,7 @@ const HistoriquePage = memo(() => {
     filterByDate,
     filterByAmount,
     typeFilter,
+    clientProfile,
   ])
 
   if (!currentUser) {
@@ -591,6 +602,7 @@ const HistoriquePage = memo(() => {
                                 <EvenementActionButtons
                                   evenementId={evt.idevenements}
                                   canEdit={canEdit}
+                                  evenement={evt}
                                 />
                               </div>
                             </div>
@@ -667,6 +679,7 @@ const HistoriquePage = memo(() => {
                               <EvenementActionButtons
                                 evenementId={evt.idevenements}
                                 canEdit={false}
+                                evenement={evt}
                               />
                             </div>
                           </div>

@@ -55,13 +55,16 @@ export const CommandeActionButtons = React.memo<CommandeActionButtonsProps>(
 
 CommandeActionButtons.displayName = "CommandeActionButtons"
 
+import BoutonTelechargerDevis from "./BoutonTelechargerDevis"
+
 interface EvenementActionButtonsProps {
   evenementId: number
   canEdit: boolean
+  evenement: any // TODO: Fix type
 }
 
 export const EvenementActionButtons = React.memo<EvenementActionButtonsProps>(
-  ({ evenementId, canEdit }) => (
+  ({ evenementId, canEdit, evenement }) => (
     <div className="flex w-full min-w-[140px] items-center justify-center gap-2">
       <Button
         asChild
@@ -87,6 +90,7 @@ export const EvenementActionButtons = React.memo<EvenementActionButtonsProps>(
           </Link>
         </Button>
       )}
+      <BoutonTelechargerDevis evenement={evenement} />
     </div>
   )
 )

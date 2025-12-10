@@ -29,6 +29,7 @@ import {
   MapPin,
   ShoppingCart,
 } from "lucide-react"
+import Image from "next/image"
 import Link from "next/link"
 import { redirect, useParams } from "next/navigation"
 import { memo, useEffect, useState } from "react"
@@ -231,8 +232,8 @@ const SuiviCommande = memo(() => {
                             >
                               <div className="hover:bg-thai-cream/20 hover:border-thai-orange hover:ring-thai-orange/30 flex w-full transform items-start gap-3 rounded-lg border border-gray-200 bg-white p-3 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:ring-2">
                                 {/* Image du plat/extra */}
-                                <div className="h-16 w-16 shrink-0 overflow-hidden rounded-md md:h-20 md:w-20">
-                                  <img
+                                <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-md md:h-20 md:w-20">
+                                  <Image
                                     src={
                                       isExtra
                                         ? extraDetails?.photo_url ||
@@ -244,21 +245,13 @@ const SuiviCommande = memo(() => {
                                         ? extraDetails?.nom_extra || detail.nom_plat || "Extra"
                                         : platDetails?.plat || "Plat"
                                     }
-                                    className="h-full w-full object-cover"
+                                    fill
+                                    className="object-cover"
+                                    sizes="(max-width: 768px) 64px, 80px"
                                     onError={(e) => {
-                                      // Fallback pour les extras si l'image ne charge pas
-                                      if (isExtra) {
-                                        e.currentTarget.src =
-                                          "https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png"
-                                      } else {
-                                        // Pour les plats sans image, on affiche un placeholder
-                                        e.currentTarget.style.display = "none"
-                                        const parent = e.currentTarget.parentElement
-                                        if (parent) {
-                                          parent.innerHTML =
-                                            '<div class="w-full h-full bg-thai-cream/30 border border-thai-orange/20 rounded-md flex items-center justify-center"><span class="text-thai-orange text-2xl">🍽️</span></div>'
-                                        }
-                                      }
+                                      // Note: Next/Image onError is less flexible for DOM manipulation.
+                                      // For now we rely on the src fallback above.
+                                      // Typically we would use a state variable for fallback src if needed.
                                     }}
                                   />
                                 </div>
@@ -385,9 +378,7 @@ const SuiviCommande = memo(() => {
                       {/* Adresse de retrait - Tout en bas */}
                       <div className="border-thai-cream/50 mt-6 border-t pt-4 text-center">
                         <p className="mb-1 text-sm font-medium text-gray-500">Adresse de retrait</p>
-                        <p className="text-thai-green mb-1 font-medium">
-                          2 impasse de la poste 37120 Marigny Marmande
-                        </p>
+
                         <Link
                           href="/nous-trouver"
                           className="text-thai-orange hover:text-thai-green inline-flex items-center gap-1 text-sm underline transition-colors duration-200 hover:no-underline"
@@ -395,6 +386,39 @@ const SuiviCommande = memo(() => {
                           <MapPin className="h-4 w-4" />
                           Voir sur la carte
                         </Link>
+                      </div>
+
+                      {/* Contact Rapide */}
+                      <div className="border-thai-cream/50 mt-6 border-t pt-4 text-center">
+                        <p className="mb-2 text-sm font-medium text-gray-500">Une question ?</p>
+                        <div className="flex justify-center gap-3">
+                          <Button
+                            asChild
+                            variant="outline"
+                            size="sm"
+                            className="hover:bg-thai-cream/20 bg-white"
+                          >
+                            <a
+                              href="tel:+33749283707"
+                              className="text-thai-green flex items-center gap-2"
+                            >
+                              <span className="text-lg">📞</span> Appeler
+                            </a>
+                          </Button>
+                          <Button
+                            asChild
+                            variant="outline"
+                            size="sm"
+                            className="hover:bg-thai-cream/20 bg-white"
+                          >
+                            <a
+                              href="sms:+33749283707"
+                              className="text-thai-orange flex items-center gap-2"
+                            >
+                              <span className="text-lg">💬</span> SMS
+                            </a>
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </CardContent>
@@ -512,8 +536,7 @@ const SuiviCommande = memo(() => {
                         </p>
                       </div>
                     )}
-                    import BoutonCommanderNouveau from
-                    "@/components/historique/BoutonCommanderNouveau" // ... imports ...
+
                     {commande.statut_commande === "Récupérée" && (
                       <div className="rounded-lg border border-green-200 bg-green-50 p-4 transition-all duration-200 hover:bg-green-100 hover:shadow-md">
                         <p className="mb-3 text-center text-sm font-medium text-green-800">
@@ -529,6 +552,21 @@ const SuiviCommande = memo(() => {
                             commande={commande}
                             className="bg-thai-green hover:bg-thai-green/90 w-full text-white sm:w-auto"
                           />
+                        </div>
+                        <div className="mt-4 text-center">
+                          <Button
+                            asChild
+                            variant="link"
+                            className="text-thai-orange text-sm underline"
+                          >
+                            <a
+                              href="https://g.page/r/example"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              ⭐ Laisser un avis sur votre expérience
+                            </a>
+                          </Button>
                         </div>
                       </div>
                     )}

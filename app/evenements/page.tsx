@@ -24,6 +24,7 @@ import {
   Clock,
   Loader2,
 } from "lucide-react"
+import Image from "next/image"
 import Link from "next/link"
 import { memo, useMemo, useState } from "react"
 
@@ -532,11 +533,15 @@ const Evenements = memo(() => {
                                 </TooltipTrigger>
                                 <TooltipContent className="border-thai-orange w-64 rounded-md bg-white p-2 shadow-lg">
                                   {plat.photo_du_plat && (
-                                    <img
-                                      src={plat.photo_du_plat}
-                                      alt={plat.plat}
-                                      className="mb-2 h-32 w-full rounded-md object-cover"
-                                    />
+                                    <div className="relative mb-2 h-32 w-full">
+                                      <Image
+                                        src={plat.photo_du_plat}
+                                        alt={plat.plat}
+                                        fill
+                                        className="rounded-md object-cover"
+                                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                      />
+                                    </div>
                                   )}
                                   <p className="text-sm font-semibold">{plat.plat}</p>
                                   {plat.description && (

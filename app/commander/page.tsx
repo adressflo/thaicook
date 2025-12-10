@@ -691,9 +691,11 @@ const Commander = memo(() => {
                       {recherche && platsFiltres.length === 0 && (
                         <div className="mt-6 flex flex-col items-center justify-center space-y-3 text-center">
                           <div className="relative h-24 w-24 overflow-hidden rounded-full border-4 border-white shadow-lg">
-                            <img
+                            <Image
                               src="/media/avatars/panier1.svg"
                               alt="Chanthana"
+                              width={96}
+                              height={96}
                               className="h-full w-full bg-orange-50 object-cover p-2"
                             />
                           </div>
