@@ -12,7 +12,11 @@ interface HistoryListProps {
   extras: ExtraUI[] | undefined
   formatPrix: (prix: number) => string
   calculateTotal: (commande: CommandeUI) => number
-  emptyType?: "commandes-en-cours" | "commandes-historique" | "search-no-result"
+  emptyType?:
+    | "commandes-en-cours"
+    | "commandes-historique"
+    | "evenements-en-cours"
+    | "evenements-historique"
 }
 
 export function HistoryList({

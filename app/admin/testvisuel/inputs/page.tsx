@@ -1,10 +1,15 @@
 "use client"
 
-import { useState } from "react"
 import { Spice } from "@/components/shared/Spice"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Badge } from "@/components/ui/badge"
+import { Calendar } from "@/components/ui/calendar"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp"
+import { Label } from "@/components/ui/label"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import {
   Select,
   SelectContent,
@@ -12,16 +17,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Checkbox } from "@/components/ui/checkbox"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Label } from "@/components/ui/label"
-import { Switch } from "@/components/ui/switch"
 import { Slider } from "@/components/ui/slider"
-import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp"
-import { Calendar } from "@/components/ui/calendar"
-import { Badge } from "@/components/ui/badge"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Eye, AlertTriangle, Mail, Search } from "lucide-react"
+import { Switch } from "@/components/ui/switch"
+import { Textarea } from "@/components/ui/textarea"
+import { AlertTriangle, Eye, Mail, Search } from "lucide-react"
+import { useState } from "react"
 
 const NumberBadge = ({ number }: { number: number }) => (
   <span className="bg-thai-orange mb-2 inline-flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold text-white shadow-md">
@@ -409,7 +409,7 @@ export default function InputsPage() {
             <div className="border-thai-orange/20 flex flex-col gap-3 rounded-lg border-2 bg-white p-4">
               <Label htmlFor="email-icon">Input avec icône - Email</Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-thai-orange/60" />
+                <Mail className="text-thai-orange/60 absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
                 <Input
                   id="email-icon"
                   type="email"
@@ -418,7 +418,9 @@ export default function InputsPage() {
                 />
               </div>
               <p className="text-xs text-gray-600">
-                <code className="rounded bg-gray-100 px-1">Icône absolue à gauche, className="pl-10"</code>
+                <code className="rounded bg-gray-100 px-1">
+                  Icône absolue à gauche, className="pl-10"
+                </code>
               </p>
               <p className="text-xs text-gray-500">Usage : Formulaires avec contexte visuel</p>
             </div>
@@ -438,7 +440,7 @@ export default function InputsPage() {
                 />
                 <button
                   type="button"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
+                  className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-500 transition-colors hover:text-gray-700"
                 >
                   <Eye className="h-4 w-4" />
                 </button>
@@ -463,9 +465,7 @@ export default function InputsPage() {
                 placeholder="email@invalide"
                 className="border-red-500 focus-visible:ring-red-500"
               />
-              <p className="text-sm text-red-600">
-                ❌ Adresse email invalide
-              </p>
+              <p className="text-sm text-red-600">❌ Adresse email invalide</p>
               <p className="text-xs text-gray-600">
                 <code className="rounded bg-gray-100 px-1">
                   border-red-500 + message en text-red-600
@@ -483,20 +483,20 @@ export default function InputsPage() {
               <Alert variant="destructive">
                 <AlertTriangle className="h-4 w-4" />
                 <AlertDescription>
-                  <div className="font-medium text-sm mb-2">
+                  <div className="mb-2 text-sm font-medium">
                     Veuillez corriger les erreurs suivantes :
                   </div>
                   <ul className="space-y-1 text-xs">
                     <li className="flex items-start gap-2">
-                      <span className="text-red-500 font-medium">•</span>
+                      <span className="font-medium text-red-500">•</span>
                       <span>email : Format d'email invalide</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="text-red-500 font-medium">•</span>
+                      <span className="font-medium text-red-500">•</span>
                       <span>password : Minimum 8 caractères requis</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="text-red-500 font-medium">•</span>
+                      <span className="font-medium text-red-500">•</span>
                       <span>nom : Ce champ est obligatoire</span>
                     </li>
                   </ul>
@@ -518,7 +518,7 @@ export default function InputsPage() {
             <NumberBadge number={18} />
             <div className="border-thai-orange/20 flex flex-col gap-3 rounded-lg border-2 bg-white p-4">
               <Label>Inputs groupés (Nom + Prénom)</Label>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="nom-grouped">Nom</Label>
                   <Input id="nom-grouped" placeholder="Dupont" />
@@ -533,9 +533,7 @@ export default function InputsPage() {
                   grid grid-cols-1 md:grid-cols-2 gap-4
                 </code>
               </p>
-              <p className="text-xs text-gray-500">
-                Usage : Formulaires signup, profil
-              </p>
+              <p className="text-xs text-gray-500">Usage : Formulaires signup, profil</p>
             </div>
           </div>
 
@@ -545,7 +543,7 @@ export default function InputsPage() {
             <div className="border-thai-green/20 flex flex-col gap-3 rounded-lg border-2 bg-white p-4">
               <Label htmlFor="search">Input Search</Label>
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
                 <Input
                   id="search"
                   type="search"
@@ -554,13 +552,9 @@ export default function InputsPage() {
                 />
               </div>
               <p className="text-xs text-gray-600">
-                <code className="rounded bg-gray-100 px-1">
-                  type="search" avec icône Search
-                </code>
+                <code className="rounded bg-gray-100 px-1">type="search" avec icône Search</code>
               </p>
-              <p className="text-xs text-gray-500">
-                Usage : Barres de recherche, filtres
-              </p>
+              <p className="text-xs text-gray-500">Usage : Barres de recherche, filtres</p>
             </div>
           </div>
         </CardContent>
@@ -728,7 +722,7 @@ export default function InputsPage() {
       </Card>
 
       {/* Guide d'Utilisation */}
-      <Card className="border-thai-green/20 from-thai-cream/30 to-thai-gold/10 bg-gradient-to-r">
+      <Card className="border-thai-green/20 from-thai-cream/30 to-thai-gold/10 bg-linear-to-r">
         <CardHeader>
           <CardTitle className="text-thai-green">💡 Guide d'Utilisation Rapide</CardTitle>
         </CardHeader>

@@ -1,75 +1,61 @@
-'use client';
+"use client"
 
-import React, { useState } from 'react';
-import { usePrismaCreateClient } from '@/hooks/usePrismaData';
-import { useToast } from '@/hooks/use-toast';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  X,
-  User,
-  Mail,
-  Phone,
-  MapPin,
-  Calendar,
-  Save,
-  Loader2
-} from 'lucide-react';
-import type { ClientInputData } from '@/types/app';
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { useToast } from "@/hooks/use-toast"
+import { usePrismaCreateClient } from "@/hooks/usePrismaData"
+import { Calendar, Loader2, Mail, MapPin, Phone, Save, User, X } from "lucide-react"
+import React, { useState } from "react"
 
 interface CreateClientModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onClientCreated?: (client: any) => void;
+  isOpen: boolean
+  onClose: () => void
+  onClientCreated?: (client: any) => void
 }
 
-const CreateClientModal = ({
-  isOpen,
-  onClose,
-  onClientCreated
-}: CreateClientModalProps) => {
+const CreateClientModal = ({ isOpen, onClose, onClientCreated }: CreateClientModalProps) => {
   const [formData, setFormData] = useState({
-    nom: '',
-    prenom: '',
-    email: '',
-    numero_de_telephone: '',
-    adresse_numero_et_rue: '',
-    code_postal: '',
-    ville: '',
-    date_de_naissance: '',
-    preference_client: ''
-  });
+    nom: "",
+    prenom: "",
+    email: "",
+    numero_de_telephone: "",
+    adresse_numero_et_rue: "",
+    code_postal: "",
+    ville: "",
+    date_de_naissance: "",
+    preference_client: "",
+  })
 
-  const createClientMutation = usePrismaCreateClient();
-  const { toast } = useToast();
+  const createClientMutation = usePrismaCreateClient()
+  const { toast } = useToast()
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [field]: value
-    }));
-  };
+      [field]: value,
+    }))
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
 
     // Validation basique côté client
     if (!formData.nom.trim() || !formData.prenom.trim() || !formData.email.trim()) {
       toast({
-        title: 'Erreur de validation',
-        description: 'Le nom, prénom et email sont obligatoires.',
-        variant: 'destructive',
-      });
-      return;
+        title: "Erreur de validation",
+        description: "Le nom, prénom et email sont obligatoires.",
+        variant: "destructive",
+      })
+      return
     }
 
     try {
       // Générer un auth_user_id temporaire pour les clients créés manuellement
       // Dans un vrai scénario, cela viendrait de Better Auth
-      const temporaryAuthUserId = `manual_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const temporaryAuthUserId = `manual_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 
       const clientData = {
         auth_user_id: temporaryAuthUserId,
@@ -77,59 +63,60 @@ const CreateClientModal = ({
         nom: formData.nom.trim(),
         prenom: formData.prenom.trim(),
         numero_de_telephone: formData.numero_de_telephone.trim() || undefined,
-      };
+      }
 
-      const newClient = await createClientMutation.mutateAsync(clientData);
+      const newClient = await createClientMutation.mutateAsync(clientData)
 
       toast({
-        title: 'Client créé avec succès',
+        title: "Client créé avec succès",
         description: `${formData.prenom} ${formData.nom} a été ajouté à la base de données.`,
-      });
+      })
 
       // Réinitialiser le formulaire
       setFormData({
-        nom: '',
-        prenom: '',
-        email: '',
-        numero_de_telephone: '',
-        adresse_numero_et_rue: '',
-        code_postal: '',
-        ville: '',
-        date_de_naissance: '',
-        preference_client: ''
-      });
+        nom: "",
+        prenom: "",
+        email: "",
+        numero_de_telephone: "",
+        adresse_numero_et_rue: "",
+        code_postal: "",
+        ville: "",
+        date_de_naissance: "",
+        preference_client: "",
+      })
 
       // Callback pour notifier le parent
       if (onClientCreated) {
-        onClientCreated(newClient);
+        onClientCreated(newClient)
       }
 
-      onClose();
+      onClose()
     } catch (error) {
-      console.error('Erreur lors de la création du client:', error);
+      console.error("Erreur lors de la création du client:", error)
       toast({
-        title: 'Erreur lors de la création',
-        description: error instanceof Error ? error.message : 'Une erreur inattendue s\'est produite.',
-        variant: 'destructive',
-      });
+        title: "Erreur lors de la création",
+        description:
+          error instanceof Error ? error.message : "Une erreur inattendue s'est produite.",
+        variant: "destructive",
+      })
     }
-  };
+  }
 
-  if (!isOpen) return null;
+  if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
+    <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black p-4">
+      <div className="max-h-[90vh] w-full max-w-2xl overflow-hidden rounded-xl bg-white shadow-2xl">
         <Card className="border-0 shadow-none">
-          <CardHeader className="bg-gradient-to-r from-thai-orange/5 to-thai-cream/20 border-b border-thai-orange/10">
-            <div className="flex justify-between items-center">
+          <CardHeader className="from-thai-orange/5 to-thai-cream/20 border-thai-orange/10 border-b bg-linear-to-r">
+            <div className="flex items-center justify-between">
               <CardTitle className="text-thai-green flex items-center gap-3">
-                <div className="p-2 bg-thai-orange/10 rounded-lg border border-thai-orange/20 shadow-sm">
-                  <User className="w-6 h-6 text-thai-orange" />
+                <div className="bg-thai-orange/10 border-thai-orange/20 rounded-lg border p-2 shadow-sm">
+                  <User className="text-thai-orange h-6 w-6" />
                 </div>
                 <div>
                   <span className="text-xl font-bold">Nouveau Client</span>
-                  <p className="text-sm text-gray-600 font-normal mt-1">
+                  <p className="mt-1 text-sm font-normal text-gray-600">
                     Créer une nouvelle fiche client
                   </p>
                 </div>
@@ -139,21 +126,21 @@ const CreateClientModal = ({
                 onClick={onClose}
                 className="hover:bg-thai-red/10 hover:text-thai-red transition-colors"
               >
-                <X className="w-5 h-5" />
+                <X className="h-5 w-5" />
               </Button>
             </div>
           </CardHeader>
 
-          <CardContent className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+          <CardContent className="max-h-[calc(90vh-120px)] overflow-y-auto p-6">
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Informations de base */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-thai-green flex items-center gap-2">
-                  <User className="w-5 h-5" />
+                <h3 className="text-thai-green flex items-center gap-2 text-lg font-semibold">
+                  <User className="h-5 w-5" />
                   Informations personnelles
                 </h3>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div>
                     <Label htmlFor="prenom" className="text-thai-green font-medium">
                       Prénom *
@@ -161,8 +148,8 @@ const CreateClientModal = ({
                     <Input
                       id="prenom"
                       value={formData.prenom}
-                      onChange={(e) => handleInputChange('prenom', e.target.value)}
-                      className="mt-1 border-thai-green/30 focus:border-thai-green"
+                      onChange={(e) => handleInputChange("prenom", e.target.value)}
+                      className="border-thai-green/30 focus:border-thai-green mt-1"
                       placeholder="Prénom du client"
                       required
                     />
@@ -175,8 +162,8 @@ const CreateClientModal = ({
                     <Input
                       id="nom"
                       value={formData.nom}
-                      onChange={(e) => handleInputChange('nom', e.target.value)}
-                      className="mt-1 border-thai-green/30 focus:border-thai-green"
+                      onChange={(e) => handleInputChange("nom", e.target.value)}
+                      className="border-thai-green/30 focus:border-thai-green mt-1"
                       placeholder="Nom de famille"
                       required
                     />
@@ -184,55 +171,64 @@ const CreateClientModal = ({
                 </div>
 
                 <div>
-                  <Label htmlFor="email" className="text-thai-green font-medium flex items-center gap-2">
-                    <Mail className="w-4 h-4" />
+                  <Label
+                    htmlFor="email"
+                    className="text-thai-green flex items-center gap-2 font-medium"
+                  >
+                    <Mail className="h-4 w-4" />
                     Email *
                   </Label>
                   <Input
                     id="email"
                     type="email"
                     value={formData.email}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
-                    className="mt-1 border-thai-green/30 focus:border-thai-green"
+                    onChange={(e) => handleInputChange("email", e.target.value)}
+                    className="border-thai-green/30 focus:border-thai-green mt-1"
                     placeholder="email@exemple.com"
                     required
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="telephone" className="text-thai-green font-medium flex items-center gap-2">
-                    <Phone className="w-4 h-4" />
+                  <Label
+                    htmlFor="telephone"
+                    className="text-thai-green flex items-center gap-2 font-medium"
+                  >
+                    <Phone className="h-4 w-4" />
                     Numéro de téléphone
                   </Label>
                   <Input
                     id="telephone"
                     type="tel"
                     value={formData.numero_de_telephone}
-                    onChange={(e) => handleInputChange('numero_de_telephone', e.target.value)}
-                    className="mt-1 border-thai-green/30 focus:border-thai-green"
+                    onChange={(e) => handleInputChange("numero_de_telephone", e.target.value)}
+                    className="border-thai-green/30 focus:border-thai-green mt-1"
                     placeholder="06 12 34 56 78"
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="date_naissance" className="text-thai-green font-medium flex items-center gap-2">
-                    <Calendar className="w-4 h-4" />
+                  <Label
+                    htmlFor="date_naissance"
+                    className="text-thai-green flex items-center gap-2 font-medium"
+                  >
+                    <Calendar className="h-4 w-4" />
                     Date de naissance
                   </Label>
                   <Input
                     id="date_naissance"
                     type="date"
                     value={formData.date_de_naissance}
-                    onChange={(e) => handleInputChange('date_de_naissance', e.target.value)}
-                    className="mt-1 border-thai-green/30 focus:border-thai-green"
+                    onChange={(e) => handleInputChange("date_de_naissance", e.target.value)}
+                    className="border-thai-green/30 focus:border-thai-green mt-1"
                   />
                 </div>
               </div>
 
               {/* Adresse */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-thai-green flex items-center gap-2">
-                  <MapPin className="w-5 h-5" />
+                <h3 className="text-thai-green flex items-center gap-2 text-lg font-semibold">
+                  <MapPin className="h-5 w-5" />
                   Adresse
                 </h3>
 
@@ -243,13 +239,13 @@ const CreateClientModal = ({
                   <Input
                     id="adresse"
                     value={formData.adresse_numero_et_rue}
-                    onChange={(e) => handleInputChange('adresse_numero_et_rue', e.target.value)}
-                    className="mt-1 border-thai-green/30 focus:border-thai-green"
+                    onChange={(e) => handleInputChange("adresse_numero_et_rue", e.target.value)}
+                    className="border-thai-green/30 focus:border-thai-green mt-1"
                     placeholder="123 Rue de la Paix"
                   />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div>
                     <Label htmlFor="code_postal" className="text-thai-green font-medium">
                       Code postal
@@ -257,8 +253,8 @@ const CreateClientModal = ({
                     <Input
                       id="code_postal"
                       value={formData.code_postal}
-                      onChange={(e) => handleInputChange('code_postal', e.target.value)}
-                      className="mt-1 border-thai-green/30 focus:border-thai-green"
+                      onChange={(e) => handleInputChange("code_postal", e.target.value)}
+                      className="border-thai-green/30 focus:border-thai-green mt-1"
                       placeholder="75001"
                       maxLength={5}
                     />
@@ -271,8 +267,8 @@ const CreateClientModal = ({
                     <Input
                       id="ville"
                       value={formData.ville}
-                      onChange={(e) => handleInputChange('ville', e.target.value)}
-                      className="mt-1 border-thai-green/30 focus:border-thai-green"
+                      onChange={(e) => handleInputChange("ville", e.target.value)}
+                      className="border-thai-green/30 focus:border-thai-green mt-1"
                       placeholder="Paris"
                     />
                   </div>
@@ -281,9 +277,7 @@ const CreateClientModal = ({
 
               {/* Préférences */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-thai-green">
-                  Préférences et notes
-                </h3>
+                <h3 className="text-thai-green text-lg font-semibold">Préférences et notes</h3>
 
                 <div>
                   <Label htmlFor="preferences" className="text-thai-green font-medium">
@@ -292,8 +286,8 @@ const CreateClientModal = ({
                   <Textarea
                     id="preferences"
                     value={formData.preference_client}
-                    onChange={(e) => handleInputChange('preference_client', e.target.value)}
-                    className="mt-1 border-thai-green/30 focus:border-thai-green"
+                    onChange={(e) => handleInputChange("preference_client", e.target.value)}
+                    className="border-thai-green/30 focus:border-thai-green mt-1"
                     placeholder="Allergies, préférences alimentaires, notes spéciales..."
                     rows={3}
                   />
@@ -301,7 +295,7 @@ const CreateClientModal = ({
               </div>
 
               {/* Actions */}
-              <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+              <div className="flex justify-end gap-3 border-t border-gray-100 pt-4">
                 <Button
                   type="button"
                   variant="outline"
@@ -317,12 +311,12 @@ const CreateClientModal = ({
                 >
                   {createClientMutation.isPending ? (
                     <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Création...
                     </>
                   ) : (
                     <>
-                      <Save className="w-4 h-4 mr-2" />
+                      <Save className="mr-2 h-4 w-4" />
                       Créer le client
                     </>
                   )}
@@ -333,7 +327,7 @@ const CreateClientModal = ({
         </Card>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default CreateClientModal;
+export default CreateClientModal

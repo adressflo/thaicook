@@ -238,7 +238,7 @@ export function NavigationCards({
 
                       {/* Overlay gradient au hover */}
                       {!card.disabled && (
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+                        <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
                       )}
 
                       {/* Icon */}
@@ -272,8 +272,8 @@ export function NavigationCards({
                     </div>
 
                     {/* Contenu */}
-                    <CardContent className="flex flex-grow flex-col justify-between p-6">
-                      <div className="flex-grow">
+                    <CardContent className="flex grow flex-col justify-between p-6">
+                      <div className="grow">
                         <h3
                           className={cn(
                             "mb-3 text-xl font-semibold transition-colors duration-300",
@@ -329,7 +329,7 @@ export function NavigationCards({
 
       {/* Dialog de confirmation d'installation PWA */}
       <Dialog open={showInstallDialog} onOpenChange={setShowInstallDialog}>
-        <DialogContent className="border-thai-orange max-w-md rotate-[-2deg] border-2 bg-white p-0 shadow-2xl transition-transform duration-300 hover:rotate-0">
+        <DialogContent className="border-thai-orange max-w-md -rotate-2 border-2 bg-white p-0 shadow-2xl transition-transform duration-300 hover:rotate-0">
           <button
             onClick={() => setShowInstallDialog(false)}
             className="absolute top-4 right-4 z-20 rounded-full p-1.5 text-white/80 transition-all duration-200 hover:bg-black/20 hover:text-white"

@@ -1,10 +1,9 @@
 "use client"
 
-import Link from "next/link"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Palette, MessageSquare, Bell, Layout, CreditCard, Sparkles } from "lucide-react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Bell, CreditCard, Layout, MessageSquare, Palette, Sparkles } from "lucide-react"
+import Link from "next/link"
 
 const sections = [
   {
@@ -74,7 +73,7 @@ export default function TestVisuelDashboard() {
             <CardHeader className="pb-4">
               <div className="mb-4 flex items-start justify-between">
                 <div
-                  className={`rounded-xl bg-gradient-to-br ${
+                  className={`rounded-xl bg-linear-to-br ${
                     section.color === "thai-green"
                       ? "from-thai-green/20 to-thai-green/5"
                       : "from-thai-orange/20 to-thai-orange/5"
@@ -90,7 +89,7 @@ export default function TestVisuelDashboard() {
               <CardTitle className="group-hover:text-thai-orange text-xl font-bold transition-colors">
                 {section.title}
               </CardTitle>
-              <CardDescription className="line-clamp-2 min-h-[2.5rem] text-sm text-gray-600">
+              <CardDescription className="line-clamp-2 min-h-10 text-sm text-gray-600">
                 {section.description}
               </CardDescription>
             </CardHeader>

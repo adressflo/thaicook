@@ -675,9 +675,12 @@ const HistoriquePage = memo(() => {
                     ))}
                   </div>
                 </div>
+              ) : (
+                <EmptyState type="evenements-historique" />
+              )}
             </CardContent>
           </Card>
-          
+
           <div className="flex justify-center pb-8">
             <Link href="/historique/complet">
               <span className="bg-thai-orange hover:bg-thai-orange/90 inline-flex items-center justify-center rounded-full px-6 py-3 font-semibold text-white shadow-lg transition-transform hover:scale-105">

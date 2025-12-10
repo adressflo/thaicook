@@ -1,137 +1,123 @@
 "use client"
 
-import { useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Spice } from "@/components/shared/Spice"
+import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import {
-  // Navigation & Actions
-  Home,
+  AlertCircle,
+  AlertTriangle,
   ArrowLeft,
   ArrowRight,
-  ChevronLeft,
-  ChevronRight,
-  ChevronDown,
-  ChevronUp,
-  MoreHorizontal,
-  X,
-  Menu,
-  Search,
-  Filter,
-  Languages,
-
-  // E-commerce
-  ShoppingCart,
-  ShoppingBag,
-  ShoppingBasket,
-  CreditCard,
-  Plus,
-  Minus,
-  Trash2,
-  Tag,
-  Receipt,
-  Calculator,
-  Euro,
-
-  // User & Auth
-  User,
-  UserPlus,
-  UserMinus,
-  LogIn,
-  LogOut,
-  Lock,
-  Shield,
-  ShieldCheck,
-  Eye,
-  EyeOff,
-
-  // Communication
-  Mail,
-  Phone,
-  MessageSquare,
-  MessageCircle,
+  Award,
+  Beaker,
   Bell,
-
+  Bot,
+  Calculator,
+  // Date & Time
+  Calendar,
+  Camera,
   // Status & Feedback
   Check,
   CheckCircle,
   CheckCircle2,
-  XCircle,
-  AlertCircle,
-  AlertTriangle,
-  Info,
-  Loader2,
-  TrendingUp,
-  PartyPopper,
-  Award,
-
-  // Files & Content
-  FileText,
-  Save,
+  ChefHat,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  ChevronUp,
+  Circle,
+  Clock,
+  // Admin & System
+  Command,
+  Cookie,
+  CookingPot,
+  CreditCard,
+  Dot,
+  Download,
   Edit,
   Edit3,
-  Camera,
-  Upload,
-  Download,
-  Video,
-  ImageIcon,
-  Link,
-
-  // Food & Restaurant
-  Utensils,
-  Flame,
-  Leaf,
-  Star,
-  Heart,
-  CookingPot,
-  ChefHat,
-  Cookie,
-
-  // Date & Time
-  Calendar,
-  Clock,
-  History,
-
-  // Location
-  MapPin,
-  Navigation,
-
-  // Delivery & Stock
-  Truck,
-  Package,
-  PackageSearch,
-
+  Euro,
+  ExternalLink,
+  Eye,
+  EyeOff,
   // Social & External
   Facebook,
+  // Files & Content
+  FileText,
+  Filter,
+  Flame,
+  GripVertical,
+  Hash,
+  Heart,
+  History,
+  // Navigation & Actions
+  Home,
+  ImageIcon,
+  Info,
   Instagram,
-  ExternalLink,
-
+  Languages,
+  Layout,
+  LayoutDashboard,
+  LayoutGrid,
+  Leaf,
+  Link,
+  Loader2,
+  Lock,
+  LogIn,
+  LogOut,
+  // Communication
+  Mail,
+  // Location
+  MapPin,
+  Menu,
+  MessageCircle,
+  MessageSquare,
+  Minus,
+  MoreHorizontal,
+  Navigation,
+  Package,
+  PackageSearch,
+  Palette,
+  PartyPopper,
+  Phone,
+  Plus,
+  Receipt,
+  Save,
+  Search,
   // Settings & Config
   Settings,
-  Palette,
-  Layout,
-  LayoutGrid,
-  LayoutDashboard,
-
+  Shield,
+  ShieldCheck,
+  ShoppingBag,
+  ShoppingBasket,
+  // E-commerce
+  ShoppingCart,
+  Smartphone,
+  // Misc
+  Sparkles,
+  Star,
+  Tag,
+  Trash2,
+  TrendingUp,
+  // Delivery & Stock
+  Truck,
+  Upload,
+  // User & Auth
+  User,
+  UserMinus,
+  UserPlus,
+  Users,
+  // Food & Restaurant
+  Utensils,
+  Video,
   // Connectivity
   Wifi,
   WifiOff,
-
-  // Admin & System
-  Command,
-  Beaker,
-  Bot,
-  Hash,
+  X,
+  XCircle,
   Zap,
-
-  // Misc
-  Sparkles,
-  Circle,
-  Dot,
-  GripVertical,
-  Smartphone,
-  Users,
 } from "lucide-react"
+import { useState } from "react"
 
 const NumberBadge = ({ number }: { number: number }) => (
   <span className="bg-thai-orange inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold text-white shadow-sm">
@@ -1144,7 +1130,7 @@ export default function IconsPage() {
       </Card>
 
       {/* Guide d'utilisation */}
-      <Card className="border-thai-green/20 from-thai-cream/30 to-thai-gold/10 bg-gradient-to-r">
+      <Card className="border-thai-green/20 from-thai-cream/30 to-thai-gold/10 bg-linear-to-r">
         <CardHeader>
           <CardTitle className="text-thai-green">💡 Guide d'Utilisation</CardTitle>
         </CardHeader>

@@ -1,30 +1,28 @@
 "use client"
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
-  ShoppingCart,
-  Trash2,
-  CreditCard,
-  Loader2,
-  Plus,
-  Minus,
-  Home,
-  LogIn,
-  UserPlus,
   AlertCircle,
-  MapPin,
   Calendar,
   ChevronRight,
-  X,
-  Star,
-  Users,
-  Sparkles,
+  CreditCard,
   Edit,
+  Home,
   LayoutDashboard,
-  Settings,
+  Loader2,
   LogOut,
+  MapPin,
+  Minus,
+  Plus,
+  Settings,
+  ShoppingCart,
+  Sparkles,
+  Star,
+  Trash2,
+  Users,
+  X,
 } from "lucide-react"
 
 export default function BoutonsPage() {
@@ -39,7 +37,7 @@ export default function BoutonsPage() {
       <div className="container mx-auto max-w-7xl space-y-8">
         {/* Header */}
         <Card className="border-thai-orange/20 shadow-xl">
-          <CardHeader className="from-thai-orange to-thai-gold rounded-t-lg bg-gradient-to-r py-6 text-white">
+          <CardHeader className="from-thai-orange to-thai-gold rounded-t-lg bg-linear-to-r py-6 text-white">
             <CardTitle className="text-center text-3xl font-bold">
               Catalogue des Boutons - Style Guide
             </CardTitle>
@@ -908,7 +906,7 @@ export default function BoutonsPage() {
                 </div>
                 <div className="flex flex-col items-center gap-2">
                   <NumberBadge number={77} />
-                  <Button className="group from-thai-orange to-thai-gold hover:from-thai-gold hover:to-thai-orange bg-gradient-to-r">
+                  <Button className="group from-thai-orange to-thai-gold hover:from-thai-gold hover:to-thai-orange bg-linear-to-r">
                     <Sparkles className="mr-2 h-4 w-4 transition-transform group-hover:rotate-180" />
                     Hover Gradient
                   </Button>
@@ -1135,7 +1133,7 @@ export default function BoutonsPage() {
                   <NumberBadge number={93} />
                   <Button
                     size="lg"
-                    className="gap-2 bg-gradient-to-r from-[#833AB4] via-[#FD1D1D] to-[#F77737] text-white hover:opacity-90"
+                    className="gap-2 bg-linear-to-r from-[#833AB4] via-[#FD1D1D] to-[#F77737] text-white hover:opacity-90"
                   >
                     <Sparkles className="h-5 w-5" />
                     Instagram
@@ -1143,7 +1141,7 @@ export default function BoutonsPage() {
                 </div>
               </div>
               <code className="block rounded bg-gray-100 p-2 text-xs">
-                bg-gradient-to-r from-[#833AB4] via-[#FD1D1D] to-[#F77737]
+                bg-linear-to-r from-[#833AB4] via-[#FD1D1D] to-[#F77737]
               </code>
             </div>
 

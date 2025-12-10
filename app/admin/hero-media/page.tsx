@@ -1,20 +1,5 @@
-'use client'
+"use client"
 
-import { useState, useRef } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Switch } from '@/components/ui/switch'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-} from '@/components/ui/dialog'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,18 +9,43 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
-import { Upload, Video, Image as ImageIcon, GripVertical, Trash2, Eye, EyeOff, Loader2, X } from 'lucide-react'
+} from "@/components/ui/alert-dialog"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import {
-  useGetAllHeroMedias,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Switch } from "@/components/ui/switch"
+import {
   useCreateHeroMedia,
-  useUpdateHeroMedia,
+  useDeleteHeroMedia,
+  useGetAllHeroMedias,
   useReorderHeroMedias,
   useToggleHeroMediaActive,
-  useDeleteHeroMedia,
+  useUpdateHeroMedia,
   type HeroMediaType,
-} from '@/hooks/usePrismaData'
-import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd'
+} from "@/hooks/usePrismaData"
+import { DragDropContext, Draggable, Droppable, DropResult } from "@hello-pangea/dnd"
+import {
+  Eye,
+  EyeOff,
+  GripVertical,
+  Image as ImageIcon,
+  Loader2,
+  Trash2,
+  Upload,
+  Video,
+  X,
+} from "lucide-react"
+import { useRef, useState } from "react"
 
 export default function HeroMediaAdminPage() {
   const { data: medias, isLoading } = useGetAllHeroMedias()
@@ -50,8 +60,8 @@ export default function HeroMediaAdminPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [isDragging, setIsDragging] = useState(false)
-  const [newMediaTitle, setNewMediaTitle] = useState('')
-  const [newMediaDescription, setNewMediaDescription] = useState('')
+  const [newMediaTitle, setNewMediaTitle] = useState("")
+  const [newMediaDescription, setNewMediaDescription] = useState("")
   const [deleteConfirm, setDeleteConfirm] = useState<HeroMediaType | null>(null)
 
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -100,8 +110,8 @@ export default function HeroMediaAdminPage() {
     }
     setSelectedFile(null)
     setPreviewUrl(null)
-    setNewMediaTitle('')
-    setNewMediaDescription('')
+    setNewMediaTitle("")
+    setNewMediaDescription("")
     setIsUploadDialogOpen(false)
   }
 
@@ -125,7 +135,7 @@ export default function HeroMediaAdminPage() {
   // Upload handler - Direct upload to Supabase Storage from client
   const handleFileUpload = async () => {
     if (!selectedFile || !newMediaTitle) {
-      alert('Veuillez sélectionner un fichier et entrer un titre')
+      alert("Veuillez sélectionner un fichier et entrer un titre")
       return
     }
 
@@ -135,33 +145,33 @@ export default function HeroMediaAdminPage() {
       // Upload direct vers Supabase Storage depuis le client
       // Nettoyer le nom de fichier : enlever accents et caractères spéciaux
       const cleanFileName = selectedFile.name
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '') // Enlever les accents
-        .replace(/[^a-zA-Z0-9._-]/g, '-') // Remplacer caractères spéciaux par tiret
-        .replace(/\s+/g, '-') // Remplacer espaces par tiret
-        .replace(/-+/g, '-') // Éviter tirets multiples
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "") // Enlever les accents
+        .replace(/[^a-zA-Z0-9._-]/g, "-") // Remplacer caractères spéciaux par tiret
+        .replace(/\s+/g, "-") // Remplacer espaces par tiret
+        .replace(/-+/g, "-") // Éviter tirets multiples
       const fileName = `${Date.now()}-${cleanFileName}`
 
       // Créer un FormData pour l'upload
       const formData = new FormData()
-      formData.append('file', selectedFile)
-      formData.append('fileName', fileName)
+      formData.append("file", selectedFile)
+      formData.append("fileName", fileName)
 
       // Upload via API route qui utilise le service role key
-      const uploadResponse = await fetch('/api/hero-media/upload', {
-        method: 'POST',
+      const uploadResponse = await fetch("/api/hero-media/upload", {
+        method: "POST",
         body: formData,
       })
 
       if (!uploadResponse.ok) {
         const errorData = await uploadResponse.json()
-        throw new Error(errorData.error || 'Erreur lors de l\'upload')
+        throw new Error(errorData.error || "Erreur lors de l'upload")
       }
 
       const { url } = await uploadResponse.json()
 
       // Créer l'entrée en base
-      const mediaType = selectedFile.type.startsWith('video/') ? 'video' : 'image'
+      const mediaType = selectedFile.type.startsWith("video/") ? "video" : "image"
       const maxOrdre = medias?.reduce((max, m) => Math.max(max, m.ordre), 0) || 0
 
       await createMedia.mutateAsync({
@@ -177,27 +187,31 @@ export default function HeroMediaAdminPage() {
       handleDialogClose()
       setUploadProgress(false)
     } catch (error) {
-      console.error('Erreur upload:', error)
-      alert(`Erreur lors de l'upload: ${error instanceof Error ? error.message : 'Erreur inconnue'}`)
+      console.error("Erreur upload:", error)
+      alert(
+        `Erreur lors de l'upload: ${error instanceof Error ? error.message : "Erreur inconnue"}`
+      )
       setUploadProgress(false)
     }
   }
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-thai-orange" />
+      <div className="flex min-h-screen items-center justify-center">
+        <Loader2 className="text-thai-orange h-8 w-8 animate-spin" />
       </div>
     )
   }
 
   return (
-    <div className="container mx-auto p-6 max-w-6xl">
+    <div className="container mx-auto max-w-6xl p-6">
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-3xl font-bold text-thai-green">Hero Carousel Manager</CardTitle>
+              <CardTitle className="text-thai-green text-3xl font-bold">
+                Hero Carousel Manager
+              </CardTitle>
               <CardDescription className="mt-2">
                 Gérez les vidéos et images affichées sur la page d'accueil
               </CardDescription>
@@ -227,17 +241,15 @@ export default function HeroMediaAdminPage() {
                         onDragLeave={handleDragLeave}
                         onDrop={handleDrop}
                         onClick={() => fileInputRef.current?.click()}
-                        className={`
-                          relative cursor-pointer rounded-lg border-2 border-dashed p-8 text-center transition-colors
-                          ${isDragging
-                            ? 'border-thai-orange bg-thai-orange/5'
-                            : 'border-gray-300 hover:border-thai-orange/50 hover:bg-gray-50'
-                          }
-                        `}
+                        className={`relative cursor-pointer rounded-lg border-2 border-dashed p-8 text-center transition-colors ${
+                          isDragging
+                            ? "border-thai-orange bg-thai-orange/5"
+                            : "hover:border-thai-orange/50 border-gray-300 hover:bg-gray-50"
+                        } `}
                       >
                         <div className="flex flex-col items-center gap-2">
-                          <div className="rounded-full bg-thai-orange/10 p-3">
-                            <Upload className="h-6 w-6 text-thai-orange" />
+                          <div className="bg-thai-orange/10 rounded-full p-3">
+                            <Upload className="text-thai-orange h-6 w-6" />
                           </div>
                           <div className="space-y-1">
                             <p className="text-sm font-medium text-gray-900">
@@ -259,15 +271,15 @@ export default function HeroMediaAdminPage() {
                     ) : (
                       <div className="relative overflow-hidden rounded-lg border-2 border-gray-200 bg-gray-50">
                         <div className="relative aspect-video w-full bg-black">
-                          {selectedFile.type.startsWith('video/') ? (
+                          {selectedFile.type.startsWith("video/") ? (
                             <video
-                              src={previewUrl || ''}
+                              src={previewUrl || ""}
                               className="h-full w-full object-contain"
                               controls
                             />
                           ) : (
                             <img
-                              src={previewUrl || ''}
+                              src={previewUrl || ""}
                               alt="Aperçu"
                               className="h-full w-full object-contain"
                             />
@@ -275,7 +287,7 @@ export default function HeroMediaAdminPage() {
                           <button
                             type="button"
                             onClick={() => handleFileSelect(null)}
-                            className="absolute right-2 top-2 rounded-full bg-red-500 p-1.5 text-white transition-colors hover:bg-red-600"
+                            className="absolute top-2 right-2 rounded-full bg-red-500 p-1.5 text-white transition-colors hover:bg-red-600"
                           >
                             <X className="h-4 w-4" />
                           </button>
@@ -283,12 +295,12 @@ export default function HeroMediaAdminPage() {
                         <div className="p-3">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                              {selectedFile.type.startsWith('video/') ? (
-                                <Video className="h-4 w-4 text-thai-orange" />
+                              {selectedFile.type.startsWith("video/") ? (
+                                <Video className="text-thai-orange h-4 w-4" />
                               ) : (
-                                <ImageIcon className="h-4 w-4 text-thai-green" />
+                                <ImageIcon className="text-thai-green h-4 w-4" />
                               )}
-                              <p className="text-sm font-medium text-gray-900 truncate max-w-xs">
+                              <p className="max-w-xs truncate text-sm font-medium text-gray-900">
                                 {selectedFile.name}
                               </p>
                             </div>
@@ -321,11 +333,7 @@ export default function HeroMediaAdminPage() {
                   </div>
                 </div>
                 <DialogFooter>
-                  <Button
-                    variant="outline"
-                    onClick={handleDialogClose}
-                    disabled={uploadProgress}
-                  >
+                  <Button variant="outline" onClick={handleDialogClose} disabled={uploadProgress}>
                     Annuler
                   </Button>
                   <Button
@@ -339,7 +347,7 @@ export default function HeroMediaAdminPage() {
                         Upload en cours...
                       </>
                     ) : (
-                      'Ajouter'
+                      "Ajouter"
                     )}
                   </Button>
                 </DialogFooter>
@@ -348,87 +356,79 @@ export default function HeroMediaAdminPage() {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="text-sm text-gray-500 mb-4">
+          <div className="mb-4 text-sm text-gray-500">
             ⓘ Glissez-déposez les cartes pour réorganiser l'ordre d'affichage
           </div>
 
           {!medias || medias.length === 0 ? (
-            <div className="text-center py-12 text-gray-500">
-              <Video className="mx-auto h-12 w-12 mb-4 opacity-50" />
+            <div className="py-12 text-center text-gray-500">
+              <Video className="mx-auto mb-4 h-12 w-12 opacity-50" />
               <p>Aucun média hero. Ajoutez-en un pour commencer.</p>
             </div>
           ) : (
             <DragDropContext onDragEnd={handleDragEnd}>
               <Droppable droppableId="hero-medias">
                 {(provided) => (
-                  <div
-                    {...provided.droppableProps}
-                    ref={provided.innerRef}
-                    className="space-y-4"
-                  >
+                  <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-4">
                     {medias.map((media, index) => (
                       <Draggable key={media.id} draggableId={media.id} index={index}>
                         {(provided, snapshot) => (
                           <div
                             ref={provided.innerRef}
                             {...provided.draggableProps}
-                            className={`
-                              bg-white border-2 rounded-lg p-4 transition-all
-                              ${snapshot.isDragging ? 'border-thai-orange shadow-xl' : 'border-gray-200'}
-                              ${!media.active ? 'opacity-50' : ''}
-                            `}
+                            className={`rounded-lg border-2 bg-white p-4 transition-all ${snapshot.isDragging ? "border-thai-orange shadow-xl" : "border-gray-200"} ${!media.active ? "opacity-50" : ""} `}
                           >
                             <div className="flex items-center gap-4">
                               {/* Drag handle */}
                               <div
                                 {...provided.dragHandleProps}
-                                className="flex-shrink-0 cursor-grab active:cursor-grabbing"
+                                className="shrink-0 cursor-grab active:cursor-grabbing"
                               >
                                 <GripVertical className="h-6 w-6 text-gray-400" />
                               </div>
 
                               {/* Ordre */}
-                              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-thai-orange/10 flex items-center justify-center font-bold text-thai-orange">
+                              <div className="bg-thai-orange/10 text-thai-orange flex h-8 w-8 shrink-0 items-center justify-center rounded-full font-bold">
                                 {media.ordre}
                               </div>
 
                               {/* Aperçu */}
-                              <div className="flex-shrink-0 w-24 h-16 bg-gray-100 rounded overflow-hidden">
-                                {media.type === 'video' ? (
+                              <div className="h-16 w-24 shrink-0 overflow-hidden rounded bg-gray-100">
+                                {media.type === "video" ? (
                                   <video
                                     src={media.url}
-                                    className="w-full h-full object-cover"
+                                    className="h-full w-full object-cover"
                                     muted
                                   />
                                 ) : (
                                   <img
                                     src={media.url}
                                     alt={media.titre}
-                                    className="w-full h-full object-cover"
+                                    className="h-full w-full object-cover"
                                   />
                                 )}
                               </div>
 
                               {/* Info */}
-                              <div className="flex-grow">
+                              <div className="grow">
                                 <div className="flex items-center gap-2">
-                                  {media.type === 'video' ? (
-                                    <Video className="h-4 w-4 text-thai-orange" />
+                                  {media.type === "video" ? (
+                                    <Video className="text-thai-orange h-4 w-4" />
                                   ) : (
-                                    <ImageIcon className="h-4 w-4 text-thai-green" />
+                                    <ImageIcon className="text-thai-green h-4 w-4" />
                                   )}
-                                  <h3 className="font-semibold text-lg">{media.titre}</h3>
+                                  <h3 className="text-lg font-semibold">{media.titre}</h3>
                                 </div>
                                 {media.description && (
-                                  <p className="text-sm text-gray-500 mt-1">{media.description}</p>
+                                  <p className="mt-1 text-sm text-gray-500">{media.description}</p>
                                 )}
-                                <p className="text-xs text-gray-400 mt-1 truncate max-w-md">
+                                <p className="mt-1 max-w-md truncate text-xs text-gray-400">
                                   {media.url}
                                 </p>
                               </div>
 
                               {/* Actions */}
-                              <div className="flex-shrink-0 flex items-center gap-2">
+                              <div className="flex shrink-0 items-center gap-2">
                                 <div className="flex items-center space-x-2">
                                   <Switch
                                     checked={media.active}
@@ -437,7 +437,7 @@ export default function HeroMediaAdminPage() {
                                     }
                                   />
                                   {media.active ? (
-                                    <Eye className="h-4 w-4 text-thai-green" />
+                                    <Eye className="text-thai-green h-4 w-4" />
                                   ) : (
                                     <EyeOff className="h-4 w-4 text-gray-400" />
                                   )}
@@ -446,7 +446,7 @@ export default function HeroMediaAdminPage() {
                                   variant="ghost"
                                   size="icon"
                                   onClick={() => setDeleteConfirm(media)}
-                                  className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                                  className="text-red-500 hover:bg-red-50 hover:text-red-700"
                                 >
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
@@ -472,8 +472,8 @@ export default function HeroMediaAdminPage() {
             <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
             <AlertDialogDescription>
               Êtes-vous sûr de vouloir supprimer "{deleteConfirm?.titre}" ?
-              {deleteConfirm?.url.includes('supabase.co/storage') && (
-                <span className="block mt-2 text-red-600">
+              {deleteConfirm?.url.includes("supabase.co/storage") && (
+                <span className="mt-2 block text-red-600">
                   ⚠️ Le fichier sera également supprimé de Supabase Storage.
                 </span>
               )}

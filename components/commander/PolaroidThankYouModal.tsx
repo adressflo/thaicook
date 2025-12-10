@@ -1,10 +1,10 @@
 "use client"
 
-import { useEffect } from "react"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
-import { useRouter } from "next/navigation"
-import { Heart } from "lucide-react"
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
+import { Heart } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { useEffect } from "react"
 
 interface PolaroidThankYouModalProps {
   isOpen: boolean
@@ -17,7 +17,7 @@ export function PolaroidThankYouModal({
   isOpen,
   onClose,
   autoCloseDelay = 5000,
-  redirectTo = "/historique"
+  redirectTo = "/historique",
 }: PolaroidThankYouModalProps) {
   const router = useRouter()
 
@@ -35,7 +35,7 @@ export function PolaroidThankYouModal({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
-        className="max-w-md mx-auto bg-transparent border-0 shadow-none [&>button]:hidden p-0"
+        className="mx-auto max-w-md border-0 bg-transparent p-0 shadow-none [&>button]:hidden"
         onClick={(e) => e.stopPropagation()}
         aria-describedby="polaroid-description"
       >
@@ -47,28 +47,24 @@ export function PolaroidThankYouModal({
         </div>
         <div className="animate-in zoom-in-95 duration-500">
           {/* Polaroid container */}
-          <div className="bg-white p-6 pb-12 shadow-2xl rounded-lg border-8 border-white transform hover:rotate-1 transition-all duration-300">
+          <div className="transform rounded-lg border-8 border-white bg-white p-6 pb-12 shadow-2xl transition-all duration-300 hover:rotate-1">
             {/* Polaroid photo area */}
-            <div className="relative bg-gradient-to-br from-thai-cream to-thai-orange/10 rounded-lg overflow-hidden mb-4 aspect-square flex items-center justify-center">
+            <div className="from-thai-cream to-thai-orange/10 relative mb-4 flex aspect-square items-center justify-center overflow-hidden rounded-lg bg-linear-to-br">
               {/* Chanthana Sawadee illustration */}
               <div className="relative z-10 flex flex-col items-center">
                 <div className="relative">
                   {/* Chanthana avatar circle */}
-                  <div className="w-32 h-32 rounded-full bg-gradient-to-br from-thai-orange to-thai-gold flex items-center justify-center mb-4 shadow-xl border-4 border-white">
+                  <div className="from-thai-orange to-thai-gold mb-4 flex h-32 w-32 items-center justify-center rounded-full border-4 border-white bg-linear-to-br shadow-xl">
                     <span className="text-6xl">👩‍🍳</span>
                   </div>
                   {/* Sawadee hands */}
-                  <div className="absolute -top-2 -right-2 text-4xl animate-bounce">
-                    🙏
-                  </div>
+                  <div className="absolute -top-2 -right-2 animate-bounce text-4xl">🙏</div>
                 </div>
 
                 {/* Thai message */}
-                <div className="text-center space-y-1 mt-2">
-                  <h3 className="text-2xl font-bold text-thai-green">
-                    Khop khun kha !
-                  </h3>
-                  <p className="text-lg text-thai-orange font-semibold">
+                <div className="mt-2 space-y-1 text-center">
+                  <h3 className="text-thai-green text-2xl font-bold">Khop khun kha !</h3>
+                  <p className="text-thai-orange text-lg font-semibold">
                     🙏 Merci pour votre commande
                   </p>
                 </div>
@@ -76,36 +72,30 @@ export function PolaroidThankYouModal({
 
               {/* Decorative hearts */}
               <div className="absolute top-4 left-4 animate-pulse">
-                <Heart className="w-6 h-6 text-red-400 fill-red-400" />
+                <Heart className="h-6 w-6 fill-red-400 text-red-400" />
               </div>
-              <div className="absolute bottom-4 right-4 animate-pulse delay-300">
-                <Heart className="w-5 h-5 text-red-400 fill-red-400" />
+              <div className="absolute right-4 bottom-4 animate-pulse delay-300">
+                <Heart className="h-5 w-5 fill-red-400 text-red-400" />
               </div>
 
               {/* Sparkles */}
-              <div className="absolute top-8 right-8 text-2xl animate-ping delay-150">
-                ✨
-              </div>
-              <div className="absolute bottom-8 left-8 text-2xl animate-ping">
-                ✨
-              </div>
+              <div className="absolute top-8 right-8 animate-ping text-2xl delay-150">✨</div>
+              <div className="absolute bottom-8 left-8 animate-ping text-2xl">✨</div>
             </div>
 
             {/* Polaroid caption */}
-            <div className="text-center space-y-2">
+            <div className="space-y-2 text-center">
               <p className="text-thai-green font-handwriting text-xl">
                 Votre commande a été enregistrée
               </p>
-              <p className="text-sm text-gray-500 italic">
-                Redirection vers votre historique...
-              </p>
+              <p className="text-sm text-gray-500 italic">Redirection vers votre historique...</p>
 
               {/* Progress bar */}
-              <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden mt-3">
+              <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-gray-200">
                 <div
-                  className="h-full bg-gradient-to-r from-thai-orange to-thai-gold animate-progress"
+                  className="from-thai-orange to-thai-gold animate-progress h-full bg-linear-to-r"
                   style={{
-                    animation: `progress ${autoCloseDelay}ms linear forwards`
+                    animation: `progress ${autoCloseDelay}ms linear forwards`,
                   }}
                 />
               </div>
@@ -113,7 +103,7 @@ export function PolaroidThankYouModal({
           </div>
 
           {/* Shadow effect under polaroid */}
-          <div className="absolute inset-x-0 -bottom-4 h-8 bg-gradient-to-b from-black/20 to-transparent blur-xl -z-10 transform scale-95" />
+          <div className="absolute inset-x-0 -bottom-4 -z-10 h-8 scale-95 transform bg-linear-to-b from-black/20 to-transparent blur-xl" />
         </div>
       </DialogContent>
 
@@ -132,7 +122,7 @@ export function PolaroidThankYouModal({
         }
 
         .font-handwriting {
-          font-family: 'Brush Script MT', 'Lucida Handwriting', cursive;
+          font-family: "Brush Script MT", "Lucida Handwriting", cursive;
         }
 
         .delay-150 {

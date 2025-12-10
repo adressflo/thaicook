@@ -1,16 +1,18 @@
-import Link from 'next/link'
-import { ArrowLeft, Shield, Eye, Lock, User, Cookie, Mail } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Button } from "@/components/ui/button"
+import { ArrowLeft, Cookie, Eye, Lock, Mail, Shield, User } from "lucide-react"
+import Link from "next/link"
 
-export const metadata = {
-  title: 'Politique de Confidentialité | Chanthana Thai Cook',
+import type { Metadata } from "next"
+
+export const metadata: Metadata = {
+  title: "Politique de Confidentialité | Chanthana Thai Cook",
   description:
-    'Politique de confidentialité et protection des données personnelles - Chanthana Thai Cook',
+    "Politique de confidentialité et protection des données personnelles - Chanthana Thai Cook",
 }
 
 export default function ConfidentialitePage() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-thai-green/5 to-white">
+    <div className="from-thai-green/5 min-h-screen bg-linear-to-b to-white">
       <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
@@ -20,36 +22,31 @@ export default function ConfidentialitePage() {
               Retour à l'accueil
             </Link>
           </Button>
-          <div className="flex items-center gap-3 mb-4">
-            <Shield className="h-10 w-10 text-thai-green" />
-            <h1 className="text-4xl font-bold text-thai-green">
-              Politique de Confidentialité
-            </h1>
+          <div className="mb-4 flex items-center gap-3">
+            <Shield className="text-thai-green h-10 w-10" />
+            <h1 className="text-thai-green text-4xl font-bold">Politique de Confidentialité</h1>
           </div>
           <p className="text-gray-600">
-            Conformément au Règlement Général sur la Protection des Données
-            (RGPD) et à la loi Informatique et Libertés.
+            Conformément au Règlement Général sur la Protection des Données (RGPD) et à la loi
+            Informatique et Libertés.
           </p>
         </div>
 
         {/* Content */}
         <div className="space-y-8">
           {/* Introduction */}
-          <section className="rounded-lg bg-white p-6 shadow-sm border border-gray-200">
-            <div className="flex items-start gap-3 mb-4">
-              <Eye className="h-6 w-6 text-thai-orange mt-1" />
+          <section className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+            <div className="mb-4 flex items-start gap-3">
+              <Eye className="text-thai-orange mt-1 h-6 w-6" />
               <div>
-                <h2 className="text-2xl font-bold text-thai-green mb-2">
-                  Introduction
-                </h2>
+                <h2 className="text-thai-green mb-2 text-2xl font-bold">Introduction</h2>
               </div>
             </div>
             <div className="space-y-3 text-gray-700">
               <p>
-                La protection de vos données personnelles est une priorité pour
-                Chanthana Thai Cook. Cette politique de confidentialité vous
-                informe sur la manière dont nous collectons, utilisons et
-                protégeons vos données.
+                La protection de vos données personnelles est une priorité pour Chanthana Thai Cook.
+                Cette politique de confidentialité vous informe sur la manière dont nous collectons,
+                utilisons et protégeons vos données.
               </p>
               <p>
                 <strong>Responsable du traitement :</strong>
@@ -60,7 +57,7 @@ export default function ConfidentialitePage() {
                 <br />
                 2 impasse de la poste, 37120 Marigny-Marmande
                 <br />
-                Email :{' '}
+                Email :{" "}
                 <a
                   href="mailto:chanthanacook@gmail.com"
                   className="text-thai-orange hover:underline"
@@ -72,21 +69,19 @@ export default function ConfidentialitePage() {
           </section>
 
           {/* Données collectées */}
-          <section className="rounded-lg bg-white p-6 shadow-sm border border-gray-200">
-            <div className="flex items-start gap-3 mb-4">
-              <User className="h-6 w-6 text-thai-orange mt-1" />
+          <section className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+            <div className="mb-4 flex items-start gap-3">
+              <User className="text-thai-orange mt-1 h-6 w-6" />
               <div>
-                <h2 className="text-2xl font-bold text-thai-green mb-2">
+                <h2 className="text-thai-green mb-2 text-2xl font-bold">
                   Données personnelles collectées
                 </h2>
               </div>
             </div>
             <div className="space-y-4 text-gray-700">
               <div>
-                <h3 className="font-bold text-lg mb-2">
-                  Lors de la création de compte
-                </h3>
-                <ul className="list-disc list-inside space-y-1 ml-4">
+                <h3 className="mb-2 text-lg font-bold">Lors de la création de compte</h3>
+                <ul className="ml-4 list-inside list-disc space-y-1">
                   <li>Nom et prénom</li>
                   <li>Adresse email</li>
                   <li>Numéro de téléphone</li>
@@ -96,10 +91,8 @@ export default function ConfidentialitePage() {
               </div>
 
               <div>
-                <h3 className="font-bold text-lg mb-2">
-                  Lors d'une commande
-                </h3>
-                <ul className="list-disc list-inside space-y-1 ml-4">
+                <h3 className="mb-2 text-lg font-bold">Lors d'une commande</h3>
+                <ul className="ml-4 list-inside list-disc space-y-1">
                   <li>Détails de la commande (plats, quantités, extras)</li>
                   <li>Montant de la transaction</li>
                   <li>Date et heure de commande</li>
@@ -109,10 +102,8 @@ export default function ConfidentialitePage() {
               </div>
 
               <div>
-                <h3 className="font-bold text-lg mb-2">
-                  Lors d'une demande d'événement
-                </h3>
-                <ul className="list-disc list-inside space-y-1 ml-4">
+                <h3 className="mb-2 text-lg font-bold">Lors d'une demande d'événement</h3>
+                <ul className="ml-4 list-inside list-disc space-y-1">
                   <li>Type d'événement</li>
                   <li>Nombre de convives</li>
                   <li>Date souhaitée</li>
@@ -124,91 +115,84 @@ export default function ConfidentialitePage() {
           </section>
 
           {/* Utilisation des données */}
-          <section className="rounded-lg bg-white p-6 shadow-sm border border-gray-200">
-            <div className="flex items-start gap-3 mb-4">
-              <Lock className="h-6 w-6 text-thai-orange mt-1" />
+          <section className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+            <div className="mb-4 flex items-start gap-3">
+              <Lock className="text-thai-orange mt-1 h-6 w-6" />
               <div>
-                <h2 className="text-2xl font-bold text-thai-green mb-2">
+                <h2 className="text-thai-green mb-2 text-2xl font-bold">
                   Utilisation de vos données
                 </h2>
               </div>
             </div>
             <div className="space-y-3 text-gray-700">
               <p>Vos données sont utilisées uniquement pour :</p>
-              <ul className="list-disc list-inside space-y-2 ml-4">
+              <ul className="ml-4 list-inside list-disc space-y-2">
                 <li>
-                  <strong>Gestion de vos commandes</strong> : traitement,
-                  préparation, notification de disponibilité
+                  <strong>Gestion de vos commandes</strong> : traitement, préparation, notification
+                  de disponibilité
                 </li>
                 <li>
-                  <strong>Communication</strong> : vous informer du statut de
-                  vos commandes et événements
+                  <strong>Communication</strong> : vous informer du statut de vos commandes et
+                  événements
                 </li>
                 <li>
-                  <strong>Amélioration du service</strong> : comprendre vos
-                  préférences et proposer une expérience personnalisée
+                  <strong>Amélioration du service</strong> : comprendre vos préférences et proposer
+                  une expérience personnalisée
                 </li>
                 <li>
-                  <strong>Gestion de compte</strong> : authentification, accès
-                  à l'historique, préférences
+                  <strong>Gestion de compte</strong> : authentification, accès à l'historique,
+                  préférences
                 </li>
                 <li>
-                  <strong>Notifications push</strong> : vous alerter quand votre
-                  commande est prête (si activées)
+                  <strong>Notifications push</strong> : vous alerter quand votre commande est prête
+                  (si activées)
                 </li>
                 <li>
-                  <strong>Conformité légale</strong> : respect des obligations
-                  comptables et fiscales
+                  <strong>Conformité légale</strong> : respect des obligations comptables et
+                  fiscales
                 </li>
               </ul>
             </div>
           </section>
 
           {/* Base légale */}
-          <section className="rounded-lg bg-white p-6 shadow-sm border border-gray-200">
-            <h2 className="text-2xl font-bold text-thai-green mb-4">
-              Base légale du traitement
-            </h2>
+          <section className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+            <h2 className="text-thai-green mb-4 text-2xl font-bold">Base légale du traitement</h2>
             <div className="space-y-3 text-gray-700">
-              <ul className="list-disc list-inside space-y-2 ml-4">
+              <ul className="ml-4 list-inside list-disc space-y-2">
                 <li>
-                  <strong>Exécution d'un contrat</strong> : traitement de vos
-                  commandes
+                  <strong>Exécution d'un contrat</strong> : traitement de vos commandes
                 </li>
                 <li>
-                  <strong>Consentement</strong> : notifications push, newsletter
-                  (si vous y consentez)
+                  <strong>Consentement</strong> : notifications push, newsletter (si vous y
+                  consentez)
                 </li>
                 <li>
-                  <strong>Obligation légale</strong> : conservation des factures
-                  et données comptables
+                  <strong>Obligation légale</strong> : conservation des factures et données
+                  comptables
                 </li>
                 <li>
-                  <strong>Intérêt légitime</strong> : amélioration du service,
-                  prévention de la fraude
+                  <strong>Intérêt légitime</strong> : amélioration du service, prévention de la
+                  fraude
                 </li>
               </ul>
             </div>
           </section>
 
           {/* Durée de conservation */}
-          <section className="rounded-lg bg-white p-6 shadow-sm border border-gray-200">
-            <h2 className="text-2xl font-bold text-thai-green mb-4">
-              Durée de conservation
-            </h2>
+          <section className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+            <h2 className="text-thai-green mb-4 text-2xl font-bold">Durée de conservation</h2>
             <div className="space-y-3 text-gray-700">
-              <ul className="list-disc list-inside space-y-2 ml-4">
+              <ul className="ml-4 list-inside list-disc space-y-2">
                 <li>
-                  <strong>Données de compte</strong> : jusqu'à suppression de
-                  votre compte + 1 an pour conformité
+                  <strong>Données de compte</strong> : jusqu'à suppression de votre compte + 1 an
+                  pour conformité
                 </li>
                 <li>
-                  <strong>Historique de commandes</strong> : 10 ans (obligation
-                  comptable)
+                  <strong>Historique de commandes</strong> : 10 ans (obligation comptable)
                 </li>
                 <li>
-                  <strong>Cookies techniques</strong> : durée de la session ou
-                  13 mois maximum
+                  <strong>Cookies techniques</strong> : durée de la session ou 13 mois maximum
                 </li>
                 <li>
                   <strong>Logs de connexion</strong> : 12 mois maximum
@@ -218,81 +202,75 @@ export default function ConfidentialitePage() {
           </section>
 
           {/* Cookies */}
-          <section className="rounded-lg bg-white p-6 shadow-sm border border-gray-200">
-            <div className="flex items-start gap-3 mb-4">
-              <Cookie className="h-6 w-6 text-thai-orange mt-1" />
+          <section className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+            <div className="mb-4 flex items-start gap-3">
+              <Cookie className="text-thai-orange mt-1 h-6 w-6" />
               <div>
-                <h2 className="text-2xl font-bold text-thai-green mb-2">
+                <h2 className="text-thai-green mb-2 text-2xl font-bold">
                   Cookies et technologies similaires
                 </h2>
               </div>
             </div>
             <div className="space-y-3 text-gray-700">
               <p>Nous utilisons les cookies suivants :</p>
-              <ul className="list-disc list-inside space-y-2 ml-4">
+              <ul className="ml-4 list-inside list-disc space-y-2">
                 <li>
-                  <strong>Cookies d'authentification</strong> : maintenir votre
-                  session active (obligatoires)
+                  <strong>Cookies d'authentification</strong> : maintenir votre session active
+                  (obligatoires)
                 </li>
                 <li>
-                  <strong>Cookies de préférences</strong> : mémoriser vos choix
-                  (langue, thème)
+                  <strong>Cookies de préférences</strong> : mémoriser vos choix (langue, thème)
                 </li>
                 <li>
-                  <strong>Cookies de panier</strong> : conserver vos articles en
-                  attente
+                  <strong>Cookies de panier</strong> : conserver vos articles en attente
                 </li>
                 <li>
-                  <strong>Service Worker</strong> : permettre le mode hors ligne
-                  et les notifications push
+                  <strong>Service Worker</strong> : permettre le mode hors ligne et les
+                  notifications push
                 </li>
               </ul>
               <p className="mt-4">
-                Vous pouvez gérer vos préférences de cookies depuis les
-                paramètres de votre navigateur.
+                Vous pouvez gérer vos préférences de cookies depuis les paramètres de votre
+                navigateur.
               </p>
             </div>
           </section>
 
           {/* Partage des données */}
-          <section className="rounded-lg bg-white p-6 shadow-sm border border-gray-200">
-            <h2 className="text-2xl font-bold text-thai-green mb-4">
-              Partage de vos données
-            </h2>
+          <section className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+            <h2 className="text-thai-green mb-4 text-2xl font-bold">Partage de vos données</h2>
             <div className="space-y-3 text-gray-700">
               <p>
-                Vos données ne sont <strong>jamais vendues</strong> à des tiers.
-                Elles peuvent être partagées uniquement avec :
+                Vos données ne sont <strong>jamais vendues</strong> à des tiers. Elles peuvent être
+                partagées uniquement avec :
               </p>
-              <ul className="list-disc list-inside space-y-2 ml-4">
+              <ul className="ml-4 list-inside list-disc space-y-2">
                 <li>
-                  <strong>Supabase</strong> : hébergement sécurisé de la base de
-                  données (serveurs conformes RGPD)
+                  <strong>Supabase</strong> : hébergement sécurisé de la base de données (serveurs
+                  conformes RGPD)
                 </li>
                 <li>
-                  <strong>Firebase Cloud Messaging</strong> : envoi de
-                  notifications push (si activées)
+                  <strong>Firebase Cloud Messaging</strong> : envoi de notifications push (si
+                  activées)
                 </li>
                 <li>
-                  <strong>Services de paiement</strong> : traitement sécurisé
-                  des paiements (si paiement en ligne activé)
+                  <strong>Services de paiement</strong> : traitement sécurisé des paiements (si
+                  paiement en ligne activé)
                 </li>
               </ul>
               <p className="mt-4">
-                Tous nos sous-traitants sont conformes au RGPD et situés dans
-                l'Union Européenne ou disposent de garanties appropriées.
+                Tous nos sous-traitants sont conformes au RGPD et situés dans l'Union Européenne ou
+                disposent de garanties appropriées.
               </p>
             </div>
           </section>
 
           {/* Vos droits */}
-          <section className="rounded-lg bg-white p-6 shadow-sm border border-gray-200">
-            <div className="flex items-start gap-3 mb-4">
-              <Mail className="h-6 w-6 text-thai-orange mt-1" />
+          <section className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+            <div className="mb-4 flex items-start gap-3">
+              <Mail className="text-thai-orange mt-1 h-6 w-6" />
               <div>
-                <h2 className="text-2xl font-bold text-thai-green mb-2">
-                  Vos droits RGPD
-                </h2>
+                <h2 className="text-thai-green mb-2 text-2xl font-bold">Vos droits RGPD</h2>
               </div>
             </div>
             <div className="space-y-4 text-gray-700">
@@ -300,31 +278,24 @@ export default function ConfidentialitePage() {
 
               <div>
                 <h3 className="font-bold">✓ Droit d'accès</h3>
-                <p className="text-sm">
-                  Obtenir une copie de vos données personnelles
-                </p>
+                <p className="text-sm">Obtenir une copie de vos données personnelles</p>
               </div>
 
               <div>
                 <h3 className="font-bold">✓ Droit de rectification</h3>
-                <p className="text-sm">
-                  Corriger vos données inexactes ou incomplètes
-                </p>
+                <p className="text-sm">Corriger vos données inexactes ou incomplètes</p>
               </div>
 
               <div>
                 <h3 className="font-bold">✓ Droit à l'effacement</h3>
                 <p className="text-sm">
-                  Supprimer votre compte et vos données (sauf obligations
-                  légales)
+                  Supprimer votre compte et vos données (sauf obligations légales)
                 </p>
               </div>
 
               <div>
                 <h3 className="font-bold">✓ Droit à la portabilité</h3>
-                <p className="text-sm">
-                  Recevoir vos données dans un format structuré
-                </p>
+                <p className="text-sm">Recevoir vos données dans un format structuré</p>
               </div>
 
               <div>
@@ -336,28 +307,26 @@ export default function ConfidentialitePage() {
 
               <div>
                 <h3 className="font-bold">✓ Droit de limitation</h3>
-                <p className="text-sm">
-                  Demander la suspension du traitement de vos données
-                </p>
+                <p className="text-sm">Demander la suspension du traitement de vos données</p>
               </div>
 
-              <div className="mt-6 p-4 bg-thai-green/5 rounded-lg border border-thai-green/20">
-                <p className="font-bold mb-2">Comment exercer vos droits ?</p>
-                <p className="text-sm mb-2">
-                  Envoyez-nous un email à{' '}
+              <div className="bg-thai-green/5 border-thai-green/20 mt-6 rounded-lg border p-4">
+                <p className="mb-2 font-bold">Comment exercer vos droits ?</p>
+                <p className="mb-2 text-sm">
+                  Envoyez-nous un email à{" "}
                   <a
                     href="mailto:chanthanacook@gmail.com"
-                    className="text-thai-orange hover:underline font-medium"
+                    className="text-thai-orange font-medium hover:underline"
                   >
                     chanthanacook@gmail.com
-                  </a>{' '}
+                  </a>{" "}
                   avec :
                 </p>
-                <ul className="text-sm list-disc list-inside ml-4 space-y-1">
+                <ul className="ml-4 list-inside list-disc space-y-1 text-sm">
                   <li>Votre demande précise</li>
                   <li>Une copie de votre pièce d'identité (pour vérification)</li>
                 </ul>
-                <p className="text-sm mt-3">
+                <p className="mt-3 text-sm">
                   Nous répondrons sous <strong>1 mois</strong> maximum.
                 </p>
               </div>
@@ -365,28 +334,24 @@ export default function ConfidentialitePage() {
           </section>
 
           {/* Sécurité */}
-          <section className="rounded-lg bg-white p-6 shadow-sm border border-gray-200">
-            <h2 className="text-2xl font-bold text-thai-green mb-4">
-              Sécurité de vos données
-            </h2>
+          <section className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+            <h2 className="text-thai-green mb-4 text-2xl font-bold">Sécurité de vos données</h2>
             <div className="space-y-3 text-gray-700">
               <p>Nous mettons en œuvre les mesures de sécurité suivantes :</p>
-              <ul className="list-disc list-inside space-y-2 ml-4">
+              <ul className="ml-4 list-inside list-disc space-y-2">
                 <li>
-                  <strong>Chiffrement SSL/TLS</strong> : toutes les
-                  communications sont chiffrées
+                  <strong>Chiffrement SSL/TLS</strong> : toutes les communications sont chiffrées
                 </li>
                 <li>
-                  <strong>Authentification sécurisée</strong> : mots de passe
-                  hashés (bcrypt), tokens JWT
+                  <strong>Authentification sécurisée</strong> : mots de passe hashés (bcrypt),
+                  tokens JWT
                 </li>
                 <li>
-                  <strong>Hébergement sécurisé</strong> : Supabase avec
-                  sauvegardes automatiques
+                  <strong>Hébergement sécurisé</strong> : Supabase avec sauvegardes automatiques
                 </li>
                 <li>
-                  <strong>Accès restreint</strong> : seules les personnes
-                  autorisées ont accès aux données
+                  <strong>Accès restreint</strong> : seules les personnes autorisées ont accès aux
+                  données
                 </li>
                 <li>
                   <strong>Monitoring</strong> : surveillance des accès suspects
@@ -396,31 +361,23 @@ export default function ConfidentialitePage() {
           </section>
 
           {/* Contact */}
-          <section className="rounded-lg bg-thai-green/10 p-6 border border-thai-green/30">
-            <h2 className="text-2xl font-bold text-thai-green mb-4">
-              Questions ou réclamation ?
-            </h2>
+          <section className="bg-thai-green/10 border-thai-green/30 rounded-lg border p-6">
+            <h2 className="text-thai-green mb-4 text-2xl font-bold">Questions ou réclamation ?</h2>
             <div className="space-y-3 text-gray-700">
-              <p>
-                Pour toute question concernant vos données personnelles,
-                contactez-nous :
-              </p>
+              <p>Pour toute question concernant vos données personnelles, contactez-nous :</p>
               <div className="space-y-2">
                 <p>
-                  <strong>Email :</strong>{' '}
+                  <strong>Email :</strong>{" "}
                   <a
                     href="mailto:chanthanacook@gmail.com"
-                    className="text-thai-orange hover:underline font-medium"
+                    className="text-thai-orange font-medium hover:underline"
                   >
                     chanthanacook@gmail.com
                   </a>
                 </p>
                 <p>
-                  <strong>Téléphone :</strong>{' '}
-                  <a
-                    href="tel:+33749283707"
-                    className="text-thai-orange hover:underline"
-                  >
+                  <strong>Téléphone :</strong>{" "}
+                  <a href="tel:+33749283707" className="text-thai-orange hover:underline">
                     +33 7 49 28 37 07
                   </a>
                 </p>
@@ -433,11 +390,10 @@ export default function ConfidentialitePage() {
                   37120 Marigny-Marmande
                 </p>
               </div>
-              <div className="mt-4 p-3 bg-white rounded border border-thai-orange/30">
+              <div className="border-thai-orange/30 mt-4 rounded border bg-white p-3">
                 <p className="text-sm">
-                  <strong>Droit de réclamation :</strong> Si vous estimez que
-                  vos droits ne sont pas respectés, vous pouvez déposer une
-                  réclamation auprès de la CNIL (
+                  <strong>Droit de réclamation :</strong> Si vous estimez que vos droits ne sont pas
+                  respectés, vous pouvez déposer une réclamation auprès de la CNIL (
                   <a
                     href="https://www.cnil.fr"
                     target="_blank"
@@ -455,14 +411,9 @@ export default function ConfidentialitePage() {
 
         {/* Footer */}
         <div className="mt-12 text-center text-sm text-gray-500">
-          <p>
-            Dernière mise à jour : {new Date().toLocaleDateString('fr-FR')}
-          </p>
+          <p>Dernière mise à jour : {new Date().toLocaleDateString("fr-FR")}</p>
           <p className="mt-2">
-            <Link
-              href="/mentions-legales"
-              className="text-thai-orange hover:underline"
-            >
+            <Link href="/mentions-legales" className="text-thai-orange hover:underline">
               Consulter les Mentions Légales
             </Link>
           </p>

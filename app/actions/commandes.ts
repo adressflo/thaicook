@@ -6,6 +6,9 @@ import type {
   details_commande_db,
   extras_db,
   plats_db,
+  statut_commande,
+  statut_paiement,
+  type_livraison,
 } from "@/generated/prisma/client"
 import { Prisma } from "@/generated/prisma/client"
 import { prisma } from "@/lib/prisma"

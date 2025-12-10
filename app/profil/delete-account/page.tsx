@@ -1,72 +1,76 @@
-"use client";
+"use client"
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { deleteAccountAction } from "../actions";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { ArrowLeft, Trash2, Lock, Loader2, AlertTriangle, CheckCircle2 } from "lucide-react";
-import Link from "next/link";
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { AlertTriangle, ArrowLeft, CheckCircle2, Loader2, Lock, Trash2 } from "lucide-react"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useState } from "react"
+import { deleteAccountAction } from "../actions"
 
 export default function DeleteAccountPage() {
-  const router = useRouter();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [result, setResult] = useState<{ success: boolean; message?: string; error?: string } | null>(null);
+  const router = useRouter()
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [result, setResult] = useState<{
+    success: boolean
+    message?: string
+    error?: string
+  } | null>(null)
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setResult(null);
+    e.preventDefault()
+    setIsSubmitting(true)
+    setResult(null)
 
-    const formData = new FormData(e.currentTarget);
+    const formData = new FormData(e.currentTarget)
 
     try {
-      const response = await deleteAccountAction(formData);
+      const response = await deleteAccountAction(formData)
 
-      setResult(response);
+      setResult(response)
 
       if (response.success) {
         // Redirect to homepage after 3 seconds
         setTimeout(() => {
-          router.push('/');
-        }, 3000);
+          router.push("/")
+        }, 3000)
       }
     } catch (error) {
       setResult({
         success: false,
-        error: "Une erreur inattendue est survenue"
-      });
+        error: "Une erreur inattendue est survenue",
+      })
     } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(false)
     }
-  };
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-amber-50 p-4 pt-20">
-      <div className="max-w-2xl mx-auto">
+    <div className="min-h-screen bg-linear-to-br from-red-50 via-white to-amber-50 p-4 pt-20">
+      <div className="mx-auto max-w-2xl">
         {/* Back Button */}
         <Link
           href="/profil"
-          className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-6 transition-colors"
+          className="mb-6 inline-flex items-center text-sm text-gray-600 transition-colors hover:text-gray-900"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
           Retour au profil
         </Link>
 
-        <Card className="shadow-xl border-2 border-red-200">
+        <Card className="border-2 border-red-200 shadow-xl">
           <CardHeader className="space-y-2">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-gradient-to-br from-red-100 to-orange-100 rounded-lg">
+              <div className="rounded-lg bg-linear-to-br from-red-100 to-orange-100 p-2">
                 <Trash2 className="h-6 w-6 text-red-700" />
               </div>
               <div>
                 <CardTitle className="text-2xl font-bold text-gray-900">
                   Supprimer mon compte
                 </CardTitle>
-                <CardDescription className="text-base mt-1">
+                <CardDescription className="mt-1 text-base">
                   Cette action est irréversible et définitive
                 </CardDescription>
               </div>
@@ -75,45 +79,52 @@ export default function DeleteAccountPage() {
 
           <CardContent className="space-y-6">
             {/* Critical Warning */}
-            <Alert className="bg-red-50 border-red-300 border-2">
+            <Alert className="border-2 border-red-300 bg-red-50">
               <AlertTriangle className="h-5 w-5 text-red-700" />
-              <AlertDescription className="text-sm text-red-900 ml-2">
-                <strong className="block mb-2 text-base">⚠️ ATTENTION - ACTION IRRÉVERSIBLE</strong>
-                <ul className="list-disc list-inside space-y-1 ml-2">
-                  <li>Votre compte sera <strong>définitivement supprimé</strong></li>
-                  <li>Toutes vos données personnelles seront <strong>anonymisées</strong></li>
+              <AlertDescription className="ml-2 text-sm text-red-900">
+                <strong className="mb-2 block text-base">⚠️ ATTENTION - ACTION IRRÉVERSIBLE</strong>
+                <ul className="ml-2 list-inside list-disc space-y-1">
+                  <li>
+                    Votre compte sera <strong>définitivement supprimé</strong>
+                  </li>
+                  <li>
+                    Toutes vos données personnelles seront <strong>anonymisées</strong>
+                  </li>
                   <li>Vos commandes historiques resteront archivées (conformité RGPD)</li>
-                  <li>Vous ne pourrez <strong>plus récupérer votre compte</strong></li>
+                  <li>
+                    Vous ne pourrez <strong>plus récupérer votre compte</strong>
+                  </li>
                   <li>Vous serez immédiatement déconnecté</li>
                 </ul>
               </AlertDescription>
             </Alert>
 
             {/* GDPR Compliance Notice */}
-            <Alert className="bg-blue-50 border-blue-200">
+            <Alert className="border-blue-200 bg-blue-50">
               <AlertTriangle className="h-4 w-4 text-blue-700" />
-              <AlertDescription className="text-sm text-blue-800 ml-2">
-                <strong>Conformité RGPD :</strong> Conformément au règlement européen sur la protection des données (RGPD),
-                vous avez le droit de demander la suppression de vos données personnelles. Vos données seront anonymisées
-                et votre compte sera supprimé sous 24 heures.
+              <AlertDescription className="ml-2 text-sm text-blue-800">
+                <strong>Conformité RGPD :</strong> Conformément au règlement européen sur la
+                protection des données (RGPD), vous avez le droit de demander la suppression de vos
+                données personnelles. Vos données seront anonymisées et votre compte sera supprimé
+                sous 24 heures.
               </AlertDescription>
             </Alert>
 
             {/* Result Messages */}
             {result && (
-              <Alert className={
-                result.success
-                  ? 'bg-green-50 border-green-200'
-                  : 'bg-red-50 border-red-200'
-              }>
+              <Alert
+                className={
+                  result.success ? "border-green-200 bg-green-50" : "border-red-200 bg-red-50"
+                }
+              >
                 {result.success ? (
                   <CheckCircle2 className="h-4 w-4 text-green-700" />
                 ) : (
                   <AlertTriangle className="h-4 w-4 text-red-700" />
                 )}
-                <AlertDescription className={`ml-2 text-sm ${
-                  result.success ? 'text-green-800' : 'text-red-800'
-                }`}>
+                <AlertDescription
+                  className={`ml-2 text-sm ${result.success ? "text-green-800" : "text-red-800"}`}
+                >
                   {result.success ? result.message : result.error}
                 </AlertDescription>
               </Alert>
@@ -126,14 +137,14 @@ export default function DeleteAccountPage() {
                   Confirmer votre mot de passe *
                 </Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Lock className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
                   <Input
                     id="password"
                     name="password"
                     type="password"
                     required
                     disabled={isSubmitting}
-                    className="pl-10 border-gray-300 focus:border-red-500 focus:ring-red-500"
+                    className="border-gray-300 pl-10 focus:border-red-500 focus:ring-red-500"
                     placeholder="Entrez votre mot de passe"
                   />
                 </div>
@@ -148,29 +159,30 @@ export default function DeleteAccountPage() {
                   Taper "SUPPRIMER MON COMPTE" pour confirmer *
                 </Label>
                 <div className="relative">
-                  <AlertTriangle className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-red-500" />
+                  <AlertTriangle className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-red-500" />
                   <Input
                     id="confirmation"
                     name="confirmation"
                     type="text"
                     required
                     disabled={isSubmitting}
-                    className="pl-10 border-gray-300 focus:border-red-500 focus:ring-red-500 font-mono"
+                    className="border-gray-300 pl-10 font-mono focus:border-red-500 focus:ring-red-500"
                     placeholder="SUPPRIMER MON COMPTE"
                     autoComplete="off"
                   />
                 </div>
-                <p className="text-xs text-red-600 font-medium">
+                <p className="text-xs font-medium text-red-600">
                   ⚠️ Vous devez taper exactement "SUPPRIMER MON COMPTE" en majuscules
                 </p>
               </div>
 
               {/* Final Warning */}
-              <Alert className="bg-yellow-50 border-yellow-300">
+              <Alert className="border-yellow-300 bg-yellow-50">
                 <AlertTriangle className="h-4 w-4 text-yellow-700" />
-                <AlertDescription className="text-sm text-yellow-900 ml-2">
-                  <strong>Dernière chance :</strong> Une fois que vous aurez cliqué sur le bouton ci-dessous,
-                  votre compte sera immédiatement supprimé. Cette action ne peut pas être annulée.
+                <AlertDescription className="ml-2 text-sm text-yellow-900">
+                  <strong>Dernière chance :</strong> Une fois que vous aurez cliqué sur le bouton
+                  ci-dessous, votre compte sera immédiatement supprimé. Cette action ne peut pas
+                  être annulée.
                 </AlertDescription>
               </Alert>
 
@@ -179,7 +191,7 @@ export default function DeleteAccountPage() {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => router.push('/profil')}
+                  onClick={() => router.push("/profil")}
                   disabled={isSubmitting}
                   className="flex-1 border-gray-300 hover:bg-gray-50"
                 >
@@ -190,7 +202,7 @@ export default function DeleteAccountPage() {
                 <Button
                   type="submit"
                   disabled={isSubmitting}
-                  className="flex-1 bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white font-bold"
+                  className="flex-1 bg-linear-to-r from-red-600 to-orange-600 font-bold text-white hover:from-red-700 hover:to-orange-700"
                 >
                   {isSubmitting ? (
                     <>
@@ -208,35 +220,40 @@ export default function DeleteAccountPage() {
             </form>
 
             {/* Help Section */}
-            <div className="pt-4 border-t border-gray-200">
-              <p className="text-sm text-gray-600 text-center">
+            <div className="border-t border-gray-200 pt-4">
+              <p className="text-center text-sm text-gray-600">
                 Vous rencontrez un problème avec votre compte ?{" "}
-                <a href="mailto:chanthanacook@gmail.com" className="text-amber-600 hover:text-amber-700 font-medium">
+                <a
+                  href="mailto:chanthanacook@gmail.com"
+                  className="font-medium text-amber-600 hover:text-amber-700"
+                >
                   Contactez notre support
-                </a>
-                {" "}avant de supprimer votre compte.
+                </a>{" "}
+                avant de supprimer votre compte.
               </p>
             </div>
           </CardContent>
         </Card>
 
         {/* Alternative Section */}
-        <div className="mt-6 p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
-          <h3 className="text-sm font-semibold text-gray-900 mb-2">
+        <div className="mt-6 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+          <h3 className="mb-2 text-sm font-semibold text-gray-900">
             Vous voulez juste faire une pause ?
           </h3>
-          <p className="text-sm text-gray-600 mb-3">
+          <p className="mb-3 text-sm text-gray-600">
             Si vous souhaitez simplement ne plus recevoir d'emails ou faire une pause temporaire,
             vous pouvez désactiver les notifications dans vos{" "}
-            <Link href="/profil" className="text-amber-600 hover:text-amber-700 font-medium">
+            <Link href="/profil" className="font-medium text-amber-600 hover:text-amber-700">
               paramètres de profil
-            </Link>.
+            </Link>
+            .
           </p>
           <p className="text-xs text-gray-500">
-            💡 La suppression de compte est une mesure définitive. Pensez à explorer d'autres options d'abord.
+            💡 La suppression de compte est une mesure définitive. Pensez à explorer d'autres
+            options d'abord.
           </p>
         </div>
       </div>
     </div>
-  );
+  )
 }

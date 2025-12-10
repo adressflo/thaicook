@@ -1,25 +1,12 @@
 "use client"
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardFooter,
-} from "@/components/ui/card"
-import { useToast } from "@/hooks/use-toast"
-import { toastVideo, toastVideoCenter } from "@/hooks/use-toast-video"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,20 +18,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
-import { Skeleton } from "@/components/ui/skeleton"
-import { Separator } from "@/components/ui/separator"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -53,51 +28,26 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
-import { Checkbox } from "@/components/ui/checkbox"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Label } from "@/components/ui/label"
-import { Switch } from "@/components/ui/switch"
-import { Slider } from "@/components/ui/slider"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card"
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import {
   Drawer,
   DrawerClose,
@@ -109,6 +59,39 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer"
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card"
+import { Input } from "@/components/ui/input"
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp"
+import { Label } from "@/components/ui/label"
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Progress } from "@/components/ui/progress"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { Separator } from "@/components/ui/separator"
+import {
   Sheet,
   SheetContent,
   SheetDescription,
@@ -116,24 +99,40 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Slider } from "@/components/ui/slider"
+import { Switch } from "@/components/ui/switch"
 import {
-  Trash2,
-  ShoppingCart,
-  Heart,
-  Bell,
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Textarea } from "@/components/ui/textarea"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { useToast } from "@/hooks/use-toast"
+import { toastVideo, toastVideoCenter } from "@/hooks/use-toast-video"
+import {
   AlertCircle,
-  Terminal,
-  ChevronDown,
-  MoreVertical,
-  User,
-  Settings,
-  LogOut,
+  Bell,
   Calendar as CalendarIcon,
-  Info,
-  Menu,
   ChevronsUpDown,
+  Heart,
+  Info,
+  LogOut,
+  Menu,
+  MoreVertical,
+  Settings,
+  ShoppingCart,
+  Terminal,
+  Trash2,
+  User,
 } from "lucide-react"
+import { useState } from "react"
 
 export default function TestVisuelPage() {
   const { toast } = useToast()
@@ -150,7 +149,7 @@ export default function TestVisuelPage() {
   )
 
   return (
-    <div className="from-thai-cream/30 min-h-screen bg-gradient-to-br to-white p-8">
+    <div className="from-thai-cream/30 min-h-screen bg-linear-to-br to-white p-8">
       <div className="mx-auto max-w-6xl space-y-8">
         {/* En-tête */}
         <div className="text-center">
@@ -209,7 +208,7 @@ export default function TestVisuelPage() {
               </div>
               <div className="space-y-2">
                 <NumberBadge number={9} />
-                <p className="text-gradient from-thai-orange to-thai-gold bg-gradient-to-r bg-clip-text text-3xl font-bold text-transparent">
+                <p className="text-gradient from-thai-orange to-thai-gold bg-linear-to-r bg-clip-text text-3xl font-bold text-transparent">
                   Gradient Text - Orange to Gold
                 </p>
               </div>
@@ -233,13 +232,13 @@ export default function TestVisuelPage() {
               </div>
               <div className="space-y-2">
                 <NumberBadge number={2} />
-                <div className="h-20 rounded-lg bg-[#ffb386] shadow-md"></div>
+                <div className="bg-thai-orange-light h-20 rounded-lg shadow-md"></div>
                 <p className="text-center text-sm font-medium">Thai Orange Light</p>
                 <p className="text-center text-xs text-gray-500">#FFB386</p>
               </div>
               <div className="space-y-2">
                 <NumberBadge number={3} />
-                <div className="h-20 rounded-lg bg-[#e85a31] shadow-md"></div>
+                <div className="bg-thai-orange-dark h-20 rounded-lg shadow-md"></div>
                 <p className="text-center text-sm font-medium">Thai Orange Dark</p>
                 <p className="text-center text-xs text-gray-500">#E85A31</p>
               </div>
@@ -251,13 +250,13 @@ export default function TestVisuelPage() {
               </div>
               <div className="space-y-2">
                 <NumberBadge number={5} />
-                <div className="h-20 rounded-lg bg-[#4a7c23] shadow-md"></div>
+                <div className="bg-thai-green-light h-20 rounded-lg shadow-md"></div>
                 <p className="text-center text-sm font-medium">Thai Green Light</p>
                 <p className="text-center text-xs text-gray-500">#4A7C23</p>
               </div>
               <div className="space-y-2">
                 <NumberBadge number={6} />
-                <div className="h-20 rounded-lg bg-[#1a300c] shadow-md"></div>
+                <div className="bg-thai-green-dark h-20 rounded-lg shadow-md"></div>
                 <p className="text-center text-sm font-medium">Thai Green Dark</p>
                 <p className="text-center text-xs text-gray-500">#1A300C</p>
               </div>
@@ -269,13 +268,13 @@ export default function TestVisuelPage() {
               </div>
               <div className="space-y-2">
                 <NumberBadge number={8} />
-                <div className="h-20 rounded-lg bg-[#ffed4e] shadow-md"></div>
+                <div className="bg-thai-gold-light h-20 rounded-lg shadow-md"></div>
                 <p className="text-center text-sm font-medium">Thai Gold Light</p>
                 <p className="text-center text-xs text-gray-500">#FFED4E</p>
               </div>
               <div className="space-y-2">
                 <NumberBadge number={9} />
-                <div className="h-20 rounded-lg bg-[#b8860b] shadow-md"></div>
+                <div className="bg-thai-gold-dark h-20 rounded-lg shadow-md"></div>
                 <p className="text-center text-sm font-medium">Thai Gold Dark</p>
                 <p className="text-center text-xs text-gray-500">#B8860B</p>
               </div>
@@ -287,7 +286,7 @@ export default function TestVisuelPage() {
               </div>
               <div className="space-y-2">
                 <NumberBadge number={11} />
-                <div className="h-20 rounded-lg bg-[#dc2626] shadow-md"></div>
+                <div className="bg-thai-red h-20 rounded-lg shadow-md"></div>
                 <p className="text-center text-sm font-medium">Thai Red</p>
                 <p className="text-center text-xs text-gray-500">#DC2626</p>
               </div>
@@ -1042,7 +1041,7 @@ export default function TestVisuelPage() {
 
               <div className="flex flex-col gap-1">
                 <NumberBadge number={2} />
-                <Card className="border-thai-orange/20 from-thai-cream/30 to-thai-gold/10 bg-gradient-to-r">
+                <Card className="border-thai-orange/20 from-thai-cream/30 to-thai-gold/10 bg-linear-to-r">
                   <CardHeader>
                     <CardTitle className="text-thai-orange">Card Gradient</CardTitle>
                     <CardDescription>Avec dégradé</CardDescription>
@@ -1327,7 +1326,7 @@ export default function TestVisuelPage() {
 
               <div className="flex flex-col gap-2">
                 <NumberBadge number={7} />
-                <div className="animate-shimmer from-thai-cream via-thai-gold/30 to-thai-cream flex h-24 items-center justify-center rounded-lg border bg-gradient-to-r bg-[length:200%_100%]">
+                <div className="animate-shimmer from-thai-cream via-thai-gold/30 to-thai-cream flex h-24 items-center justify-center rounded-lg border bg-linear-to-r bg-size-[200%_100%]">
                   <p className="text-sm font-medium">animate-shimmer</p>
                 </div>
               </div>
@@ -1439,7 +1438,7 @@ export default function TestVisuelPage() {
                   backgroundPosition: "center",
                 }}
               >
-                <div className="from-thai-orange/20 to-thai-green/20 absolute inset-0 bg-gradient-to-br"></div>
+                <div className="from-thai-orange/20 to-thai-green/20 absolute inset-0 bg-linear-to-br"></div>
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="rounded-2xl border border-white/20 bg-white/10 p-8 backdrop-blur-xl">
                     <h3 className="mb-2 text-2xl font-bold text-white drop-shadow-lg">
@@ -1574,7 +1573,7 @@ export default function TestVisuelPage() {
         </Card>
 
         {/* Footer - Stats */}
-        <Card className="border-thai-green/20 from-thai-cream/30 to-thai-gold/10 bg-gradient-to-r">
+        <Card className="border-thai-green/20 from-thai-cream/30 to-thai-gold/10 bg-linear-to-r">
           <CardHeader>
             <CardTitle className="text-thai-green text-center">📊 Statistiques</CardTitle>
           </CardHeader>

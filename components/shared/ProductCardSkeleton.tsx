@@ -6,7 +6,7 @@ export function ProductCardSkeleton({ className }: { className?: string }) {
   return (
     <Card className={cn("flex flex-col overflow-hidden", className)}>
       {/* Image Skeleton */}
-      <div className="relative aspect-video w-full">
+      <div className="relative aspect-4/3 overflow-hidden bg-gray-200">
         <Skeleton className="h-full w-full" />
         {/* Badge Position Skeleton */}
         <div className="absolute top-2 left-2">

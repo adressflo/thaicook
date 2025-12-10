@@ -3,40 +3,48 @@
 import { Prisma } from "@/generated/prisma/client"
 import { prisma } from "@/lib/prisma"
 import { authAction } from "@/lib/safe-action"
-import type { CommandeUI } from "@/types/app"
+import { CommandeUI } from "@/types/app"
+import { z } from "zod"
 
+// Strict mapping functions matching types/app.ts
 function mapStatutCommande(statut: string | null): CommandeUI["statut_commande"] {
-  if (!statut) return "En attente de confirmation"
+  if (!statut) return null
   const mapping: Record<string, CommandeUI["statut_commande"]> = {
     En_attente_de_confirmation: "En attente de confirmation",
     Confirm_e: "Confirmée",
+    Confirm_e_e: "Confirmée", // Potential variant
     En_preparation: "En préparation",
     En_pr_paration: "En préparation",
-    Prete_a_recuperer: "Prête à récupérer",
     Pr_te___r_cup_rer: "Prête à récupérer",
+    Prete_a_recuperer: "Prête à récupérer",
     Recuperee: "Récupérée",
     R_cup_r_e: "Récupérée",
     Annulee: "Annulée",
     Annul_e: "Annulée",
-    Refusee: "Refusée",
+    // "Refusée" is not in CommandeUI, map to Annulée or null if Refusée occurs
+    Refusee: "Annulée",
+    Refus_e: "Annulée",
   }
-  return mapping[statut] || "En attente de confirmation"
+  return mapping[statut] || null
 }
 
 function mapStatutPaiement(statut: string | null): CommandeUI["statut_paiement"] {
-  if (!statut) return "En attente (sur place)"
+  if (!statut) return null
+  // UI Types: 'En attente sur place' | 'Payé sur place' | 'Payé en ligne' | 'Non payé' | 'Payée' | null
   const mapping: Record<string, CommandeUI["statut_paiement"]> = {
-    En_attente_sur_place: "En attente (sur place)",
+    En_attente_sur_place: "En attente sur place",
     Paye_en_ligne: "Payé en ligne",
     Pay__en_ligne: "Payé en ligne",
     Paye_sur_place: "Payé sur place",
     Pay__sur_place: "Payé sur place",
-    Rembourse: "Remboursé",
-    En_attente: "En attente",
+    En_attente: "En attente sur place", // Fallback closest match
     Non_pay_: "Non payé",
+    Non_paye: "Non payé",
     Pay_e: "Payée",
+    Payee: "Payée",
+    Rembourse: "Non payé", // Best effort mapping if refunded
   }
-  return mapping[statut] || "En attente (sur place)"
+  return mapping[statut] || "En attente sur place"
 }
 
 function mapTypeLivraison(type: string | null): CommandeUI["type_livraison"] {
@@ -50,17 +58,25 @@ function mapTypeLivraison(type: string | null): CommandeUI["type_livraison"] {
   return mapping[type] || null
 }
 
-export const getPaginatedHistory = authAction(
-  getHistorySchema,
-  async ({ page, pageSize, status }, { session }) => {
-    // Check if user is authenticated
-    if (!session?.user?.email) {
+const getHistorySchema = z.object({
+  page: z.number().min(1).default(1),
+  pageSize: z.number().min(1).max(50).default(10),
+  status: z.string().optional(),
+})
+
+export const getPaginatedHistory = authAction
+  .schema(getHistorySchema)
+  .action(async ({ parsedInput: { page, pageSize, status }, ctx }) => {
+    // ctx contains userId and userEmail from safe-action middleware
+    const { userId } = ctx
+
+    if (!userId) {
       throw new Error("Vous devez être connecté pour voir votre historique")
     }
 
     // Get client info
     const client = await prisma.client_db.findUnique({
-      where: { auth_user_id: session.user.id },
+      where: { auth_user_id: userId },
     })
 
     if (!client) {
@@ -69,13 +85,7 @@ export const getPaginatedHistory = authAction(
 
     // Build where clause
     const whereInput: Prisma.commande_dbWhereInput = {
-      client_id: client.idclient,
-    }
-
-    // Optional: add status filtering if needed
-    if (status) {
-      // Need to reverse map UI status to DB status if we want to filter by status
-      // For now, ignoring status filter in fetch, or assume 'status' is DB enum value
+      client_r_id: client.idclient,
     }
 
     const skip = (page - 1) * pageSize
@@ -114,27 +124,36 @@ export const getPaginatedHistory = authAction(
         }, 0) || 0
       ).toFixed(2)
 
+      // Fix comparison types
+      // Assuming DB enum values are roughly what we see in mapping keys,
+      // but safest is checking mapped UI value or string inclusion if mapped
+      const statutPaiementUI = mapStatutPaiement(c.statut_paiement)
+      const estPaye =
+        statutPaiementUI === "Payé en ligne" ||
+        statutPaiementUI === "Payé sur place" ||
+        statutPaiementUI === "Payée"
+
       return {
         id: c.idcommande,
         idcommande: c.idcommande,
+        client_r_id: c.client_r_id ? Number(c.client_r_id) : null,
         created_at: c.date_de_prise_de_commande?.toISOString() || null,
-        client_id: c.client_r_id ? Number(c.client_r_id) : null,
         statut_commande: mapStatutCommande(c.statut_commande),
         date_commande: c.date_de_prise_de_commande?.toISOString() || null,
         heure_retrait: c.date_et_heure_de_retrait_souhaitees?.toISOString() || null,
-        total: Number(prix_total), // Keep it numeric if UI expects number, or string if needed
-        prix_total: prix_total, // Add explicit string field if UI uses it
+        total: Number(prix_total),
+        prix_total: prix_total,
         notes: c.notes_internes || null,
         notes_internes: c.notes_internes || null,
-        statut_paiement: mapStatutPaiement(c.statut_paiement),
-        moyen_paiement: c.statut_paiement === "Sur_place" ? "Sur place" : "En ligne",
+        statut_paiement: statutPaiementUI,
+        moyen_paiement: statutPaiementUI?.includes("sur place") ? "Sur place" : "En ligne",
         type_livraison: mapTypeLivraison(c.type_livraison),
         frais_livraison: 0,
         adresse_livraison: c.adresse_specifique || null,
         code_promo: null,
         remise: 0,
         source_commande: "Web",
-        est_paye: c.statut_paiement === "Paye_en_ligne" || c.statut_paiement === "Paye_sur_place",
+        est_paye: estPaye,
         stripe_payment_intent_id: null,
         date_modification: null,
         modifie_par: null,
@@ -236,5 +255,4 @@ export const getPaginatedHistory = authAction(
       totalPages,
       total,
     }
-  }
-)
+  })
