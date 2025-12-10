@@ -200,7 +200,7 @@ export default function PanierPage() {
 
   // Fonction pour ajouter un plat au panier avec quantité spécifique
   const handleAjouterAuPanier = (
-    plat: Plat,
+    plat: any,
     quantite: number,
     spicePreference?: string,
     spiceDistribution?: number[],

@@ -1,4 +1,5 @@
-﻿import { MobileNav } from "@/components/layout/MobileNav"
+﻿import { BottomNav } from "@/components/layout/BottomNav"
+import { MobileNav } from "@/components/layout/MobileNav"
 import { Toaster } from "@/components/ui/toaster"
 import { ToasterVideo } from "@/components/ui/toastervideo"
 import type { Metadata, Viewport } from "next"
@@ -78,6 +79,7 @@ export default function RootLayout({
                   {children}
                   <RestaurantFooter />
                   <MobileNav />
+                  <BottomNav />
                 </NuqsAdapter>
                 <FloatingUserIcon />
                 <OfflineIndicator position="bottom-right" />

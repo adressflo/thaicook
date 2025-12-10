@@ -94,7 +94,7 @@ export function RestaurantFooter() {
   const { isAuthenticated } = usePermissions()
   const navLinks = isAuthenticated ? NAV_LINKS_AUTH : NAV_LINKS_GUEST
   return (
-    <footer className="w-full">
+    <footer className="w-full pb-20 lg:pb-0">
       {/* Bande verte avec navigation + réseaux sociaux - Cachée sur mobile */}
       <div className="bg-thai-green hidden w-full lg:block">
         <div className="w-full px-8 py-6">

@@ -335,7 +335,7 @@ const Commander = memo(() => {
   }
 
   const handleAjouterAuPanier = (
-    plat: Plat,
+    plat: any,
     quantite: number = 1,
     spicePreference?: string,
     spiceDistribution?: number[],

@@ -1,18 +1,18 @@
-'use server'
+"use server"
 
-import { prisma } from '@/lib/prisma'
-import { auth } from '@/lib/auth'
-import { headers } from 'next/headers'
-import { z } from 'zod'
+import { auth } from "@/lib/auth"
+import { prisma } from "@/lib/prisma"
+import { headers } from "next/headers"
+import { z } from "zod"
 
 // Schema validation
 const saveTokenSchema = z.object({
-  device_token: z.string().min(10, 'Token invalide'),
-  device_type: z.enum(['web', 'ios', 'android']).default('web'),
+  device_token: z.string().min(10, "Token invalide"),
+  device_type: z.enum(["web", "ios", "android"]).default("web"),
 })
 
 const revokeTokenSchema = z.object({
-  device_token: z.string().min(10, 'Token invalide'),
+  device_token: z.string().min(10, "Token invalide"),
 })
 
 /**
@@ -22,7 +22,7 @@ const revokeTokenSchema = z.object({
  */
 export async function saveNotificationToken(
   token: string,
-  deviceType: 'web' | 'ios' | 'android' = 'web'
+  deviceType: "web" | "ios" | "android" = "web"
 ): Promise<{ success: boolean; error?: string }> {
   try {
     // Valider input
@@ -34,7 +34,7 @@ export async function saveNotificationToken(
     if (!validation.success) {
       return {
         success: false,
-        error: validation.error.issues[0]?.message || 'Validation échouée',
+        error: validation.error.issues[0]?.message || "Validation échouée",
       }
     }
 
@@ -44,7 +44,7 @@ export async function saveNotificationToken(
     })
 
     if (!session?.user?.id) {
-      return { success: false, error: 'Utilisateur non authentifié' }
+      return { success: false, error: "Utilisateur non authentifié" }
     }
 
     // Récupérer client_id depuis auth_user_id
@@ -54,7 +54,7 @@ export async function saveNotificationToken(
     })
 
     if (!client) {
-      return { success: false, error: 'Profil client introuvable' }
+      return { success: false, error: "Profil client introuvable" }
     }
 
     // Upsert token dans notification_tokens
@@ -79,17 +79,17 @@ export async function saveNotificationToken(
       },
     })
 
-    console.log('✅ Token FCM sauvegardé:', {
+    console.log("✅ Token FCM sauvegardé:", {
       clientId: client.idclient,
-      tokenPreview: token.substring(0, 20) + '...',
+      tokenPreview: token.substring(0, 20) + "...",
     })
 
     return { success: true }
   } catch (error) {
-    console.error('❌ Erreur saveNotificationToken:', error)
+    console.error("❌ Erreur saveNotificationToken:", error)
     return {
       success: false,
-      error: 'Erreur lors de la sauvegarde du token',
+      error: "Erreur lors de la sauvegarde du token",
     }
   }
 }
@@ -109,7 +109,7 @@ export async function revokeNotificationToken(
     if (!validation.success) {
       return {
         success: false,
-        error: validation.error.issues[0]?.message || 'Validation échouée',
+        error: validation.error.issues[0]?.message || "Validation échouée",
       }
     }
 
@@ -119,7 +119,7 @@ export async function revokeNotificationToken(
     })
 
     if (!session?.user?.id) {
-      return { success: false, error: 'Utilisateur non authentifié' }
+      return { success: false, error: "Utilisateur non authentifié" }
     }
 
     // Marquer token comme inactif (soft delete)
@@ -132,14 +132,14 @@ export async function revokeNotificationToken(
       },
     })
 
-    console.log('✅ Token FCM révoqué:', token.substring(0, 20) + '...')
+    console.log("✅ Token FCM révoqué:", token.substring(0, 20) + "...")
 
     return { success: true }
   } catch (error) {
-    console.error('❌ Erreur revokeNotificationToken:', error)
+    console.error("❌ Erreur revokeNotificationToken:", error)
     return {
       success: false,
-      error: 'Erreur lors de la révocation du token',
+      error: "Erreur lors de la révocation du token",
     }
   }
 }
@@ -149,8 +149,8 @@ export async function revokeNotificationToken(
  * @returns Liste des tokens actifs
  */
 export async function getUserNotificationTokens(): Promise<{
-  tokens: Array<{ device_token: string; device_type: string; last_used: Date }>;
-  error?: string;
+  tokens: Array<{ device_token: string; device_type: string; last_used: Date }>
+  error?: string
 }> {
   try {
     // Récupérer session
@@ -159,7 +159,7 @@ export async function getUserNotificationTokens(): Promise<{
     })
 
     if (!session?.user?.id) {
-      return { tokens: [], error: 'Utilisateur non authentifié' }
+      return { tokens: [], error: "Utilisateur non authentifié" }
     }
 
     // Récupérer client_id
@@ -169,7 +169,7 @@ export async function getUserNotificationTokens(): Promise<{
     })
 
     if (!client) {
-      return { tokens: [], error: 'Profil client introuvable' }
+      return { tokens: [], error: "Profil client introuvable" }
     }
 
     // Récupérer tokens actifs
@@ -184,22 +184,22 @@ export async function getUserNotificationTokens(): Promise<{
         last_used: true,
       },
       orderBy: {
-        last_used: 'desc',
+        last_used: "desc",
       },
     })
 
     return {
       tokens: tokens.map((t) => ({
         device_token: t.device_token,
-        device_type: t.device_type || 'web',
+        device_type: t.device_type || "web",
         last_used: t.last_used || new Date(),
       })),
     }
   } catch (error) {
-    console.error('❌ Erreur getUserNotificationTokens:', error)
+    console.error("❌ Erreur getUserNotificationTokens:", error)
     return {
       tokens: [],
-      error: 'Erreur lors de la récupération des tokens',
+      error: "Erreur lors de la récupération des tokens",
     }
   }
 }
@@ -232,7 +232,7 @@ export async function hasActiveNotifications(): Promise<boolean> {
 
     return count > 0
   } catch (error) {
-    console.error('❌ Erreur hasActiveNotifications:', error)
+    console.error("❌ Erreur hasActiveNotifications:", error)
     return false
   }
 }
@@ -294,7 +294,7 @@ export async function getNotificationPreferences(): Promise<{
     })
 
     if (!session?.user?.id) {
-      return { preferences: null, error: 'Utilisateur non authentifié' }
+      return { preferences: null, error: "Utilisateur non authentifié" }
     }
 
     const client = await prisma.client_db.findUnique({
@@ -303,7 +303,7 @@ export async function getNotificationPreferences(): Promise<{
     })
 
     if (!client) {
-      return { preferences: null, error: 'Profil client introuvable' }
+      return { preferences: null, error: "Profil client introuvable" }
     }
 
     // Récupérer ou créer les préférences
@@ -330,7 +330,7 @@ export async function getNotificationPreferences(): Promise<{
           newsletter: false,
           rappel_paiement: true,
           message_admin: true,
-          timezone: 'Europe/Paris',
+          timezone: "Europe/Paris",
         },
       })
     }
@@ -355,14 +355,14 @@ export async function getNotificationPreferences(): Promise<{
         message_admin: prefs.message_admin ?? true,
         quiet_hours_start: prefs.quiet_hours_start,
         quiet_hours_end: prefs.quiet_hours_end,
-        timezone: prefs.timezone ?? 'Europe/Paris',
+        timezone: prefs.timezone ?? "Europe/Paris",
       },
     }
   } catch (error) {
-    console.error('❌ Erreur getNotificationPreferences:', error)
+    console.error("❌ Erreur getNotificationPreferences:", error)
     return {
       preferences: null,
-      error: 'Erreur lors de la récupération des préférences',
+      error: "Erreur lors de la récupération des préférences",
     }
   }
 }
@@ -379,7 +379,7 @@ export async function updateNotificationPreferences(
     if (!validation.success) {
       return {
         success: false,
-        error: validation.error.issues[0]?.message || 'Validation échouée',
+        error: validation.error.issues[0]?.message || "Validation échouée",
       }
     }
 
@@ -388,7 +388,7 @@ export async function updateNotificationPreferences(
     })
 
     if (!session?.user?.id) {
-      return { success: false, error: 'Utilisateur non authentifié' }
+      return { success: false, error: "Utilisateur non authentifié" }
     }
 
     const client = await prisma.client_db.findUnique({
@@ -397,11 +397,11 @@ export async function updateNotificationPreferences(
     })
 
     if (!client) {
-      return { success: false, error: 'Profil client introuvable' }
+      return { success: false, error: "Profil client introuvable" }
     }
 
     // Convertir les heures quiet_hours si présentes
-    const quietHoursData: any = {}
+    const quietHoursData: { quiet_hours_start?: Date; quiet_hours_end?: Date } = {}
     if (updates.quiet_hours_start) {
       quietHoursData.quiet_hours_start = new Date(`1970-01-01T${updates.quiet_hours_start}:00Z`)
     }
@@ -423,17 +423,17 @@ export async function updateNotificationPreferences(
       },
     })
 
-    console.log('✅ Préférences notifications mises à jour:', {
+    console.log("✅ Préférences notifications mises à jour:", {
       clientId: client.idclient,
       updates: Object.keys(updates),
     })
 
     return { success: true }
   } catch (error) {
-    console.error('❌ Erreur updateNotificationPreferences:', error)
+    console.error("❌ Erreur updateNotificationPreferences:", error)
     return {
       success: false,
-      error: 'Erreur lors de la mise à jour des préférences',
+      error: "Erreur lors de la mise à jour des préférences",
     }
   }
 }

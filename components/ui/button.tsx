@@ -1,6 +1,6 @@
-import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
+import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
@@ -10,12 +10,10 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default: "bg-thai-orange text-white hover:bg-thai-orange-dark hover:text-white",
-        destructive:
-          "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
         outline:
           "border-2 border-thai-orange bg-white text-thai-orange hover:bg-thai-orange hover:text-white",
-        secondary:
-          "bg-thai-green text-white hover:bg-thai-green-dark hover:text-white",
+        secondary: "bg-thai-green text-white hover:bg-thai-green-dark hover:text-white",
         ghost: "hover:bg-thai-cream hover:text-thai-orange",
         link: "text-primary underline-offset-4 hover:underline",
       },
@@ -36,20 +34,17 @@ const buttonVariants = cva(
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
-  asChild?: boolean;
-  variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
-  size?: "default" | "sm" | "lg" | "icon";
+  asChild?: boolean
+  children?: React.ReactNode
+  variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link"
+  size?: "default" | "sm" | "lg" | "icon"
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, ...props }, ref) => {
     const Comp = asChild ? Slot : "button"
     return (
-      <Comp
-        className={cn(buttonVariants({ variant, size, className }))}
-        ref={ref}
-        {...props}
-      />
+      <Comp className={cn(buttonVariants({ variant, size, className }))} ref={ref} {...props} />
     )
   }
 )

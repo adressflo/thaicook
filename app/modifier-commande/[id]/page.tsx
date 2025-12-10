@@ -1166,7 +1166,7 @@ const ModifierCommande = memo(() => {
                                 const newItem: PlatPanier = {
                                   id: plat.idplats.toString(),
                                   nom: plat.plat,
-                                  prix: plat.prix ?? "0",
+                                  prix: plat.prix ? String(plat.prix) : "0",
                                   quantite: quantity,
                                   jourCommande: jourSelectionne || "",
                                   dateRetrait: new Date(dateRetrait.getTime()),

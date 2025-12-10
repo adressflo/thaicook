@@ -3,6 +3,7 @@ import type { CommandeUI } from "@/types/app"
 import { Edit, Eye } from "lucide-react"
 import Link from "next/link"
 import React from "react"
+import BoutonCommanderNouveau from "./BoutonCommanderNouveau"
 import BoutonTelechargerFacture from "./BoutonTelechargerFacture"
 
 interface CommandeActionButtonsProps {
@@ -38,6 +39,13 @@ export const CommandeActionButtons = React.memo<CommandeActionButtonsProps>(
           </Link>
         </Button>
       )}
+      {commande &&
+        (commande.statut_commande === "Récupérée" || commande.statut_commande === "Annulée") && (
+          <BoutonCommanderNouveau
+            commande={commande}
+            className="hover:border-thai-orange/50 border-2"
+          />
+        )}
       {commande && commande.statut_commande === "Récupérée" && (
         <BoutonTelechargerFacture commande={commande} />
       )}

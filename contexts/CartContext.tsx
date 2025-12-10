@@ -1,7 +1,7 @@
 "use client"
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react"
 import type { PlatPanier } from "@/types/app"
+import React, { createContext, ReactNode, useContext, useEffect, useState } from "react"
 
 // Définit la forme des données et fonctions que notre contexte va fournir
 interface CartContextType {
@@ -13,6 +13,7 @@ interface CartContextType {
   viderPanier: () => void
   totalArticles: number
   totalPrix: number
+  ajouterPlusieursAuPanier: (plats: PlatPanier[]) => void
 }
 
 // Création du contexte
@@ -60,17 +61,17 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     }
   }, [panier])
 
+  // Helper pour comparer les distributions épicées
+  const isSameSpiceDistribution = (a?: number[], b?: number[]) => {
+    if (!a && !b) return true
+    if (!a || !b) return false
+    if (a.length !== b.length) return false
+    return a.every((val, idx) => val === b[idx])
+  }
+
   // Fonction pour ajouter un plat
   const ajouterAuPanier = (plat: PlatPanier) => {
     setPanier((prev) => {
-      // Helper pour comparer les distributions épicées
-      const isSameSpiceDistribution = (a?: number[], b?: number[]) => {
-        if (!a && !b) return true
-        if (!a || !b) return false
-        if (a.length !== b.length) return false
-        return a.every((val, idx) => val === b[idx])
-      }
-
       // Chercher un plat identique avec le même jour, la même date, la même préférence épicée ET la même distribution épicée
       const platExistant = prev.find(
         (p) =>
@@ -100,6 +101,38 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
         uniqueId: `${plat.id}-${Date.now()}-${Math.random()}`,
       }
       return [...prev, nouvelArticle]
+    })
+  }
+
+  // Fonction pour ajouter plusieurs plats
+  const ajouterPlusieursAuPanier = (plats: PlatPanier[]) => {
+    setPanier((prev) => {
+      let newPanier = [...prev]
+
+      plats.forEach((plat) => {
+        const index = newPanier.findIndex(
+          (p) =>
+            p.id === plat.id &&
+            p.jourCommande === plat.jourCommande &&
+            p.dateRetrait?.toDateString() === plat.dateRetrait?.toDateString() &&
+            p.demandeSpeciale === plat.demandeSpeciale &&
+            isSameSpiceDistribution(p.spiceDistribution, plat.spiceDistribution)
+        )
+
+        if (index !== -1) {
+          newPanier[index] = {
+            ...newPanier[index],
+            quantite: newPanier[index].quantite + plat.quantite,
+          }
+        } else {
+          newPanier.push({
+            ...plat,
+            quantite: plat.quantite || 1,
+            uniqueId: `${plat.id}-${Date.now()}-${Math.random()}`,
+          })
+        }
+      })
+      return newPanier
     })
   }
 
@@ -144,6 +177,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
   const value = {
     panier,
     ajouterAuPanier,
+    ajouterPlusieursAuPanier,
     modifierQuantite,
     modifierDistributionEpice,
     supprimerDuPanier,

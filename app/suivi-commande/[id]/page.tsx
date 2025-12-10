@@ -1,6 +1,7 @@
 "use client"
 
 import { getClientProfile } from "@/app/profil/actions"
+import BoutonCommanderNouveau from "@/components/historique/BoutonCommanderNouveau"
 import BoutonTelechargerFacture from "@/components/historique/BoutonTelechargerFacture"
 import { CalendarIcon } from "@/components/historique/CalendarIcon"
 import { StatusBadge } from "@/components/historique/StatusBadge"
@@ -489,7 +490,6 @@ const SuiviCommande = memo(() => {
                           </p>
                         </div>
                       )}
-
                     {commande.statut_commande === "En attente de confirmation" && (
                       <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4 transition-all duration-200 hover:bg-yellow-100 hover:shadow-md">
                         <p className="text-center text-sm font-medium text-yellow-800">
@@ -498,7 +498,6 @@ const SuiviCommande = memo(() => {
                         </p>
                       </div>
                     )}
-
                     {commande.statut_commande === "Confirmée" && (
                       <div className="rounded-lg border border-green-200 bg-green-50 p-4 transition-all duration-200 hover:bg-green-100 hover:shadow-md">
                         <p className="text-center text-sm font-medium text-green-800">
@@ -506,7 +505,6 @@ const SuiviCommande = memo(() => {
                         </p>
                       </div>
                     )}
-
                     {commande.statut_commande === "Prête à récupérer" && (
                       <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 transition-all duration-200 hover:bg-blue-100 hover:shadow-md">
                         <p className="text-center text-sm font-medium text-blue-800">
@@ -514,27 +512,37 @@ const SuiviCommande = memo(() => {
                         </p>
                       </div>
                     )}
-
+                    import BoutonCommanderNouveau from
+                    "@/components/historique/BoutonCommanderNouveau" // ... imports ...
                     {commande.statut_commande === "Récupérée" && (
                       <div className="rounded-lg border border-green-200 bg-green-50 p-4 transition-all duration-200 hover:bg-green-100 hover:shadow-md">
                         <p className="mb-3 text-center text-sm font-medium text-green-800">
                           🍽️ Commande récupérée avec succès ! Bon appétit et merci de votre
                           confiance.
                         </p>
-                        <div className="flex justify-center">
+                        <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
                           <BoutonTelechargerFacture
                             commande={commande}
-                            className="text-thai-green hover:bg-thai-green/10 border-thai-green/20"
+                            className="text-thai-green hover:bg-thai-green/10 border-thai-green/20 w-full sm:w-auto"
+                          />
+                          <BoutonCommanderNouveau
+                            commande={commande}
+                            className="bg-thai-green hover:bg-thai-green/90 w-full text-white sm:w-auto"
                           />
                         </div>
                       </div>
                     )}
-
                     {commande.statut_commande === "Annulée" && (
                       <div className="rounded-lg border border-red-200 bg-red-50 p-4 transition-all duration-200 hover:bg-red-100 hover:shadow-md">
-                        <p className="text-center text-sm font-medium text-red-800">
+                        <p className="mb-3 text-center text-sm font-medium text-red-800">
                           ❌ Cette commande a été annulée.
                         </p>
+                        <div className="flex justify-center">
+                          <BoutonCommanderNouveau
+                            commande={commande}
+                            className="w-full border-red-200 bg-white text-red-600 hover:border-red-300 hover:bg-red-50 sm:w-auto"
+                          />
+                        </div>
                       </div>
                     )}
                   </div>

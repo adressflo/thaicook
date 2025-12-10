@@ -2562,14 +2562,6 @@ const ModalPlatCard = ({
   }
 
   const handleRemovePlat = async () => {
-    console.log("🗑️ Tentative de suppression - Item:", {
-      iddetails: item.iddetails,
-      nom_plat: item.nom_plat,
-      type: item.type,
-      prix_unitaire: item.prix_unitaire,
-      plat: item.plat,
-    })
-
     if (!item.iddetails) {
       toast({
         title: "❌ Erreur",
@@ -2591,8 +2583,6 @@ const ModalPlatCard = ({
 
     setIsModifying(true)
     try {
-      console.log("🗑️ Suppression V2 avec ID:", item.iddetails)
-      console.log("🗑️ V2 RemovePlatMutation status:", removePlatMutation)
       const result = await removePlatMutation.mutateAsync(item.iddetails)
       console.log("🗑️ V2 Suppression result:", result)
     } catch (error) {
@@ -2669,20 +2659,12 @@ const ModalPlatCard = ({
           {(() => {
             // Debug et logique d'affichage améliorée pour les extras
             if (item.extra?.nom_extra) {
-              console.log("✅ Affichage depuis extras_db (v2):", item.extra.nom_extra)
               return item.extra.nom_extra
             }
 
             if (item.plat?.plat) {
-              console.log("✅ Affichage depuis plats_db (v2):", item.plat.plat)
-
               // Si c'est un extra stocké dans plats_db, essayer d'extraire le vrai nom
               if (item.plat.plat === "Extra (Complément divers)" && item.nom_plat) {
-                console.log(
-                  "🔧 Extra détecté dans plats_db (v2), extraction du nom depuis nom_plat:",
-                  item.nom_plat
-                )
-
                 // Patterns de nettoyage pour extraire le vrai nom
                 let nomNettoye = item.nom_plat
 
@@ -2690,7 +2672,7 @@ const ModalPlatCard = ({
                 let match = nomNettoye.match(/Extra \(Complément divers\)=(.+)/)
                 if (match && match[1]) {
                   nomNettoye = match[1].trim()
-                  console.log("🧹 Pattern 1 (v2) - Nom extrait:", nomNettoye)
+
                   return nomNettoye
                 }
 
@@ -2698,17 +2680,15 @@ const ModalPlatCard = ({
                 match = nomNettoye.match(/Extra \(Complément divers\)\s+(.+)/)
                 if (match && match[1]) {
                   nomNettoye = match[1].trim()
-                  console.log("🧹 Pattern 2 (v2) - Nom extrait:", nomNettoye)
+
                   return nomNettoye
                 }
 
                 // Si le nom_plat est différent de "Extra (Complément divers)", l'utiliser
                 if (nomNettoye !== "Extra (Complément divers)" && nomNettoye.trim() !== "") {
-                  console.log("🧹 Utilisation directe de nom_plat (v2):", nomNettoye)
                   return nomNettoye
                 }
 
-                console.log('⚠️ Impossible d\'extraire le nom (v2), fallback vers "Extra"')
                 return "Extra"
               }
 
@@ -2724,13 +2704,12 @@ const ModalPlatCard = ({
             ) {
               // Nettoyer "Extra (Complément divers)" et extraire le vrai nom
               let nomNettoye = item.nom_plat
-              console.log("🔍 Nom original à nettoyer (v2):", nomNettoye)
 
               // Pattern 1: "Extra (Complément divers)=nom_reel"
               let match = nomNettoye.match(/Extra \(Complément divers\)=(.+)/)
               if (match && match[1]) {
                 nomNettoye = match[1].trim()
-                console.log("🧹 Pattern 1 (v2) - Nom nettoyé:", nomNettoye)
+
                 return nomNettoye
               }
 
@@ -2738,23 +2717,22 @@ const ModalPlatCard = ({
               match = nomNettoye.match(/Extra \(Complément divers\)\s+(.+)/)
               if (match && match[1]) {
                 nomNettoye = match[1].trim()
-                console.log("🧹 Pattern 2 (v2) - Nom nettoyé:", nomNettoye)
+
                 return nomNettoye
               }
 
               // Pattern 3: Juste "Extra (Complément divers)" - remplacer par "Extra"
               if (nomNettoye === "Extra (Complément divers)") {
                 nomNettoye = "Extra"
-                console.log("🧹 Pattern 3 (v2) - Remplacé par:", nomNettoye)
+
                 return nomNettoye
               }
 
               // Si aucun pattern ne correspond, retourner tel quel
-              console.log("⚠️ Aucun pattern trouvé (v2), retour original:", nomNettoye)
+
               return nomNettoye
             }
 
-            console.log("⚠️ Fallback vers nom_plat (v2):", item.nom_plat)
             return item.nom_plat || "Article inconnu"
           })()}
           {(item.type === "extra" ||
@@ -2908,8 +2886,8 @@ const CommandeDetailsModal = ({
   commandeId: number
   onClose: () => void
   onStatusChange: (id: number, status: string) => void
-  router: any
-  toast: any
+  router: ReturnType<typeof useRouter>
+  toast: ReturnType<typeof useToast>["toast"]
 }) => {
   // Tous les hooks doivent être appelés avant tout return conditionnel
   const { data: commande, isLoading, error } = usePrismaCommandeById(commandeId)
@@ -2935,7 +2913,7 @@ const CommandeDetailsModal = ({
   const addPlatMutation = usePrismaAddPlatToCommande()
 
   // Debug des extras existants
-  console.log("🔍 DEBUG - Extras:", { extras, extrasLoading })
+
   const updateCommandeMutation = usePrismaUpdateCommande()
 
   // Fonctions pour la modification d'heure
@@ -3098,9 +3076,8 @@ const CommandeDetailsModal = ({
 
   // Fonction pour sélectionner un extra existant
   const handleSelectExistingExtra = (extraName: string) => {
-    console.log("🎯 Sélection extra:", { extraName, extras })
     const selectedExtra = extras?.find((extra: any) => extra.nom_extra === extraName)
-    console.log("🎯 Extra trouvé:", selectedExtra)
+
     if (selectedExtra) {
       setNomComplement(selectedExtra.nom_extra)
       setPrixComplement(selectedExtra.prix.toString())

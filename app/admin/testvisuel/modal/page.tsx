@@ -1312,7 +1312,9 @@ function ReadonlyModalPlayground({ plats }: { plats: PlatUI[] }) {
   // Nouveaux états pour les contrôles
   const [modalSize, setModalSize] = useState<"sm" | "md" | "lg" | "xl" | "custom">("md")
   const [imageFormat, setImageFormat] = useState<"16:9" | "4:5" | "1:1" | "auto">("auto")
-  const [modalPosition, setModalPosition] = useState<"center" | "bottom-right" | "bottom-left" | "top-right" | "top-left" | "custom">("center")
+  const [modalPosition, setModalPosition] = useState<
+    "center" | "bottom-right" | "bottom-left" | "top-right" | "top-left" | "custom"
+  >("center")
 
   // Toggles pour les sections
   const [showImage, setShowImage] = useState(true)
@@ -1328,7 +1330,9 @@ function ReadonlyModalPlayground({ plats }: { plats: PlatUI[] }) {
   const [show3DTilt, setShow3DTilt] = useState(true)
 
   // Animation & Style fermeture
-  const [exitAnimation, setExitAnimation] = useState<"fade-zoom" | "fade-out" | "manga-explosion" | "none">("fade-zoom")
+  const [exitAnimation, setExitAnimation] = useState<
+    "fade-zoom" | "fade-out" | "manga-explosion" | "none"
+  >("fade-zoom")
   const [showCloseButton, setShowCloseButton] = useState(false)
 
   const selectedPlat = plats.find((p) => p.id === Number(selectedPlatId)) || plats[0]
@@ -1339,17 +1343,50 @@ function ReadonlyModalPlayground({ plats }: { plats: PlatUI[] }) {
     { id: "badge", label: "Badges (tous)", state: showBadge, setter: setShowBadge },
     { id: "description", label: "Description", state: showDescription, setter: setShowDescription },
     { id: "price", label: "Prix", state: showPrice, setter: setShowPrice },
-    { id: "quantity", label: "Sélecteur quantité", state: showQuantitySelector, setter: setShowQuantitySelector },
-    { id: "spice", label: "Sélecteur épice", state: showSpiceSelector, setter: setShowSpiceSelector },
-    { id: "button", label: "Bouton panier", state: showAddToCartButton, setter: setShowAddToCartButton },
+    {
+      id: "quantity",
+      label: "Sélecteur quantité",
+      state: showQuantitySelector,
+      setter: setShowQuantitySelector,
+    },
+    {
+      id: "spice",
+      label: "Sélecteur épice",
+      state: showSpiceSelector,
+      setter: setShowSpiceSelector,
+    },
+    {
+      id: "button",
+      label: "Bouton panier",
+      state: showAddToCartButton,
+      setter: setShowAddToCartButton,
+    },
     { id: "tilt", label: "Effet 3D Tilt", state: show3DTilt, setter: setShow3DTilt },
   ]
 
   // Options de toggle pour les badges individuels
   const badgeToggles = [
-    { id: "disponible", label: "🟢 Disponible", state: showBadgeDisponible, setter: setShowBadgeDisponible, color: "bg-thai-green" },
-    { id: "extra", label: "🟡 Extra", state: showBadgeExtra, setter: setShowBadgeExtra, color: "bg-thai-gold" },
-    { id: "panier", label: "🟠 Panier", state: showBadgePanier, setter: setShowBadgePanier, color: "bg-thai-orange" },
+    {
+      id: "disponible",
+      label: "🟢 Disponible",
+      state: showBadgeDisponible,
+      setter: setShowBadgeDisponible,
+      color: "bg-thai-green",
+    },
+    {
+      id: "extra",
+      label: "🟡 Extra",
+      state: showBadgeExtra,
+      setter: setShowBadgeExtra,
+      color: "bg-thai-gold",
+    },
+    {
+      id: "panier",
+      label: "🟠 Panier",
+      state: showBadgePanier,
+      setter: setShowBadgePanier,
+      color: "bg-thai-orange",
+    },
   ]
 
   // Options de taille
@@ -1409,10 +1446,11 @@ function ReadonlyModalPlayground({ plats }: { plats: PlatUI[] }) {
           nom_extra: "Riz parfumé thaï",
           description: "Riz jasmin cuit à la vapeur",
           prix: "3.50",
-          photo_url: "https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png",
+          photo_url:
+            "https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png",
           created_at: new Date().toISOString(),
         },
-        detail: { quantite_plat_commande: 2, type: "extra" as const },
+        detail: { quantite_plat_commande: 2, type: "extra" as const } as any,
       },
     },
     {
@@ -1475,7 +1513,7 @@ function ReadonlyModalPlayground({ plats }: { plats: PlatUI[] }) {
                       "w-full rounded-lg border-2 p-3 text-left transition-all",
                       activeVariant === variant.id
                         ? "border-thai-orange bg-thai-orange/5"
-                        : "border-gray-200 hover:border-thai-orange/50"
+                        : "hover:border-thai-orange/50 border-gray-200"
                     )}
                   >
                     <div className="flex items-center gap-2">
@@ -1505,7 +1543,7 @@ function ReadonlyModalPlayground({ plats }: { plats: PlatUI[] }) {
                       "rounded-md border px-3 py-1.5 text-sm font-medium transition-all duration-200 hover:scale-105",
                       modalSize === option.id
                         ? "border-thai-orange bg-thai-orange text-white shadow-md"
-                        : "border-gray-300 bg-white text-gray-700 hover:border-thai-orange/50 hover:shadow-sm"
+                        : "hover:border-thai-orange/50 border-gray-300 bg-white text-gray-700 hover:shadow-sm"
                     )}
                   >
                     {option.label}
@@ -1526,7 +1564,7 @@ function ReadonlyModalPlayground({ plats }: { plats: PlatUI[] }) {
                       "rounded-md border px-3 py-1.5 text-sm font-medium transition-all duration-200 hover:scale-105",
                       imageFormat === option.id
                         ? "border-thai-orange bg-thai-orange text-white shadow-md"
-                        : "border-gray-300 bg-white text-gray-700 hover:border-thai-orange/50 hover:shadow-sm"
+                        : "hover:border-thai-orange/50 border-gray-300 bg-white text-gray-700 hover:shadow-sm"
                     )}
                   >
                     {option.label}
@@ -1547,7 +1585,7 @@ function ReadonlyModalPlayground({ plats }: { plats: PlatUI[] }) {
                       "rounded-md border px-3 py-1.5 text-sm font-medium transition-all duration-200 hover:scale-105",
                       modalPosition === option.id
                         ? "border-thai-orange bg-thai-orange text-white shadow-md"
-                        : "border-gray-300 bg-white text-gray-700 hover:border-thai-orange/50 hover:shadow-sm"
+                        : "hover:border-thai-orange/50 border-gray-300 bg-white text-gray-700 hover:shadow-sm"
                     )}
                   >
                     {option.label}
@@ -1572,9 +1610,7 @@ function ReadonlyModalPlayground({ plats }: { plats: PlatUI[] }) {
                     )}
                   >
                     <span>{toggle.label}</span>
-                    <span className="text-xs">
-                      {toggle.state ? "✓" : "✗"}
-                    </span>
+                    <span className="text-xs">{toggle.state ? "✓" : "✗"}</span>
                   </button>
                 ))}
               </div>
@@ -1605,7 +1641,7 @@ function ReadonlyModalPlayground({ plats }: { plats: PlatUI[] }) {
             </div>
 
             {/* Style & Animation fermeture */}
-            <div className="hover:bg-purple-100/50 hover:border-purple-400 hover:ring-purple-300/50 space-y-2 rounded-lg border border-purple-200 bg-purple-50/50 p-3 transition-all duration-300 hover:scale-[1.01] hover:shadow-lg hover:ring-2">
+            <div className="space-y-2 rounded-lg border border-purple-200 bg-purple-50/50 p-3 transition-all duration-300 hover:scale-[1.01] hover:border-purple-400 hover:bg-purple-100/50 hover:shadow-lg hover:ring-2 hover:ring-purple-300/50">
               <Label className="font-medium text-purple-700">✨ Style & Animation fermeture</Label>
 
               {/* Animation de sortie */}
@@ -1665,7 +1701,7 @@ function ReadonlyModalPlayground({ plats }: { plats: PlatUI[] }) {
 
         <div className="relative mx-auto flex h-[600px] w-full max-w-sm flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-2xl">
           <CommandePlatContent
-            plat={currentVariant.id === "readonly-extra" ? null : selectedPlat}
+            plat={currentVariant.id === "readonly-extra" ? null : (selectedPlat as any)}
             onOpenChange={() => {}}
             formatPrix={formatPrix}
             onAddToCart={
@@ -1689,7 +1725,7 @@ function ReadonlyModalPlayground({ plats }: { plats: PlatUI[] }) {
             show3DTilt={show3DTilt}
             // Props de style
             imageFormat={imageFormat}
-            {...currentVariant.props}
+            {...(currentVariant.props as any)}
           />
         </div>
 
@@ -1715,7 +1751,7 @@ function ReadonlyModalPlayground({ plats }: { plats: PlatUI[] }) {
 
       {/* Modal réel */}
       <CommandePlatModal
-        plat={currentVariant.id === "readonly-extra" ? null : selectedPlat}
+        plat={currentVariant.id === "readonly-extra" ? null : (selectedPlat as any)}
         isOpen={isModalOpen}
         onOpenChange={setIsModalOpen}
         formatPrix={formatPrix}
@@ -1746,7 +1782,7 @@ function ReadonlyModalPlayground({ plats }: { plats: PlatUI[] }) {
         // Props animation fermeture
         exitAnimation={exitAnimation}
         showCloseButton={showCloseButton}
-        {...currentVariant.props}
+        {...(currentVariant.props as any)}
       />
     </div>
   )
@@ -1756,17 +1792,17 @@ function ReadonlyModalPlayground({ plats }: { plats: PlatUI[] }) {
     const props: string[] = []
 
     // Props de visibilité (n'afficher que si différent de la valeur par défaut)
-    if (!showImage) props.push('showImage={false}')
-    if (!showBadge) props.push('showBadge={false}')
-    if (!showBadgeDisponible) props.push('showBadgeDisponible={false}')
-    if (!showBadgeExtra) props.push('showBadgeExtra={false}')
-    if (!showBadgePanier) props.push('showBadgePanier={false}')
-    if (!showDescription) props.push('showDescription={false}')
-    if (!showPrice) props.push('showPrice={false}')
-    if (!showQuantitySelector) props.push('showQuantitySelector={false}')
-    if (!showSpiceSelector) props.push('showSpiceSelector={false}')
-    if (!showAddToCartButton) props.push('showAddToCartButton={false}')
-    if (!show3DTilt) props.push('show3DTilt={false}')
+    if (!showImage) props.push("showImage={false}")
+    if (!showBadge) props.push("showBadge={false}")
+    if (!showBadgeDisponible) props.push("showBadgeDisponible={false}")
+    if (!showBadgeExtra) props.push("showBadgeExtra={false}")
+    if (!showBadgePanier) props.push("showBadgePanier={false}")
+    if (!showDescription) props.push("showDescription={false}")
+    if (!showPrice) props.push("showPrice={false}")
+    if (!showQuantitySelector) props.push("showQuantitySelector={false}")
+    if (!showSpiceSelector) props.push("showSpiceSelector={false}")
+    if (!showAddToCartButton) props.push("showAddToCartButton={false}")
+    if (!show3DTilt) props.push("show3DTilt={false}")
 
     // Props de style
     if (modalSize !== "md") props.push(`modalSize="${modalSize}"`)
@@ -1775,7 +1811,7 @@ function ReadonlyModalPlayground({ plats }: { plats: PlatUI[] }) {
 
     // Props animation fermeture
     if (exitAnimation !== "fade-zoom") props.push(`exitAnimation="${exitAnimation}"`)
-    if (showCloseButton) props.push('showCloseButton={true}')
+    if (showCloseButton) props.push("showCloseButton={true}")
 
     // Mode
     props.push(`mode="${currentVariant.props.mode}"`)
@@ -1784,7 +1820,7 @@ function ReadonlyModalPlayground({ plats }: { plats: PlatUI[] }) {
       return `<CommandePlatModal\n  ${props[0]}\n/>`
     }
 
-    return `<CommandePlatModal\n  ${props.join('\n  ')}\n/>`
+    return `<CommandePlatModal\n  ${props.join("\n  ")}\n/>`
   }
 }
 
@@ -2120,7 +2156,8 @@ export default function ModalsTestPage() {
                     <strong>showPriceDetails</strong> (boolean): Afficher quantité/prix/sous-total
                   </li>
                   <li>
-                    <strong>closeOnClick</strong> (boolean): Fermer au click (défaut: true en readonly)
+                    <strong>closeOnClick</strong> (boolean): Fermer au click (défaut: true en
+                    readonly)
                   </li>
                 </ul>
               </div>
@@ -2297,7 +2334,6 @@ export default function ModalsTestPage() {
           <ModalVideoPlayground />
         </CardContent>
       </Card>
-
     </div>
   )
 }

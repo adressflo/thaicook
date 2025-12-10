@@ -1,0 +1,27 @@
+
+> chanthanathaicook-app@0.1.0 build
+> next build
+
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+   ▲ Next.js 16.0.3 (Turbopack)
+   - Environments: .env
+   - Experiments (use with caution):
+     ✓ typedEnv
+
+   Creating an optimized production build ...
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+ ✓ Compiled successfully in 8.0s
+   Running TypeScript ...
+Failed to compile.
+
+./app/auth/reset-password/page.tsx:34:9
+Type error: Object literal may only specify known properties, and 'email' does not exist in type 'Prettify<{ newPassword: string; token?: string | undefined; } & { fetchOptions?: ClientFetchOption<Partial<{ newPassword: string; token?: string | undefined; }> & Record<string, any>, Partial<...> & Record<...>, Record<...> | undefined> | undefined; }>'.
+
+  32 |         // Maybe method is incorrect.
+  33 |         // Let's try matching the arguments first.
+> 34 |         email: email,
+     |         ^
+  35 |         redirectTo: `${window.location.origin}/auth/reset-password/confirm`,
+  36 |       })
+  37 |
+Next.js build worker exited with code: 1 and signal: null

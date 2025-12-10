@@ -1,6 +1,6 @@
-'use client'
+"use client"
 
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from "react"
 
 /**
  * Hook pour détecter si l'application PWA est installée
@@ -20,7 +20,7 @@ export function usePWAInstalled() {
 
   useEffect(() => {
     // Détecter si l'app est lancée en mode standalone (installée)
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches
+    const isStandalone = window.matchMedia("(display-mode: standalone)").matches
     const isIOSStandalone = (window.navigator as any).standalone === true
 
     setIsInstalled(isStandalone || isIOSStandalone)
@@ -33,7 +33,7 @@ export function usePWAInstalled() {
       setInstallPrompt(e)
     }
 
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt)
 
     // Écouter l'installation réussie
     const handleAppInstalled = () => {
@@ -41,11 +41,11 @@ export function usePWAInstalled() {
       setInstallPrompt(null)
     }
 
-    window.addEventListener('appinstalled', handleAppInstalled)
+    window.addEventListener("appinstalled", handleAppInstalled)
 
     return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
-      window.removeEventListener('appinstalled', handleAppInstalled)
+      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt)
+      window.removeEventListener("appinstalled", handleAppInstalled)
     }
   }, [])
 
@@ -54,7 +54,6 @@ export function usePWAInstalled() {
    */
   const install = async () => {
     if (!installPrompt) {
-      console.warn('usePWAInstalled: No install prompt available')
       return false
     }
 
@@ -64,12 +63,10 @@ export function usePWAInstalled() {
     // Attendre la réponse de l'utilisateur
     const { outcome } = await installPrompt.userChoice
 
-    if (outcome === 'accepted') {
-      console.log('PWA installation accepted')
+    if (outcome === "accepted") {
       setInstallPrompt(null)
       return true
     } else {
-      console.log('PWA installation dismissed')
       return false
     }
   }
@@ -78,6 +75,6 @@ export function usePWAInstalled() {
     isInstalled,
     installPrompt,
     canInstall: !isInstalled && installPrompt !== null,
-    install
+    install,
   }
 }

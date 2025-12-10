@@ -65,13 +65,15 @@ const Floating3DCard = ({
   )
 }
 
+import type { PlatUI } from "@/types/app"
+
 export interface CommandePlatModalProps {
-  plat: plats_db | null
+  plat: plats_db | PlatUI | null
   isOpen: boolean
   onOpenChange: (open: boolean) => void
   formatPrix: (prix: number) => string
   onAddToCart?: (
-    plat: plats_db,
+    plat: plats_db | PlatUI,
     quantity: number,
     spicePreference?: string,
     spiceDistribution?: number[],
