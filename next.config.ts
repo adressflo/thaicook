@@ -12,10 +12,22 @@ const nextConfig = {
   images: {
     remotePatterns: [
       {
-        protocol: 'https',
-        hostname: 'lkaiwnkyoztebplqoifc.supabase.co',
-        port: '',
-        pathname: '/storage/v1/object/public/**',
+        protocol: "https",
+        hostname: "lkaiwnkyoztebplqoifc.supabase.co",
+        port: "",
+        pathname: "/storage/v1/object/public/**",
+      },
+      {
+        protocol: "http",
+        hostname: "storage.chanthana.fr",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "http",
+        hostname: "116.203.111.206",
+        port: "9000",
+        pathname: "/**",
       },
     ],
   },
@@ -23,8 +35,8 @@ const nextConfig = {
   async redirects() {
     return [
       {
-        source: '/suivi',
-        destination: '/historique',
+        source: "/suivi",
+        destination: "/historique",
         permanent: true, // 308 Permanent Redirect
       },
     ]
@@ -35,10 +47,10 @@ const nextConfig = {
     // Exclure firebase-messaging-sw.js du bundling
     config.module.rules.push({
       test: /firebase-messaging-sw\.js$/,
-      use: 'null-loader',
-    });
-    return config;
+      use: "null-loader",
+    })
+    return config
   },
-};
+}
 
-export default nextConfig;
+export default nextConfig

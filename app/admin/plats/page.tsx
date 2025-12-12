@@ -32,6 +32,7 @@ import {
   usePrismaUpdateExtra,
   usePrismaUpdatePlat,
 } from "@/hooks/usePrismaData"
+import { getStorageUrl, STORAGE_DEFAULTS } from "@/lib/storage-utils"
 import { cn } from "@/lib/utils"
 import type { ExtraUI, PlatUI as Plat } from "@/types/app"
 import {
@@ -71,14 +72,13 @@ const NewExtraButton = () => {
     nom_extra: "",
     prix: "",
     description: "",
-    photo_url:
-      "https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png",
+    photo_url: getStorageUrl(STORAGE_DEFAULTS.EXTRA),
   })
 
-  // Hook réutilisable pour l&apos;upload d&apos;images
+  // Hook réutilisable pour l'upload d'images
   const { uploadState, uploadFile, resetUpload } = useImageUpload(
     "extras",
-    "https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png"
+    getStorageUrl(STORAGE_DEFAULTS.EXTRA)
   )
 
   // Fonction simplifiée utilisant le hook réutilisable
@@ -121,8 +121,7 @@ const NewExtraButton = () => {
         nom_extra: "",
         prix: "",
         description: "",
-        photo_url:
-          "https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png",
+        photo_url: getStorageUrl(STORAGE_DEFAULTS.EXTRA),
       })
       resetUpload()
     } catch (error) {

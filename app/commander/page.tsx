@@ -832,8 +832,7 @@ const Commander = memo(() => {
                           <div className="relative mb-3 aspect-square overflow-hidden rounded-md">
                             <Image
                               src={
-                                featuredDish.photo_du_plat ||
-                                "https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/default.png"
+                                featuredDish.photo_du_plat || getStorageUrl(STORAGE_DEFAULTS.PLAT)
                               }
                               alt={featuredDish.plat}
                               fill

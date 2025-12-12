@@ -37,6 +37,7 @@ import {
   usePrismaUpdatePlatQuantite,
 } from "@/hooks/usePrismaData"
 import { toSafeNumber } from "@/lib/serialization"
+import { getStorageUrl, STORAGE_DEFAULTS } from "@/lib/storage-utils"
 import type { CommandeUI, CommandeUpdate } from "@/types/app"
 import { format, isFuture, isPast, isToday } from "date-fns"
 import { fr } from "date-fns/locale"
@@ -492,10 +493,7 @@ const PlatCommandeCard = ({
       {/* Image du plat ou extra */}
       {item.type === "extra" ? (
         <img
-          src={
-            item.extra?.photo_url ||
-            "https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/extras/extra.png"
-          }
+          src={item.extra?.photo_url || getStorageUrl(STORAGE_DEFAULTS.EXTRA)}
           alt={item.extra?.nom_extra || "Extra"}
           className="h-16 w-24 cursor-pointer rounded-lg object-cover transition-opacity duration-200 hover:opacity-80"
         />
@@ -647,8 +645,7 @@ const AddComplementModal = ({
         nom_extra: nomComplement,
         prix: prixComplement,
         description: "", // Assuming no description for quick add
-        photo_url:
-          "https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/extras/extra.png", // Default image
+        photo_url: getStorageUrl(STORAGE_DEFAULTS.EXTRA), // Default image
       })
 
       // 2. Then add it to the order
@@ -2092,7 +2089,7 @@ const ModalPlatCard = ({
       {/* Image du plat ou extra */}
       {(item.nom_plat && item.prix_unitaire && !item.plat) || item.type === "extra" ? (
         <img
-          src="https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/extras/extra.png"
+          src={getStorageUrl(STORAGE_DEFAULTS.EXTRA)}
           alt="Extra"
           className="h-16 w-24 cursor-pointer rounded-lg object-cover transition-opacity duration-200 hover:opacity-80"
         />
@@ -2409,8 +2406,7 @@ const CommandeDetailsModal = ({
         nom_extra: nomComplement,
         prix: prixComplement,
         description: "", // Assuming no description for quick add
-        photo_url:
-          "https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/extras/extra.png", // Default image
+        photo_url: getStorageUrl(STORAGE_DEFAULTS.EXTRA), // Default image
       })
 
       // 2. Then add it to the order

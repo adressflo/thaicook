@@ -17,6 +17,7 @@ import { useCommandesRealtime } from "@/hooks/useSupabaseData"
 import { useSession } from "@/lib/auth-client"
 import { extractRouteParam } from "@/lib/params-utils"
 import { toSafeNumber } from "@/lib/serialization"
+import { getStorageUrl, STORAGE_DEFAULTS } from "@/lib/storage-utils"
 import { format } from "date-fns"
 import { fr } from "date-fns/locale"
 import {
@@ -237,7 +238,7 @@ const SuiviCommande = memo(() => {
                                     src={
                                       isExtra
                                         ? extraDetails?.photo_url ||
-                                          "https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png"
+                                          getStorageUrl(STORAGE_DEFAULTS.EXTRA)
                                         : platDetails?.photo_du_plat || ""
                                     }
                                     alt={

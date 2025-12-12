@@ -28,6 +28,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { ModalVideo } from "@/components/ui/ModalVideo"
 import { useData } from "@/contexts/DataContext"
+import { getStorageUrl, STORAGE_DEFAULTS } from "@/lib/storage-utils"
 import { cn } from "@/lib/utils"
 import type { PlatUI } from "@/types/app"
 import { CheckCircle2, CreditCard, Info, Settings, Trash2, User } from "lucide-react"
@@ -1446,8 +1447,7 @@ function ReadonlyModalPlayground({ plats }: { plats: PlatUI[] }) {
           nom_extra: "Riz parfumé thaï",
           description: "Riz jasmin cuit à la vapeur",
           prix: "3.50",
-          photo_url:
-            "https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png",
+          photo_url: getStorageUrl(STORAGE_DEFAULTS.EXTRA),
           created_at: new Date().toISOString(),
         },
         detail: { quantite_plat_commande: 2, type: "extra" as const } as any,

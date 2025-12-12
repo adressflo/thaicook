@@ -85,6 +85,7 @@
     "idb-keyval": "^6.2.2",
     "input-otp": "^1.4.2",
     "lucide-react": "^0.548.0",
+    "minio": "^8.0.6",
     "next": "^16.0.2-canary.21",
     "next-intl": "^4.4.0",
     "next-safe-action": "^8.0.11",

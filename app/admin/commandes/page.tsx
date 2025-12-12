@@ -27,6 +27,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
 import { useSession } from "@/lib/auth-client"
 import { toSafeNumber } from "@/lib/serialization"
+import { getStorageUrl, STORAGE_DEFAULTS } from "@/lib/storage-utils"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 // import { UnifiedExtraModal } from '@/components/admin/UnifiedExtraModal'; // Temporarily commented out
@@ -874,12 +875,12 @@ const AddComplementModal = ({
     nom_extra: "",
     prix: "",
     description: "",
-    photo_url: "https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/extras/extra.png",
+    photo_url: getStorageUrl(STORAGE_DEFAULTS.EXTRA),
   })
   const createExtraMutation = usePrismaCreateExtra()
   const { uploadState, uploadFile, resetUpload } = useImageUpload(
     "extras",
-    "https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/extras/extra.png"
+    getStorageUrl(STORAGE_DEFAULTS.EXTRA)
   )
 
   const addExtraMutation = usePrismaAddExtraToCommande()
@@ -968,8 +969,7 @@ const AddComplementModal = ({
       nom_extra: "",
       prix: "",
       description: "",
-      photo_url:
-        "https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/extras/extra.png",
+      photo_url: getStorageUrl(STORAGE_DEFAULTS.EXTRA),
     })
     resetUpload()
   }
@@ -1011,10 +1011,7 @@ const AddComplementModal = ({
                     }`}
                   >
                     <img
-                      src={
-                        extra.photo_url ||
-                        "https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/extras/extra.png"
-                      }
+                      src={extra.photo_url || getStorageUrl(STORAGE_DEFAULTS.EXTRA)}
                       alt={extra.nom_extra}
                       className="h-12 w-12 rounded-md object-cover"
                     />
@@ -2627,17 +2624,14 @@ const ModalPlatCard = ({
       {/* Image du plat ou extra */}
       {item.extra ? (
         <img
-          src={
-            item.extra.photo_url ||
-            "https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/extras/extra.png"
-          }
+          src={item.extra.photo_url || getStorageUrl(STORAGE_DEFAULTS.EXTRA)}
           alt={item.extra.nom_extra || "Extra"}
           className="h-16 w-24 cursor-pointer rounded-lg object-cover transition-opacity duration-200 hover:opacity-80"
         />
       ) : (item.nom_plat && item.prix_unitaire && !item.plat) ||
         item.type === "complement_divers" ? (
         <img
-          src="https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/extras/extra.png"
+          src={getStorageUrl(STORAGE_DEFAULTS.EXTRA)}
           alt="Extra"
           className="h-16 w-24 cursor-pointer rounded-lg object-cover transition-opacity duration-200 hover:opacity-80"
         />

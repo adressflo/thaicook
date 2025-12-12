@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { useToast } from "@/hooks/use-toast"
+import { getStorageUrl, STORAGE_DEFAULTS } from "@/lib/storage-utils"
 import {
   AlertCircle,
   ArrowLeft,
@@ -192,10 +193,7 @@ const ModifierCommande = memo(() => {
       // Extraire l'ID de l'extra depuis l'ID du panier (format: "extra-123")
       const extraId = parseInt(item.id.replace("extra-", "")) || 0
       const extraData = extras.find((extra: ExtraUI) => extra.idextra === extraId)
-      return (
-        extraData?.photo_url ??
-        "https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png"
-      )
+      return extraData?.photo_url ?? getStorageUrl(STORAGE_DEFAULTS.EXTRA)
     }
     // Sinon, utiliser la photo du plat normal
     const platData = plats?.find((p) => p.idplats.toString() === item.id)
