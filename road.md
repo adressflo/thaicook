@@ -366,47 +366,30 @@ Tests       15 passed (15)
 
 ---
 
-### ✅ 5️⃣ Upload Fichiers - Supabase Storage Fonctionnel [COMPLÉTÉ]
+### ✅ 5️⃣ Upload Fichiers - Migration MinIO Self-Hosted [COMPLÉTÉ]
 
-**Statut : 100% Opérationnel | Migration Hetzner optionnelle (Phase 4)**
+**Statut : 100% Opérationnel | Migration Supabase → MinIO terminée**
 
-**✅ Infrastructure actuelle Supabase Storage :**
+**✅ Infrastructure MinIO (Self-Hosted Hetzner) :**
 
-- [x] **Validation MIME complète** : `lib/supabaseStorage.ts` (7583 lignes)
-  - ✅ MIME types autorisés : `image/jpeg`, `image/png`, `image/webp`, `image/gif`
-  - ✅ Validation taille max : 5MB par fichier
-  - ✅ Fonction `validateImageFile()` avec gestion erreurs françaises
-- [x] **Hook upload complet** : `hooks/useImageUpload.ts` fonctionnel
-- [x] **Buckets configurés** : Photos plats, avatars, événements
-- [x] **URLs publiques** : Accès direct via Supabase CDN
+- [x] **Instance MinIO** : Hébergée sur serveur Hetzner (Port 9000/9001)
+- [x] **Client MinIO** : Configuré dans `lib/minio.ts` avec SDK officiel
+- [x] **Buckets configurés** : `platphoto`, `hero`, `extras`, `profile-photos`
+- [x] **Upload Sécurisé** :
+  - [x] Server Action : `app/actions/storage.ts`
+  - [x] Validation MIME et Taille via `hooks/useImageUpload.ts`
+  - [x] Génération noms uniques (crypto.randomUUID)
+- [x] **URLs Dynamiques** :
+  - [x] Utilitaire `getStorageUrl` dans `lib/storage-utils.ts`
+  - [x] Support environnement Dev/Prod via variables d'environnement
+- [x] **Migration Données** :
+  - [x] Script migration assets Supabase → MinIO exécuté
+  - [x] Script mise à jour base de données (remplacement URLs) exécuté
 
-**🔥 Migration Hetzner Local (OPTIONNEL - Phase 4)**
-**Objectif :** Économiser stockage Supabase (actuellement 1GB free tier)
+**🗑️ Ancienne Infrastructure (Supabase Storage) :**
 
-- [ ] **Server Action Upload local**
-  - `app/actions/upload.ts` : Server Action avec `zfd.formData({ image: zfd.file() })`
-  - Validation MIME identique à Supabase Storage actuel
-  - Utiliser `fs/promises.writeFile()` pour stockage dans `/public/uploads/`
-  - Structure dossiers : `/public/uploads/{plats,extras,evenements,avatars}/`
-  - Retourner URL publique : `/uploads/plats/image-123.webp`
-
-- [ ] **Configuration dossier `/public/uploads`**
-  - Créer structure : `mkdir -p public/uploads/{plats,extras,evenements,avatars}`
-  - Ajouter `.gitkeep` dans chaque sous-dossier
-  - Ajouter `public/uploads/*` dans `.gitignore` (ne pas versionner uploads)
-
-- [ ] **Optimisation Images (optionnel, Phase 2)**
-  - Compression automatique avec `sharp` (NPM)
-  - Génération thumbnails pour performances
-  - Conversion auto vers WebP
-
-- [ ] **Tests Upload**
-  - Test upload image valide
-  - Test rejection fichier invalide (PDF, exe, etc.)
-  - Test rejection fichier trop lourd (>5MB)
-  - Test génération nom unique (collision handling)
-
-💡 **Note :** Garder Supabase Storage en backup temporairement jusqu'à migration complète validée.
+- [x] **Déprécié** : Supabase Storage ne sert plus que de backup ultime
+- [x] **Nettoyage code** : Hooks upload refactorisés pour utiliser Server Actions MinIO
 
 ---
 

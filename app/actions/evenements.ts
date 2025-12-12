@@ -83,15 +83,32 @@ export const createEvenement = authAction
   .schema(evenementSchema.extend({ contact_client_r_id: z.number() }))
   .action(async ({ parsedInput: data }) => {
     try {
+      // Destructure and map fields explicitly to avoid passing unknown arguments to Prisma
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const {
+        lieu_evenement,
+        is_public,
+        statut,
+        budget_approximatif,
+        description_evenement,
+        ...rest
+      } = data
+
+      // Map Zod fields to Prisma fields
+      const createData: Prisma.evenements_dbUncheckedCreateInput = {
+        nom_evenement: rest.nom_evenement,
+        contact_client_r: rest.contact_client_r,
+        contact_client_r_id: BigInt(rest.contact_client_r_id),
+        date_evenement: new Date(rest.date_evenement),
+        nombre_de_personnes: rest.nombre_personnes,
+        budget_client: budget_approximatif ? new Decimal(budget_approximatif) : null,
+        demandes_speciales_evenement: description_evenement || null,
+        statut_evenement: "Demande_initiale",
+        plats_preselectionnes: rest.plats_preselectionnes,
+      }
+
       const evenement = await prisma.evenements_db.create({
-        data: {
-          ...data,
-          contact_client_r_id: BigInt(data.contact_client_r_id),
-          date_evenement: new Date(data.date_evenement),
-          budget_client: data.budget_approximatif ? new Decimal(data.budget_approximatif) : null,
-          demandes_speciales_evenement: data.description_evenement || null,
-          statut_evenement: "Demande_initiale",
-        },
+        data: createData,
         include: {
           client_db: true,
         },
@@ -112,8 +129,30 @@ export const updateEvenement = authAction
   .schema(evenementUpdateSchema.extend({ id: z.number() }))
   .action(async ({ parsedInput: { id, ...data } }) => {
     try {
-      const { budget_approximatif, date_evenement, ...rest } = data
-      const updateData: Prisma.evenements_dbUpdateInput = { ...rest }
+      // Destructure to separate special handling and remove unknown fields
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const {
+        budget_approximatif,
+        date_evenement,
+        description_evenement,
+        lieu_evenement,
+        is_public,
+        statut,
+        ...rest
+      } = data
+
+      const updateData: Prisma.evenements_dbUpdateInput = {}
+
+      // Only add fields if they are defined in 'rest' and exist in DB
+      if (rest.nom_evenement) updateData.nom_evenement = rest.nom_evenement
+      if (rest.nombre_personnes) updateData.nombre_de_personnes = rest.nombre_personnes
+      if (rest.contact_client_r) updateData.contact_client_r = rest.contact_client_r
+      if (rest.plats_preselectionnes) updateData.plats_preselectionnes = rest.plats_preselectionnes
+
+      // Handle mapped fields
+      if (description_evenement !== undefined) {
+        updateData.demandes_speciales_evenement = description_evenement
+      }
 
       if (date_evenement) {
         updateData.date_evenement = new Date(date_evenement)
