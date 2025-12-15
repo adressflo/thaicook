@@ -41,6 +41,9 @@ next-env.d.ts
 .idea/
 *.swp
 *.swo
+# Allow workspace files for Antigravity
+!*.code-workspace
+
 
 # Logs
 logs
@@ -81,13 +84,8 @@ nul
 .claude/
 !.claude/README.md
 
-# Gemini project-specific files
-.gemini/
-
-# AI Configuration files (ne pas versionner)
-CLAUDE.md
-GEMINI.md
-
+# Gemini/AI configuration (accessible pour l'IA locale)
+# Note: GEMINI.md et .gemini/ ne sont plus ignorés pour permettre l'accès à l'IA
 
 #Ignore vscode AI rules
 .github\instructions\codacy.instructions.md
