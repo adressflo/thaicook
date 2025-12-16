@@ -1292,16 +1292,15 @@ npm run test:e2e
 #### 🔥🔥 Tâches Restantes
 
 - [x] ✅ **Intégrer BoutonTelechargerFacture** : Ajouter dans ActionButtons.tsx pour statut "Récupérée"
-- [ ] 🔥🔥 **Bouton Devis/Facture événements** : Template PDF événement à créer (`BoutonTelechargerDevis`)
-- [ ] 🔥🔥 **Bouton "Voir tout l'historique"** : Redirection vers `/historique/complet`
-- [ ] 🔥🔥 **"Commander à Nouveau"** : Bouton copie commande passée vers panier
+- [x] ✅ **Bouton Devis/Facture événements** : Template PDF événement créé (`BoutonTelechargerDevis.tsx`)
+- [x] ✅ **Bouton "Voir tout l'historique"** : Redirection vers `/historique/complet` (ligne 697-704)
+- [x] ✅ **"Commander à Nouveau"** : Bouton copie commande passée vers panier (`BoutonCommanderNouveau.tsx`)
 
-#### ❌ Page Historique Complet (/historique/complet) - N'EXISTE PAS
+#### ✅ Page Historique Complet (/historique/complet) - COMPLÈTE
 
-**Note : Page planifiée mais non créée**
-
-- [ ] 🔥🔥 **Créer page `/historique/complet/page.tsx`** : Route Next.js manquante
-- [ ] 🔥🔥 **nuqs - Pagination** : Navigation pages avec URL state
+- [x] ✅ **Page `/historique/complet/page.tsx`** : Route Next.js créée
+- [x] ✅ **nuqs - Pagination** : Navigation pages avec URL state (`HistoryCompletClient.tsx`)
+- [x] ✅ **FilterSearchBar intégré** : Tous les filtres disponibles
 - [ ] 🔥 **Vue Calendrier** : Navigation visuelle commandes/événements passés
 
 #### 💜 Suggestions Pratiques
