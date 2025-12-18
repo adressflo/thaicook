@@ -60,6 +60,7 @@ import { ModalVideo } from "@/components/ui/ModalVideo"
 import { useCart } from "@/contexts/CartContext"
 import { usePrismaCreateCommande } from "@/hooks/usePrismaData"
 import { spiceTextToLevel } from "@/lib/spice-helpers"
+import { getStorageUrl, STORAGE_DEFAULTS } from "@/lib/storage-utils"
 import type { PlatUI as Plat, PlatPanier } from "@/types/app"
 
 export const dynamic = "force-dynamic"
@@ -766,18 +767,31 @@ const Commander = memo(() => {
                                 <CalendarIconLucide className="mr-2 h-4 w-4" />
                                 <SelectValue placeholder="Sélectionner">
                                   {dateRetrait
-                                    ? format(dateRetrait, "eeee dd MMMM", {
-                                        locale: fr,
-                                      })
+                                    ? format(
+                                        dateRetrait,
+                                        dateRetrait.getFullYear() === new Date().getFullYear()
+                                          ? "eeee dd MMMM"
+                                          : "eeee dd MMMM yyyy",
+                                        {
+                                          locale: fr,
+                                        }
+                                      )
                                     : "Sélectionner une date"}
                                 </SelectValue>
                               </SelectTrigger>
                               <SelectContent>
-                                {allowedDates.map((date) => (
-                                  <SelectItem key={date.toISOString()} value={date.toISOString()}>
-                                    {format(date, "eeee dd MMMM", { locale: fr })}
-                                  </SelectItem>
-                                ))}
+                                {allowedDates.map((date) => {
+                                  const isCurrentYear =
+                                    date.getFullYear() === new Date().getFullYear()
+                                  const dateFormat = isCurrentYear
+                                    ? "eeee dd MMMM"
+                                    : "eeee dd MMMM yyyy"
+                                  return (
+                                    <SelectItem key={date.toISOString()} value={date.toISOString()}>
+                                      {format(date, dateFormat, { locale: fr })}
+                                    </SelectItem>
+                                  )
+                                })}
                               </SelectContent>
                             </Select>
                           </div>
@@ -955,8 +969,15 @@ const Commander = memo(() => {
                   )}
                   <div className="mt-6 rounded-lg border border-green-200 bg-green-50 p-3 text-center">
                     <p className="text-sm font-medium text-green-800">
-                      ✓ Retrait prévu le {format(dateRetrait, "eeee dd MMMM", { locale: fr })} à{" "}
-                      {heureRetrait}
+                      ✓ Retrait prévu le{" "}
+                      {format(
+                        dateRetrait,
+                        dateRetrait.getFullYear() === new Date().getFullYear()
+                          ? "eeee dd MMMM"
+                          : "eeee dd MMMM yyyy",
+                        { locale: fr }
+                      )}{" "}
+                      à {heureRetrait}
                     </p>
                   </div>
                 </CardContent>
@@ -1039,9 +1060,15 @@ const Commander = memo(() => {
                                   <CalendarIconLucide className="text-thai-orange h-4 w-4" />
                                   Retrait prévu le{" "}
                                   <span className="text-thai-orange font-bold">
-                                    {format(dateRetrait, "eeee dd MMMM", {
-                                      locale: fr,
-                                    }).replace(/^\w/, (c) => c.toUpperCase())}{" "}
+                                    {format(
+                                      dateRetrait,
+                                      dateRetrait.getFullYear() === new Date().getFullYear()
+                                        ? "eeee dd MMMM"
+                                        : "eeee dd MMMM yyyy",
+                                      {
+                                        locale: fr,
+                                      }
+                                    ).replace(/^\w/, (c) => c.toUpperCase())}{" "}
                                     à {format(dateRetrait, "HH:mm")}
                                   </span>
                                 </h4>

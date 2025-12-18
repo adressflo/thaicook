@@ -1,7 +1,7 @@
 "use client"
 
 import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister"
-import { QueryClient } from "@tanstack/react-query"
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client"
 import { del, get, set } from "idb-keyval"
 import { ReactNode, useEffect, useState } from "react"
@@ -15,20 +15,17 @@ interface ProvidersProps {
 
 // Créer le persister avec IndexedDB (via idb-keyval)
 const createPersister = () => {
+  // Côté serveur, retourner undefined - le PersistQueryClientProvider le gère
   if (typeof window === "undefined") {
-    // Côté serveur, retourner un persister no-op
-    return {
-      persistClient: async () => {},
-      restoreClient: async () => undefined,
-      removeClient: async () => {},
-    }
+    return undefined
   }
 
   return createAsyncStoragePersister({
     storage: {
       getItem: async (key) => {
         try {
-          return await get(key)
+          const value = await get(key)
+          return value ?? null
         } catch (error) {
           console.error("Error reading from IndexedDB:", error)
           return null
@@ -74,7 +71,19 @@ export function Providers({ children }: ProvidersProps) {
       })
   )
 
-  const [persister] = useState(() => createPersister())
+  const [persister, setPersister] = useState<ReturnType<typeof createAsyncStoragePersister> | null>(
+    null
+  )
+
+  // Initialiser le persister côté client uniquement
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const p = createPersister()
+      if (p) {
+        setPersister(p)
+      }
+    }
+  }, [])
 
   // Nettoyer les données expirées au montage du composant
   useEffect(() => {
@@ -94,6 +103,24 @@ export function Providers({ children }: ProvidersProps) {
     cleanup()
   }, [])
 
+  // Composant interne pour éviter duplication
+  const AppProviders = ({ children: c }: { children: ReactNode }) => (
+    <DataProvider>
+      <CartProvider>
+        <NotificationProvider>{c}</NotificationProvider>
+      </CartProvider>
+    </DataProvider>
+  )
+
+  // Si pas de persister (SSR ou en cours d'initialisation), utiliser QueryClientProvider standard
+  if (!persister) {
+    return (
+      <QueryClientProvider client={queryClient}>
+        <AppProviders>{children}</AppProviders>
+      </QueryClientProvider>
+    )
+  }
+
   return (
     <PersistQueryClientProvider
       client={queryClient}
@@ -106,13 +133,9 @@ export function Providers({ children }: ProvidersProps) {
             return query.state.status !== "error"
           },
         },
-      }} // Fix closing brace for persistOptions
+      }}
     >
-      <DataProvider>
-        <CartProvider>
-          <NotificationProvider>{children}</NotificationProvider>
-        </CartProvider>
-      </DataProvider>
+      <AppProviders>{children}</AppProviders>
     </PersistQueryClientProvider>
   )
 }
