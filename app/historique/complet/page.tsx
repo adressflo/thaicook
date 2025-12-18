@@ -1,19 +1,28 @@
+"use client"
+
+import { CalendarView } from "@/components/historique/calendar/CalendarView"
+import { AppLayout } from "@/components/layout/AppLayout"
 import { Loader2 } from "lucide-react"
 import { Suspense } from "react"
-import HistoryCompletClient from "./HistoryCompletClient"
 
 export const dynamic = "force-dynamic"
 
 export default function HistoriqueCompletPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="flex min-h-screen items-center justify-center bg-gray-50">
-          <Loader2 className="text-thai-orange h-12 w-12 animate-spin" />
+    <AppLayout>
+      <div className="bg-gradient-thai min-h-screen px-4 py-8">
+        <div className="animate-in fade-in container mx-auto max-w-7xl duration-500">
+          <Suspense
+            fallback={
+              <div className="flex min-h-[50vh] items-center justify-center">
+                <Loader2 className="text-thai-orange h-12 w-12 animate-spin" />
+              </div>
+            }
+          >
+            <CalendarView />
+          </Suspense>
         </div>
-      }
-    >
-      <HistoryCompletClient />
-    </Suspense>
+      </div>
+    </AppLayout>
   )
 }

@@ -16,16 +16,7 @@ import { useSession } from "@/lib/auth-client"
 import { toSafeNumber } from "@/lib/serialization"
 import type { CommandeUI, EvenementUI, ExtraUI } from "@/types/app"
 import { isWithinInterval, parseISO } from "date-fns"
-import {
-  BarChart3,
-  Calendar,
-  Clock,
-  Euro,
-  History,
-  PartyPopper,
-  Users,
-  Utensils,
-} from "lucide-react"
+import { BarChart3, Calendar, Clock, Euro, PartyPopper, Users, Utensils } from "lucide-react"
 import Link from "next/link"
 import { memo, useCallback, useEffect, useMemo, useState } from "react"
 
@@ -447,90 +438,6 @@ const HistoriquePage = memo(() => {
             </CardContent>
           </Card>
 
-          {/* Section Historique des Commandes */}
-          <Card className="border-thai-orange/20 group shadow-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl">
-            <CardHeader>
-              <CardTitle className="text-thai-green flex items-center gap-2 text-2xl font-bold">
-                <History className="h-6 w-6 transition-transform duration-300 group-hover:rotate-12" />
-                Historique de vos commandes
-              </CardTitle>
-              <CardDescription>
-                Vos 10 dernières commandes terminées (récupérées ou annulées).
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {commandesHistorique.length > 0 ? (
-                <div className="space-y-4">
-                  {/* En-têtes avec icônes */}
-                  <div className="bg-thai-cream/30 border-thai-orange/20 grid grid-cols-1 gap-4 rounded-lg border px-3 py-2 md:grid-cols-5">
-                    <div className="text-thai-green text-center font-semibold">
-                      <div className="flex items-center justify-center gap-2">
-                        <Calendar className="text-thai-orange h-4 w-4" />
-                        <span>Date de retrait</span>
-                      </div>
-                    </div>
-                    <div className="text-thai-green text-center font-semibold md:col-span-2">
-                      <div className="flex items-center justify-center gap-2">
-                        <Utensils className="text-thai-orange h-4 w-4" />
-                        <span>Plats commandés</span>
-                      </div>
-                    </div>
-                    <div className="text-thai-green text-center font-semibold md:-ml-16">
-                      <div className="flex items-center justify-center gap-2">
-                        <Euro className="text-thai-orange h-4 w-4" />
-                        <span>Total</span>
-                      </div>
-                    </div>
-                    <div className="text-thai-green text-center font-semibold md:-ml-12">
-                      <div className="flex items-center justify-center gap-2">
-                        <BarChart3 className="text-thai-orange h-4 w-4" />
-                        <span>Statut</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="border-thai-orange/20 bg-thai-cream/20 space-y-4 rounded-lg border p-3">
-                    {commandesHistorique.map((c: CommandeUI) => (
-                      <div
-                        key={c.idcommande}
-                        className="hover:bg-thai-cream/20 hover:border-thai-orange hover:ring-thai-orange/30 flex transform cursor-pointer items-start gap-3 rounded-lg border border-gray-200 bg-white p-3 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:ring-2"
-                      >
-                        <div className="grid flex-1 grid-cols-1 items-center gap-3 md:grid-cols-5">
-                          <div className="text-center">
-                            <FormattedDate date={c.date_et_heure_de_retrait_souhaitees} />
-                          </div>
-                          <div className="text-center md:col-span-2">
-                            <DishList
-                              details={c.details || []}
-                              formatPrix={formatPrix}
-                              extras={extras}
-                            />
-                          </div>
-                          <div className="text-center md:-ml-12">
-                            <FormattedPrice
-                              prix={calculateTotal(c)}
-                              formatPrix={formatPrix}
-                              details={c.details || []}
-                            />
-                          </div>
-                          <div className="flex flex-col items-center justify-center gap-3 text-center md:-ml-8">
-                            <StatusBadge statut={c.statut_commande} type="commande" />
-                            <CommandeActionButtons
-                              commandeId={c.idcommande}
-                              canEdit={false}
-                              commande={c}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <EmptyState type="commandes-historique" />
-              )}
-            </CardContent>
-          </Card>
-
           {/* Section Suivi des Événements */}
           <Card className="border-thai-green/20 group shadow-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl">
             <CardHeader>
@@ -618,87 +525,12 @@ const HistoriquePage = memo(() => {
             </CardContent>
           </Card>
 
-          {/* Section Historique des Événements */}
-          <Card className="border-thai-green/20 group shadow-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl">
-            <CardHeader>
-              <CardTitle className="text-thai-green flex items-center gap-2 text-2xl font-bold">
-                <History className="h-6 w-6 transition-transform duration-300 group-hover:rotate-12" />
-                Historique de vos événements
-              </CardTitle>
-              <CardDescription>Événements terminés (réalisés ou annulés).</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {evenementsHistorique.length > 0 ? (
-                <div className="space-y-4">
-                  {/* En-têtes avec icônes */}
-                  <div className="bg-thai-cream/30 border-thai-green/20 grid grid-cols-1 gap-4 rounded-lg border px-3 py-2 md:grid-cols-4">
-                    <div className="text-thai-green text-center font-semibold">
-                      <div className="flex items-center justify-center gap-2">
-                        <PartyPopper className="text-thai-orange h-4 w-4" />
-                        <span>Événement</span>
-                      </div>
-                    </div>
-                    <div className="text-thai-green text-center font-semibold">
-                      <div className="flex items-center justify-center gap-2">
-                        <Calendar className="text-thai-orange h-4 w-4" />
-                        <span>Date prévue</span>
-                      </div>
-                    </div>
-                    <div className="text-thai-green text-center font-semibold">
-                      <div className="flex items-center justify-center gap-2">
-                        <Users className="text-thai-orange h-4 w-4" />
-                        <span>Personnes</span>
-                      </div>
-                    </div>
-                    <div className="text-thai-green text-center font-semibold md:-ml-12">
-                      <div className="flex items-center justify-center gap-2">
-                        <BarChart3 className="text-thai-orange h-4 w-4" />
-                        <span>Statut</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="border-thai-green/20 bg-thai-cream/20 space-y-4 rounded-lg border p-3">
-                    {evenementsHistorique.map((evt: EvenementUI) => (
-                      <div
-                        key={evt.idevenements}
-                        className="hover:bg-thai-cream/20 hover:border-thai-green hover:ring-thai-green/30 flex min-h-16 transform cursor-pointer items-center gap-4 rounded-lg border border-gray-200 bg-white px-4 py-4 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:ring-2"
-                      >
-                        <div className="grid flex-1 grid-cols-1 items-center gap-6 md:grid-cols-4">
-                          <div className="text-center">
-                            <FormattedEvent event={evt} />
-                          </div>
-                          <div className="text-center">
-                            <FormattedDate date={evt.date_evenement} />
-                          </div>
-                          <div className="text-center">
-                            <PersonCount count={evt.nombre_de_personnes} />
-                          </div>
-                          <div className="text-center">
-                            <StatusBadge statut={evt.statut_evenement} type="evenement" />
-                            <div className="mt-2 flex items-center justify-center">
-                              <EvenementActionButtons
-                                evenementId={evt.idevenements}
-                                canEdit={false}
-                                evenement={evt}
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <EmptyState type="evenements-historique" />
-              )}
-            </CardContent>
-          </Card>
-
-          <div className="flex justify-center pb-8">
+          {/* Bouton vers Vue Calendrier */}
+          <div className="flex justify-center pt-4 pb-8">
             <Link href="/historique/complet">
-              <span className="bg-thai-orange hover:bg-thai-orange/90 inline-flex items-center justify-center rounded-full px-6 py-3 font-semibold text-white shadow-lg transition-transform hover:scale-105">
-                <History className="mr-2 h-5 w-5" />
-                Voir tout l&apos;historique
+              <span className="bg-thai-orange hover:bg-thai-orange/90 inline-flex items-center justify-center rounded-full px-8 py-4 text-lg font-bold text-white shadow-xl transition-transform hover:scale-105 hover:shadow-2xl">
+                <Calendar className="mr-3 h-6 w-6" />
+                📅 Voir le calendrier complet
               </span>
             </Link>
           </div>
