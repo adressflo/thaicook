@@ -1164,10 +1164,11 @@ npm run test:e2e
   - ✅ Cart sidebar avec badge quantité (ligne 925)
   - ✅ Badge numérique superposé fonctionnel
 
-- [ ] 🔥 **Mobile UX - Bottom navigation** : ❌ NON IMPLÉMENTÉ
-  - Actuellement: Sidebar hamburger menu (gauche) via `Sidebar.tsx`
-  - À créer: Navigation bas d'écran pour mobile (pattern moderne 2025)
-  - Composants suggérés: Bottom sheet glissant ou Tab bar fixe
+- [x] 🔥 **Mobile UX - Bottom navigation** : ✅ COMPLÉTÉ
+  - ✅ **5 Onglets fixes** : Accueil, Menu, Panier, Contact/Historique, Profil
+  - ✅ **Barre Panier Intelligente** : Résumé (Total articles + Prix) clickable au-dessus de la nav
+  - ✅ **UX Moderne** : Suppression sidebar sur mobile, navigation pouce facile
+  - ✅ **Optimisation** : Suppression doublon `BottomNav` dans layout
 
 - [x] ✅ **Avatar Chanthana animations** : COMPLÉTÉ
   - ✅ Fichier: `components/commander/ChanthanaAvatar.tsx` (84 lignes)
