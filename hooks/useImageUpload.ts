@@ -1,6 +1,7 @@
 import { uploadFileAction } from "@/app/actions/storage"
 import { useToast } from "@/hooks/use-toast"
-import { UploadState, validateImageFile } from "@/lib/supabaseStorage"
+import { UploadState, validateImageFile } from "@/lib/storage-validation"
+
 import { useCallback, useState } from "react"
 
 // Interface pour le retour du hook

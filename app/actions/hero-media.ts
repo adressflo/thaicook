@@ -1,10 +1,10 @@
 "use server"
 
-import { action } from "@/lib/safe-action"
+import { BUCKETS, minioClient } from "@/lib/minio"
 import { prisma } from "@/lib/prisma"
-import { z } from "zod"
-import { supabase } from "@/lib/supabase"
+import { action } from "@/lib/safe-action"
 import { revalidatePath } from "next/cache"
+import { z } from "zod"
 
 // Schema de validation pour un média hero
 const heroMediaSchema = z.object({
@@ -19,10 +19,12 @@ const heroMediaSchema = z.object({
 
 // Schema pour la réorganisation
 const reorderSchema = z.object({
-  items: z.array(z.object({
-    id: z.string(),
-    ordre: z.number(),
-  })),
+  items: z.array(
+    z.object({
+      id: z.string(),
+      ordre: z.number(),
+    })
+  ),
 })
 
 // Schema pour toggle active
@@ -34,20 +36,18 @@ const toggleActiveSchema = z.object({
 // Schema pour suppression
 const deleteSchema = z.object({
   id: z.string(),
-  url: z.string(), // Pour supprimer le fichier de Supabase Storage
+  url: z.string(), // Pour supprimer le fichier de MinIO
 })
 
 /**
  * Récupérer tous les médias hero (actifs et inactifs)
  */
-export const getAllHeroMedias = action
-  .schema(z.object({}))
-  .action(async () => {
-    const medias = await prisma.hero_media.findMany({
-      orderBy: { ordre: 'asc' },
-    })
-    return medias
+export const getAllHeroMedias = action.schema(z.object({})).action(async () => {
+  const medias = await prisma.hero_media.findMany({
+    orderBy: { ordre: "asc" },
   })
+  return medias
+})
 
 /**
  * Créer un nouveau média hero
@@ -66,55 +66,51 @@ export const createHeroMedia = action
       },
     })
 
-    revalidatePath('/')
+    revalidatePath("/")
     return newMedia
   })
 
 /**
  * Mettre à jour un média hero
  */
-export const updateHeroMedia = action
-  .schema(heroMediaSchema)
-  .action(async ({ parsedInput }) => {
-    if (!parsedInput.id) {
-      throw new Error("ID requis pour la mise à jour")
-    }
+export const updateHeroMedia = action.schema(heroMediaSchema).action(async ({ parsedInput }) => {
+  if (!parsedInput.id) {
+    throw new Error("ID requis pour la mise à jour")
+  }
 
-    const updatedMedia = await prisma.hero_media.update({
-      where: { id: parsedInput.id },
-      data: {
-        type: parsedInput.type,
-        url: parsedInput.url,
-        titre: parsedInput.titre,
-        description: parsedInput.description,
-        ordre: parsedInput.ordre,
-        active: parsedInput.active,
-      },
-    })
-
-    revalidatePath('/')
-    return updatedMedia
+  const updatedMedia = await prisma.hero_media.update({
+    where: { id: parsedInput.id },
+    data: {
+      type: parsedInput.type,
+      url: parsedInput.url,
+      titre: parsedInput.titre,
+      description: parsedInput.description,
+      ordre: parsedInput.ordre,
+      active: parsedInput.active,
+    },
   })
+
+  revalidatePath("/")
+  return updatedMedia
+})
 
 /**
  * Réorganiser les médias hero (drag & drop)
  */
-export const reorderHeroMedias = action
-  .schema(reorderSchema)
-  .action(async ({ parsedInput }) => {
-    // Mettre à jour l'ordre de chaque média
-    const updates = parsedInput.items.map((item) =>
-      prisma.hero_media.update({
-        where: { id: item.id },
-        data: { ordre: item.ordre },
-      })
-    )
+export const reorderHeroMedias = action.schema(reorderSchema).action(async ({ parsedInput }) => {
+  // Mettre à jour l'ordre de chaque média
+  const updates = parsedInput.items.map((item) =>
+    prisma.hero_media.update({
+      where: { id: item.id },
+      data: { ordre: item.ordre },
+    })
+  )
 
-    await prisma.$transaction(updates)
-    revalidatePath('/')
+  await prisma.$transaction(updates)
+  revalidatePath("/")
 
-    return { success: true }
-  })
+  return { success: true }
+})
 
 /**
  * Activer/désactiver un média hero
@@ -127,72 +123,67 @@ export const toggleHeroMediaActive = action
       data: { active: parsedInput.active },
     })
 
-    revalidatePath('/')
+    revalidatePath("/")
     return updatedMedia
   })
 
 /**
  * Supprimer un média hero
  */
-export const deleteHeroMedia = action
-  .schema(deleteSchema)
-  .action(async ({ parsedInput }) => {
-    // Si c'est une URL Supabase Storage, supprimer le fichier
-    if (parsedInput.url.includes('supabase.co/storage')) {
-      const pathMatch = parsedInput.url.match(/\/hero\/(.+)$/)
-      if (pathMatch) {
-        const filePath = pathMatch[1]
-        const { error } = await (supabase as any).storage
-          .from('hero')
-          .remove([filePath])
-
-        if (error) {
-          console.error('Erreur suppression fichier Supabase:', error)
-        }
+export const deleteHeroMedia = action.schema(deleteSchema).action(async ({ parsedInput }) => {
+  // Si c'est une URL MinIO, supprimer le fichier
+  const minioEndpoint = process.env.MINIO_ENDPOINT || "116.203.111.206"
+  if (parsedInput.url.includes(minioEndpoint)) {
+    const pathMatch = parsedInput.url.match(/\/hero\/(.+)$/)
+    if (pathMatch) {
+      const filePath = pathMatch[1]
+      try {
+        await minioClient.removeObject(BUCKETS.HERO, filePath)
+      } catch (error) {
+        console.warn("Fichier non trouvé dans MinIO (peut-être déjà supprimé):", error)
       }
     }
+  }
 
-    // Supprimer l'entrée en base
-    await prisma.hero_media.delete({
-      where: { id: parsedInput.id },
-    })
-
-    revalidatePath('/')
-    return { success: true }
+  // Supprimer l'entrée en base
+  await prisma.hero_media.delete({
+    where: { id: parsedInput.id },
   })
 
+  revalidatePath("/")
+  return { success: true }
+})
+
 /**
- * Upload un fichier vers Supabase Storage
+ * Upload un fichier vers MinIO
  */
 export const uploadHeroFile = action
-  .schema(z.object({
-    fileName: z.string(),
-    fileType: z.string(),
-    fileBuffer: z.string(), // Base64 encoded
-  }))
+  .schema(
+    z.object({
+      fileName: z.string(),
+      fileType: z.string(),
+      fileBuffer: z.string(), // Base64 encoded
+    })
+  )
   .action(async ({ parsedInput }) => {
     // Décoder le buffer base64
-    const buffer = Buffer.from(parsedInput.fileBuffer, 'base64')
+    const buffer = Buffer.from(parsedInput.fileBuffer, "base64")
 
-    // Upload vers Supabase Storage
-    const { data, error } = await (supabase as any).storage
-      .from('hero')
-      .upload(parsedInput.fileName, buffer, {
-        contentType: parsedInput.fileType,
-        upsert: false,
-      })
+    // Générer un nom de fichier unique
+    const uniqueFileName = `${Date.now()}-${parsedInput.fileName}`
 
-    if (error) {
-      throw new Error(`Erreur upload: ${error.message}`)
-    }
+    // Upload vers MinIO
+    await minioClient.putObject(BUCKETS.HERO, uniqueFileName, buffer, buffer.length, {
+      "Content-Type": parsedInput.fileType,
+    })
 
-    // Retourner l'URL publique
-    const { data: publicUrlData } = (supabase as any).storage
-      .from('hero')
-      .getPublicUrl(parsedInput.fileName)
+    // Construire l'URL publique
+    const minioEndpoint = process.env.MINIO_ENDPOINT || "116.203.111.206"
+    const minioPort = process.env.MINIO_PORT || "9000"
+    const publicUrl = `http://${minioEndpoint}:${minioPort}/${BUCKETS.HERO}/${uniqueFileName}`
 
     return {
-      url: publicUrlData.publicUrl,
-      path: data.path,
+      url: publicUrl,
+      path: uniqueFileName,
     }
   })

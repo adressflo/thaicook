@@ -40,16 +40,11 @@ import "react-image-crop/dist/ReactCrop.css"
 import {
   deleteProfilePhotoAction,
   getClientProfile,
-  updateProfilePhoto as updateProfilePhotoAction,
   updateUserProfile,
+  uploadProfilePhotoToMinio,
 } from "./actions"
 
-import {
-  deleteProfilePhoto,
-  getCroppedImg,
-  resizeImage,
-  uploadProfilePhoto,
-} from "@/services/photoService"
+import { getCroppedImg, resizeImage } from "@/services/photoService"
 
 const DATE_FORMAT_DB = "yyyy-MM-dd"
 
@@ -325,17 +320,13 @@ const Profil = memo(() => {
         `profile-${currentUser.id}.jpg`
       )
 
-      // Uploader vers Supabase
-      const uploadResult = await uploadProfilePhoto(croppedFile, currentUser.id)
+      // Créer FormData et uploader vers MinIO via Server Action
+      const formData = new FormData()
+      formData.append("photo", croppedFile)
+
+      const uploadResult = await uploadProfilePhotoToMinio(formData)
 
       if (uploadResult.success && uploadResult.url) {
-        // Mettre à jour le profil avec la nouvelle URL
-        const result = await updateProfilePhotoAction(uploadResult.url)
-
-        if (!result.success) {
-          throw new Error(result.error || "Erreur lors de la mise à jour du profil")
-        }
-
         setProfilePhotoPreview(uploadResult.url)
         setImgSrcForCrop("")
         setSelectedPhotoFile(null)
@@ -364,17 +355,10 @@ const Profil = memo(() => {
 
     setIsUploadingPhoto(true)
     try {
-      // Supprimer de Supabase Storage
-      const deleteSuccess = await deleteProfilePhoto(currentUser.id)
+      // Supprimer de MinIO et mettre à jour le profil via Server Action
+      const result = await deleteProfilePhotoAction()
 
-      if (deleteSuccess) {
-        // Mettre à jour le profil en supprimant l'URL de la photo
-        const result = await deleteProfilePhotoAction()
-
-        if (!result.success) {
-          throw new Error(result.error || "Erreur lors de la mise à jour du profil")
-        }
-
+      if (result.success) {
         setProfilePhotoPreview(defaultProfilePhoto)
 
         toast({
@@ -384,7 +368,7 @@ const Profil = memo(() => {
 
         refetchClient()
       } else {
-        throw new Error("Impossible de supprimer la photo")
+        throw new Error(result.error || "Impossible de supprimer la photo")
       }
     } catch (error: unknown) {
       toast({

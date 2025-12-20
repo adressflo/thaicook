@@ -4,11 +4,14 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import {
-  useArticlesListeCourses,
-  useCatalogueArticles,
-  useListesCourses,
-} from "@/hooks/useSupabaseData"
+// TODO: Ces hooks ont été supprimés avec Supabase, cette page nécessite migration Prisma
+// import { useArticlesListeCourses, useCatalogueArticles, useListesCourses } from "@/hooks/useSupabaseData"
+
+// Hooks stub temporaires - à remplacer par Prisma
+const useCatalogueArticles = () => ({ data: [], refetch: () => {} })
+const useListesCourses = () => ({ data: [], refetch: () => {} })
+const useArticlesListeCourses = () => ({ data: [] })
+
 import { format } from "date-fns"
 import { fr } from "date-fns/locale"
 import {

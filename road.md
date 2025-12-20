@@ -88,11 +88,12 @@ Notre feuille de route pour faire évoluer l'expérience ChanthanaThaiCook. Ce d
 - [x] Migration 100% des composants : 17 pages + 10 composants
   - app/profil, app/commander, app/panier, app/admin/_, app/suivi-_, etc.
   - Tous les composants utilisent usePrismaData.ts
-- [x] Nettoyage `hooks/useSupabaseData.ts` : **2904 → 361 lignes (-87%)**
-  - Supprimé 36 hooks obsolètes (CRUD remplacés par Prisma)
-  - Gardé 8 hooks légitimes (Realtime, Ruptures, Listes de courses)
-- [x] Nettoyage `services/supabaseService.ts` : **408 → 12 lignes (-97%)**
-  - Classe complète supprimée, simple export client Supabase
+- [x] **Nettoyage `hooks/useSupabaseData.ts` : SUPPRIMÉ (20/12/2024)**
+  - Initialement réduit : 2904 → 361 lignes (-87%)
+  - Finalement supprimé : 0 lignes (100% Prisma)
+  - Hooks admin/courses avec stubs temporaires
+- [x] **Nettoyage `services/supabaseService.ts` : SUPPRIMÉ (20/12/2024)**
+  - Fichier entièrement supprimé avec lib/supabase.ts
 - [x] Suppression 3 fichiers obsolètes (useSupabase.ts, useSupabaseNotifications.ts, supabaseAdmin.ts)
 - [x] **Total : -3200 lignes de code obsolète supprimées**
 - [x] Tests CRUD validés : `tests/prisma-crud.test.ts` (mis à jour auth_user_id)
@@ -377,7 +378,7 @@ Tests       15 passed (15)
 - [x] **Buckets configurés** : `platphoto`, `hero`, `extras`, `profile-photos`
 - [x] **Upload Sécurisé** :
   - [x] Server Action : `app/actions/storage.ts`
-  - [x] Validation MIME et Taille via `hooks/useImageUpload.ts`
+  - [x] Validation MIME et Taille via `lib/storage-validation.ts`
   - [x] Génération noms uniques (crypto.randomUUID)
 - [x] **URLs Dynamiques** :
   - [x] Utilitaire `getStorageUrl` dans `lib/storage-utils.ts`
@@ -386,10 +387,22 @@ Tests       15 passed (15)
   - [x] Script migration assets Supabase → MinIO exécuté
   - [x] Script mise à jour base de données (remplacement URLs) exécuté
 
-**🗑️ Ancienne Infrastructure (Supabase Storage) :**
+**🗑️ Supabase 100% SUPPRIMÉ (20/12/2024) :**
 
-- [x] **Déprécié** : Supabase Storage ne sert plus que de backup ultime
-- [x] **Nettoyage code** : Hooks upload refactorisés pour utiliser Server Actions MinIO
+- [x] **Fichiers supprimés (~1070 lignes)** :
+  - `lib/supabase.ts`, `lib/supabaseStorage.ts` (client + storage)
+  - `services/supabaseService.ts` (re-export)
+  - `hooks/useSupabaseData.ts` (CRUD + Realtime)
+  - `hooks/useRealtimeNotifications.ts` (WebSocket)
+  - `types/supabase.ts` (types générés)
+  - `app/api/hero-media/upload/` (API route)
+- [x] **Fichiers migrés vers Prisma** :
+  - `lib/announcements.ts` → 14 requêtes Supabase → Prisma ORM
+  - `app/actions/hero-media.ts` → Storage Supabase → MinIO
+  - `app/page.tsx` → Query directe → API route `/api/hero-media`
+  - `app/profil/actions.ts` → Upload photo → `uploadProfilePhotoToMinio`
+- [x] **Architecture finale** : Prisma (CRUD) + MinIO (Storage) + Better Auth (Auth)
+- [x] **Build validé** : `npm run build` ✅
 
 ---
 

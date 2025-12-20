@@ -12,9 +12,19 @@ import {
   getActiveAnnouncement,
   type Announcement,
 } from "@/lib/announcements"
-import { supabase } from "@/lib/supabase"
 import { AlertTriangle, CheckCircle, Info, XCircle } from "lucide-react"
 import { memo, useEffect, useState } from "react"
+
+// Server Action pour charger les hero medias
+async function fetchHeroMedias(): Promise<HeroMedia[]> {
+  try {
+    const response = await fetch("/api/hero-media", { next: { revalidate: 60 } })
+    if (!response.ok) return []
+    return await response.json()
+  } catch {
+    return []
+  }
+}
 
 const TableauDeBord = memo(() => {
   const { isAuthenticated, isAdmin, clientProfile } = usePermissions()
@@ -44,30 +54,12 @@ const TableauDeBord = memo(() => {
     loadAnnouncement()
   }, [])
 
-  // Charger les médias du hero carousel
+  // Charger les médias du hero carousel via API
   useEffect(() => {
     const loadHeroMedias = async () => {
       try {
-        const { data, error } = await (supabase as any)
-          .from("hero_media")
-          .select("*")
-          .eq("active", true)
-          .order("ordre", { ascending: true })
-
-        if (error) throw error
-
-        // Cast to HeroMedia[] type
-        setHeroMedias(
-          (data as any[])?.map((media) => ({
-            id: media.id,
-            type: media.type as "image" | "video",
-            url: media.url,
-            titre: media.titre,
-            description: media.description,
-            ordre: media.ordre,
-            active: media.active,
-          })) || []
-        )
+        const medias = await fetchHeroMedias()
+        setHeroMedias(medias)
       } catch (error) {
         console.error("Erreur lors du chargement des médias hero:", error)
         // Silent fail - HeroCarousel affichera un fallback

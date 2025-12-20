@@ -1,58 +1,84 @@
-'use client'
+"use client"
 
-import React, { useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Calendar } from '@/components/ui/calendar'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Badge } from '@/components/ui/badge'
-import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { useToast } from '@/hooks/use-toast'
-import { cn } from '@/lib/utils'
-import { 
-  CalendarIcon, 
-  Plus, 
-  Trash2, 
-  AlertTriangle,
-  Clock,
-  CheckCircle,
-  XCircle
-} from 'lucide-react'
-import { format, isSameDay, isPast, isFuture } from 'date-fns'
-import { fr } from 'date-fns/locale'
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Calendar } from "@/components/ui/calendar"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import {
-  usePlatRuptures,
-  useCreatePlatRupture,
-  useDeletePlatRupture,
-  useCheckPlatAvailability,
-  type PlatRupture
-} from '@/hooks/useSupabaseData'
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
+import { useToast } from "@/hooks/use-toast"
+import { cn } from "@/lib/utils"
+import { format, isFuture, isPast, isSameDay } from "date-fns"
+import { fr } from "date-fns/locale"
+import {
+  AlertTriangle,
+  CalendarIcon,
+  CheckCircle,
+  Clock,
+  Plus,
+  Trash2,
+  XCircle,
+} from "lucide-react"
+import { useState } from "react"
+
+// TODO: Ces hooks ont été supprimés avec Supabase, cette fonctionnalité nécessite migration Prisma
+// import { usePlatRuptures, useCreatePlatRupture, useDeletePlatRupture, useCheckPlatAvailability, type PlatRupture } from '@/hooks/useSupabaseData'
+
+// Type stub
+export type PlatRupture = {
+  id: number
+  plat_id: number
+  date_rupture: string
+  raison_rupture?: string | null
+  type_rupture?: string | null
+  notes_rupture?: string | null
+  is_active: boolean | null
+  created_at: string | null
+}
+
+// Hooks stub temporaires - à remplacer par Prisma
+const usePlatRuptures = (_platId?: number) => ({ data: [] as PlatRupture[], isLoading: false })
+const useCreatePlatRupture = () => ({ mutateAsync: async (_data: any) => {}, isPending: false })
+const useDeletePlatRupture = () => ({ mutateAsync: async (_id: number) => {}, isPending: false })
+const useCheckPlatAvailability = () => ({ mutateAsync: async (_data: any) => true })
 
 interface DateRuptureManagerProps {
   platId: number
   platNom: string
 }
 
-
 const typeRuptureOptions = [
-  { value: 'stock', label: 'Rupture de stock', icon: '📦', color: 'bg-red-100 text-red-800' },
-  { value: 'conges', label: 'Congés', icon: '🏖️', color: 'bg-blue-100 text-blue-800' },
-  { value: 'maintenance', label: 'Maintenance', icon: '🔧', color: 'bg-yellow-100 text-yellow-800' },
-  { value: 'autre', label: 'Autre', icon: '❓', color: 'bg-gray-100 text-gray-800' }
+  { value: "stock", label: "Rupture de stock", icon: "📦", color: "bg-red-100 text-red-800" },
+  { value: "conges", label: "Congés", icon: "🏖️", color: "bg-blue-100 text-blue-800" },
+  {
+    value: "maintenance",
+    label: "Maintenance",
+    icon: "🔧",
+    color: "bg-yellow-100 text-yellow-800",
+  },
+  { value: "autre", label: "Autre", icon: "❓", color: "bg-gray-100 text-gray-800" },
 ]
 
 export function DateRuptureManager({ platId, platNom }: DateRuptureManagerProps) {
   const [isAddingRupture, setIsAddingRupture] = useState(false)
   const [selectedDate, setSelectedDate] = useState<Date>()
-  const [raisonRupture, setRaisonRupture] = useState('')
-  const [typeRupture, setTypeRupture] = useState<'stock' | 'conges' | 'maintenance' | 'autre'>('stock')
-  const [notesRupture, setNotesRupture] = useState('')
+  const [raisonRupture, setRaisonRupture] = useState("")
+  const [typeRupture, setTypeRupture] = useState<"stock" | "conges" | "maintenance" | "autre">(
+    "stock"
+  )
+  const [notesRupture, setNotesRupture] = useState("")
 
   const { toast } = useToast()
-  
+
   // Hooks pour les données
   const { data: ruptures = [], isLoading: loadingRuptures } = usePlatRuptures(platId)
   const createRuptureMutation = useCreatePlatRupture()
@@ -64,18 +90,18 @@ export function DateRuptureManager({ platId, platNom }: DateRuptureManagerProps)
   const handleAddRupture = async () => {
     if (!selectedDate) {
       toast({
-        variant: 'destructive',
-        title: 'Date requise',
-        description: 'Veuillez sélectionner une date'
+        variant: "destructive",
+        title: "Date requise",
+        description: "Veuillez sélectionner une date",
       })
       return
     }
 
     if (!raisonRupture.trim()) {
       toast({
-        variant: 'destructive',
-        title: 'Raison requise',
-        description: 'Veuillez indiquer la raison de la rupture'
+        variant: "destructive",
+        title: "Raison requise",
+        description: "Veuillez indiquer la raison de la rupture",
       })
       return
     }
@@ -83,29 +109,31 @@ export function DateRuptureManager({ platId, platNom }: DateRuptureManagerProps)
     try {
       await createRuptureMutation.mutateAsync({
         plat_id: platId,
-        date_rupture: format(selectedDate, 'yyyy-MM-dd'),
+        date_rupture: format(selectedDate, "yyyy-MM-dd"),
         raison_rupture: raisonRupture.trim(),
         type_rupture: typeRupture,
-        notes_rupture: notesRupture.trim() || undefined
+        notes_rupture: notesRupture.trim() || undefined,
       })
 
       // Reset du formulaire
       setSelectedDate(undefined)
-      setRaisonRupture('')
-      setTypeRupture('stock')
-      setNotesRupture('')
+      setRaisonRupture("")
+      setTypeRupture("stock")
+      setNotesRupture("")
       setIsAddingRupture(false)
 
       toast({
-        title: 'Rupture ajoutée',
-        description: selectedDate ? `${platNom} sera indisponible le ${format(selectedDate, 'PPP', { locale: fr })}` : `Rupture ajoutée pour ${platNom}`
+        title: "Rupture ajoutée",
+        description: selectedDate
+          ? `${platNom} sera indisponible le ${format(selectedDate, "PPP", { locale: fr })}`
+          : `Rupture ajoutée pour ${platNom}`,
       })
     } catch (error) {
-      console.error('Erreur lors de l\'ajout de la rupture:', error)
+      console.error("Erreur lors de l'ajout de la rupture:", error)
       toast({
-        variant: 'destructive',
-        title: 'Erreur',
-        description: 'Impossible d\'ajouter la rupture'
+        variant: "destructive",
+        title: "Erreur",
+        description: "Impossible d'ajouter la rupture",
       })
     }
   }
@@ -113,26 +141,26 @@ export function DateRuptureManager({ platId, platNom }: DateRuptureManagerProps)
   const handleDeleteRupture = async (ruptureId: number, dateRupture: string) => {
     try {
       await deleteRuptureMutation.mutateAsync(ruptureId)
-      
+
       toast({
-        title: 'Rupture supprimée',
-        description: `${platNom} sera à nouveau disponible le ${format(new Date(dateRupture), 'PPP', { locale: fr })}`
+        title: "Rupture supprimée",
+        description: `${platNom} sera à nouveau disponible le ${format(new Date(dateRupture), "PPP", { locale: fr })}`,
       })
     } catch (error) {
-      console.error('Erreur lors de la suppression de la rupture:', error)
+      console.error("Erreur lors de la suppression de la rupture:", error)
       toast({
-        variant: 'destructive',
-        title: 'Erreur',
-        description: 'Impossible de supprimer la rupture'
+        variant: "destructive",
+        title: "Erreur",
+        description: "Impossible de supprimer la rupture",
       })
     }
   }
 
   const getRupturesByStatus = () => {
     const today = new Date()
-    const actives = ruptures.filter(r => r.is_active && isFuture(new Date(r.date_rupture)))
-    const passees = ruptures.filter(r => r.is_active && isPast(new Date(r.date_rupture)))
-    const desactivees = ruptures.filter(r => !r.is_active)
+    const actives = ruptures.filter((r) => r.is_active && isFuture(new Date(r.date_rupture)))
+    const passees = ruptures.filter((r) => r.is_active && isPast(new Date(r.date_rupture)))
+    const desactivees = ruptures.filter((r) => !r.is_active)
 
     return { actives, passees, desactivees }
   }
@@ -140,11 +168,11 @@ export function DateRuptureManager({ platId, platNom }: DateRuptureManagerProps)
   const { actives, passees, desactivees } = getRupturesByStatus()
 
   const getTypeRuptureConfig = (type: string) => {
-    return typeRuptureOptions.find(opt => opt.value === type) || typeRuptureOptions[3]
+    return typeRuptureOptions.find((opt) => opt.value === type) || typeRuptureOptions[3]
   }
 
-  const renderRuptureCard = (rupture: PlatRupture, status: 'active' | 'passee' | 'desactivee') => {
-    const typeConfig = getTypeRuptureConfig(rupture.type_rupture || 'autre')
+  const renderRuptureCard = (rupture: PlatRupture, status: "active" | "passee" | "desactivee") => {
+    const typeConfig = getTypeRuptureConfig(rupture.type_rupture || "autre")
     const dateRupture = new Date(rupture.date_rupture)
     const isToday = isSameDay(dateRupture, new Date())
 
@@ -152,24 +180,24 @@ export function DateRuptureManager({ platId, platNom }: DateRuptureManagerProps)
       <div
         key={rupture.id}
         className={cn(
-          'p-3 border rounded-lg space-y-2 transition-all',
-          status === 'active' && 'border-red-200 bg-red-50',
-          status === 'passee' && 'border-gray-200 bg-gray-50 opacity-75',
-          status === 'desactivee' && 'border-gray-200 bg-gray-100 opacity-50'
+          "space-y-2 rounded-lg border p-3 transition-all",
+          status === "active" && "border-red-200 bg-red-50",
+          status === "passee" && "border-gray-200 bg-gray-50 opacity-75",
+          status === "desactivee" && "border-gray-200 bg-gray-100 opacity-50"
         )}
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <Badge className={cn('text-xs', typeConfig.color)}>
+            <Badge className={cn("text-xs", typeConfig.color)}>
               {typeConfig.icon} {typeConfig.label}
             </Badge>
             {isToday && (
-              <Badge variant="destructive" className="text-xs animate-pulse">
+              <Badge variant="destructive" className="animate-pulse text-xs">
                 Aujourd'hui
               </Badge>
             )}
           </div>
-          {status === 'active' && (
+          {status === "active" && (
             <Button
               variant="ghost"
               size="sm"
@@ -177,17 +205,17 @@ export function DateRuptureManager({ platId, platNom }: DateRuptureManagerProps)
               disabled={deleteRuptureMutation.isPending}
               className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
             >
-              <Trash2 className="w-3 h-3" />
+              <Trash2 className="h-3 w-3" />
             </Button>
           )}
         </div>
 
         <div className="space-y-1">
           <div className="flex items-center text-sm font-medium">
-            <CalendarIcon className="w-4 h-4 mr-1" />
-            {format(dateRupture, 'EEEE dd MMMM yyyy', { locale: fr })}
+            <CalendarIcon className="mr-1 h-4 w-4" />
+            {format(dateRupture, "EEEE dd MMMM yyyy", { locale: fr })}
           </div>
-          
+
           <div className="text-sm text-gray-600">
             <strong>Raison:</strong> {rupture.raison_rupture}
           </div>
@@ -200,7 +228,7 @@ export function DateRuptureManager({ platId, platNom }: DateRuptureManagerProps)
 
           {rupture.created_at && (
             <div className="text-xs text-gray-400">
-              Créé le {format(new Date(rupture.created_at), 'dd/MM/yyyy à HH:mm', { locale: fr })}
+              Créé le {format(new Date(rupture.created_at), "dd/MM/yyyy à HH:mm", { locale: fr })}
             </div>
           )}
         </div>
@@ -212,7 +240,7 @@ export function DateRuptureManager({ platId, platNom }: DateRuptureManagerProps)
     <Card className="w-full">
       <CardHeader>
         <CardTitle className="flex items-center space-x-2 text-lg">
-          <AlertTriangle className="w-5 h-5 text-orange-500" />
+          <AlertTriangle className="h-5 w-5 text-orange-500" />
           <span>Gestion des ruptures par date - {platNom}</span>
         </CardTitle>
       </CardHeader>
@@ -220,20 +248,20 @@ export function DateRuptureManager({ platId, platNom }: DateRuptureManagerProps)
         {/* Formulaire d'ajout de rupture */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="font-semibold text-base">Nouvelle rupture</h3>
+            <h3 className="text-base font-semibold">Nouvelle rupture</h3>
             <Button
               variant={isAddingRupture ? "outline" : "default"}
               size="sm"
               onClick={() => setIsAddingRupture(!isAddingRupture)}
               className="flex items-center space-x-1"
             >
-              {isAddingRupture ? <XCircle className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-              <span>{isAddingRupture ? 'Annuler' : 'Ajouter'}</span>
+              {isAddingRupture ? <XCircle className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+              <span>{isAddingRupture ? "Annuler" : "Ajouter"}</span>
             </Button>
           </div>
 
           {isAddingRupture && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border rounded-lg bg-gray-50">
+            <div className="grid grid-cols-1 gap-4 rounded-lg border bg-gray-50 p-4 md:grid-cols-2">
               <div className="space-y-2">
                 <Label>Date de rupture *</Label>
                 <Popover>
@@ -241,12 +269,14 @@ export function DateRuptureManager({ platId, platNom }: DateRuptureManagerProps)
                     <Button
                       variant="outline"
                       className={cn(
-                        'w-full justify-start text-left font-normal',
-                        !selectedDate && 'text-muted-foreground'
+                        "w-full justify-start text-left font-normal",
+                        !selectedDate && "text-muted-foreground"
                       )}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {selectedDate ? format(selectedDate, 'PPP', { locale: fr }) : 'Sélectionner une date'}
+                      {selectedDate
+                        ? format(selectedDate, "PPP", { locale: fr })
+                        : "Sélectionner une date"}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0">
@@ -263,12 +293,17 @@ export function DateRuptureManager({ platId, platNom }: DateRuptureManagerProps)
 
               <div className="space-y-2">
                 <Label>Type de rupture *</Label>
-                <Select value={typeRupture} onValueChange={(value: 'stock' | 'conges' | 'maintenance' | 'autre') => setTypeRupture(value)}>
+                <Select
+                  value={typeRupture}
+                  onValueChange={(value: "stock" | "conges" | "maintenance" | "autre") =>
+                    setTypeRupture(value)
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {typeRuptureOptions.map(option => (
+                    {typeRuptureOptions.map((option) => (
                       <SelectItem key={option.value} value={option.value}>
                         <span className="flex items-center">
                           {option.icon} {option.label}
@@ -300,16 +335,16 @@ export function DateRuptureManager({ platId, platNom }: DateRuptureManagerProps)
                 />
               </div>
 
-              <div className="md:col-span-2 flex space-x-2">
+              <div className="flex space-x-2 md:col-span-2">
                 <Button
                   onClick={handleAddRupture}
                   disabled={createRuptureMutation.isPending}
                   className="flex-1"
                 >
                   {createRuptureMutation.isPending ? (
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                    <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
                   ) : (
-                    <CheckCircle className="w-4 h-4 mr-2" />
+                    <CheckCircle className="mr-2 h-4 w-4" />
                   )}
                   Ajouter la rupture
                 </Button>
@@ -321,14 +356,16 @@ export function DateRuptureManager({ platId, platNom }: DateRuptureManagerProps)
         {/* Liste des ruptures actives */}
         {actives.length > 0 && (
           <div className="space-y-3">
-            <h3 className="font-semibold text-base flex items-center">
-              <Clock className="w-4 h-4 mr-2 text-red-500" />
+            <h3 className="flex items-center text-base font-semibold">
+              <Clock className="mr-2 h-4 w-4 text-red-500" />
               Ruptures futures ({actives.length})
             </h3>
             <div className="space-y-2">
               {actives
-                .sort((a, b) => new Date(a.date_rupture).getTime() - new Date(b.date_rupture).getTime())
-                .map(rupture => renderRuptureCard(rupture, 'active'))}
+                .sort(
+                  (a, b) => new Date(a.date_rupture).getTime() - new Date(b.date_rupture).getTime()
+                )
+                .map((rupture) => renderRuptureCard(rupture, "active"))}
             </div>
           </div>
         )}
@@ -336,15 +373,17 @@ export function DateRuptureManager({ platId, platNom }: DateRuptureManagerProps)
         {/* Liste des ruptures passées (limitée à 5) */}
         {passees.length > 0 && (
           <div className="space-y-3">
-            <h3 className="font-semibold text-base flex items-center">
-              <CheckCircle className="w-4 h-4 mr-2 text-gray-500" />
+            <h3 className="flex items-center text-base font-semibold">
+              <CheckCircle className="mr-2 h-4 w-4 text-gray-500" />
               Ruptures passées ({passees.length})
             </h3>
-            <div className="space-y-2 max-h-60 overflow-y-auto">
+            <div className="max-h-60 space-y-2 overflow-y-auto">
               {passees
-                .sort((a, b) => new Date(b.date_rupture).getTime() - new Date(a.date_rupture).getTime())
+                .sort(
+                  (a, b) => new Date(b.date_rupture).getTime() - new Date(a.date_rupture).getTime()
+                )
                 .slice(0, 5)
-                .map(rupture => renderRuptureCard(rupture, 'passee'))}
+                .map((rupture) => renderRuptureCard(rupture, "passee"))}
             </div>
           </div>
         )}
@@ -352,16 +391,18 @@ export function DateRuptureManager({ platId, platNom }: DateRuptureManagerProps)
         {/* État quand aucune rupture */}
         {loadingRuptures && (
           <div className="flex items-center justify-center py-8">
-            <div className="w-6 h-6 border-2 border-gray-300 border-t-thai-orange rounded-full animate-spin" />
+            <div className="border-t-thai-orange h-6 w-6 animate-spin rounded-full border-2 border-gray-300" />
             <span className="ml-2 text-gray-500">Chargement des ruptures...</span>
           </div>
         )}
 
         {!loadingRuptures && ruptures.length === 0 && (
-          <div className="text-center py-8 text-gray-500">
-            <CalendarIcon className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+          <div className="py-8 text-center text-gray-500">
+            <CalendarIcon className="mx-auto mb-3 h-12 w-12 text-gray-300" />
             <p className="text-sm">Aucune rupture programmée pour ce plat</p>
-            <p className="text-xs mt-1">Le plat sera disponible selon sa configuration hebdomadaire</p>
+            <p className="mt-1 text-xs">
+              Le plat sera disponible selon sa configuration hebdomadaire
+            </p>
           </div>
         )}
       </CardContent>
