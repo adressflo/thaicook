@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useData } from "@/contexts/DataContext"
 import { usePrismaCommandeById, usePrismaExtras } from "@/hooks/usePrismaData"
-import { useCommandesRealtime } from "@/hooks/useSupabaseData"
+
 import { useSession } from "@/lib/auth-client"
 import { extractRouteParam } from "@/lib/params-utils"
 import { toSafeNumber } from "@/lib/serialization"
@@ -53,9 +53,6 @@ const SuiviCommande = memo(() => {
       setClientProfile(null)
     }
   }, [currentUser?.id])
-
-  // ✅ Activation Real-time Supabase pour synchronisation automatique
-  useCommandesRealtime()
 
   const {
     data: commande,

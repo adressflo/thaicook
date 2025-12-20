@@ -11,7 +11,7 @@ import {
   usePrismaEvenementsByClient,
   usePrismaExtras,
 } from "@/hooks/usePrismaData"
-import { useCommandesRealtime } from "@/hooks/useSupabaseData"
+
 import { useSession } from "@/lib/auth-client"
 import { toSafeNumber } from "@/lib/serialization"
 import type { CommandeUI, EvenementUI, ExtraUI } from "@/types/app"
@@ -58,9 +58,6 @@ const HistoriquePage = memo(() => {
       setClientProfile(null)
     }
   }, [currentUser?.id])
-
-  // ✅ Activation Real-time Supabase pour synchronisation automatique
-  useCommandesRealtime()
 
   const {
     data: commandes,

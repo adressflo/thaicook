@@ -50,7 +50,7 @@ import {
   usePrismaUpdateSpiceDistribution,
   usePrismaUpdateSpiceLevel,
 } from "@/hooks/usePrismaData"
-import { useCommandesRealtime } from "@/hooks/useSupabaseData"
+
 import { spiceLevelToText } from "@/lib/spice-helpers"
 import type { CommandeUI, CommandeUpdate } from "@/types/app"
 import { format, isFuture, isPast, isToday } from "date-fns"
@@ -1336,9 +1336,6 @@ export default function AdminCommandes() {
   // Better Auth session
   const { data: session } = useSession()
   const currentUser = session?.user
-
-  // ✅ Activation Real-time Supabase pour synchronisation automatique admin ↔ client
-  useCommandesRealtime()
 
   const { data: commandes, refetch } = usePrismaCommandes()
   const updateCommandeMutation = usePrismaUpdateCommande()

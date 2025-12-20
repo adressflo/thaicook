@@ -2,11 +2,13 @@
  * SUPABASE CLIENT EXPORT
  *
  * Export du client Supabase singleton pour :
- * - Supabase Realtime (synchronisation live des commandes)
- * - Supabase Storage (upload d'images)
+ * - Lectures directes de tables publiques (ruptures, listes courses)
  *
- * ⚠️ IMPORTANT : Toutes les opérations CRUD utilisent Prisma ORM
- * Voir app/actions/* pour les Server Actions (Clients, Plats, Commandes, Extras, Evenements)
+ * ⚠️ IMPORTANT :
+ * - Authentification : Better Auth (lib/auth.ts)
+ * - CRUD principal : Prisma ORM (app/actions/*.ts)
+ * - Storage : MinIO self-hosted (lib/minio.ts)
+ * - Realtime : Supprimé (incompatible avec Better Auth)
  */
 
-export { supabase } from '@/lib/supabase'
+export { supabase } from "@/lib/supabase"

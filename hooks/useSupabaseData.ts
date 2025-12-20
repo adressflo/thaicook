@@ -4,18 +4,19 @@
  * SUPABASE HOOKS - Fonctionnalités spécifiques Supabase
  *
  * Ce fichier contient UNIQUEMENT les hooks pour les fonctionnalités qui utilisent Supabase :
- * - Realtime (synchronisation live des commandes)
  * - Ruptures de plats (gestion des disponibilités)
  * - Listes de courses (fonctionnalité shopping)
  *
  * ⚠️ IMPORTANT : Toutes les opérations CRUD standards utilisent Prisma ORM
  * Voir hooks/usePrismaData.ts pour les hooks CRUD (Clients, Plats, Commandes, Extras, Evenements)
+ *
+ * Note: Le Realtime Supabase a été retiré car incompatible avec Better Auth.
+ * Alternative: TanStack Query avec refetchInterval pour le polling.
  */
 
 import { useToast } from "@/hooks/use-toast"
 import { CACHE_TIMES, supabase } from "@/lib/supabase"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { useEffect } from "react"
 
 // ============================================
 // TYPES
@@ -110,7 +111,7 @@ export const useCreatePlatRupture = () => {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["plat-ruptures", variables.plat_id] })
-      queryClient.invalidateQueries({ queryKey: ["prisma-plats"] }) // Invalider aussi cache Prisma
+      queryClient.invalidateQueries({ queryKey: ["prisma-plats"] })
       toast({
         title: "Succès",
         description: "Rupture de stock programmée",
@@ -174,7 +175,6 @@ export const useDeletePlatRupture = () => {
 export const useCheckPlatAvailability = () => {
   return useMutation({
     mutationFn: async ({ platId, date }: { platId: number; date: string }): Promise<boolean> => {
-      // Vérifier s'il existe une rupture active pour cette date
       const { data, error } = await supabase
         .from("plats_rupture_dates")
         .select("id")
@@ -185,86 +185,12 @@ export const useCheckPlatAvailability = () => {
 
       if (error) {
         console.error("Erreur vérification disponibilité:", error)
-        return true // Par défaut disponible si erreur
+        return true
       }
 
-      // Si data est vide, le plat est disponible
       return !data || data.length === 0
     },
   })
-}
-
-// ============================================
-// HOOKS - REALTIME SUPABASE
-// ============================================
-
-/**
- * Active la synchronisation en temps réel pour les commandes
- * Écoute les changements sur commande_db et details_commande_db
- * Invalide automatiquement les caches TanStack Query
- */
-export const useCommandesRealtime = () => {
-  const queryClient = useQueryClient()
-
-  useEffect(() => {
-    // Channel pour les commandes (statut, modifications)
-    const commandesChannel = supabase
-      .channel("commandes-realtime-channel")
-      .on(
-        "postgres_changes",
-        {
-          event: "*", // INSERT, UPDATE, DELETE
-          schema: "public",
-          table: "commande_db",
-        },
-        (payload) => {
-          // Invalider tous les caches de commandes (Prisma)
-          queryClient.invalidateQueries({
-            predicate: (query) => {
-              const key = query.queryKey[0]
-              return (
-                key === "prisma-commandes" ||
-                key === "prisma-commande" ||
-                key === "prisma-commandes-client"
-              )
-            },
-          })
-        }
-      )
-      .subscribe((status) => {})
-
-    // Channel pour les détails de commandes (ajout/suppression plats, quantités)
-    const detailsChannel = supabase
-      .channel("details-realtime-channel")
-      .on(
-        "postgres_changes",
-        {
-          event: "*", // INSERT, UPDATE, DELETE
-          schema: "public",
-          table: "details_commande_db",
-        },
-        (payload) => {
-          // Invalider tous les caches de commandes
-          queryClient.invalidateQueries({
-            predicate: (query) => {
-              const key = query.queryKey[0]
-              return (
-                key === "prisma-commandes" ||
-                key === "prisma-commande" ||
-                key === "prisma-commandes-client"
-              )
-            },
-          })
-        }
-      )
-      .subscribe((status) => {})
-
-    // Cleanup : désinscription des channels quand le composant se démonte
-    return () => {
-      supabase.removeChannel(commandesChannel)
-      supabase.removeChannel(detailsChannel)
-    }
-  }, [queryClient])
 }
 
 // ============================================
@@ -290,7 +216,7 @@ export const useListesCourses = () => {
 
       return data || []
     },
-    staleTime: CACHE_TIMES.CLIENTS, // 5 minutes
+    staleTime: CACHE_TIMES.CLIENTS,
   })
 }
 
@@ -313,7 +239,7 @@ export const useCatalogueArticles = () => {
 
       return data || []
     },
-    staleTime: CACHE_TIMES.PLATS, // 15 minutes
+    staleTime: CACHE_TIMES.PLATS,
   })
 }
 
@@ -341,6 +267,6 @@ export const useArticlesListeCourses = (idListe?: number) => {
       return data || []
     },
     enabled: !!idListe,
-    staleTime: CACHE_TIMES.CLIENTS, // 5 minutes
+    staleTime: CACHE_TIMES.CLIENTS,
   })
 }
