@@ -17,11 +17,18 @@ const BoutonTelechargerFacture: React.FC<BoutonTelechargerFactureProps> = ({
   commande,
   className,
 }) => {
+  // Fix pour Next.js 15/16 + react-pdf : éviter le rendu SSR qui peut causer "promise.then is not a function"
+  const [isMounted, setIsMounted] = React.useState(false)
+
+  React.useEffect(() => {
+    setIsMounted(true)
+  }, [])
+
   // Nom du fichier qui sera téléchargé
   const nomFichier = `facture-chanthana-${commande.idcommande}.pdf`
 
   // On s'assure que la commande n'est pas nulle avant de rendre le composant
-  if (!commande) {
+  if (!commande || !isMounted) {
     return null
   }
 

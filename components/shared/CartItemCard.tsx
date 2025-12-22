@@ -42,6 +42,7 @@ interface CartItemCardProps {
   imageHeight?: number
   desktopImageWidth?: string
   customImageObjectPosition?: string
+  cardClassName?: string
 }
 
 export function CartItemCard({
@@ -66,6 +67,7 @@ export function CartItemCard({
   imageHeight,
   desktopImageWidth = "w-22",
   customImageObjectPosition,
+  cardClassName,
   spiceDistribution,
   onSpiceDistributionChange,
 }: CartItemCardProps) {
@@ -140,14 +142,15 @@ export function CartItemCard({
   const renderSpiceSelector = () => {
     if (!showSpiceSelector) return null
 
-    if (spiceDistribution && onSpiceDistributionChange) {
+    if (spiceDistribution && (onSpiceDistributionChange || readOnly)) {
       return (
         <div onClick={(e) => e.stopPropagation()}>
           <SmartSpice
             quantity={quantity}
             distribution={spiceDistribution}
-            onDistributionChange={onSpiceDistributionChange}
+            onDistributionChange={onSpiceDistributionChange || (() => {})}
             className="scale-90"
+            readOnly={readOnly}
           />
         </div>
       )
@@ -181,9 +184,10 @@ export function CartItemCard({
         animate={controls}
         style={{ x, touchAction: "pan-y" }}
         className={cn(
-          "hover:bg-thai-cream/20 hover:border-thai-orange hover:ring-thai-orange/30 relative z-10 transform rounded-lg border border-gray-200 bg-white p-0 transition-shadow duration-300 hover:scale-[1.02] hover:shadow-xl hover:ring-2 sm:p-4"
+          "hover:bg-thai-cream/20 hover:border-thai-orange hover:ring-thai-orange/30 relative z-10 transform rounded-lg border border-gray-200 bg-white p-0 transition-shadow duration-300 hover:scale-[1.02] hover:shadow-xl hover:ring-2 sm:p-4",
           // On retire className ici car il est sur le wrapper parent, sauf s'il contient des styles internes spécifiques
           // Pour la sécurité, on garde les styles de base ici et layout sur le parent
+          cardClassName
         )}
       >
         {/* Layout principal : Col sur mobile (comme ProductCard), Row sur desktop */}

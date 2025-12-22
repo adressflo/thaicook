@@ -1,14 +1,15 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Spice } from "./Spice"
 import { cn } from "@/lib/utils"
+import { useEffect, useState } from "react"
+import { Spice } from "./Spice"
 
 interface SmartSpiceProps {
   quantity: number
   distribution: number[]
   onDistributionChange: (distribution: number[]) => void
   className?: string
+  readOnly?: boolean
 }
 
 /**
@@ -30,13 +31,14 @@ export function SmartSpice({
   distribution,
   onDistributionChange,
   className,
+  readOnly,
 }: SmartSpiceProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [previousQuantity, setPreviousQuantity] = useState(quantity)
 
   // Détecter le changement de quantité et basculer en mode interactif + ajuster la distribution
   useEffect(() => {
-    if (quantity !== previousQuantity) {
+    if (quantity !== previousQuantity && !readOnly) {
       setIsEditing(true)
 
       // Calculer la somme actuelle de la distribution
@@ -94,22 +96,24 @@ export function SmartSpice({
 
       setPreviousQuantity(quantity)
     }
-  }, [quantity, previousQuantity, distribution, onDistributionChange])
+  }, [quantity, previousQuantity, distribution, onDistributionChange, readOnly])
 
   // Gérer le changement de distribution
   const handleDistributionChange = (newDistribution: number[]) => {
-    onDistributionChange(newDistribution)
+    if (!readOnly) {
+      onDistributionChange(newDistribution)
+    }
   }
 
   return (
     <div
       onClick={(e) => {
-        if (!isEditing) {
+        if (!isEditing && !readOnly) {
           e.stopPropagation()
           setIsEditing(true)
         }
       }}
-      className={cn(!isEditing && "cursor-pointer", className)}
+      className={cn(!isEditing && !readOnly && "cursor-pointer", className)}
     >
       <Spice
         distribution={distribution}
