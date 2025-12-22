@@ -220,6 +220,7 @@ export function CartItemCard({
                     src={imageUrl}
                     alt={name}
                     fill
+                    sizes="(max-width: 640px) 100vw, 150px"
                     className={cn(objectFitClass, objectPositionClass, imageClassName)}
                     style={
                       effectiveCustomPosition

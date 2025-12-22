@@ -200,6 +200,7 @@ export function HeroCarousel({
                   alt="Logo ChanthanaThaiCook"
                   fill
                   priority
+                  sizes="56px"
                   className="relative z-10 object-contain transition-all duration-500 group-hover:scale-110 group-hover:rotate-6"
                 />
               </div>

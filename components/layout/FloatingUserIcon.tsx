@@ -158,6 +158,8 @@ const FloatingUserIcon = memo(() => {
               src="/logo.svg"
               alt="Logo Chanthana"
               fill
+              priority
+              sizes="128px"
               className="animate-pulse-soft object-contain transition-all duration-300 group-hover:animate-none hover:scale-110 hover:rotate-6 active:scale-95"
             />
           </div>

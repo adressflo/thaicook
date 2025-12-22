@@ -127,12 +127,24 @@ export function Providers({ children }: ProvidersProps) {
       persistOptions={{
         persister,
         maxAge: 24 * 60 * 60 * 1000, // 24 heures
+        buster: "v2024.12.22", // 🔑 Version du cache - changer pour invalider l'ancien cache
         dehydrateOptions: {
           // Ne pas persister les queries avec des erreurs
           shouldDehydrateQuery: (query) => {
             return query.state.status !== "error"
           },
         },
+      }}
+      onError={async () => {
+        // Si le cache est corrompu, le vider automatiquement
+        console.warn("⚠️ Cache corrompu détecté, nettoyage en cours...")
+        try {
+          await del("tanstack-query-cache")
+          await del("REACT_QUERY_OFFLINE_CACHE")
+          console.log("✅ Cache nettoyé avec succès")
+        } catch (e) {
+          console.error("Erreur lors du nettoyage du cache:", e)
+        }
       }}
     >
       <AppProviders>{children}</AppProviders>
