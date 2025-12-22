@@ -51,7 +51,6 @@ import { useData } from "@/contexts/DataContext"
 import { useSession } from "@/lib/auth-client"
 // Utilisation des hooks
 import { FeaturedDishSection } from "@/components/commander/FeaturedDishSection"
-import { PolaroidThankYouModal } from "@/components/commander/PolaroidThankYouModal"
 import { CartItemCard } from "@/components/shared/CartItemCard"
 import { CommandePlatModal } from "@/components/shared/CommandePlatModal"
 import { ProductCard as SharedProductCard } from "@/components/shared/ProductCard"
@@ -129,7 +128,6 @@ const Commander = memo(() => {
 
   // États pour la sidebar mobile
   const [highlightedPlatId, setHighlightedPlatId] = useState<string | null>(null)
-  const [showThankYouModal, setShowThankYouModal] = useState(false)
   const [featuredDishDays, setFeaturedDishDays] = useState<string[]>([])
   const [featuredDish, setFeaturedDish] = useState<any>(null)
   const [modalContext, setModalContext] = useState<{
@@ -489,22 +487,12 @@ const Commander = memo(() => {
           })),
         }
 
-        // DEBUG: Log les données envoyées
-        console.log("🛒 validerCommande - Données envoyées:", {
-          dateKey,
-          items_count: items.length,
-          items: items.map((i) => ({ id: i.id, nom: i.nom, quantite: i.quantite })),
-          commandeData,
-        })
-
         const newOrder = await createCommande.mutateAsync(commandeData)
-        console.log("✅ Commande crée avec succès:", newOrder)
 
-        if (newOrder && newOrder.id) {
-          lastOrderId = newOrder.id.toString()
-          console.log("🆔 ID de la commande capturé:", lastOrderId)
-        } else {
-          console.warn("⚠️ Commande créée mais pas d'ID retourné:", newOrder)
+        // Essayer id puis idcommande
+        const orderId = newOrder?.id || newOrder?.idcommande
+        if (orderId) {
+          lastOrderId = orderId.toString()
         }
 
         commandesCreees++
@@ -548,11 +536,9 @@ const Commander = memo(() => {
 
         // Fallback de sécurité : si le useEffect ne se déclenche pas, on force la redirection après 1s
         setTimeout(() => {
-          console.log("⏰ Fallback redirection déclenché")
           router.push(`/suivi-commande/${lastOrderId}`)
         }, 1000)
       } else {
-        console.warn("⚠️ Pas d'ID de commande final, redirection vers confirmation par défaut")
         router.push("/commander/confirmation")
       }
     } catch (error: unknown) {
@@ -1090,6 +1076,11 @@ const Commander = memo(() => {
                                     quantity={item.quantite}
                                     isVegetarian={!!platData.est_vegetarien}
                                     isSpicy={(platData.niveau_epice ?? 0) > 0}
+                                    showSpiceSelector={(platData.niveau_epice ?? 0) > 0}
+                                    spiceDistribution={item.spiceDistribution}
+                                    onSpiceDistributionChange={(newDist) =>
+                                      modifierDistributionEpice(item.uniqueId!, newDist)
+                                    }
                                     onQuantityChange={(qty) => {
                                       const diff = qty - item.quantite
                                       modifierQuantite(item.uniqueId!, qty)
@@ -1313,12 +1304,6 @@ const Commander = memo(() => {
             rotation: true,
           })
         }}
-      />
-
-      {/* Modal Polaroid Remerciement */}
-      <PolaroidThankYouModal
-        isOpen={showThankYouModal}
-        onClose={() => setShowThankYouModal(false)}
       />
     </AppLayout>
   )

@@ -312,7 +312,7 @@ const createCommandeSchema = z.object({
         plat_r: z.union([z.number(), z.string().transform(Number)]),
         quantite_plat_commande: z.number(),
         preference_epice_niveau: z.number().optional(), // Niveau d'épice souhaité (0-3)
-        spice_distribution: z.array(z.number()).optional(), // Distribution épicée [non_epice, peu, epice, tres_epice]
+        spice_distribution: z.array(z.number()).nullable().optional(), // Distribution épicée - accepte null, undefined ou array
       })
     )
     .optional(),
@@ -321,7 +321,7 @@ const createCommandeSchema = z.object({
       z.object({
         plat_r_id: z.number(),
         quantite: z.number(),
-        spice_distribution: z.array(z.number()).optional(), // Distribution épicée
+        spice_distribution: z.array(z.number()).nullable().optional(), // Distribution épicée - accepte null
       })
     )
     .optional(),
