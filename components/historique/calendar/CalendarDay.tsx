@@ -122,7 +122,7 @@ export function CalendarDay({
       onClick={onClick}
       className={cn(
         "relative flex min-h-[80px] flex-col items-center justify-start overflow-hidden rounded-xl border-2 p-1 transition-colors duration-200 md:min-h-[100px] md:p-2",
-        isInteractive ? "cursor-pointer" : "cursor-default opacity-60",
+        isInteractive ? "cursor-pointer" : "cursor-default opacity-75",
         // Fond orange + bordure statut pour commandes (sans icône de fond, on garde la couleur légère)
         hasCommandes &&
           !hasEvenements &&
@@ -167,7 +167,7 @@ export function CalendarDay({
       {!backgroundIcon && (
         <div className="relative z-10 flex flex-col items-center justify-center gap-0.5 drop-shadow-sm">
           {/* Jour semaine */}
-          <span className="text-thai-green/80 text-[9px] font-black tracking-[0.2em] uppercase md:text-[10px]">
+          <span className="text-thai-green text-[9px] font-black tracking-[0.2em] uppercase md:text-[10px]">
             {dayName}
           </span>
 
@@ -175,14 +175,14 @@ export function CalendarDay({
           <span
             className={cn(
               "text-3xl font-black tracking-tighter transition-colors md:text-4xl",
-              isToday ? "text-thai-orange" : "text-thai-green"
+              isToday ? "text-thai-orange" : "text-thai-green drop-shadow-sm"
             )}
           >
             {dayNumber}
           </span>
 
           {/* Mois */}
-          <span className="text-thai-green/40 text-[9px] font-bold tracking-wider uppercase md:text-[10px]">
+          <span className="text-thai-green/90 text-[9px] font-bold tracking-wider uppercase md:text-[10px]">
             {monthName}
           </span>
         </div>

@@ -45,7 +45,7 @@ export function CalendarGrid({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.1 }}
-      className="shadow-thai-orange/5 flex flex-col gap-4 rounded-2xl bg-white/60 p-4 shadow-xl backdrop-blur-sm md:p-6"
+      className="shadow-thai-orange/5 flex flex-col gap-2 rounded-2xl bg-white/60 p-2 shadow-xl backdrop-blur-sm md:gap-4 md:p-6"
     >
       {/* En-tête des jours de la semaine */}
       <div className="grid grid-cols-7 gap-2 md:gap-4">
@@ -53,7 +53,9 @@ export function CalendarGrid({
           <div
             key={day}
             className={`flex items-center justify-center rounded-lg py-2 text-xs font-bold tracking-wider ${
-              idx >= 5 ? "bg-thai-orange/10 text-thai-orange" : "bg-thai-cream/50 text-thai-green"
+              idx >= 5
+                ? "bg-thai-orange/20 text-thai-orange font-black"
+                : "bg-thai-cream text-thai-green font-black"
             }`}
           >
             {day}

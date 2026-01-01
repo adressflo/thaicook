@@ -61,9 +61,9 @@ export function CalendarDayModal({
             {/* Événements */}
             {evenements.map((event) => {
               const canEdit =
-                (event.statut_evenement as any) !== "Réalisé" &&
-                (event.statut_evenement as any) !== "Payé intégralement" &&
-                (event.statut_evenement as any) !== "Annulé"
+                event.statut_evenement !== "R_alis_" &&
+                event.statut_evenement !== "Pay__int_gralement" &&
+                event.statut_evenement !== "Annul_"
 
               return (
                 <EventHistoryCard key={event.idevenements} evenement={event} canEdit={canEdit} />
