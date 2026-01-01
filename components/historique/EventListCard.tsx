@@ -2,8 +2,9 @@
 
 import { MyCalendarIcon } from "@/components/shared/MyCalendarIcon"
 import { Card, CardContent } from "@/components/ui/card"
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import type { EvenementUI } from "@/types/app"
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
 import { format } from "date-fns"
 import { fr } from "date-fns/locale"
 import {
@@ -208,6 +209,9 @@ export const EventListCard = React.memo<EventListCardProps>(({ evenement, onClic
                       />
                     </DialogTrigger>
                     <DialogContent className="max-w-md overflow-hidden rounded-xl p-0">
+                      <VisuallyHidden>
+                        <DialogTitle>Aperçu vidéo</DialogTitle>
+                      </VisuallyHidden>
                       <video
                         src={statusStyles.customVideo}
                         autoPlay
