@@ -10,6 +10,7 @@ import {
   startOfWeek,
 } from "date-fns"
 import { fr } from "date-fns/locale"
+import { motion } from "framer-motion"
 import { CalendarDay } from "./CalendarDay"
 
 interface CalendarGridProps {
@@ -37,22 +38,32 @@ export function CalendarGrid({
   })
 
   // Jours de la semaine pour l'en-tête (Lun, Mar, etc.)
-  const weekDays = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"]
+  const weekDays = ["LUN", "MAR", "MER", "JEU", "VEN", "SAM", "DIM"]
 
   return (
-    <div className="flex flex-col gap-4">
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.1 }}
+      className="shadow-thai-orange/5 flex flex-col gap-4 rounded-2xl bg-white/60 p-4 shadow-xl backdrop-blur-sm md:p-6"
+    >
       {/* En-tête des jours de la semaine */}
-      <div className="grid grid-cols-7 gap-2 text-center md:gap-4">
-        {weekDays.map((day) => (
-          <div key={day} className="text-sm font-semibold tracking-wider text-gray-500 uppercase">
+      <div className="grid grid-cols-7 gap-2 md:gap-4">
+        {weekDays.map((day, idx) => (
+          <div
+            key={day}
+            className={`flex items-center justify-center rounded-lg py-2 text-xs font-bold tracking-wider ${
+              idx >= 5 ? "bg-thai-orange/10 text-thai-orange" : "bg-thai-cream/50 text-thai-green"
+            }`}
+          >
             {day}
           </div>
         ))}
       </div>
 
       {/* Grille des jours */}
-      <div className="grid grid-cols-7 gap-2 md:gap-4">
-        {days.map((day, idx) => {
+      <div className="grid grid-cols-7 gap-2 md:gap-3">
+        {days.map((day) => {
           // Filtrer les commandes pour ce jour
           const dayCommandes = commandes.filter((c) => {
             if (!c.date_et_heure_de_retrait_souhaitees) return false
@@ -67,20 +78,27 @@ export function CalendarGrid({
 
           // Vérifier si le jour est dans le mois courant
           const isCurrentMonth = isSameMonth(day, currentDate)
+          const hasContent = dayCommandes.length > 0 || dayEvenements.length > 0
 
           return (
-            <div key={day.toString()} className={!isCurrentMonth ? "opacity-40 grayscale" : ""}>
+            <motion.div
+              key={day.toString()}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: isCurrentMonth ? 1 : 0.35, scale: 1 }}
+              transition={{ duration: 0.2 }}
+              className={!isCurrentMonth ? "grayscale-30" : ""}
+            >
               <CalendarDay
                 date={day}
                 commandes={dayCommandes}
                 evenements={dayEvenements}
                 isToday={isToday(day)}
-                onClick={() => onDayClick(day)}
+                onClick={hasContent ? () => onDayClick(day) : undefined}
               />
-            </div>
+            </motion.div>
           )
         })}
       </div>
-    </div>
+    </motion.div>
   )
 }

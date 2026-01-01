@@ -12,12 +12,10 @@ import {
   usePrismaExtras,
 } from "@/hooks/usePrismaData"
 import { useSession } from "@/lib/auth-client"
-import { toSafeNumber } from "@/lib/serialization"
-import { CommandeUI, ExtraUI } from "@/types/app"
 import { addMonths, subMonths } from "date-fns"
 import { ArrowLeft } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { useCallback, useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 
 export function CalendarView() {
   const router = useRouter()
@@ -55,37 +53,6 @@ export function CalendarView() {
     setSelectedDate(date)
     setIsModalOpen(true)
   }
-
-  // Helpers pour le modal
-  const formatPrix = useCallback((prix: number): string => {
-    const numericPrix = toSafeNumber(prix)
-    return numericPrix % 1 === 0
-      ? `${numericPrix}€`
-      : `${numericPrix.toFixed(2).replace(".", ",")}€`
-  }, [])
-
-  const calculateTotal = useCallback(
-    (commande: CommandeUI): number => {
-      if (commande.prix_total != null) return toSafeNumber(commande.prix_total)
-
-      return (
-        commande.details?.reduce((acc, detail) => {
-          const quantite = detail.quantite_plat_commande || 0
-          let prixUnitaire = 0
-
-          if (detail.type === "extra" && detail.plat_r && extras) {
-            const extraData = extras.find((e: ExtraUI) => e.idextra === detail.plat_r)
-            prixUnitaire = toSafeNumber(extraData?.prix || detail.prix_unitaire)
-          } else {
-            prixUnitaire = toSafeNumber(detail.prix_unitaire || detail.plat?.prix)
-          }
-
-          return acc + prixUnitaire * quantite
-        }, 0) || 0
-      )
-    },
-    [extras]
-  )
 
   // Filtrer les données pour le modal
   const selectedDateCommandes = selectedDate
@@ -161,8 +128,6 @@ export function CalendarView() {
         commandes={selectedDateCommandes}
         evenements={selectedDateEvenements}
         extras={extras || []}
-        formatPrix={formatPrix}
-        calculateTotal={calculateTotal}
       />
     </div>
   )

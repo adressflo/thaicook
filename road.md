@@ -99,7 +99,7 @@ Notre feuille de route pour faire évoluer l'expérience ChanthanaThaiCook. Ce d
 - [x] Tests CRUD validés : `tests/prisma-crud.test.ts` (mis à jour auth_user_id)
 - [x] Correction TypeScript : **27 erreurs → 0 erreur** ✅
 
-✅ **Migration Hetzner + Prisma 7 **
+✅ **Migration Hetzner + Prisma 7**
 
 - [x] **PostgreSQL migré vers Hetzner** : Coolify self-hosted (116.203.111.206:5432)
 - [x] **Prisma 6.19.0 → 7.2.0** : Upgrade complet avec breaking changes
