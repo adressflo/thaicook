@@ -26,6 +26,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
  * Helper pour extraire data des SafeActionResult de next-safe-action
  * Gère les erreurs de validation et serveur automatiquement
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function unwrapSafeAction<T>(actionPromise: Promise<any>): Promise<T> {
   const result = await actionPromise
 
@@ -55,54 +56,54 @@ async function unwrapSafeAction<T>(actionPromise: Promise<any>): Promise<T> {
 }
 
 // Import Server Actions
-import { getPlats, createPlat, updatePlat, deletePlat } from "@/app/actions/plats"
+import { createPlat, deletePlat, getPlats, updatePlat } from "@/app/actions/plats"
 
 import {
-  getClients,
+  createClient,
   getClientByAuthUserId,
   getClientById,
-  createClient,
-  updateClient,
+  getClients,
   searchClients,
+  updateClient,
 } from "@/app/actions/clients"
 
 import {
-  getCommandes,
-  getCommandeById,
-  getCommandesByClient,
+  addExtraToCommande,
+  addPlatToCommande,
   createCommande,
-  updateCommande,
+  deleteCommande,
+  getCommandeById,
+  getCommandes,
+  getCommandesByClient,
+  removePlatFromCommande,
   toggleEpingleCommande,
   toggleOffertDetail,
-  deleteCommande,
-  addPlatToCommande,
+  updateCommande,
   updatePlatQuantite,
-  updateSpiceLevel,
   updateSpiceDistribution,
-  removePlatFromCommande,
-  addExtraToCommande,
+  updateSpiceLevel,
 } from "@/app/actions/commandes"
 
-import { getExtras, createExtra, updateExtra, deleteExtra } from "@/app/actions/extras"
+import { createExtra, deleteExtra, getExtras, updateExtra } from "@/app/actions/extras"
 
 import {
-  getEvenementsByClient,
-  getEvenementById,
   createEvenement,
-  updateEvenement,
   deleteEvenement,
   getAllEvenements,
+  getEvenementById,
+  getEvenementsByClient,
+  updateEvenement,
 } from "@/app/actions/evenements"
 
 import type {
   ClientUI,
   CommandeUI,
   CreateCommandeData,
-  DetailCommande,
-  PlatUI,
-  ExtraUI,
-  EvenementUI,
   CreateEvenementData,
+  DetailCommande,
+  EvenementUI,
+  ExtraUI,
+  PlatUI,
 } from "@/types/app"
 
 // ============================================
@@ -185,13 +186,13 @@ export const usePrismaUpdatePlat = () => {
         prix?: string // Changed to string
         photo_du_plat?: string
         est_epuise?: boolean
-        lundi_dispo?: any
-        mardi_dispo?: any
-        mercredi_dispo?: any
-        jeudi_dispo?: any
-        vendredi_dispo?: any
-        samedi_dispo?: any
-        dimanche_dispo?: any
+        lundi_dispo?: string | null
+        mardi_dispo?: string | null
+        mercredi_dispo?: string | null
+        jeudi_dispo?: string | null
+        vendredi_dispo?: string | null
+        samedi_dispo?: string | null
+        dimanche_dispo?: string | null
       }>
     }) => {
       // next-safe-action attend un seul objet
@@ -340,6 +341,7 @@ export const usePrismaUpdateClient = () => {
   const { toast } = useToast()
 
   return useMutation({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mutationFn: async ({ data }: { data: any }) => {
       // next-safe-action attend seulement data (authUserId vient du ctx)
       return await unwrapSafeAction<ClientUI>(updateClient(data))
@@ -477,6 +479,7 @@ export const usePrismaUpdateCommande = () => {
   const { toast } = useToast()
 
   return useMutation({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mutationFn: async ({ id, data }: { id: number; data: any }) => {
       console.log("🔵 CLIENT usePrismaUpdateCommande - Avant appel:", { id, data })
       // next-safe-action attend un seul objet
@@ -1021,8 +1024,11 @@ export const usePrismaUpdateEvenement = () => {
       // next-safe-action attend un seul objet
       return await unwrapSafeAction<EvenementUI>(updateEvenement({ id, ...data }))
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["prisma-evenements"] })
+      // Invalider spécifiquement l'événement modifié par son ID
+      queryClient.invalidateQueries({ queryKey: ["prisma-evenement", variables.id] })
+      // Invalider aussi le cache général (au cas où)
       queryClient.invalidateQueries({ queryKey: ["prisma-evenement"] })
       queryClient.invalidateQueries({ queryKey: ["prisma-evenements-client"] })
       toast({
@@ -1089,12 +1095,12 @@ export const usePrismaAllEvenements = () => {
 // ============================================================================
 
 import {
-  getAllHeroMedias,
   createHeroMedia,
-  updateHeroMedia,
+  deleteHeroMedia,
+  getAllHeroMedias,
   reorderHeroMedias,
   toggleHeroMediaActive,
-  deleteHeroMedia,
+  updateHeroMedia,
   uploadHeroFile,
 } from "@/app/actions/hero-media"
 

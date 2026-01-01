@@ -260,11 +260,12 @@ export interface CreateCommandeData {
 }
 
 export interface CreateEvenementData {
-  nom_evenement: string
+  nom_evenement: string // Obligatoire - nom personnalisé de l'événement (min 3 car)
+  type_d_evenement: string // Obligatoire - type d'événement (Anniversaire, Repas d'entreprise, etc.)
   contact_client_r: string // auth_user_id (obligatoire selon schema)
   contact_client_r_id: number // idclient (pour extend du schema)
-  date_evenement: string
-  nombre_personnes: number // Nom correct selon schema
+  date_evenement: string // Obligatoire - date dans le futur
+  nombre_personnes: number // Obligatoire - Nom correct selon schema
   lieu_evenement: string // Obligatoire selon schema
   budget_approximatif?: number // Number optionnel selon schema
   description_evenement?: string // String optionnel selon schema

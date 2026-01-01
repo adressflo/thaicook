@@ -83,12 +83,12 @@ export default function ClientEventsPage() {
   const [typeFilter, setTypeFilter] = useState("all")
   const [currentDate, setCurrentDate] = useState(new Date())
   const [showCreateModal, setShowCreateModal] = useState(false)
-  const [editingEvent, setEditingEvent] = useState<EvenementUI | null>(null)
+  const [_editingEvent, _setEditingEvent] = useState<EvenementUI | null>(null)
 
   const [formData, setFormData] = useState({
     nom_evenement: "",
     date_evenement: "",
-    type_d_evenement: "Autre" as any,
+    type_d_evenement: "Autre" as string,
     nombre_de_personnes: "",
     lieu_evenement: "",
     budget_client: "",
@@ -128,7 +128,7 @@ export default function ClientEventsPage() {
     })
 
     return filtered
-  }, [evenements, searchTerm, statusFilter, typeFilter])
+  }, [evenements, searchTerm, typeFilter])
 
   // Statistiques
   const stats = useMemo(() => {
@@ -141,7 +141,7 @@ export default function ClientEventsPage() {
     )
 
     const parStatut = evenements.reduce(
-      (acc: Record<string, number>, event: EvenementUI) => {
+      (acc: Record<string, number>, _event: EvenementUI) => {
         // Utilisation du statut fictif pour la démo
         const status = formData.statut || "Devis demandé"
         acc[status] = (acc[status] || 0) + 1
@@ -196,6 +196,7 @@ export default function ClientEventsPage() {
     try {
       const eventData: CreateEvenementData = {
         nom_evenement: formData.nom_evenement,
+        type_d_evenement: formData.type_d_evenement || "Autre",
         contact_client_r: clientAuthId,
         contact_client_r_id: client?.idclient || 0,
         date_evenement: formData.date_evenement || new Date().toISOString().split("T")[0],
@@ -226,7 +227,7 @@ export default function ClientEventsPage() {
         statut: "Devis demandé",
       })
       setShowCreateModal(false)
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: "Erreur",
         description: "Impossible de créer l'événement.",
@@ -714,7 +715,7 @@ export default function ClientEventsPage() {
                     </Label>
                     <Select
                       value={formData.type_d_evenement}
-                      onValueChange={(value: any) =>
+                      onValueChange={(value: string) =>
                         setFormData((prev) => ({ ...prev, type_d_evenement: value }))
                       }
                     >

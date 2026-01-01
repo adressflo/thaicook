@@ -66,6 +66,7 @@ const Evenements = memo(() => {
   const [autreTypeEvenementPrecision, setAutreTypeEvenementPrecision] = useState<string>("")
   const initialFormData = {
     typeEvenement: "",
+    nomEvenement: "",
     nombrePersonnes: "",
     budgetClient: "",
     demandesSpeciales: "",
@@ -151,11 +152,15 @@ const Evenements = memo(() => {
     }
 
     // Adaptation pour Supabase
+    // Déterminer le type d'événement
+    const typeEvenementFinal =
+      formData.typeEvenement === "Autre"
+        ? autreTypeEvenementPrecision.trim()
+        : formData.typeEvenement
+
     const evenementData: CreateEvenementData = {
-      nom_evenement:
-        formData.typeEvenement === "Autre"
-          ? autreTypeEvenementPrecision.trim()
-          : formData.typeEvenement,
+      nom_evenement: formData.nomEvenement.trim() || typeEvenementFinal, // Fallback au type si vide
+      type_d_evenement: typeEvenementFinal, // Type obligatoire
       contact_client_r: currentUser.id, // UID Firebase pour le lien utilisateur
       contact_client_r_id: currentUserProfile!.idclient,
       date_evenement: dateEvenementISO,
@@ -278,6 +283,20 @@ const Evenements = memo(() => {
                     )}
 
                     <form onSubmit={handleSubmit} className="space-y-6">
+                      {/* Nom de l'événement - Optionnel */}
+                      <div className="space-y-2">
+                        <Label htmlFor="nomEvenement">Nom de l'événement (optionnel)</Label>
+                        <Input
+                          id="nomEvenement"
+                          value={formData.nomEvenement}
+                          onChange={(e) => handleInputChange("nomEvenement", e.target.value)}
+                          placeholder="Ex: Anniversaire de Marie, Gala d'entreprise..."
+                        />
+                        <p className="text-xs text-gray-500">
+                          Donnez un nom personnalisé à votre événement.
+                        </p>
+                      </div>
+
                       <div className="grid gap-4 sm:grid-cols-1 sm:gap-6 lg:grid-cols-2">
                         <div className="space-y-2">
                           <Label htmlFor="typeEvenement">Type d'événement *</Label>
@@ -299,7 +318,7 @@ const Evenements = memo(() => {
                         </div>
                         {formData.typeEvenement === "Autre" && (
                           <div className="space-y-2">
-                            <Label htmlFor="autreTypeEvenementPrecision">Précisez *</Label>
+                            <Label htmlFor="autreTypeEvenementPrecision">Précisez le type *</Label>
                             <Input
                               id="autreTypeEvenementPrecision"
                               value={autreTypeEvenementPrecision}

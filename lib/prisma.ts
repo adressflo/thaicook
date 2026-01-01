@@ -1,32 +1,32 @@
 // lib/prisma.ts
 // Prisma Client configuration for Next.js 15 App Router
 // Implements singleton pattern to prevent multiple instances in development
+// Updated for Prisma 7 with driver adapter pattern
 
-// Remplacez l'ancienne ligne par celle-ci
-import { PrismaClient } from '@/generated/prisma/client'
+import { PrismaClient } from "@/generated/prisma/client"
+import { PrismaPg } from "@prisma/adapter-pg"
 
 // ============================================
 // TYPE EXTENSIONS AND CUSTOM TYPES
 // ============================================
 
-// Extend PrismaClient with custom methods or middleware if needed
+// Create Prisma Client with driver adapter (Prisma 7 requirement)
 const prismaClientSingleton = () => {
+  // Create PostgreSQL adapter with connection string
+  const adapter = new PrismaPg({
+    connectionString: process.env.DATABASE_URL,
+  })
+
   const prisma = new PrismaClient({
-    log:
-      process.env.NODE_ENV === 'development'
-        ? ['query', 'info', 'warn', 'error']
-        : ['error'],
-    // Optional: Add datasource configuration
-    // datasourceUrl: process.env.DATABASE_URL,
+    adapter,
+    log: process.env.NODE_ENV === "development" ? ["query", "info", "warn", "error"] : ["error"],
   })
 
   // ============================================
   // EXTENSIONS - Prisma v5+ replaces middleware with extensions
   // ============================================
 
-  // Note: Middleware $use() is deprecated in Prisma v5+
-  // Use extensions for custom logic instead
-  // Extensions will be added here if needed for:
+  // Note: Extensions will be added here if needed for:
   // - Auto-timestamp updates
   // - Query logging
   // - Soft deletes
@@ -45,7 +45,7 @@ declare const globalThis: {
 
 const prisma = globalThis.prismaGlobal ?? prismaClientSingleton()
 
-if (process.env.NODE_ENV !== 'production') {
+if (process.env.NODE_ENV !== "production") {
   globalThis.prismaGlobal = prisma
 }
 
@@ -72,7 +72,7 @@ export async function checkDatabaseConnection(): Promise<boolean> {
     await prisma.$queryRaw`SELECT 1`
     return true
   } catch (error) {
-    console.error('❌ Database connection failed:', error)
+    console.error("❌ Database connection failed:", error)
     return false
   }
 }
@@ -98,7 +98,7 @@ export async function getDatabaseStats() {
       total: clients + plats + commandes + evenements,
     }
   } catch (error) {
-    console.error('❌ Failed to get database stats:', error)
+    console.error("❌ Failed to get database stats:", error)
     return null
   }
 }
@@ -117,7 +117,7 @@ export class PrismaError extends Error {
     public meta?: unknown
   ) {
     super(message)
-    this.name = 'PrismaError'
+    this.name = "PrismaError"
   }
 }
 
@@ -130,33 +130,34 @@ export function handlePrismaError(error: unknown, context: string): never {
   const prismaError = error as { code?: string; meta?: unknown; message?: string }
 
   // Unique constraint violation
-  if (prismaError?.code === 'P2002') {
+  if (prismaError?.code === "P2002") {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const target = (prismaError.meta as any)?.target
     throw new PrismaError(
-      `Cette donnée existe déjà${target ? ` (${target.join(', ')})` : ''}`,
+      `Cette donnée existe déjà${target ? ` (${target.join(", ")})` : ""}`,
       prismaError.code,
       prismaError.meta
     )
   }
 
   // Record not found
-  if (prismaError?.code === 'P2025') {
-    throw new PrismaError('Enregistrement non trouvé', prismaError.code, prismaError.meta)
+  if (prismaError?.code === "P2025") {
+    throw new PrismaError("Enregistrement non trouvé", prismaError.code, prismaError.meta)
   }
 
   // Foreign key constraint violation
-  if (prismaError?.code === 'P2003') {
+  if (prismaError?.code === "P2003") {
     throw new PrismaError(
-      'Impossible de supprimer: des données liées existent',
+      "Impossible de supprimer: des données liées existent",
       prismaError.code,
       prismaError.meta
     )
   }
 
   // Connection error
-  if (prismaError?.code === 'P1001' || prismaError?.code === 'P1002') {
+  if (prismaError?.code === "P1001" || prismaError?.code === "P1002") {
     throw new PrismaError(
-      'Erreur de connexion à la base de données',
+      "Erreur de connexion à la base de données",
       prismaError.code,
       prismaError.meta
     )
@@ -170,10 +171,8 @@ export function handlePrismaError(error: unknown, context: string): never {
   )
 }
 
-
 // Export Prisma types for advanced usage
-export type { Prisma } from '@prisma/client'
-
+export type { Prisma } from "@/generated/prisma/client"
 
 // Export default for convenience
 export default prisma

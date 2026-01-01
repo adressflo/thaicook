@@ -172,7 +172,6 @@ export function CalendarDayModal({
                                 <EvenementActionButtons
                                   evenementId={event.idevenements}
                                   canEdit={canEdit}
-                                  evenement={event}
                                 />
                               </div>
                             </div>

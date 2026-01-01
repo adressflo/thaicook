@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button"
 import type { CommandeUI } from "@/types/app"
-import { Edit, Eye } from "lucide-react"
+import { Edit, Eye, Trash2 } from "lucide-react"
 import Link from "next/link"
 import React from "react"
 import BoutonCommanderNouveau from "./BoutonCommanderNouveau"
@@ -10,11 +10,13 @@ interface CommandeActionButtonsProps {
   commandeId: number
   canEdit: boolean
   commande?: CommandeUI
+  onCancel?: (e: React.MouseEvent) => void
 }
 
-export const CommandeActionButtons = React.memo<CommandeActionButtonsProps>(
-  ({ commandeId, canEdit, commande }) => (
-    <div className="flex w-full min-w-[140px] items-center justify-center gap-2">
+export const CommandeActionButtons = React.memo<CommandeActionButtonsProps>((props) => {
+  const { commandeId, canEdit, commande } = props
+  return (
+    <div className="relative flex w-full min-w-[140px] flex-wrap items-center justify-center gap-2">
       <Button
         asChild
         variant="outline"
@@ -39,6 +41,22 @@ export const CommandeActionButtons = React.memo<CommandeActionButtonsProps>(
           </Link>
         </Button>
       )}
+
+      {/* Bouton Poubelle (Annuler) - Coin Droite */}
+      {props.onCancel &&
+        commande &&
+        ["En attente de confirmation", "Confirmée"].includes(commande.statut_commande || "") && (
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={props.onCancel}
+            className="group min-w-[40px] transform-gpu border-2 border-red-200 bg-white text-red-500 transition-all duration-200 hover:scale-[1.02] hover:border-red-500 hover:bg-red-50 hover:shadow-md"
+            title="Annuler la commande"
+          >
+            <Trash2 className="h-4 w-4 transition-transform duration-200 group-hover:scale-110" />
+          </Button>
+        )}
+
       {commande &&
         (commande.statut_commande === "Récupérée" || commande.statut_commande === "Annulée") && (
           <BoutonCommanderNouveau
@@ -51,21 +69,18 @@ export const CommandeActionButtons = React.memo<CommandeActionButtonsProps>(
       )}
     </div>
   )
-)
+})
 
 CommandeActionButtons.displayName = "CommandeActionButtons"
-
-import BoutonTelechargerDevis from "./BoutonTelechargerDevis"
 
 interface EvenementActionButtonsProps {
   evenementId: number
   canEdit: boolean
-  evenement: any // TODO: Fix type
 }
 
 export const EvenementActionButtons = React.memo<EvenementActionButtonsProps>(
-  ({ evenementId, canEdit, evenement }) => (
-    <div className="flex w-full min-w-[140px] items-center justify-center gap-2">
+  ({ evenementId, canEdit }) => (
+    <div className="flex w-full min-w-[140px] flex-wrap items-center justify-center gap-2">
       <Button
         asChild
         variant="outline"
@@ -90,7 +105,6 @@ export const EvenementActionButtons = React.memo<EvenementActionButtonsProps>(
           </Link>
         </Button>
       )}
-      <BoutonTelechargerDevis evenement={evenement} />
     </div>
   )
 )

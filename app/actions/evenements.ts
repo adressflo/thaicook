@@ -2,11 +2,11 @@
 
 import type { client_db, evenements_db } from "@/generated/prisma/client"
 import { Prisma } from "@/generated/prisma/client"
+import { Decimal } from "@/generated/prisma/client/runtime/library"
 import { prisma } from "@/lib/prisma"
 import { authAction } from "@/lib/safe-action"
 import { evenementSchema, evenementUpdateSchema, getByIdSchema } from "@/lib/validations"
 import type { EvenementUI } from "@/types/app"
-import { Decimal } from "@prisma/client/runtime/library"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
 
@@ -84,15 +84,8 @@ export const createEvenement = authAction
   .action(async ({ parsedInput: data }) => {
     try {
       // Destructure and map fields explicitly to avoid passing unknown arguments to Prisma
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const {
-        lieu_evenement,
-        is_public,
-        statut,
-        budget_approximatif,
-        description_evenement,
-        ...rest
-      } = data
+
+      const { budget_approximatif, description_evenement, type_d_evenement, ...rest } = data
 
       // Map Zod fields to Prisma fields
       const createData: Prisma.evenements_dbUncheckedCreateInput = {
@@ -100,6 +93,7 @@ export const createEvenement = authAction
         contact_client_r: rest.contact_client_r,
         contact_client_r_id: BigInt(rest.contact_client_r_id),
         date_evenement: new Date(rest.date_evenement),
+        type_d_evenement: type_d_evenement, // Ajout du mapping
         nombre_de_personnes: rest.nombre_personnes,
         budget_client: budget_approximatif ? new Decimal(budget_approximatif) : null,
         demandes_speciales_evenement: description_evenement || null,
@@ -130,14 +124,12 @@ export const updateEvenement = authAction
   .action(async ({ parsedInput: { id, ...data } }) => {
     try {
       // Destructure to separate special handling and remove unknown fields
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
       const {
         budget_approximatif,
         date_evenement,
         description_evenement,
-        lieu_evenement,
-        is_public,
-        statut,
+        type_d_evenement,
         ...rest
       } = data
 
@@ -150,6 +142,10 @@ export const updateEvenement = authAction
       if (rest.plats_preselectionnes) updateData.plats_preselectionnes = rest.plats_preselectionnes
 
       // Handle mapped fields
+      if (type_d_evenement) {
+        updateData.type_d_evenement = type_d_evenement
+      }
+
       if (description_evenement !== undefined) {
         updateData.demandes_speciales_evenement = description_evenement
       }

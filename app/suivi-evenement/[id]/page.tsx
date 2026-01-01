@@ -1,17 +1,14 @@
 "use client"
 
-import { getClientProfile } from "@/app/profil/actions"
-import { CommandePlatModalTrigger } from "@/components/shared/CommandePlatModal"
 import { AppLayout } from "@/components/layout/AppLayout"
+import { CommandePlatModalTrigger } from "@/components/shared/CommandePlatModal"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useData } from "@/contexts/DataContext"
 import { usePrismaEvenementById } from "@/hooks/usePrismaData"
 import { useSession } from "@/lib/auth-client"
 import { extractRouteParam } from "@/lib/params-utils"
-import { cn } from "@/lib/utils"
 import type { PlatUI as Plat } from "@/types/app"
 import { format } from "date-fns"
 import { fr } from "date-fns/locale"
@@ -26,24 +23,16 @@ import {
   Users,
 } from "lucide-react"
 import Link from "next/link"
-import { redirect, useParams } from "next/navigation"
-import { memo, useEffect, useState } from "react"
+import { useParams, useRouter } from "next/navigation"
+import { memo, useEffect } from "react"
 
 const SuiviEvenement = memo(() => {
   const params = useParams()
+  const router = useRouter()
   const id = extractRouteParam(params?.id)
   const { data: session, isPending: isLoadingAuth } = useSession()
   const currentUser = session?.user
-  const [clientProfile, setClientProfile] = useState<any>(null)
-
-  useEffect(() => {
-    if (currentUser) {
-      getClientProfile().then(setClientProfile)
-    } else {
-      setClientProfile(null)
-    }
-  }, [currentUser?.id])
-
+  // Tous les hooks doivent être appelés avant tout early return
   const {
     data: evenement,
     isLoading: isLoadingEvenement,
@@ -51,6 +40,14 @@ const SuiviEvenement = memo(() => {
   } = usePrismaEvenementById(id ? Number(id) : undefined)
   const { plats, isLoading: platsLoading } = useData()
 
+  // Vérifier si l'utilisateur connecté est le propriétaire de l'événement et redirect si non
+  useEffect(() => {
+    if (currentUser && evenement && String(currentUser.id) !== String(evenement.contact_client_r)) {
+      router.push("/historique")
+    }
+  }, [currentUser, evenement, router])
+
+  // Loading state
   if (isLoadingAuth || isLoadingEvenement || platsLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -59,6 +56,7 @@ const SuiviEvenement = memo(() => {
     )
   }
 
+  // Error state
   if (error || !evenement) {
     return (
       <div className="p-8">
@@ -77,34 +75,10 @@ const SuiviEvenement = memo(() => {
     )
   }
 
-  // Vérifie que l'utilisateur connecté est bien le propriétaire de l'événement
-  if (clientProfile?.idclient !== evenement.contact_client_r) {
-    redirect("/historique")
-  }
-
   // Vérifier si l'événement peut être modifié
   const canEdit =
-    (evenement.statut_evenement as any) !== "Réalisé" &&
-    (evenement.statut_evenement as any) !== "Payé intégralement"
-
-  // Fonction pour obtenir la couleur du statut
-  const getStatutColor = (statut: string | null) => {
-    if (!statut) return "bg-gray-100 text-gray-800 border-gray-300"
-
-    if (
-      statut === "Confirmé / Acompte reçu" ||
-      statut === "Payé intégralement" ||
-      statut === "Réalisé"
-    ) {
-      return "bg-green-100 text-green-800 border-green-300"
-    } else if (statut === "En préparation" || statut === "Contact établi") {
-      return "bg-blue-100 text-blue-800 border-blue-300"
-    } else if (statut === "Annulé") {
-      return "bg-red-100 text-red-800 border-red-300"
-    } else {
-      return "bg-yellow-100 text-yellow-800 border-yellow-300"
-    }
-  }
+    (evenement.statut_evenement as string) !== "Réalisé" &&
+    (evenement.statut_evenement as string) !== "Payé intégralement"
 
   // Fonction pour obtenir les plats présélectionnés
   const getPlatsPreselectionnes = () => {
@@ -231,17 +205,6 @@ const SuiviEvenement = memo(() => {
                           </div>
                           <div className="space-y-2">
                             <div>
-                              <p className="text-sm font-medium text-gray-500">Statut actuel</p>
-                              <Badge
-                                className={cn(
-                                  "inline-flex h-9 items-center justify-center rounded-md px-3 text-sm font-medium",
-                                  getStatutColor(evenement.statut_evenement)
-                                )}
-                              >
-                                {evenement.statut_evenement || "Demande initiale"}
-                              </Badge>
-                            </div>
-                            <div>
                               <p className="text-sm font-medium text-gray-500">
                                 Nombre de personnes
                               </p>
@@ -316,12 +279,13 @@ const SuiviEvenement = memo(() => {
                                 samedi_dispo: plat.samedi_dispo || null,
                                 vendredi_dispo: plat.vendredi_dispo || null,
                               },
+                              // eslint-disable-next-line @typescript-eslint/no-explicit-any
                             } as any // Type casting pour compatibilité Prisma types
 
                             return (
                               <CommandePlatModalTrigger
                                 key={plat.id}
-                                plat={plat as any}
+                                plat={plat}
                                 detail={detailForModal}
                                 formatPrix={formatPrix}
                                 mode="readonly"
@@ -334,6 +298,7 @@ const SuiviEvenement = memo(() => {
                                 >
                                   {plat.photo_du_plat && (
                                     <div className="aspect-video overflow-hidden rounded-t-lg">
+                                      {/* eslint-disable-next-line @next/next/no-img-element */}
                                       <img
                                         src={plat.photo_du_plat}
                                         alt={plat.plat}
@@ -383,9 +348,11 @@ const SuiviEvenement = memo(() => {
                   <Card className="border-thai-green/20 from-thai-cream/40 to-thai-gold/15 animate-fadeIn bg-linear-to-br shadow-xl">
                     <CardContent className="p-6">
                       <div className="space-y-6 text-center">
-                        {((evenement.statut_evenement as any) === "Demande initiale" ||
-                          (evenement.statut_evenement as any) === "En préparation" ||
-                          (evenement.statut_evenement as any) === "Contact établi") && (
+                        {((evenement.statut_evenement as unknown as string) ===
+                          "Demande initiale" ||
+                          (evenement.statut_evenement as unknown as string) === "En préparation" ||
+                          (evenement.statut_evenement as unknown as string) ===
+                            "Contact établi") && (
                           <div className="rounded-xl border-2 border-blue-200/60 bg-linear-to-r from-blue-50 to-blue-100/70 p-6 shadow-lg backdrop-blur-sm">
                             <p className="text-center text-lg leading-relaxed font-semibold text-blue-800">
                               🎉 Votre demande d'événement est en cours de traitement. Nous vous
@@ -394,7 +361,8 @@ const SuiviEvenement = memo(() => {
                           </div>
                         )}
 
-                        {(evenement.statut_evenement as any) === "Confirmé / Acompte reçu" && (
+                        {(evenement.statut_evenement as unknown as string) ===
+                          "Confirmé / Acompte reçu" && (
                           <div className="rounded-xl border-2 border-green-200/60 bg-linear-to-r from-green-50 to-green-100/70 p-6 shadow-lg backdrop-blur-sm">
                             <div className="mb-3 flex items-center justify-center">
                               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-200/50">
@@ -408,7 +376,7 @@ const SuiviEvenement = memo(() => {
                           </div>
                         )}
 
-                        {(evenement.statut_evenement as any) === "Réalisé" && (
+                        {(evenement.statut_evenement as unknown as string) === "Réalisé" && (
                           <div className="rounded-xl border-2 border-emerald-200/60 bg-linear-to-r from-green-50 to-emerald-100/70 p-6 shadow-lg backdrop-blur-sm">
                             <div className="mb-3 flex items-center justify-center">
                               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-200/50">

@@ -28,7 +28,7 @@
 | State     | TanStack Query        | `hooks/usePrismaData.ts`                |
 | Mutations | next-safe-action      | `app/actions/*.ts`                      |
 | Storage   | MinIO (S3-compatible) | Hetzner self-hosted                     |
-| Database  | PostgreSQL            | Supabase (migration Hetzner planifiée)  |
+| Database  | PostgreSQL            | Hetzner self-hosted (Coolify)           |
 | Realtime  | Supabase Realtime     | -                                       |
 
 ### Base de Données

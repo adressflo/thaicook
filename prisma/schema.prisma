@@ -1,14 +1,12 @@
 generator client {
-  provider        = "prisma-client-js"
+  provider        = "prisma-client"
   output          = "../generated/prisma/client"
   previewFeatures = ["fullTextSearchPostgres"]
 }
-
 datasource db {
   provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
 }
+
 
 model activites_flux {
   id            BigInt         @id @default(autoincrement())
@@ -183,7 +181,7 @@ model evenements_db {
   nom_evenement                String?
   contact_client_r             String?
   date_evenement               DateTime?                     @db.Timestamptz(6)
-  type_d_evenement             type_evenement?
+  type_d_evenement             String?                       @db.VarChar(255)
   nombre_de_personnes          Int?
   budget_client                Decimal?                      @db.Decimal(10, 2)
   demandes_speciales_evenement String?

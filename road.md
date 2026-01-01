@@ -64,7 +64,7 @@ Notre feuille de route pour faire évoluer l'expérience ChanthanaThaiCook. Ce d
 
 ### ✅ 1️⃣ Prisma ORM - Migration Base de Données [TERMINÉ]
 
-**Statut : 100% ✅**
+**Statut : 100% ✅ (Prisma 7.2.0 + Hetzner PostgreSQL)**
 
 <details>
 <summary>📊 Détails de la migration</summary>
@@ -88,16 +88,27 @@ Notre feuille de route pour faire évoluer l'expérience ChanthanaThaiCook. Ce d
 - [x] Migration 100% des composants : 17 pages + 10 composants
   - app/profil, app/commander, app/panier, app/admin/_, app/suivi-_, etc.
   - Tous les composants utilisent usePrismaData.ts
-- [x] **Nettoyage `hooks/useSupabaseData.ts` : SUPPRIMÉ (20/12/2024)**
+- [x] **Nettoyage `hooks/useSupabaseData.ts` : SUPPRIMÉ **
   - Initialement réduit : 2904 → 361 lignes (-87%)
   - Finalement supprimé : 0 lignes (100% Prisma)
   - Hooks admin/courses avec stubs temporaires
-- [x] **Nettoyage `services/supabaseService.ts` : SUPPRIMÉ (20/12/2024)**
+- [x] **Nettoyage `services/supabaseService.ts` : SUPPRIMÉ **
   - Fichier entièrement supprimé avec lib/supabase.ts
 - [x] Suppression 3 fichiers obsolètes (useSupabase.ts, useSupabaseNotifications.ts, supabaseAdmin.ts)
 - [x] **Total : -3200 lignes de code obsolète supprimées**
 - [x] Tests CRUD validés : `tests/prisma-crud.test.ts` (mis à jour auth_user_id)
 - [x] Correction TypeScript : **27 erreurs → 0 erreur** ✅
+
+✅ **Migration Hetzner + Prisma 7 **
+
+- [x] **PostgreSQL migré vers Hetzner** : Coolify self-hosted (116.203.111.206:5432)
+- [x] **Prisma 6.19.0 → 7.2.0** : Upgrade complet avec breaking changes
+  - Provider : `prisma-client-js` → `prisma-client`
+  - Nouveau fichier : `prisma.config.ts` (datasource.url)
+  - Adapter pattern : `@prisma/adapter-pg` dans `lib/prisma.ts`
+  - url/directUrl supprimés de `schema.prisma`
+- [x] **Supabase 100% supprimé** : Variables env nettoyées (.env, .env.local)
+- [x] **Événements fonctionnels** : Création et affichage OK
 
 📖 **Doc :** `documentation/prisma-migration.md`
 🔗 **Commits :** `2347e59`, `c169c55`, `35f58ae`
@@ -387,7 +398,7 @@ Tests       15 passed (15)
   - [x] Script migration assets Supabase → MinIO exécuté
   - [x] Script mise à jour base de données (remplacement URLs) exécuté
 
-**🗑️ Supabase 100% SUPPRIMÉ (20/12/2024) :**
+**🗑️ Supabase 100% SUPPRIMÉ :**
 
 - [x] **Fichiers supprimés (~1070 lignes)** :
   - `lib/supabase.ts`, `lib/supabaseStorage.ts` (client + storage)
@@ -1273,57 +1284,69 @@ npm run test:e2e
 
 ### 📜 D. Page Historique (/historique & /historique/complet)
 
-**Fichier** : `app/historique/page.tsx` (651 lignes)
+**Fichiers** :
 
-#### ✅ Fonctionnalités Existantes (Complètes)
+- `app/historique/page.tsx` (317 lignes)
+- `app/historique/complet/page.tsx` (29 lignes)
+- `components/historique/OrderHistoryCard.tsx` (477 lignes)
+- `components/historique/ActionButtons.tsx` (117 lignes)
 
-- [x] ✅ **FilterSearchBar** : Composant complet de filtres (ligne 310)
-  - [x] Recherche par nom de plat (case-insensitive)
-  - [x] Filtre par statut (commande ou événement)
-  - [x] Filtre par type (commande / événement)
-  - [x] Filtre par plage de dates (DateRangePicker)
-  - [x] Filtre par montant min/max
-  - [x] Bouton "Effacer tous les filtres"
-  - [x] Badge compteur filtres actifs
-- [x] ✅ **Real-time Supabase sync** : `useCommandesRealtime()` (ligne 72)
-- [x] ✅ **Offline Banner** : `OfflineBannerCompact` (ligne 307)
-- [x] ✅ **Résumé résultats filtrés** : Affichage count commandes + événements (lignes 293-308)
-- [x] ✅ **Séparation En Cours / Historique** : 4 sections distinctes
-- [x] ✅ **Limite 3 dernières commandes historique** : `.slice(0, 3)` (ligne 254)
-- [x] ✅ **StatusBadge** : Composant couleurs statuts (ligne 47)
-- [x] ✅ **CommandeActionButtons** : Boutons Voir/Modifier (ligne 35-37)
-- [x] ✅ **EvenementActionButtons** : Boutons Voir/Modifier (ligne 35-37)
-- [x] ✅ **FormattedDate, FormattedPrice, DishList, PersonCount** : Composants display (ligne 40-46)
+#### ✅ Fonctionnalités /historique
 
-#### ⚠️ Composant Créé mais NON Intégré
+- [x] ✅ **Prisma ORM** : Hooks `usePrismaCommandesByClient`, `usePrismaEvenementsByClient`, `usePrismaExtras`
+- [x] ✅ **OfflineBannerCompact** : Bannière mode hors-ligne
+- [x] ✅ **Séparation En Cours / Historique** : 2 sections commandes + 2 sections événements
+- [x] ✅ **Limite 10 commandes historique** : `.slice(0, 10)`
+- [x] ✅ **OrderHistoryCard** : Carte commande premium (voir détails ci-dessous)
+- [x] ✅ **StatusBadge** : Badge couleur selon statut
+- [x] ✅ **EvenementActionButtons** : Boutons Voir/Modifier/Devis
+- [x] ✅ **FormattedDate, FormattedEvent, PersonCount** : Composants display
 
-- [x] ✅ **BoutonTelechargerFacture** : ⚠️ COMPOSANT INTÉGRÉ
-  - ✅ Fichier existe: `components/historique/BoutonTelechargerFacture.tsx` (41 lignes)
-  - ✅ Utilise `@react-pdf/renderer` pour génération PDF
-  - ✅ Importé/utilisé dans `CommandeActionButtons` et `suivi-commande/[id]/page.tsx`
-  - Intégré dans `CommandeActionButtons` pour commandes "Récupérée"
+#### ✅ OrderHistoryCard
 
-#### 🔥🔥 Tâches Restantes
+**Composant** : `components/historique/OrderHistoryCard.tsx`
 
-- [x] ✅ **Intégrer BoutonTelechargerFacture** : Ajouter dans ActionButtons.tsx pour statut "Récupérée"
-- [x] ✅ **Bouton Devis/Facture événements** : Template PDF événement créé (`BoutonTelechargerDevis.tsx`)
-- [x] ✅ **Bouton "Voir tout l'historique"** : Redirection vers `/historique/complet` (ligne 697-704)
-- [x] ✅ **"Commander à Nouveau"** : Bouton copie commande passée vers panier (`BoutonCommanderNouveau.tsx`)
+- [x] ✅ **Header 3 colonnes** : Média | Date & Heure | Statut & N°
+- [x] ✅ **Styles dynamiques par statut** :
+  - "En attente de confirmation" : Gradient orange/ambre
+  - "Confirmée" : Vert avec icône clipboard
+  - "En préparation" : Orange avec image Chanthana + vidéo
+  - "Prête à récupérer" : Vert émeraude avec badge pulsant
+  - "Récupérée" : Gris/argent avec calendrier
+  - "Annulée" : Rouge avec overlay "ANNULÉE" style tampon
+- [x] ✅ **Overlay Annulation** : Texte rotatif (-15°) avec backdrop blur
+- [x] ✅ **CartItemCard** : Affichage plats avec photo, prix, quantité
 
-#### ✅ Page Historique Complet (/historique/complet) - COMPLÈTE
+#### ✅ CommandeActionButtons
 
-- [x] ✅ **Page `/historique/complet/page.tsx`** : Route Next.js créée
-- [x] ✅ **nuqs - Pagination** : Navigation pages avec URL state (`HistoryCompletClient.tsx`)
-- [x] ✅ **FilterSearchBar intégré** : Tous les filtres disponibles
-- [ ] 🔥 **Vue Calendrier** : Navigation visuelle commandes/événements passés
+- [x] ✅ **Bouton Voir** : Lien vers `/suivi-commande/{id}`
+- [x] ✅ **Bouton Modifier** : Masqué pour statuts "En préparation", "Prête à récupérer", "Récupérée", "Annulée"
+- [x] ✅ **Bouton Poubelle** : Visible uniquement pour "En attente de confirmation" et "Confirmée"
+- [x] ✅ **BoutonTelechargerFacture** : Pour statut "Récupérée"
+- [x] ✅ **BoutonCommanderNouveau** : Pour statuts "Récupérée" ou "Annulée"
 
-#### 💜 Suggestions Pratiques
+#### ✅ Responsive Mobile
 
-- [ ] 💜 **Chanthana félicitations** : Animation Chanthana qui applaudit quand on atteint X commandes (ex: 5, 10, 20)
-- [ ] 💜 **Timeline visuelle commandes** : Vue chronologique verticale avec dates et photos des plats commandés
-- [ ] 💜 **Bouton "Recommander ce plat"** : Ajouter directement un plat de l'historique au panier actuel
-- [ ] 💜 **Prévisualisation facture** : Aperçu de la facture avant téléchargement (modal avec PDF viewer)
-- [ ] 💜 **Recherche intelligente** : Suggestions de recherche basées sur les plats déjà commandés
+- [x] ✅ **Page container** : `px-1 pt-1 pb-8 sm:px-4 sm:py-8`
+- [x] ✅ **CardContent padding** : `p-2 sm:p-6`
+- [x] ✅ **Header stacking** : `flex flex-col` → `md:grid md:grid-cols-3`
+- [x] ✅ **ActionButtons** : `flex-wrap` pour éviter overflow
+
+#### ✅ Page /historique/complet
+
+- [x] ✅ **CalendarView** : Vue calendrier des commandes/événements
+- [ ] 🔥 **FilterSearchBar** : Composant existe (`components/historique/FilterSearchBar.tsx`) mais NON intégré
+
+#### ⚠️ Composants Disponibles (Non Intégrés)
+
+- [ ] ⚠️ **FilterSearchBar.tsx** (11615 lignes) : Filtres avancés - À intégrer
+- [ ] ⚠️ **HistoryList.tsx** (4244 lignes) : Liste optimisée - À intégrer
+
+#### 💜 Suggestions
+
+- [ ] 💜 **Intégrer FilterSearchBar** dans /historique
+- [ ] 💜 **Timeline visuelle commandes** : Vue chronologique verticale
+- [ ] 💜 **Prévisualisation facture** : Modal avec PDF viewer
 
 ---
 
@@ -2565,7 +2588,7 @@ Next.js App → Webhook POST → n8n → Fan-out multicanal
 
 #### 💜 Suggestions Pratiques Production
 
-- [ ] 💜 **View Transitions API** : Transitions fluides entre pages (natif Chrome/Edge 2025, gratuit)
+- [ ] 💜 **View Transitions API** : Transitions fluides entre pages (natif Chrome/Edge, gratuit)
 - [ ] 💜 **Scroll-driven animations** : Animations au scroll avec CSS natif `animation-timeline` (gratuit)
 - [ ] 💜 **Prefers-reduced-motion** : Respecter les préférences utilisateur pour animations (accessibilité)
 - [ ] 💜 **Image placeholders LQIP** : Blur-up images avec plaiceholder (gratuit, Next.js natif)
@@ -2652,6 +2675,14 @@ Fallback logic: Push PWA → Email → SMS/WhatsApp
 - Humanisation et authenticité de l'expérience client
 - Identité de marque forte et mémorable
 
+#### 🎭 Stratégie d'Intégration Personnage (Tendances UX )
+
+**Techniques Clés** :
+
+1.  **State Awareness** : Personnage réactif (Chanthana triste si panier vide, fête si succès).
+2.  **Mascot FAB** : Bouton flottant "Compagnon de Poche" (Chanthana).
+3.  **Micro-Animations** : Mouvements subtils (clignement yeux, "Pull-to-Refresh" personnalisé).
+
 #### 💜 Visuels Chanthana à Générer (IA Générative)
 
 - [ ] 💜 **Chanthana wai accueil** : Animation 3s de Chanthana faisant le salut thaï traditionnel (format Lottie ou GIF)
@@ -2675,21 +2706,6 @@ Fallback logic: Push PWA → Email → SMS/WhatsApp
 - [ ] 💜 **3D Interactive Element** : Potentiel pour animation Chanthana 3D interactive
 
 **Installation** : `npx shadcn@latest add "https://21st.dev/r/[author]/[component]"`
-
-### Budget Mensuel Estimé (Nov 2025)
-
-| Service                     | Coût            | Notes                             |
-| --------------------------- | --------------- | --------------------------------- |
-| **Hetzner VPS**             | 5-10€/mois      | CX22 (2 vCPU, 4GB RAM, 80GB)      |
-| **n8n self-hosted**         | 0€              | Inclus dans VPS                   |
-| **Resend (Better Auth)**    | 0€              | Free tier 100 emails/jour         |
-| **Brevo (n8n emails)**      | 0€              | Free tier 300 emails/jour         |
-| **Firebase FCM (Push)**     | 0€              | Gratuit illimité                  |
-| **Telegram Bot**            | 0€              | Gratuit illimité                  |
-| **Supabase (DB + Storage)** | 0€              | Free tier (500MB DB, 1GB Storage) |
-| **Twilio SMS** (optionnel)  | 0-15€           | Si activation SMS backup          |
-| **Domaine**                 | 10-15€/an       | .com/.fr                          |
-| **Total**                   | **10-25€/mois** | Sans SMS, 25-40€ avec             |
 
 ### Dépendances entre Phases
 
@@ -2824,7 +2840,7 @@ Phase 4-7 (Optimisations) → Continu, non bloquant
 
 ---
 
-## 🌐 Phase 10 : APIs Navigateur Modernes 2025 (🔥 BASSE)
+## 🌐 Phase 10 : APIs Navigateur Modernes (🔥 BASSE)
 
 **Objectif : Exploiter les capacités modernes des navigateurs pour une meilleure UX**
 

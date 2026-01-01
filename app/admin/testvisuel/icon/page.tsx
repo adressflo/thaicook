@@ -1,8 +1,19 @@
 "use client"
 
+import { MyCalendarIcon } from "@/components/shared/MyCalendarIcon"
 import { Spice } from "@/components/shared/Spice"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { toast } from "@/hooks/use-toast"
 import {
   AlertCircle,
   AlertTriangle,
@@ -119,6 +130,629 @@ import {
 } from "lucide-react"
 import { useState } from "react"
 
+// ============================================================================
+// MY CALENDAR ICON PLAYGROUND
+// ============================================================================
+
+function MyCalendarIconPlayground() {
+  const [props, setProps] = useState<{
+    date: Date
+    size: "sm" | "md" | "lg" | "xl" | "custom"
+    customSize: number
+    borderColor: "thai-orange" | "thai-green" | "blue" | "red" | "custom"
+    customBorderColor: string
+    borderHoverColor: "thai-gold" | "thai-green" | "blue" | "red" | "custom"
+    customBorderHoverColor: string
+    borderWidth: 1 | 2 | 4 | "custom"
+    customBorderWidth: number
+    hoverAnimation: boolean
+    showTime: boolean
+    headerColor: "gradient" | "solid-orange" | "solid-green" | "custom"
+    customHeaderColor: string
+    headerHoverColor: "gradient-gold" | "solid-gold" | "solid-emerald" | "custom"
+    customHeaderHoverColor: string
+    timeBadgeColor: "thai-orange" | "thai-green" | "thai-gold" | "blue" | "red" | "custom"
+    customTimeBadgeColor: string
+    timeBadgeHoverColor: "thai-gold" | "thai-green" | "thai-orange" | "blue" | "custom"
+    customTimeBadgeHoverColor: string
+  }>({
+    date: new Date(2025, 0, 24, 18, 10),
+    size: "md",
+    customSize: 100,
+    borderColor: "thai-orange",
+    customBorderColor: "border-purple-500",
+    borderHoverColor: "thai-gold",
+    customBorderHoverColor: "border-pink-500",
+    borderWidth: 2,
+    customBorderWidth: 3,
+    hoverAnimation: true,
+    showTime: true,
+    headerColor: "gradient",
+    customHeaderColor: "bg-purple-500",
+    headerHoverColor: "gradient-gold",
+    customHeaderHoverColor: "bg-pink-500",
+    timeBadgeColor: "thai-orange",
+    customTimeBadgeColor: "bg-purple-500",
+    timeBadgeHoverColor: "thai-gold",
+    customTimeBadgeHoverColor: "bg-pink-500",
+  })
+
+  const generateCode = () => {
+    const lines = [`<MyCalendarIcon`]
+    lines.push(
+      `  date={new Date(${props.date.getFullYear()}, ${props.date.getMonth()}, ${props.date.getDate()}, ${props.date.getHours()}, ${props.date.getMinutes()})}`
+    )
+    if (props.size !== "md") {
+      lines.push(`  size="${props.size}"`)
+      if (props.size === "custom") lines.push(`  customSize={${props.customSize}}`)
+    }
+    if (props.borderColor !== "thai-orange") {
+      lines.push(`  borderColor="${props.borderColor}"`)
+      if (props.borderColor === "custom")
+        lines.push(`  customBorderColor="${props.customBorderColor}"`)
+    }
+    if (props.borderHoverColor !== "thai-gold") {
+      lines.push(`  borderHoverColor="${props.borderHoverColor}"`)
+      if (props.borderHoverColor === "custom")
+        lines.push(`  customBorderHoverColor="${props.customBorderHoverColor}"`)
+    }
+    if (props.borderWidth !== 2) {
+      lines.push(
+        `  borderWidth={${props.borderWidth === "custom" ? `"custom"` : props.borderWidth}}`
+      )
+      if (props.borderWidth === "custom")
+        lines.push(`  customBorderWidth={${props.customBorderWidth}}`)
+    }
+    if (!props.hoverAnimation) lines.push(`  hoverAnimation={false}`)
+    if (!props.showTime) lines.push(`  showTime={false}`)
+    if (props.headerColor !== "gradient") {
+      lines.push(`  headerColor="${props.headerColor}"`)
+      if (props.headerColor === "custom")
+        lines.push(`  customHeaderColor="${props.customHeaderColor}"`)
+    }
+    if (props.headerHoverColor !== "gradient-gold") {
+      lines.push(`  headerHoverColor="${props.headerHoverColor}"`)
+      if (props.headerHoverColor === "custom")
+        lines.push(`  customHeaderHoverColor="${props.customHeaderHoverColor}"`)
+    }
+    if (props.timeBadgeColor !== "thai-orange") {
+      lines.push(`  timeBadgeColor="${props.timeBadgeColor}"`)
+      if (props.timeBadgeColor === "custom")
+        lines.push(`  customTimeBadgeColor="${props.customTimeBadgeColor}"`)
+    }
+    if (props.timeBadgeHoverColor !== "thai-gold") {
+      lines.push(`  timeBadgeHoverColor="${props.timeBadgeHoverColor}"`)
+      if (props.timeBadgeHoverColor === "custom")
+        lines.push(`  customTimeBadgeHoverColor="${props.customTimeBadgeHoverColor}"`)
+    }
+    lines.push(`/>`)
+    return lines.join("\n")
+  }
+
+  const handleCopyCode = async () => {
+    try {
+      await navigator.clipboard.writeText(generateCode())
+      toast({ title: "Code copié !", description: "Le code a été copié dans le presse-papier" })
+    } catch {
+      toast({
+        title: "Erreur",
+        description: "Impossible de copier le code",
+        variant: "destructive",
+      })
+    }
+  }
+
+  return (
+    <Card className="border-thai-orange/20 ring-thai-orange/30 ring-2">
+      <CardHeader className="bg-thai-cream/50">
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="text-thai-green flex items-center gap-2 text-2xl">
+              📅 MyCalendarIcon
+              <Badge className="bg-thai-gold text-thai-green">Custom</Badge>
+            </CardTitle>
+            <CardDescription>
+              Composant: <code className="text-xs">components/shared/MyCalendarIcon.tsx</code>
+            </CardDescription>
+          </div>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button
+                variant="outline"
+                className="border-thai-orange text-thai-orange hover:bg-thai-orange hover:text-white"
+              >
+                <Info className="mr-2 h-4 w-4" />
+                Props
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-h-[80vh] max-w-3xl overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle className="text-thai-green">📅 Props MyCalendarIcon</DialogTitle>
+                <DialogDescription>Documentation complète des propriétés</DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 text-xs">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="bg-thai-cream/50">
+                      <th className="border p-1.5 text-left">Prop</th>
+                      <th className="border p-1.5 text-left">Type</th>
+                      <th className="border p-1.5 text-left">Default</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td className="border p-1.5 font-mono">date</td>
+                      <td className="border p-1.5">Date</td>
+                      <td className="border p-1.5">-</td>
+                    </tr>
+                    <tr>
+                      <td className="border p-1.5 font-mono">size / customSize</td>
+                      <td className="border p-1.5">"sm"|"md"|"lg"|"xl"|"custom" + number</td>
+                      <td className="border p-1.5">"md"</td>
+                    </tr>
+                    <tr>
+                      <td className="border p-1.5 font-mono">borderColor / customBorderColor</td>
+                      <td className="border p-1.5">"thai-orange"|... + string</td>
+                      <td className="border p-1.5">"thai-orange"</td>
+                    </tr>
+                    <tr>
+                      <td className="border p-1.5 font-mono">
+                        borderHoverColor / customBorderHoverColor
+                      </td>
+                      <td className="border p-1.5">"thai-gold"|... + string</td>
+                      <td className="border p-1.5">"thai-gold"</td>
+                    </tr>
+                    <tr>
+                      <td className="border p-1.5 font-mono">borderWidth / customBorderWidth</td>
+                      <td className="border p-1.5">1|2|4|"custom" + number</td>
+                      <td className="border p-1.5">2</td>
+                    </tr>
+                    <tr>
+                      <td className="border p-1.5 font-mono">headerColor / customHeaderColor</td>
+                      <td className="border p-1.5">"gradient"|"solid-orange"|... + string</td>
+                      <td className="border p-1.5">"gradient"</td>
+                    </tr>
+                    <tr>
+                      <td className="border p-1.5 font-mono">
+                        headerHoverColor / customHeaderHoverColor
+                      </td>
+                      <td className="border p-1.5">"gradient-gold"|... + string</td>
+                      <td className="border p-1.5">"gradient-gold"</td>
+                    </tr>
+                    <tr>
+                      <td className="border p-1.5 font-mono">
+                        timeBadgeColor / customTimeBadgeColor
+                      </td>
+                      <td className="border p-1.5">"thai-orange"|... + string</td>
+                      <td className="border p-1.5">"thai-orange"</td>
+                    </tr>
+                    <tr>
+                      <td className="border p-1.5 font-mono">
+                        timeBadgeHoverColor / customTimeBadgeHoverColor
+                      </td>
+                      <td className="border p-1.5">"thai-gold"|... + string</td>
+                      <td className="border p-1.5">"thai-gold"</td>
+                    </tr>
+                    <tr>
+                      <td className="border p-1.5 font-mono">hoverAnimation</td>
+                      <td className="border p-1.5">boolean</td>
+                      <td className="border p-1.5">true</td>
+                    </tr>
+                    <tr>
+                      <td className="border p-1.5 font-mono">showTime</td>
+                      <td className="border p-1.5">boolean</td>
+                      <td className="border p-1.5">true</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-6 pt-6">
+        <div className="border-thai-orange/20 space-y-4 rounded-lg border bg-white p-6 shadow-sm">
+          <div className="flex items-center justify-between">
+            <h4 className="text-thai-green text-lg font-semibold">Contrôles Interactifs</h4>
+            <Button
+              variant="outline"
+              onClick={handleCopyCode}
+              className="border-thai-green text-thai-green hover:bg-thai-green hover:text-white"
+            >
+              Copier le Code
+            </Button>
+          </div>
+
+          {/* Preview Zone */}
+          <div className="relative flex min-h-[200px] items-center justify-center rounded-lg border border-dashed bg-gray-50 p-8">
+            <p className="absolute top-4 left-4 text-sm font-medium text-gray-500">
+              Prévisualisation
+            </p>
+            <MyCalendarIcon
+              date={props.date}
+              size={props.size}
+              customSize={props.size === "custom" ? props.customSize : undefined}
+              borderColor={props.borderColor}
+              customBorderColor={
+                props.borderColor === "custom" ? props.customBorderColor : undefined
+              }
+              borderHoverColor={props.borderHoverColor}
+              customBorderHoverColor={
+                props.borderHoverColor === "custom" ? props.customBorderHoverColor : undefined
+              }
+              borderWidth={props.borderWidth}
+              customBorderWidth={
+                props.borderWidth === "custom" ? props.customBorderWidth : undefined
+              }
+              hoverAnimation={props.hoverAnimation}
+              showTime={props.showTime}
+              headerColor={props.headerColor}
+              customHeaderColor={
+                props.headerColor === "custom" ? props.customHeaderColor : undefined
+              }
+              headerHoverColor={props.headerHoverColor}
+              customHeaderHoverColor={
+                props.headerHoverColor === "custom" ? props.customHeaderHoverColor : undefined
+              }
+              timeBadgeColor={props.timeBadgeColor}
+              customTimeBadgeColor={
+                props.timeBadgeColor === "custom" ? props.customTimeBadgeColor : undefined
+              }
+              timeBadgeHoverColor={props.timeBadgeHoverColor}
+              customTimeBadgeHoverColor={
+                props.timeBadgeHoverColor === "custom" ? props.customTimeBadgeHoverColor : undefined
+              }
+            />
+          </div>
+
+          {/* Date Control */}
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-gray-700">📅 Date et Heure</label>
+            <input
+              type="datetime-local"
+              value={`${props.date.getFullYear()}-${String(props.date.getMonth() + 1).padStart(2, "0")}-${String(props.date.getDate()).padStart(2, "0")}T${String(props.date.getHours()).padStart(2, "0")}:${String(props.date.getMinutes()).padStart(2, "0")}`}
+              onChange={(e) => setProps({ ...props, date: new Date(e.target.value) })}
+              className="focus:ring-thai-orange w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:outline-none"
+            />
+          </div>
+
+          {/* Size Control */}
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-gray-700">📏 Taille</label>
+            <div className="flex flex-wrap gap-2">
+              {(["sm", "md", "lg", "xl", "custom"] as const).map((s) => (
+                <Button
+                  key={s}
+                  size="sm"
+                  variant={props.size === s ? "default" : "outline"}
+                  onClick={() => setProps({ ...props, size: s })}
+                  className={
+                    props.size === s
+                      ? "bg-thai-orange hover:bg-thai-orange/90"
+                      : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
+                  }
+                >
+                  {s === "custom" ? "🎨 Custom" : s}
+                </Button>
+              ))}
+            </div>
+            {props.size === "custom" && (
+              <div className="mt-2 flex items-center gap-2">
+                <input
+                  type="range"
+                  min="50"
+                  max="200"
+                  step="5"
+                  value={props.customSize}
+                  onChange={(e) => setProps({ ...props, customSize: Number(e.target.value) })}
+                  className="flex-1"
+                />
+                <span className="w-16 text-sm text-gray-600">{props.customSize}px</span>
+              </div>
+            )}
+          </div>
+
+          {/* Border Color Control - Sans Survol */}
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-gray-700">
+              🎨 Couleur Bordure (Sans Survol)
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {[
+                { label: "🟠 Orange", value: "thai-orange" as const },
+                { label: "🟢 Vert", value: "thai-green" as const },
+                { label: "🔵 Bleu", value: "blue" as const },
+                { label: "🔴 Rouge", value: "red" as const },
+                { label: "🎨 Custom", value: "custom" as const },
+              ].map((color) => (
+                <Button
+                  key={color.value}
+                  size="sm"
+                  variant={props.borderColor === color.value ? "default" : "outline"}
+                  onClick={() => setProps({ ...props, borderColor: color.value })}
+                  className={
+                    props.borderColor === color.value
+                      ? "bg-thai-orange hover:bg-thai-orange/90"
+                      : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
+                  }
+                >
+                  {color.label}
+                </Button>
+              ))}
+            </div>
+            {props.borderColor === "custom" && (
+              <input
+                type="text"
+                value={props.customBorderColor}
+                onChange={(e) => setProps({ ...props, customBorderColor: e.target.value })}
+                placeholder="ex: border-purple-500"
+                className="focus:ring-thai-orange mt-2 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:outline-none"
+              />
+            )}
+          </div>
+
+          {/* Border Hover Color */}
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-gray-700">
+              🎨 Couleur Bordure (Avec Survol)
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {[
+                { label: "🟡 Gold", value: "thai-gold" as const },
+                { label: "🟢 Vert", value: "thai-green" as const },
+                { label: "🔵 Bleu", value: "blue" as const },
+                { label: "🔴 Rouge", value: "red" as const },
+                { label: "🎨 Custom", value: "custom" as const },
+              ].map((color) => (
+                <Button
+                  key={color.value}
+                  size="sm"
+                  variant={props.borderHoverColor === color.value ? "default" : "outline"}
+                  onClick={() => setProps({ ...props, borderHoverColor: color.value })}
+                  className={
+                    props.borderHoverColor === color.value
+                      ? "bg-thai-gold hover:bg-thai-gold/90 text-thai-green"
+                      : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
+                  }
+                >
+                  {color.label}
+                </Button>
+              ))}
+            </div>
+            {props.borderHoverColor === "custom" && (
+              <input
+                type="text"
+                value={props.customBorderHoverColor}
+                onChange={(e) => setProps({ ...props, customBorderHoverColor: e.target.value })}
+                placeholder="ex: border-pink-500"
+                className="focus:ring-thai-orange mt-2 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:outline-none"
+              />
+            )}
+          </div>
+
+          {/* Border Width Control */}
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-gray-700">📏 Épaisseur Bordure</label>
+            <div className="flex flex-wrap gap-2">
+              {([1, 2, 4, "custom"] as const).map((w) => (
+                <Button
+                  key={String(w)}
+                  size="sm"
+                  variant={props.borderWidth === w ? "default" : "outline"}
+                  onClick={() => setProps({ ...props, borderWidth: w })}
+                  className={
+                    props.borderWidth === w
+                      ? "bg-thai-orange hover:bg-thai-orange/90"
+                      : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
+                  }
+                >
+                  {w === "custom" ? "🎨 Custom" : `${w}px`}
+                </Button>
+              ))}
+            </div>
+            {props.borderWidth === "custom" && (
+              <div className="mt-2 flex items-center gap-2">
+                <input
+                  type="range"
+                  min="1"
+                  max="10"
+                  step="1"
+                  value={props.customBorderWidth}
+                  onChange={(e) =>
+                    setProps({ ...props, customBorderWidth: Number(e.target.value) })
+                  }
+                  className="flex-1"
+                />
+                <span className="w-16 text-sm text-gray-600">{props.customBorderWidth}px</span>
+              </div>
+            )}
+          </div>
+
+          {/* Header Color - Sans Survol */}
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-gray-700">
+              🎨 Style Header (Sans Survol)
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {[
+                { label: "Gradient", value: "gradient" as const },
+                { label: "Orange", value: "solid-orange" as const },
+                { label: "Vert", value: "solid-green" as const },
+                { label: "🎨 Custom", value: "custom" as const },
+              ].map((style) => (
+                <Button
+                  key={style.value}
+                  size="sm"
+                  variant={props.headerColor === style.value ? "default" : "outline"}
+                  onClick={() => setProps({ ...props, headerColor: style.value })}
+                  className={
+                    props.headerColor === style.value
+                      ? "bg-thai-orange hover:bg-thai-orange/90"
+                      : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
+                  }
+                >
+                  {style.label}
+                </Button>
+              ))}
+            </div>
+            {props.headerColor === "custom" && (
+              <input
+                type="text"
+                value={props.customHeaderColor}
+                onChange={(e) => setProps({ ...props, customHeaderColor: e.target.value })}
+                placeholder="ex: bg-purple-500"
+                className="focus:ring-thai-orange mt-2 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:outline-none"
+              />
+            )}
+          </div>
+
+          {/* Header Hover Color */}
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-gray-700">
+              🎨 Style Header (Avec Survol)
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {[
+                { label: "Gradient Gold", value: "gradient-gold" as const },
+                { label: "Gold", value: "solid-gold" as const },
+                { label: "Emerald", value: "solid-emerald" as const },
+                { label: "🎨 Custom", value: "custom" as const },
+              ].map((style) => (
+                <Button
+                  key={style.value}
+                  size="sm"
+                  variant={props.headerHoverColor === style.value ? "default" : "outline"}
+                  onClick={() => setProps({ ...props, headerHoverColor: style.value })}
+                  className={
+                    props.headerHoverColor === style.value
+                      ? "bg-thai-gold hover:bg-thai-gold/90 text-thai-green"
+                      : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
+                  }
+                >
+                  {style.label}
+                </Button>
+              ))}
+            </div>
+            {props.headerHoverColor === "custom" && (
+              <input
+                type="text"
+                value={props.customHeaderHoverColor}
+                onChange={(e) => setProps({ ...props, customHeaderHoverColor: e.target.value })}
+                placeholder="ex: bg-pink-500"
+                className="focus:ring-thai-orange mt-2 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:outline-none"
+              />
+            )}
+          </div>
+
+          {/* Time Badge Color - Sans Survol */}
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-gray-700">
+              ⏰ Couleur Badge Heure (Sans Survol)
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {[
+                { label: "🟠 Orange", value: "thai-orange" as const },
+                { label: "🟢 Vert", value: "thai-green" as const },
+                { label: "🟡 Gold", value: "thai-gold" as const },
+                { label: "🔵 Bleu", value: "blue" as const },
+                { label: "🔴 Rouge", value: "red" as const },
+                { label: "🎨 Custom", value: "custom" as const },
+              ].map((color) => (
+                <Button
+                  key={color.value}
+                  size="sm"
+                  variant={props.timeBadgeColor === color.value ? "default" : "outline"}
+                  onClick={() => setProps({ ...props, timeBadgeColor: color.value })}
+                  className={
+                    props.timeBadgeColor === color.value
+                      ? "bg-thai-orange hover:bg-thai-orange/90"
+                      : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
+                  }
+                >
+                  {color.label}
+                </Button>
+              ))}
+            </div>
+            {props.timeBadgeColor === "custom" && (
+              <input
+                type="text"
+                value={props.customTimeBadgeColor}
+                onChange={(e) => setProps({ ...props, customTimeBadgeColor: e.target.value })}
+                placeholder="ex: bg-purple-500"
+                className="focus:ring-thai-orange mt-2 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:outline-none"
+              />
+            )}
+          </div>
+
+          {/* Time Badge Hover Color */}
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-gray-700">
+              ⏰ Couleur Badge Heure (Avec Survol)
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {[
+                { label: "🟡 Gold", value: "thai-gold" as const },
+                { label: "🟢 Vert", value: "thai-green" as const },
+                { label: "🟠 Orange", value: "thai-orange" as const },
+                { label: "🔵 Bleu", value: "blue" as const },
+                { label: "🎨 Custom", value: "custom" as const },
+              ].map((color) => (
+                <Button
+                  key={color.value}
+                  size="sm"
+                  variant={props.timeBadgeHoverColor === color.value ? "default" : "outline"}
+                  onClick={() => setProps({ ...props, timeBadgeHoverColor: color.value })}
+                  className={
+                    props.timeBadgeHoverColor === color.value
+                      ? "bg-thai-gold hover:bg-thai-gold/90 text-thai-green"
+                      : "border-thai-orange/30 text-thai-green hover:bg-thai-orange/10"
+                  }
+                >
+                  {color.label}
+                </Button>
+              ))}
+            </div>
+            {props.timeBadgeHoverColor === "custom" && (
+              <input
+                type="text"
+                value={props.customTimeBadgeHoverColor}
+                onChange={(e) => setProps({ ...props, customTimeBadgeHoverColor: e.target.value })}
+                placeholder="ex: bg-pink-500"
+                className="focus:ring-thai-orange mt-2 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:outline-none"
+              />
+            )}
+          </div>
+
+          {/* Toggles */}
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-gray-700">✨ Options</label>
+            <div className="flex flex-col gap-2">
+              <label className="flex cursor-pointer items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={props.hoverAnimation}
+                  onChange={(e) => setProps({ ...props, hoverAnimation: e.target.checked })}
+                  className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300"
+                />
+                <span className="text-sm text-gray-700">Animation au survol (scale + shadow)</span>
+              </label>
+              <label className="flex cursor-pointer items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={props.showTime}
+                  onChange={(e) => setProps({ ...props, showTime: e.target.checked })}
+                  className="text-thai-orange focus:ring-thai-orange h-4 w-4 rounded border-gray-300"
+                />
+                <span className="text-sm text-gray-700">Afficher l'heure</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
 const NumberBadge = ({ number }: { number: number }) => (
   <span className="bg-thai-orange inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold text-white shadow-sm">
     {number}
@@ -172,6 +806,9 @@ export default function IconsPage() {
           <Badge className="bg-thai-green">6 Variantes Badges</Badge>
         </div>
       </div>
+
+      {/* MY CALENDAR ICON PLAYGROUND */}
+      <MyCalendarIconPlayground />
 
       {/* BADGES SECTION */}
       <Card className="border-thai-orange/20">

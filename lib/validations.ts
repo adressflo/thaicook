@@ -229,6 +229,7 @@ export const evenementSchema = z.object({
   is_public: z.boolean().default(false),
   statut: z.enum(["En attente", "Confirmé", "Annulé"]).default("En attente"),
   plats_preselectionnes: z.array(z.number().int()).default([]),
+  type_d_evenement: z.string().min(1, "Type d'événement requis").max(100, "Type trop long"),
 })
 
 // Schéma pour mise à jour événement

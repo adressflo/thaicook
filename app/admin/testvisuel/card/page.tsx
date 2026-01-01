@@ -1,13 +1,8 @@
 "use client"
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Dialog,
   DialogContent,
@@ -16,29 +11,18 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import {
-  CheckCircle2,
-  ShoppingCart,
-  Star,
-  TrendingUp,
-  Users,
-  DollarSign,
-  ArrowRight,
-  Info,
-  ExternalLink,
-} from "lucide-react"
+import { CheckCircle2, ExternalLink, Info } from "lucide-react"
 
+import { OrderHistoryCard } from "@/components/historique/OrderHistoryCard"
+import { CartItemCard } from "@/components/shared/CartItemCard"
+import { MobilePreview, usePreviewMode } from "@/components/shared/MobilePreview"
 import { PolaroidPhoto } from "@/components/shared/PolaroidPhoto"
 import { ProductCard } from "@/components/shared/ProductCard"
-import { StatCard } from "@/components/shared/StatCard"
-import { CartItemCard } from "@/components/shared/CartItemCard"
 import { SmartSpice } from "@/components/shared/SmartSpice"
-import { MobilePreview, usePreviewMode, type PreviewMode } from "@/components/shared/MobilePreview"
 import { useData } from "@/contexts/DataContext"
-import { useState, useEffect } from "react"
 import { toast } from "@/hooks/use-toast"
+import type { CommandeUI } from "@/types/app"
+import { useEffect, useMemo, useState } from "react"
 
 // ============================================================================
 // PLAYGROUND POLAROID PHOTO
@@ -962,6 +946,37 @@ function CartItemCardPlayground() {
   // Obtenir le plat sélectionné
   const selectedPlat = plats?.find((p) => p.id === selectedPlatId)
 
+  // Synchronisation temps réel avec la fenêtre détachée (moved before early return)
+  useEffect(() => {
+    if (!selectedPlat) return
+
+    const channel = new BroadcastChannel("preview_channel")
+    channel.postMessage({
+      type: "UPDATE_PROPS",
+      payload: {
+        component: "CartItemCard",
+        name: selectedPlat.plat || "",
+        imageUrl: selectedPlat.photo_du_plat || "",
+        price: parseFloat(selectedPlat.prix || "0"),
+        quantity: props.quantity,
+        isVegetarian: props.isVegetarian,
+        readOnly: props.readOnly,
+        imageAspectRatio: props.imageAspectRatio,
+        imageObjectPosition: props.imageObjectPosition,
+        imageZoom: props.imageZoom,
+        showSpiceSelector: props.showSpiceSelector,
+        imageWidth: props.useCustomDimensions ? props.imageWidth : undefined,
+        imageHeight: props.useCustomDimensions ? props.imageHeight : undefined,
+        desktopImageWidth: props.desktopImageWidth,
+        customImageObjectPosition:
+          props.imageObjectPosition === "custom"
+            ? `${props.customImagePositionX}% ${props.customImagePositionY}%`
+            : undefined,
+      },
+    })
+    return () => channel.close()
+  }, [props, selectedPlat])
+
   // Afficher loading si pas de plats
   if (isLoading || !plats || plats.length === 0) {
     return <div className="py-8 text-center text-gray-500">Chargement des plats...</div>
@@ -1005,37 +1020,6 @@ function CartItemCardPlayground() {
       })
     }
   }
-
-  // Synchronisation temps réel avec la fenêtre détachée
-  useEffect(() => {
-    if (!selectedPlat) return
-
-    const channel = new BroadcastChannel("preview_channel")
-    channel.postMessage({
-      type: "UPDATE_PROPS",
-      payload: {
-        component: "CartItemCard",
-        name: selectedPlat.plat || "",
-        imageUrl: selectedPlat.photo_du_plat || "",
-        price: parseFloat(selectedPlat.prix || "0"),
-        quantity: props.quantity,
-        isVegetarian: props.isVegetarian,
-        readOnly: props.readOnly,
-        imageAspectRatio: props.imageAspectRatio,
-        imageObjectPosition: props.imageObjectPosition,
-        imageZoom: props.imageZoom,
-        showSpiceSelector: props.showSpiceSelector,
-        imageWidth: props.useCustomDimensions ? props.imageWidth : undefined,
-        imageHeight: props.useCustomDimensions ? props.imageHeight : undefined,
-        desktopImageWidth: props.desktopImageWidth,
-        customImageObjectPosition:
-          props.imageObjectPosition === "custom"
-            ? `${props.customImagePositionX}% ${props.customImagePositionY}%`
-            : undefined,
-      },
-    })
-    return () => channel.close()
-  }, [props, selectedPlat])
 
   const handleOpenPreview = () => {
     if (!selectedPlat) return
@@ -1127,6 +1111,7 @@ function CartItemCardPlayground() {
                       <div className="relative">
                         <div className="overflow-hidden rounded-t-lg">
                           {selectedPlat.photo_du_plat ? (
+                            // eslint-disable-next-line @next/next/no-img-element
                             <img
                               src={selectedPlat.photo_du_plat}
                               alt={selectedPlat.plat || ""}
@@ -1370,7 +1355,7 @@ function CartItemCardPlayground() {
                 onClick={() =>
                   setProps({
                     ...props,
-                    imageAspectRatio: option.value as any,
+                    imageAspectRatio: option.value as typeof props.imageAspectRatio,
                     useCustomDimensions: false,
                   })
                 }
@@ -1598,12 +1583,432 @@ function CartItemCardPlayground() {
   )
 }
 
-export default function CardsTestPage() {
-  const { plats, isLoading } = useData()
-  const [spiceDistribution, setSpiceDistribution] = useState<number[]>([0, 2, 2, 1])
-  const [quantity, setQuantity] = useState(5)
+// ============================================================================
+// PLAYGROUND ORDER HISTORY CARD
+// ============================================================================
 
-  const NumberBadge = ({ number }: { number: number }) => (
+const ORDER_STATUTS = [
+  "En attente de confirmation",
+  "Confirmée",
+  "En préparation",
+  "Prête à récupérer",
+  "Récupérée",
+  "Annulée",
+] as const
+
+const MOCK_PLATS = [
+  {
+    id: 1,
+    nom: "Pad Thaï",
+    prix: "12.90",
+    isVegetarian: false,
+    isSpicy: true,
+    spiceLevel: 2,
+    photo: "/media/avatars/panier1.svg",
+  },
+  {
+    id: 2,
+    nom: "Tom Yum Soup",
+    prix: "8.50",
+    isVegetarian: false,
+    isSpicy: true,
+    spiceLevel: 3,
+    photo: "/media/avatars/panier2.svg",
+  },
+  {
+    id: 3,
+    nom: "Green Curry",
+    prix: "14.50",
+    isVegetarian: true,
+    isSpicy: true,
+    spiceLevel: 2,
+    photo: "/media/avatars/panier3.svg",
+  },
+  {
+    id: 4,
+    nom: "Spring Rolls",
+    prix: "6.90",
+    isVegetarian: true,
+    isSpicy: false,
+    spiceLevel: 0,
+    photo: "/media/avatars/assiette1.svg",
+  },
+  {
+    id: 5,
+    nom: "Mango Sticky Rice",
+    prix: "5.50",
+    isVegetarian: true,
+    isSpicy: false,
+    spiceLevel: 0,
+    photo: "/media/avatars/assiette2.svg",
+  },
+]
+
+function OrderHistoryCardPlayground() {
+  const { plats } = useData()
+  const [props, setProps] = useState<{
+    statut: (typeof ORDER_STATUTS)[number]
+    dateRetrait: Date
+    showDate: boolean
+    canEdit: boolean
+    commandeId: number
+    datePriseCommande: Date
+    nombrePlats: number
+    demandesSpeciales: string
+  }>({
+    statut: "En attente de confirmation",
+    dateRetrait: new Date(2025, 0, 25, 18, 30),
+    showDate: true,
+    canEdit: true,
+    commandeId: 42,
+    datePriseCommande: new Date(2025, 0, 22),
+    nombrePlats: 3,
+    demandesSpeciales: "",
+  })
+
+  // Utilise les vrais plats de la base de données
+  const realPlats = useMemo(() => plats?.slice(0, 5) || [], [plats])
+
+  // Génère une commande mockée avec les vrais plats
+  const mockCommande = useMemo(() => {
+    const platsToUse = realPlats.length > 0 ? realPlats : MOCK_PLATS
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const details = platsToUse.slice(0, props.nombrePlats).map((plat: any, idx: number) => ({
+      iddetails: idx + 1,
+      commande_r: props.commandeId,
+      plat_r: plat.idplats || plat.id,
+      quantite_plat_commande: (idx % 3) + 1,
+      prix_unitaire: plat.prix,
+      type: "plat" as const,
+      nom_plat: null,
+      extra_id: null,
+      est_offert: false,
+      preference_epice_niveau:
+        (plat.niveau_epice || plat.spiceLevel) > 0 ? plat.niveau_epice || plat.spiceLevel : null,
+      spice_distribution: (plat.niveau_epice || plat.spiceLevel) > 0 ? [0, 1, 1, 0] : null,
+      plat: {
+        id: plat.idplats || plat.id,
+        idplats: plat.idplats || plat.id,
+        plat: plat.plat || plat.nom,
+        prix: plat.prix,
+        description: plat.description || `Délicieux ${plat.plat || plat.nom}`,
+        photo_du_plat: plat.photo_du_plat || plat.photo,
+        lundi_dispo: plat.lundi_dispo || "midi_et_soir",
+        mardi_dispo: plat.mardi_dispo || "midi_et_soir",
+        mercredi_dispo: plat.mercredi_dispo || "midi_et_soir",
+        jeudi_dispo: plat.jeudi_dispo || "midi_et_soir",
+        vendredi_dispo: plat.vendredi_dispo || "midi_et_soir",
+        samedi_dispo: plat.samedi_dispo || "midi_et_soir",
+        dimanche_dispo: plat.dimanche_dispo || "indisponible",
+        est_epuise: plat.est_epuise || false,
+        epuise_depuis: plat.epuise_depuis || null,
+        epuise_jusqu_a: plat.epuise_jusqu_a || null,
+        raison_epuisement: plat.raison_epuisement || null,
+        est_vegetarien: plat.est_vegetarien || plat.isVegetarian || false,
+        niveau_epice: plat.niveau_epice || plat.spiceLevel || 0,
+      },
+    }))
+
+    const total = details.reduce(
+      (acc, d) => acc + parseFloat(d.prix_unitaire || "0") * (d.quantite_plat_commande || 1),
+      0
+    )
+
+    return {
+      id: props.commandeId,
+      idcommande: props.commandeId,
+      client_r: null,
+      client_r_id: 1,
+      date_et_heure_de_retrait_souhaitees: props.showDate ? props.dateRetrait.toISOString() : null,
+      date_de_prise_de_commande: props.datePriseCommande.toISOString(),
+      statut_commande: props.statut,
+      statut_paiement: "En attente sur place",
+      type_livraison: "À emporter",
+      demande_special_pour_la_commande: props.demandesSpeciales || null,
+      adresse_specifique: null,
+      notes_internes: null,
+      prix_total: total.toFixed(2),
+      epingle: false,
+      details,
+    } as unknown as CommandeUI
+  }, [props, realPlats])
+
+  const generateCode = () => {
+    const lines = [`<OrderHistoryCard`]
+    lines.push(`  commande={mockCommande}`)
+    lines.push(`  canEdit={${props.canEdit}}`)
+    lines.push(`/>`)
+    return lines.join("\n")
+  }
+
+  const handleCopyCode = async () => {
+    try {
+      await navigator.clipboard.writeText(generateCode())
+      toast({ title: "Code copié !", description: "Le code a été copié dans le presse-papier" })
+    } catch {
+      toast({
+        title: "Erreur",
+        description: "Impossible de copier le code",
+        variant: "destructive",
+      })
+    }
+  }
+
+  return (
+    <Card className="border-thai-green/20 ring-thai-green/30 ring-2">
+      <CardHeader className="bg-thai-cream/50">
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="text-thai-green flex items-center gap-2 text-2xl">
+              📋 OrderHistoryCard
+              <Badge className="bg-thai-green text-white">Historique</Badge>
+            </CardTitle>
+            <CardDescription>
+              Composant: <code className="text-xs">components/historique/OrderHistoryCard.tsx</code>
+            </CardDescription>
+          </div>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button
+                variant="outline"
+                className="border-thai-green text-thai-green hover:bg-thai-green hover:text-white"
+              >
+                <Info className="mr-2 h-4 w-4" />
+                Props
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-h-[80vh] max-w-2xl overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle className="text-thai-green">📋 Props OrderHistoryCard</DialogTitle>
+                <DialogDescription>Documentation des propriétés</DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 text-xs">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="bg-thai-cream/50">
+                      <th className="border p-1.5 text-left">Prop</th>
+                      <th className="border p-1.5 text-left">Type</th>
+                      <th className="border p-1.5 text-left">Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td className="border p-1.5 font-mono">commande</td>
+                      <td className="border p-1.5">CommandeUI</td>
+                      <td className="border p-1.5">Objet commande complet (requis)</td>
+                    </tr>
+                    <tr>
+                      <td className="border p-1.5 font-mono">canEdit</td>
+                      <td className="border p-1.5">boolean</td>
+                      <td className="border p-1.5">Active les boutons Voir/Modifier</td>
+                    </tr>
+                    <tr>
+                      <td className="border p-1.5 font-mono">extras</td>
+                      <td className="border p-1.5">ExtraUI[]</td>
+                      <td className="border p-1.5">Liste des extras pour calcul prix</td>
+                    </tr>
+                  </tbody>
+                </table>
+
+                <h4 className="mt-4 text-sm font-semibold">Champs clés de CommandeUI</h4>
+                <table className="mt-2 w-full border-collapse">
+                  <thead>
+                    <tr className="bg-thai-cream/50">
+                      <th className="border p-1.5 text-left">Champ</th>
+                      <th className="border p-1.5 text-left">Type</th>
+                      <th className="border p-1.5 text-left">Affichage</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td className="border p-1.5 font-mono text-xs">statut_commande</td>
+                      <td className="border p-1.5">string</td>
+                      <td className="border p-1.5">Badge statut + couleur header</td>
+                    </tr>
+                    <tr>
+                      <td className="border p-1.5 font-mono text-xs">
+                        date_et_heure_de_retrait_souhaitees
+                      </td>
+                      <td className="border p-1.5">string | null</td>
+                      <td className="border p-1.5">Calendrier + header centré</td>
+                    </tr>
+                    <tr>
+                      <td className="border p-1.5 font-mono text-xs">date_de_prise_de_commande</td>
+                      <td className="border p-1.5">string</td>
+                      <td className="border p-1.5">"(Commandé le...)" dans header</td>
+                    </tr>
+                    <tr>
+                      <td className="border p-1.5 font-mono text-xs">
+                        demande_special_pour_la_commande
+                      </td>
+                      <td className="border p-1.5">string | null</td>
+                      <td className="border p-1.5">Section "📝 Note client"</td>
+                    </tr>
+                    <tr>
+                      <td className="border p-1.5 font-mono text-xs">details</td>
+                      <td className="border p-1.5">DetailCommande[]</td>
+                      <td className="border p-1.5">Liste plats (collapsible si &gt;3)</td>
+                    </tr>
+                    <tr>
+                      <td className="border p-1.5 font-mono text-xs">prix_total</td>
+                      <td className="border p-1.5">string | Decimal</td>
+                      <td className="border p-1.5">Total affiché en bas</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-6 pt-6">
+        <div className="border-thai-green/20 space-y-4 rounded-lg border bg-white p-6 shadow-sm">
+          <div className="flex items-center justify-between">
+            <h4 className="text-thai-green text-lg font-semibold">Contrôles Interactifs</h4>
+            <Button
+              variant="outline"
+              onClick={handleCopyCode}
+              className="border-thai-green text-thai-green hover:bg-thai-green hover:text-white"
+            >
+              Copier le Code
+            </Button>
+          </div>
+
+          {/* Preview Zone */}
+          <div className="relative rounded-lg border border-dashed bg-gray-50 p-4">
+            <p className="absolute top-2 left-4 text-sm font-medium text-gray-500">
+              Prévisualisation
+            </p>
+            <div className="mt-6">
+              <OrderHistoryCard commande={mockCommande} canEdit={props.canEdit} />
+            </div>
+          </div>
+
+          {/* Statut Control */}
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-gray-700">🚦 Statut de la Commande</label>
+            <div className="flex flex-wrap gap-2">
+              {ORDER_STATUTS.map((statut) => (
+                <Button
+                  key={statut}
+                  size="sm"
+                  variant={props.statut === statut ? "default" : "outline"}
+                  onClick={() => setProps({ ...props, statut })}
+                  className={
+                    props.statut === statut
+                      ? "bg-thai-green hover:bg-thai-green/90"
+                      : "border-thai-green/30 text-thai-green hover:bg-thai-green/10"
+                  }
+                >
+                  {statut}
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          {/* Date Control */}
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-gray-700">📅 Date de Retrait</label>
+            <div className="flex items-center gap-4">
+              <input
+                type="datetime-local"
+                value={`${props.dateRetrait.getFullYear()}-${String(props.dateRetrait.getMonth() + 1).padStart(2, "0")}-${String(props.dateRetrait.getDate()).padStart(2, "0")}T${String(props.dateRetrait.getHours()).padStart(2, "0")}:${String(props.dateRetrait.getMinutes()).padStart(2, "0")}`}
+                onChange={(e) => setProps({ ...props, dateRetrait: new Date(e.target.value) })}
+                className="focus:ring-thai-green flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:outline-none"
+              />
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={props.showDate}
+                  onChange={(e) => setProps({ ...props, showDate: e.target.checked })}
+                  className="h-4 w-4 rounded border-gray-300"
+                />
+                <span className="text-sm">Afficher date</span>
+              </label>
+            </div>
+          </div>
+
+          {/* Nombre de Plats */}
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-gray-700">
+              🍜 Nombre de Plats ({props.nombrePlats})
+            </label>
+            <input
+              type="range"
+              min="1"
+              max="5"
+              value={props.nombrePlats}
+              onChange={(e) => setProps({ ...props, nombrePlats: Number(e.target.value) })}
+              className="w-full"
+            />
+          </div>
+
+          {/* Options */}
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-gray-700">✨ Options</label>
+            <div className="flex flex-wrap gap-4">
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={props.canEdit}
+                  onChange={(e) => setProps({ ...props, canEdit: e.target.checked })}
+                  className="h-4 w-4 rounded border-gray-300"
+                />
+                <span className="text-sm">Boutons d'édition (canEdit)</span>
+              </label>
+            </div>
+          </div>
+
+          {/* ID Commande */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-xs font-medium text-gray-700">🔢 N° Commande</label>
+              <input
+                type="number"
+                min="1"
+                value={props.commandeId}
+                onChange={(e) => setProps({ ...props, commandeId: Number(e.target.value) })}
+                className="focus:ring-thai-green w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:outline-none"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-medium text-gray-700">📆 Date prise commande</label>
+              <input
+                type="datetime-local"
+                value={`${props.datePriseCommande.getFullYear()}-${String(props.datePriseCommande.getMonth() + 1).padStart(2, "0")}-${String(props.datePriseCommande.getDate()).padStart(2, "0")}T${String(props.datePriseCommande.getHours()).padStart(2, "0")}:${String(props.datePriseCommande.getMinutes()).padStart(2, "0")}`}
+                onChange={(e) =>
+                  setProps({ ...props, datePriseCommande: new Date(e.target.value) })
+                }
+                className="focus:ring-thai-green w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:outline-none"
+              />
+            </div>
+          </div>
+
+          {/* Demandes Spéciales */}
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-gray-700">
+              📝 Demandes Spéciales (Note client)
+            </label>
+            <textarea
+              value={props.demandesSpeciales}
+              onChange={(e) => setProps({ ...props, demandesSpeciales: e.target.value })}
+              placeholder="Ex: Sans cacahuètes, allergique aux crustacés..."
+              className="focus:ring-thai-green w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:outline-none"
+              rows={2}
+            />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+export default function CardsTestPage() {
+  const { plats: _plats, isLoading: _isLoading } = useData()
+  const [_spiceDistribution, _setSpiceDistribution] = useState<number[]>([0, 2, 2, 1])
+  const [_quantity, _setQuantity] = useState(5)
+
+  const _NumberBadge = ({ number }: { number: number }) => (
     <span className="bg-thai-orange mb-1 inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold text-white shadow-sm">
       {number}
     </span>
@@ -1625,6 +2030,9 @@ export default function CardsTestPage() {
           </Badge>
         </div>
       </div>
+
+      {/* Section 0: OrderHistoryCard Playground */}
+      <OrderHistoryCardPlayground />
 
       {/* Section 2: Cards Produit (Composant ProductCard) */}
       <Card className="border-thai-orange/20">

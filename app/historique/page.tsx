@@ -15,23 +15,15 @@ import {
 import { useSession } from "@/lib/auth-client"
 import { toSafeNumber } from "@/lib/serialization"
 import type { CommandeUI, EvenementUI, ExtraUI } from "@/types/app"
-import { isWithinInterval, parseISO } from "date-fns"
-import { BarChart3, Calendar, Clock, PartyPopper, Users } from "lucide-react"
+import { Calendar, Clock } from "lucide-react"
 import Link from "next/link"
 import { memo, useCallback, useEffect, useMemo, useState } from "react"
 
 // Composants optimisés
-import { EvenementActionButtons } from "@/components/historique/ActionButtons"
 import { EmptyState } from "@/components/historique/EmptyState"
-import { FilterSearchBar } from "@/components/historique/FilterSearchBar"
-import {
-  FormattedDate,
-  FormattedEvent,
-  PersonCount,
-} from "@/components/historique/FormattedDisplay"
+import { EventHistoryCard } from "@/components/historique/EventHistoryCard"
 import { HistoriqueSkeleton } from "@/components/historique/HistoriqueSkeleton"
 import { OrderHistoryCard } from "@/components/historique/OrderHistoryCard"
-import { StatusBadge } from "@/components/historique/StatusBadge"
 
 export const dynamic = "force-dynamic"
 
@@ -42,10 +34,10 @@ const HistoriquePage = memo(() => {
   // Better Auth session
   const { data: session } = useSession()
   const currentUser = session?.user
-  const isOnline = useOnlineStatus()
+  const _isOnline = useOnlineStatus()
 
   // Client profile (pour obtenir idclient)
-  const [clientProfile, setClientProfile] = useState<any>(null)
+  const [clientProfile, setClientProfile] = useState<{ idclient?: number } | null>(null)
 
   useEffect(() => {
     if (currentUser) {
@@ -53,7 +45,7 @@ const HistoriquePage = memo(() => {
     } else {
       setClientProfile(null)
     }
-  }, [currentUser?.id])
+  }, [currentUser, currentUser?.id])
 
   const {
     data: commandes,
@@ -67,29 +59,15 @@ const HistoriquePage = memo(() => {
   } = usePrismaEvenementsByClient(clientProfile?.idclient)
   const { data: extras, isLoading: isLoadingExtras } = usePrismaExtras()
 
-  // États pour les filtres
-  const [searchTerm, setSearchTerm] = useState("")
-  const [statusFilter, setStatusFilter] = useState<string | null>(null)
-  const [typeFilter, setTypeFilter] = useState<string | null>(null)
-  const [dateRange, setDateRange] = useState<{ from: Date | null; to: Date | null }>({
-    from: null,
-    to: null,
-  })
-  const [minAmount, setMinAmount] = useState("")
-  const [maxAmount, setMaxAmount] = useState("")
-  const [sortConfig, setSortConfig] = useState<{ key: string; direction: "asc" | "desc" } | null>(
-    null
-  )
-
   // Fonctions optimisées avec memoization
-  const formatPrix = useCallback((prix: number): string => {
+  const _formatPrix = useCallback((prix: number): string => {
     const numericPrix = toSafeNumber(prix)
     return numericPrix % 1 === 0
       ? `${numericPrix}€`
       : `${numericPrix.toFixed(2).replace(".", ",")}€`
   }, [])
 
-  const calculateTotal = useCallback(
+  const _calculateTotal = useCallback(
     (commande: CommandeAvecDetails): number => {
       if (commande.prix_total != null) return toSafeNumber(commande.prix_total)
 
@@ -115,123 +93,22 @@ const HistoriquePage = memo(() => {
     [extras]
   )
 
-  // Fonctions de filtrage
-  const filterBySearch = useCallback(
-    (commande: CommandeAvecDetails) => {
-      if (!searchTerm) return true
-      const searchLower = searchTerm.toLowerCase()
-      return (
-        commande.details?.some((detail) => {
-          const nomPlat = detail.nom_plat || detail.plat?.plat || ""
-          return nomPlat.toLowerCase().includes(searchLower)
-        }) || false
-      )
-    },
-    [searchTerm]
-  )
-
-  const filterByStatus = useCallback(
-    (item: any) => {
-      if (!statusFilter) return true
-      const status = item.statut_commande || item.statut_evenement
-      return status === statusFilter
-    },
-    [statusFilter]
-  )
-
-  const filterByDate = useCallback(
-    (item: any) => {
-      if (!dateRange.from && !dateRange.to) return true
-      const itemDate = item.date_retrait || item.date_evenement
-      if (!itemDate) return false
-
-      try {
-        const date = typeof itemDate === "string" ? parseISO(itemDate) : itemDate
-        if (dateRange.from && dateRange.to) {
-          return isWithinInterval(date, { start: dateRange.from, end: dateRange.to })
-        } else if (dateRange.from) {
-          return date >= dateRange.from
-        } else if (dateRange.to) {
-          return date <= dateRange.to
-        }
-      } catch {
-        return false
-      }
-      return true
-    },
-    [dateRange]
-  )
-
-  const filterByAmount = useCallback(
-    (commande: CommandeAvecDetails) => {
-      const total = calculateTotal(commande)
-      const min = parseFloat(minAmount) || 0
-      const max = parseFloat(maxAmount) || Infinity
-      return total >= min && total <= max
-    },
-    [minAmount, maxAmount, calculateTotal]
-  )
-
-  // Fonctions pour les filtres
-  const clearAllFilters = useCallback(() => {
-    setSearchTerm("")
-    setStatusFilter(null)
-    setTypeFilter(null)
-    setDateRange({ from: null, to: null })
-    setMinAmount("")
-    setMaxAmount("")
-    setSortConfig(null)
-  }, [])
-
-  const activeFiltersCount = useMemo(() => {
-    let count = 0
-    if (searchTerm) count++
-    if (statusFilter) count++
-    if (typeFilter) count++
-    if (dateRange.from || dateRange.to) count++
-    if (minAmount || maxAmount) count++
-    return count
-  }, [searchTerm, statusFilter, typeFilter, dateRange, minAmount, maxAmount])
-
-  const isFiltered = activeFiltersCount > 0
-
-  // Filtrer les données avec memoization pour optimiser les performances
+  // Traitement des données (Séparation En cours / Historique)
   const {
     commandesEnCours,
-    commandesHistorique,
+    commandesHistorique: _commandesHistorique,
     evenementsEnCours,
-    evenementsHistorique,
-    commandesFiltered,
-    evenementsFiltered,
+    evenementsHistorique: _evenementsHistorique,
   } = useMemo(() => {
-    // Appliquer les filtres de base
-    let filteredCommandes = commandes || []
-    let filteredEvenements = evenements || []
+    const allCommandes = commandes || []
+    const allEvenements = evenements || []
 
-    // Filtrage par type
-    if (typeFilter === "commande") {
-      filteredEvenements = []
-    } else if (typeFilter === "evenement") {
-      filteredCommandes = []
-    }
-
-    // Appliquer les filtres sur les commandes
-    filteredCommandes = filteredCommandes.filter(
-      (c: CommandeUI) =>
-        filterBySearch(c) && filterByStatus(c) && filterByDate(c) && filterByAmount(c)
-    )
-
-    // Appliquer les filtres sur les événements
-    filteredEvenements = filteredEvenements.filter(
-      (e: EvenementUI) => filterByStatus(e) && filterByDate(e)
-    )
-
-    // Séparer en cours/historique après filtrage
-    const commandesEnCours = filteredCommandes.filter(
+    // Séparer en cours/historique
+    const commandesEnCours = allCommandes.filter(
       (c: CommandeUI) => c.statut_commande !== "Annulée" && c.statut_commande !== "Récupérée"
     )
 
-    const commandesHistorique = filteredCommandes
+    const commandesHistorique = allCommandes
       .filter(
         (c: CommandeUI) => c.statut_commande === "Annulée" || c.statut_commande === "Récupérée"
       )
@@ -249,12 +126,12 @@ const HistoriquePage = memo(() => {
       "Factur____Solde___payer",
     ]
 
-    const evenementsEnCours = filteredEvenements.filter(
-      (e: EvenementUI) => !STATUS_TERMINES.includes(e.statut_evenement as any)
+    const evenementsEnCours = allEvenements.filter(
+      (e: EvenementUI) => !STATUS_TERMINES.includes(e.statut_evenement as string)
     )
 
-    const evenementsHistorique = filteredEvenements.filter((e: EvenementUI) =>
-      STATUS_TERMINES.includes(e.statut_evenement as any)
+    const evenementsHistorique = allEvenements.filter((e: EvenementUI) =>
+      STATUS_TERMINES.includes(e.statut_evenement as string)
     )
 
     return {
@@ -262,19 +139,8 @@ const HistoriquePage = memo(() => {
       commandesHistorique,
       evenementsEnCours,
       evenementsHistorique,
-      commandesFiltered: filteredCommandes,
-      evenementsFiltered: filteredEvenements,
     }
-  }, [
-    commandes,
-    evenements,
-    filterBySearch,
-    filterByStatus,
-    filterByDate,
-    filterByAmount,
-    typeFilter,
-    clientProfile,
-  ])
+  }, [commandes, evenements])
 
   if (!currentUser) {
     return (
@@ -296,47 +162,10 @@ const HistoriquePage = memo(() => {
 
   return (
     <AppLayout>
-      <div className="bg-gradient-thai min-h-screen px-4 py-8">
+      <div className="bg-gradient-thai min-h-screen px-1 pt-1 pb-8 sm:px-4 sm:py-8">
         <div className="animate-fadeIn container mx-auto max-w-7xl space-y-8">
           {/* Bannière offline */}
           <OfflineBannerCompact />
-
-          {/* Barre de recherche et filtres */}
-          <FilterSearchBar
-            searchTerm={searchTerm}
-            onSearchChange={setSearchTerm}
-            statusFilter={statusFilter}
-            onStatusFilterChange={setStatusFilter}
-            typeFilter={typeFilter}
-            onTypeFilterChange={setTypeFilter}
-            dateRange={dateRange}
-            onDateRangeChange={setDateRange}
-            minAmount={minAmount}
-            onMinAmountChange={setMinAmount}
-            maxAmount={maxAmount}
-            onMaxAmountChange={setMaxAmount}
-            activeFiltersCount={activeFiltersCount}
-            onClearAllFilters={clearAllFilters}
-            isFiltered={isFiltered}
-          />
-
-          {/* Résumé des résultats */}
-          {isFiltered && (
-            <Card className="bg-thai-cream/30 border-thai-green/30">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-thai-green font-medium">
-                    Résultats filtrés: {commandesFiltered.length + evenementsFiltered.length}{" "}
-                    élément(s)
-                  </span>
-                  <span className="text-thai-green/70">
-                    {commandesFiltered.length} commande(s) • {evenementsFiltered.length}{" "}
-                    événement(s)
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
-          )}
 
           {/* Section Suivi des Commandes */}
           <Card className="border-thai-orange/20 group shadow-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl">
@@ -347,7 +176,7 @@ const HistoriquePage = memo(() => {
               </CardTitle>
               <CardDescription>Commandes en cours de traitement ou confirmées.</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-2 sm:p-6">
               {isLoadingCommandes || isLoadingExtras ? (
                 <HistoriqueSkeleton />
               ) : error ? (
@@ -387,7 +216,7 @@ const HistoriquePage = memo(() => {
               </CardTitle>
               <CardDescription>Événements en cours de traitement ou confirmés.</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-2 sm:p-6">
               {isLoadingEvenements ? (
                 <HistoriqueSkeleton />
               ) : errorEvenements ? (
@@ -396,65 +225,17 @@ const HistoriquePage = memo(() => {
                 </Alert>
               ) : evenementsEnCours.length > 0 ? (
                 <div className="space-y-4">
-                  {/* En-têtes avec icônes */}
-                  <div className="bg-thai-cream/30 border-thai-green/20 grid grid-cols-1 gap-4 rounded-lg border px-3 py-2 md:grid-cols-4">
-                    <div className="text-thai-green text-center font-semibold">
-                      <div className="flex items-center justify-center gap-2">
-                        <PartyPopper className="text-thai-orange h-4 w-4" />
-                        <span>Événement</span>
-                      </div>
-                    </div>
-                    <div className="text-thai-green text-center font-semibold">
-                      <div className="flex items-center justify-center gap-2">
-                        <Calendar className="text-thai-orange h-4 w-4" />
-                        <span>Date prévue</span>
-                      </div>
-                    </div>
-                    <div className="text-thai-green text-center font-semibold">
-                      <div className="flex items-center justify-center gap-2">
-                        <Users className="text-thai-orange h-4 w-4" />
-                        <span>Personnes</span>
-                      </div>
-                    </div>
-                    <div className="text-thai-green text-center font-semibold md:-ml-12">
-                      <div className="flex items-center justify-center gap-2">
-                        <BarChart3 className="text-thai-orange h-4 w-4" />
-                        <span>Statut</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="border-thai-green/20 bg-thai-cream/20 space-y-4 rounded-lg border p-3">
+                  <div className="space-y-6">
                     {evenementsEnCours.map((evt: EvenementUI) => {
                       const canEdit =
-                        (evt.statut_evenement as any) !== "Réalisé" &&
-                        (evt.statut_evenement as any) !== "Payé intégralement"
+                        (evt.statut_evenement as string) !== "Réalisé" &&
+                        (evt.statut_evenement as string) !== "Payé intégralement"
                       return (
-                        <div
+                        <EventHistoryCard
                           key={evt.idevenements}
-                          className="hover:bg-thai-cream/20 hover:border-thai-green hover:ring-thai-green/30 flex min-h-16 transform cursor-pointer items-center gap-4 rounded-lg border border-gray-200 bg-white px-4 py-4 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:ring-2"
-                        >
-                          <div className="grid flex-1 grid-cols-1 items-center gap-6 md:grid-cols-4">
-                            <div className="flex min-h-10 flex-col items-center justify-center text-center">
-                              <FormattedEvent event={evt} />
-                            </div>
-                            <div className="flex min-h-10 flex-col items-center justify-center text-center">
-                              <FormattedDate date={evt.date_evenement} />
-                            </div>
-                            <div className="flex min-h-10 flex-col items-center justify-center text-center">
-                              <PersonCount count={evt.nombre_de_personnes} />
-                            </div>
-                            <div className="flex min-h-10 flex-col items-center justify-center text-center">
-                              <StatusBadge statut={evt.statut_evenement} type="evenement" />
-                              <div className="mt-2">
-                                <EvenementActionButtons
-                                  evenementId={evt.idevenements}
-                                  canEdit={canEdit}
-                                  evenement={evt}
-                                />
-                              </div>
-                            </div>
-                          </div>
-                        </div>
+                          evenement={evt}
+                          canEdit={canEdit}
+                        />
                       )
                     })}
                   </div>
@@ -470,7 +251,7 @@ const HistoriquePage = memo(() => {
             <Link href="/historique/complet">
               <span className="bg-thai-orange hover:bg-thai-orange/90 inline-flex items-center justify-center rounded-full px-8 py-4 text-lg font-bold text-white shadow-xl transition-transform hover:scale-105 hover:shadow-2xl">
                 <Calendar className="mr-3 h-6 w-6" />
-                📅 Voir le calendrier complet
+                Voir le calendrier complet
               </span>
             </Link>
           </div>

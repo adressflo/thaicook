@@ -17,8 +17,7 @@ import {
 import { Textarea } from "@/components/ui/textarea"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { useToast } from "@/hooks/use-toast"
-import { format, type Locale } from "date-fns"
-import { fr } from "date-fns/locale"
+import { format } from "date-fns"
 import {
   AlertCircle as AlertCircleIcon,
   ArrowLeft,
@@ -31,7 +30,6 @@ import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
 import React, { memo, useEffect, useMemo, useState } from "react"
 
-import { getClientProfile } from "@/app/profil/actions"
 import { useData } from "@/contexts/DataContext"
 import { usePrismaEvenementById, usePrismaUpdateEvenement } from "@/hooks/usePrismaData"
 import { useSession } from "@/lib/auth-client"
@@ -47,15 +45,6 @@ const ModifierEvenement = memo(() => {
   const { plats, isLoading: dataIsLoading } = useData()
   const { data: session } = useSession()
   const currentUser = session?.user
-  const [clientProfile, setClientProfile] = useState<any>(null)
-
-  useEffect(() => {
-    if (currentUser) {
-      getClientProfile().then(setClientProfile)
-    } else {
-      setClientProfile(null)
-    }
-  }, [currentUser?.id])
 
   const {
     data: evenement,
@@ -69,6 +58,7 @@ const ModifierEvenement = memo(() => {
   const [autreTypeEvenementPrecision, setAutreTypeEvenementPrecision] = useState<string>("")
   const [formData, setFormData] = useState({
     typeEvenement: "",
+    nomEvenement: "",
     nombrePersonnes: "",
     budgetClient: "",
     demandesSpeciales: "",
@@ -88,7 +78,7 @@ const ModifierEvenement = memo(() => {
 
   const heuresDisponibles = useMemo(() => {
     const heures: string[] = []
-    for (let h = 9; h <= 23; h++) {
+    for (let h = 0; h <= 23; h++) {
       for (let m = 0; m < 60; m += 15) {
         if (h === 23 && m > 0) break
         heures.push(`${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`)
@@ -100,15 +90,33 @@ const ModifierEvenement = memo(() => {
   // Charger les données de l'événement
   useEffect(() => {
     if (evenement) {
+      // Vérifier si le type est dans la liste prédéfinie
+      const predefinedTypes = [
+        "Anniversaire",
+        "Repas d'entreprise",
+        "Fête de famille",
+        "Cocktail dînatoire",
+        "Buffet traiteur",
+        "Autre",
+      ]
+      const typeFromDB = evenement.type_d_evenement || "Autre" // Valeur par défaut si null
+      const isCustomType = !predefinedTypes.includes(typeFromDB)
+
       setFormData({
-        typeEvenement: evenement.type_d_evenement || "",
+        typeEvenement: isCustomType ? "Autre" : typeFromDB,
+        nomEvenement: evenement.nom_evenement || "",
         nombrePersonnes: evenement.nombre_de_personnes?.toString() || "",
         budgetClient: evenement.budget_client?.toString() || "",
         demandesSpeciales: evenement.demandes_speciales_evenement || "",
       })
 
-      // Si type "Autre", remplir le champ de précision
-      if (evenement.type_d_evenement === "Autre") {
+      // Si type personnalisé (ou null -> Autre), remplir le champ de précision
+      if (isCustomType) {
+        // Si le type venait de la DB (et n'était pas null/Autre), on l'utilise
+        // Sinon s'il était null/Autre, on met le nom de l'événement ou une valeur par défaut
+        const precisionValue = typeFromDB !== "Autre" ? typeFromDB : evenement.nom_evenement || ""
+        setAutreTypeEvenementPrecision(precisionValue)
+      } else if (typeFromDB === "Autre") {
         setAutreTypeEvenementPrecision(evenement.nom_evenement || "")
       }
 
@@ -131,11 +139,12 @@ const ModifierEvenement = memo(() => {
     if (
       !isLoadingEvenement &&
       evenement &&
-      clientProfile?.idclient !== evenement.contact_client_r
+      currentUser &&
+      String(currentUser.id) !== String(evenement.contact_client_r)
     ) {
       router.replace("/historique")
     }
-  }, [isLoadingEvenement, evenement, clientProfile, router])
+  }, [isLoadingEvenement, evenement, currentUser, router])
 
   const isLoading = isLoadingEvenement || dataIsLoading
 
@@ -165,8 +174,8 @@ const ModifierEvenement = memo(() => {
 
   // Vérifier si l'événement peut être modifié
   const canEdit =
-    (evenement.statut_evenement as any) !== "Réalisé" &&
-    (evenement.statut_evenement as any) !== "Payé intégralement"
+    (evenement.statut_evenement as unknown as string) !== "Réalisé" &&
+    (evenement.statut_evenement as unknown as string) !== "Payé intégralement"
 
   if (!canEdit) {
     return (
@@ -235,36 +244,32 @@ const ModifierEvenement = memo(() => {
       dateEvenementISO = dateEvenement.toISOString()
     }
 
-    const validEventTypes = [
-      "Anniversaire",
-      "Repas d'entreprise",
-      "Fête de famille",
-      "Cocktail dînatoire",
-      "Buffet traiteur",
-      "Autre",
-    ] as const
-    const typeEvenement = validEventTypes.includes(
-      formData.typeEvenement as (typeof validEventTypes)[number]
-    )
-      ? (formData.typeEvenement as (typeof validEventTypes)[number])
-      : ("Autre" as const)
+    // Utiliser la précision si le type est "Autre", sinon utiliser le type sélectionné
+    const typeEvenementFinal =
+      formData.typeEvenement === "Autre"
+        ? autreTypeEvenementPrecision.trim() || "Autre"
+        : formData.typeEvenement
 
-    const updateData: Partial<EvenementInputData> = {
-      nom_evenement:
-        formData.typeEvenement === "Autre"
-          ? autreTypeEvenementPrecision.trim()
-          : formData.typeEvenement,
+    // Relaxer le type pour permettre les strings personnalisées et corriger les noms de champs
+    const updateData: Partial<
+      Omit<EvenementInputData, "type_d_evenement"> & {
+        type_d_evenement: string
+        description_evenement?: string
+      }
+    > = {
+      nom_evenement: formData.nomEvenement.trim() || undefined, // Optionnel
       date_evenement: dateEvenementISO,
-      type_d_evenement: typeEvenement,
+      type_d_evenement: typeEvenementFinal,
       nombre_de_personnes: parseInt(formData.nombrePersonnes),
       budget_client: formData.budgetClient ? parseFloat(formData.budgetClient) : undefined,
-      demandes_speciales_evenement: formData.demandesSpeciales,
+      description_evenement: formData.demandesSpeciales, // Mapping vers le bon champ Zod
       plats_preselectionnes: platsPreSelectionnes.map((id) => parseInt(id)),
     }
 
     try {
       await updateEvenement.mutateAsync({
         id: evenement.idevenements,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         data: updateData as any,
       })
       toast({
@@ -279,8 +284,6 @@ const ModifierEvenement = memo(() => {
       })
     }
   }
-
-  const getDateLocale = (): Locale => fr
 
   return (
     <AppLayout>
@@ -325,6 +328,20 @@ const ModifierEvenement = memo(() => {
 
                   <CardContent className="p-6 md:p-8">
                     <form onSubmit={handleSubmit} className="space-y-6">
+                      {/* Nom de l'événement - Optionnel */}
+                      <div className="space-y-2">
+                        <Label htmlFor="nomEvenement">Nom de l'événement (optionnel)</Label>
+                        <Input
+                          id="nomEvenement"
+                          value={formData.nomEvenement}
+                          onChange={(e) => handleInputChange("nomEvenement", e.target.value)}
+                          placeholder="Ex: Anniversaire de Marie, Gala d'entreprise..."
+                        />
+                        <p className="text-xs text-gray-500">
+                          Donnez un nom personnalisé à votre événement.
+                        </p>
+                      </div>
+
                       <div className="grid gap-4 sm:grid-cols-1 sm:gap-6 lg:grid-cols-2">
                         <div className="space-y-2">
                           <Label htmlFor="typeEvenement">Type d'événement *</Label>
@@ -346,7 +363,7 @@ const ModifierEvenement = memo(() => {
                         </div>
                         {formData.typeEvenement === "Autre" && (
                           <div className="space-y-2">
-                            <Label htmlFor="autreTypeEvenementPrecision">Précisez *</Label>
+                            <Label htmlFor="autreTypeEvenementPrecision">Précisez le type *</Label>
                             <Input
                               id="autreTypeEvenementPrecision"
                               value={autreTypeEvenementPrecision}
@@ -580,6 +597,7 @@ const ModifierEvenement = memo(() => {
                                 </TooltipTrigger>
                                 <TooltipContent className="border-thai-orange w-64 rounded-md bg-white p-2 shadow-lg">
                                   {plat.photo_du_plat && (
+                                    /* eslint-disable-next-line @next/next/no-img-element */
                                     <img
                                       src={plat.photo_du_plat}
                                       alt={plat.plat}

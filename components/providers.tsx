@@ -1,9 +1,8 @@
 "use client"
 
-import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client"
-import { del, get, set } from "idb-keyval"
+import { del } from "idb-keyval"
 import { ReactNode, useEffect, useState } from "react"
 import { CartProvider } from "../contexts/CartContext"
 import { DataProvider } from "../contexts/DataContext"
@@ -14,6 +13,7 @@ interface ProvidersProps {
 }
 
 // Créer le persister avec IndexedDB (via idb-keyval)
+/*
 const createPersister = () => {
   // Côté serveur, retourner undefined - le PersistQueryClientProvider le gère
   if (typeof window === "undefined") {
@@ -48,6 +48,7 @@ const createPersister = () => {
     },
   })
 }
+*/
 
 export function Providers({ children }: ProvidersProps) {
   const [queryClient] = useState(
@@ -59,7 +60,7 @@ export function Providers({ children }: ProvidersProps) {
             gcTime: 24 * 60 * 60 * 1000, // Garder données 24h (anciennement cacheTime)
             refetchOnWindowFocus: false,
             networkMode: "offlineFirst", // ⭐ Enable offline-first mode
-            retry: (failureCount, error) => {
+            retry: (failureCount, _error) => {
               // Ne pas retry si offline
               if (typeof navigator !== "undefined" && !navigator.onLine) {
                 return false
@@ -71,17 +72,25 @@ export function Providers({ children }: ProvidersProps) {
       })
   )
 
+  /*
   const [persister, setPersister] = useState<ReturnType<typeof createAsyncStoragePersister> | null>(
     null
   )
+  */
+  // FIX: Explicitly set persister to null to disable persistence and satisfy TS
+  const persister = null
 
   // Initialiser le persister côté client uniquement
   useEffect(() => {
     if (typeof window !== "undefined") {
+      // DEBUG: Persistence disabled to fix crash
+      console.warn("⚠️ Persistence disabled for debugging")
+      /*
       const p = createPersister()
       if (p) {
         setPersister(p)
       }
+      */
     }
   }, [])
 
