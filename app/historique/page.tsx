@@ -15,8 +15,10 @@ import {
 import { useSession } from "@/lib/auth-client"
 import { toSafeNumber } from "@/lib/serialization"
 import type { CommandeUI, EvenementUI, ExtraUI } from "@/types/app"
+import { motion, PanInfo } from "framer-motion"
 import { Calendar, Clock } from "lucide-react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { memo, useCallback, useEffect, useMemo, useState } from "react"
 
 // Composants optimisés
@@ -31,6 +33,7 @@ export const dynamic = "force-dynamic"
 type CommandeAvecDetails = CommandeUI
 
 const HistoriquePage = memo(() => {
+  const router = useRouter()
   // Better Auth session
   const { data: session } = useSession()
   const currentUser = session?.user
@@ -160,15 +163,34 @@ const HistoriquePage = memo(() => {
     )
   }
 
+  const onDragEnd = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+    const swipeThreshold = 50
+    // Swipe Gauche -> Historique Complet
+    if (info.offset.x < -swipeThreshold) {
+      router.push("/historique/complet")
+    }
+    // Swipe Droite -> Commander
+    else if (info.offset.x > swipeThreshold) {
+      router.push("/commander")
+    }
+  }
+
   return (
     <AppLayout>
-      <div className="bg-gradient-thai min-h-screen px-1 pt-1 pb-8 sm:px-4 sm:py-8">
-        <div className="animate-fadeIn container mx-auto max-w-7xl space-y-8">
+      <motion.div
+        className="bg-gradient-thai min-h-screen px-0 pt-4 pb-8 sm:px-4 sm:py-8"
+        drag="x"
+        dragConstraints={{ left: 0, right: 0 }}
+        dragElastic={0.1}
+        onDragEnd={onDragEnd}
+      >
+        <div className="animate-fadeIn mx-auto w-full max-w-7xl space-y-8">
           {/* Bannière offline */}
           <OfflineBannerCompact />
 
           {/* Section Suivi des Commandes */}
-          <Card className="border-thai-orange/20 group shadow-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl">
+          {/* Section Suivi des Commandes */}
+          <Card className="border-thai-orange/20 group mx-0 rounded-none border-x-0 shadow-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl sm:mx-0 sm:rounded-xl sm:border-x">
             <CardHeader>
               <CardTitle className="text-thai-green flex items-center gap-2 text-2xl font-bold">
                 <Clock className="h-6 w-6 transition-transform duration-300 group-hover:rotate-12" />
@@ -208,7 +230,8 @@ const HistoriquePage = memo(() => {
           </Card>
 
           {/* Section Suivi des Événements */}
-          <Card className="border-thai-green/20 group shadow-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl">
+          {/* Section Suivi des Événements */}
+          <Card className="border-thai-green/20 group mx-0 rounded-none border-x-0 shadow-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl sm:mx-0 sm:rounded-xl sm:border-x">
             <CardHeader>
               <CardTitle className="text-thai-green flex items-center gap-2 text-2xl font-bold">
                 <Clock className="h-6 w-6 transition-transform duration-300 group-hover:rotate-12" />
@@ -256,7 +279,7 @@ const HistoriquePage = memo(() => {
             </Link>
           </div>
         </div>
-      </div>
+      </motion.div>
     </AppLayout>
   )
 })

@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/select"
 import { CommandeUI, EvenementUI, ExtraUI } from "@/types/app"
 import { getYear, isAfter, startOfToday, subDays, subMonths } from "date-fns"
+import { Calendar, ShoppingBag } from "lucide-react"
 import { useMemo, useState } from "react"
 import { EmptyState } from "./EmptyState"
 import { EventListCard } from "./EventListCard"
@@ -110,30 +111,53 @@ export function HistoryList({
   return (
     <div className="space-y-6">
       {/* Header Filtres Amazon-style */}
-      <div className="bg-thai-cream/30 flex flex-col gap-4 rounded-xl border border-orange-100 p-4 shadow-sm backdrop-blur-sm sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 bg-white/50 p-4 pb-0 backdrop-blur-sm sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <span className="text-thai-green/80 text-sm font-medium tracking-wider uppercase">
-            {filteredList.length} commandes passées
-          </span>
+          <div className="border-thai-orange text-thai-green flex items-center gap-2 rounded-lg border-l-4 bg-white/90 px-4 py-2 text-lg font-bold shadow-sm backdrop-blur-md">
+            <ShoppingBag className="text-thai-green h-5 w-5" />
+            <span className="text-thai-orange text-lg font-bold">{filteredList.length}</span>
+            <span className="font-bold">Commandes Passées</span>
+          </div>
         </div>
         <div className="w-full sm:w-auto">
           <Select value={filter} onValueChange={(v) => setFilter(v)}>
-            <SelectTrigger className="w-full border-orange-200 bg-white shadow-sm sm:w-[240px]">
-              <SelectValue placeholder="Filtrer par période" />
-            </SelectTrigger>
+            <div className="from-thai-orange via-thai-green to-thai-orange rounded-lg bg-linear-to-r p-[2px] shadow-sm">
+              <SelectTrigger className="text-thai-green h-auto w-full rounded-md border-0 bg-white/90 px-4 py-2 backdrop-blur-md focus:ring-0 focus:ring-offset-0 sm:w-[240px] [&>span]:flex [&>span]:flex-1 [&>span]:items-center [&>span]:justify-center [&>span]:gap-2 sm:[&>span]:justify-start">
+                <SelectValue placeholder="Filtrer par période" />
+              </SelectTrigger>
+            </div>
             <SelectContent>
-              <SelectItem value="last_30_days">30 derniers jours</SelectItem>
-              <SelectItem value="last_3_months">3 derniers mois</SelectItem>
+              <SelectItem value="last_30_days">
+                <div className="flex items-center gap-2">
+                  <Calendar className="text-thai-green h-4 w-4" />
+                  <span className="text-thai-orange font-bold">30</span>
+                  <span className="text-thai-green font-semibold">Derniers Jours</span>
+                </div>
+              </SelectItem>
+              <SelectItem value="last_3_months">
+                <div className="flex items-center gap-2">
+                  <Calendar className="text-thai-green h-4 w-4" />
+                  <span className="text-thai-orange font-bold">3</span>
+                  <span className="text-thai-green font-semibold">Derniers Mois</span>
+                </div>
+              </SelectItem>
               {availableYears.length > 0 &&
                 availableYears.map((year) => (
                   <SelectItem key={year} value={year}>
-                    en {year}
+                    <div className="flex items-center gap-2">
+                      <Calendar className="text-thai-green h-4 w-4" />
+                      <span className="text-thai-green font-semibold">en</span>
+                      <span className="text-thai-orange font-bold">{year}</span>
+                    </div>
                   </SelectItem>
                 ))}
             </SelectContent>
           </Select>
         </div>
       </div>
+
+      {/* Gradient Separator */}
+      <div className="from-thai-green via-thai-orange to-thai-green h-1 w-full bg-linear-to-r opacity-60" />
 
       {filteredList.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12 text-center opacity-60">
@@ -143,7 +167,7 @@ export function HistoryList({
       ) : (
         <div className="relative space-y-8 pl-4 md:pl-8">
           {/* Ligne verticale timeline */}
-          <div className="from-thai-orange/20 via-thai-orange/50 to-thai-orange/5 absolute top-0 bottom-0 left-4 w-px bg-gradient-to-b md:left-8" />
+          <div className="from-thai-orange/20 via-thai-orange/50 to-thai-orange/5 absolute top-0 bottom-0 left-4 w-px bg-linear-to-b md:left-8" />
 
           {groupedList.map((group) => (
             <div key={group.title} className="relative">
@@ -167,8 +191,9 @@ export function HistoryList({
                       <OrderListCard
                         commande={item.data as CommandeUI}
                         onClick={() => {
-                          if (item.data.date_et_heure_de_retrait_souhaitees && onSelectDate) {
-                            onSelectDate(new Date(item.data.date_et_heure_de_retrait_souhaitees))
+                          const cmd = item.data as CommandeUI
+                          if (cmd.date_et_heure_de_retrait_souhaitees && onSelectDate) {
+                            onSelectDate(new Date(cmd.date_et_heure_de_retrait_souhaitees))
                           }
                         }}
                       />
@@ -176,8 +201,9 @@ export function HistoryList({
                       <EventListCard
                         evenement={item.data as EvenementUI}
                         onClick={() => {
-                          if (item.data.date_evenement && onSelectDate) {
-                            onSelectDate(new Date(item.data.date_evenement))
+                          const evt = item.data as EvenementUI
+                          if (evt.date_evenement && onSelectDate) {
+                            onSelectDate(new Date(evt.date_evenement))
                           }
                         }}
                       />

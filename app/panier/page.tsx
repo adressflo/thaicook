@@ -45,6 +45,22 @@ const toSafeNumber = (prix: string | number | undefined): number => {
   return 0
 }
 
+// Type for client profile from getClientProfile action
+interface ClientProfile {
+  idclient: number
+  date_de_naissance: string | null
+  // Add other properties if needed, but we mainly need idclient here
+  [key: string]: unknown
+}
+
+// Minimal interface for what handleAjouterAuPanier expects
+// Uses unknown for prix to handle Prisma Decimal type
+interface PlatReference {
+  idplats: number
+  plat: string
+  prix: unknown // Can be Decimal, number, string, or null
+}
+
 export default function PanierPage() {
   const { toast } = useToast()
   const router = useRouter()
@@ -55,15 +71,18 @@ export default function PanierPage() {
   const currentUser = session?.user
 
   // Client profile (pour obtenir idclient)
-  const [clientProfile, setClientProfile] = useState<any>(null)
+  const [clientProfile, setClientProfile] = useState<ClientProfile | null>(null)
 
   useEffect(() => {
     if (currentUser) {
-      getClientProfile().then(setClientProfile)
+      getClientProfile().then((profile) => {
+        // Safe cast as we know the shape from action
+        setClientProfile(profile as unknown as ClientProfile | null)
+      })
     } else {
       setClientProfile(null)
     }
-  }, [currentUser?.id])
+  }, [currentUser]) // Fixed dependency
 
   const clientFirebaseUID = clientProfile?.idclient
 
@@ -129,7 +148,6 @@ export default function PanierPage() {
     )
 
     try {
-      let commandesCreees = 0
       let lastOrderId = ""
 
       // Créer une commande pour chaque date de retrait
@@ -152,14 +170,7 @@ export default function PanierPage() {
         if (newOrder && newOrder.id) {
           lastOrderId = newOrder.id.toString()
         }
-
-        commandesCreees++
       }
-
-      const totalGeneral = panier.reduce(
-        (sum, item) => sum + toSafeNumber(item.prix) * item.quantite,
-        0
-      )
 
       toastVideo({
         title: "Khop khun Kha !",
@@ -200,7 +211,7 @@ export default function PanierPage() {
 
   // Fonction pour ajouter un plat au panier avec quantité spécifique
   const handleAjouterAuPanier = (
-    plat: any,
+    plat: PlatReference,
     quantite: number,
     spicePreference?: string,
     spiceDistribution?: number[],
@@ -223,7 +234,7 @@ export default function PanierPage() {
       ajouterAuPanier({
         id: plat.idplats.toString(),
         nom: plat.plat,
-        prix: plat.prix ?? "0",
+        prix: String(plat.prix ?? "0"),
         quantite: quantite,
         dateRetrait: existingItem.dateRetrait,
         jourCommande: existingItem.jourCommande,
@@ -236,18 +247,6 @@ export default function PanierPage() {
         description: `${plat.plat} a été mis à jour dans votre panier.`,
       })
     }
-  }
-
-  // Calculer la quantité actuelle d'un plat dans le panier pour une date donnée
-  const getCurrentQuantity = (platId: number, dateRetrait?: Date): number => {
-    if (!dateRetrait) return 0
-
-    return panier
-      .filter(
-        (item) =>
-          item.id === platId.toString() && item.dateRetrait?.getTime() === dateRetrait.getTime()
-      )
-      .reduce((total, item) => total + item.quantite, 0)
   }
 
   // Modifier la distribution épicée directement
@@ -463,6 +462,7 @@ export default function PanierPage() {
                                     uniqueId: item.uniqueId,
                                   })
                                 }
+                                quantityBadgeLabel="Panier"
                               />
                             )
                           })}

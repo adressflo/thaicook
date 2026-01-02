@@ -18,7 +18,8 @@ import { useSession } from "@/lib/auth-client"
 import { ClientUI, CommandeUI } from "@/types/app"
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
 import { addMonths, subMonths } from "date-fns"
-import { ArrowLeft, Calendar as CalendarIcon, List } from "lucide-react"
+import { motion, PanInfo } from "framer-motion"
+import { ArrowLeft, Calendar as CalendarIcon, List, ShoppingBag } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 
@@ -48,7 +49,7 @@ export function CalendarView() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false)
-  const [viewMode, setViewMode] = useState<"calendar" | "list">("calendar")
+  const [viewMode, setViewMode] = useState<"calendar" | "list">("list")
 
   // Helpers
   const formatPrix = (prix: number) => {
@@ -81,6 +82,19 @@ export function CalendarView() {
     setIsModalOpen(true)
   }
 
+  // Swipe Handler
+  const onDragEnd = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+    const swipeThreshold = 100 // Sensibilité
+    // Swipe Gauche -> Commander
+    if (info.offset.x < -swipeThreshold) {
+      router.push("/commander")
+    }
+    // Swipe Droite -> Historique
+    else if (info.offset.x > swipeThreshold) {
+      router.push("/historique")
+    }
+  }
+
   // Filter data for the modal
   const selectedDateCommandes = selectedDate
     ? commandes.filter((c) => {
@@ -107,16 +121,32 @@ export function CalendarView() {
     : []
 
   return (
-    <div className="space-y-6">
+    <motion.div
+      className="space-y-6"
+      drag="x"
+      dragConstraints={{ left: 0, right: 0 }}
+      dragElastic={0.1}
+      onDragEnd={onDragEnd}
+    >
       {/* Bouton Retour */}
-      <div className="flex items-center gap-4">
+      {/* Header Navigation et Actions */}
+      <div className="hidden items-center justify-between gap-4 md:flex">
         <Button
-          variant="ghost"
+          variant="outline"
           onClick={() => router.back()}
-          className="text-thai-green hover:bg-thai-green/10"
+          className="border-thai-green/50 text-thai-green hover:bg-thai-green/10 hover:text-thai-green hover:border-thai-green inline-flex items-center justify-center rounded-full px-6 py-2 text-base font-bold shadow-sm transition-all hover:scale-105"
         >
-          <ArrowLeft className="mr-2 h-4 w-4" />
+          <ArrowLeft className="mr-2 h-5 w-5" />
           Retour
+        </Button>
+
+        <Button
+          variant="outline"
+          className="border-thai-orange/50 text-thai-orange hover:bg-thai-orange/10 hover:text-thai-orange hover:border-thai-orange inline-flex items-center justify-center rounded-full px-6 py-2 text-base font-bold shadow-sm transition-all hover:scale-105"
+          onClick={() => router.push("/commander")}
+        >
+          <ShoppingBag className="mr-2 h-5 w-5" />
+          Commander maintenant
         </Button>
       </div>
 
@@ -124,8 +154,8 @@ export function CalendarView() {
         <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as "calendar" | "list")}>
           <Card className="border-thai-orange/20 mx-0 rounded-none border-x-0 bg-white/80 shadow-xl backdrop-blur-sm md:mx-0 md:rounded-xl md:border-x">
             <CardHeader className="p-4 pb-2 md:p-6">
-              <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                <div className="flex items-center gap-4">
+              <div className="flex flex-col items-center gap-4 text-center md:flex-row md:items-start md:justify-between md:text-left">
+                <div className="flex flex-col items-center gap-4 md:flex-row">
                   <Dialog open={isVideoModalOpen} onOpenChange={setIsVideoModalOpen}>
                     <DialogTrigger asChild>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -159,20 +189,20 @@ export function CalendarView() {
                   </div>
                 </div>
 
-                <TabsList className="bg-thai-cream/50 border-thai-orange/20 self-start border md:self-center">
-                  <TabsTrigger
-                    value="calendar"
-                    className="data-[state=active]:bg-thai-orange data-[state=active]:text-white"
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    Calendrier
-                  </TabsTrigger>
+                <TabsList className="bg-thai-cream/50 border-thai-orange/20 mt-4 self-center border md:mt-0 md:self-center">
                   <TabsTrigger
                     value="list"
                     className="data-[state=active]:bg-thai-orange data-[state=active]:text-white"
                   >
                     <List className="mr-2 h-4 w-4" />
                     Liste
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="calendar"
+                    className="data-[state=active]:bg-thai-orange data-[state=active]:text-white"
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    Calendrier
                   </TabsTrigger>
                 </TabsList>
               </div>
@@ -218,6 +248,17 @@ export function CalendarView() {
         evenements={selectedDateEvenements}
         extras={extras || []}
       />
-    </div>
+
+      {/* Bouton Commander (Style identique à "Voir le calendrier complet") */}
+      <div className="flex justify-center pt-4 pb-8">
+        <Button
+          className="bg-thai-orange hover:bg-thai-orange/90 inline-flex h-auto items-center justify-center rounded-full px-8 py-4 text-lg font-bold text-white shadow-xl transition-transform hover:scale-105 hover:shadow-2xl"
+          onClick={() => router.push("/commander")}
+        >
+          <ShoppingBag className="mr-3 h-6 w-6" />
+          Commander maintenant
+        </Button>
+      </div>
+    </motion.div>
   )
 }

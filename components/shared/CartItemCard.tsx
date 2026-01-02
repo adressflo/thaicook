@@ -43,6 +43,7 @@ interface CartItemCardProps {
   desktopImageWidth?: string
   customImageObjectPosition?: string
   cardClassName?: string
+  quantityBadgeLabel?: string
 }
 
 export function CartItemCard({
@@ -51,7 +52,6 @@ export function CartItemCard({
   unitPrice,
   quantity,
   isVegetarian,
-  isSpicy,
   onQuantityChange,
   onRemove,
   onClick,
@@ -62,7 +62,6 @@ export function CartItemCard({
   imageClassName,
   imageAspectRatio = "square",
   imageObjectPosition = "center",
-  imageZoom = 1,
   imageWidth,
   imageHeight,
   desktopImageWidth = "w-22",
@@ -70,6 +69,7 @@ export function CartItemCard({
   cardClassName,
   spiceDistribution,
   onSpiceDistributionChange,
+  quantityBadgeLabel = "Qté",
 }: CartItemCardProps) {
   const [imageError, setImageError] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -82,7 +82,7 @@ export function CartItemCard({
   const iconScale = useTransform(x, [-100, -50], [1.2, 0.8])
 
   // Gestion de la fin du glissement
-  const handleDragEnd = async (_: any, info: PanInfo) => {
+  const handleDragEnd = async (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     if (info.offset.x < -100) {
       // Swipe vers la gauche suffisant -> Ouvre modal
       setIsModalOpen(true)
@@ -244,7 +244,7 @@ export function CartItemCard({
                 </div>
                 <div className="absolute top-2 right-2">
                   <Badge className="bg-thai-orange px-2 py-0.5 text-[10px] font-semibold text-white shadow-md">
-                    Panier {quantity}
+                    {quantityBadgeLabel} {quantity}
                   </Badge>
                 </div>
               </div>
@@ -297,6 +297,16 @@ export function CartItemCard({
                   {formatPrix(unitPrice)}
                 </Badge>
               </div>
+
+              {/* Quantité (Mobile : sous le prix, si readOnly) */}
+              {readOnly && (
+                <div className="mt-1 flex items-center justify-center text-xs text-gray-600 sm:hidden">
+                  <span className="font-semibold text-gray-700">Quantité:</span>
+                  <Badge variant="secondary" className="ml-1 text-xs font-bold">
+                    {quantity}
+                  </Badge>
+                </div>
+              )}
 
               {/* Sélecteur épicé (Mobile : Centré sous le prix) */}
               {spiceContent && (
