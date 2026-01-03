@@ -44,6 +44,7 @@ interface CartItemCardProps {
   customImageObjectPosition?: string
   cardClassName?: string
   quantityBadgeLabel?: string
+  showQuantityBadge?: boolean
 }
 
 export function CartItemCard({
@@ -70,6 +71,7 @@ export function CartItemCard({
   spiceDistribution,
   onSpiceDistributionChange,
   quantityBadgeLabel = "Qté",
+  showQuantityBadge = true,
 }: CartItemCardProps) {
   const [imageError, setImageError] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -250,9 +252,11 @@ export function CartItemCard({
               </div>
 
               {/* Badge Desktop (Masqué sur Mobile) - Pastille simple */}
-              <div className="bg-thai-orange absolute -top-1.5 -right-1.5 hidden h-6 w-6 items-center justify-center rounded-full text-xs font-bold text-white shadow-lg sm:flex">
-                {quantity}
-              </div>
+              {showQuantityBadge && (
+                <div className="bg-thai-orange absolute -top-1.5 -right-1.5 hidden h-6 w-6 items-center justify-center rounded-full text-xs font-bold text-white shadow-lg sm:flex">
+                  {quantity}
+                </div>
+              )}
             </div>
           </div>
 

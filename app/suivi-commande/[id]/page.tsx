@@ -6,6 +6,7 @@ import BoutonTelechargerFacture from "@/components/historique/BoutonTelechargerF
 import { CalendarIcon } from "@/components/historique/CalendarIcon"
 import { StatusBadge } from "@/components/historique/StatusBadge"
 import { AppLayout } from "@/components/layout/AppLayout"
+import { CartItemCard } from "@/components/shared/CartItemCard"
 import { CommandePlatModalTrigger } from "@/components/shared/CommandePlatModal"
 import { ProgressTimeline } from "@/components/suivi-commande/ProgressTimeline"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -32,7 +33,6 @@ import {
   MapPin,
   ShoppingCart,
 } from "lucide-react"
-import Image from "next/image"
 import Link from "next/link"
 import { redirect, useParams, useRouter } from "next/navigation"
 import { memo, useEffect, useState } from "react"
@@ -203,6 +203,7 @@ const SuiviCommande = memo(() => {
                   currentStatus={commande.statut_commande || null}
                   dateCommande={commande.date_de_prise_de_commande}
                   dateRetrait={commande.date_et_heure_de_retrait_souhaitees}
+                  orderId={commande.idcommande}
                 />
               </div>
 
@@ -214,108 +215,69 @@ const SuiviCommande = memo(() => {
                     Plats commandés ({commande.details?.length || 0})
                   </h3>
                   {commande.details && commande.details.length > 0 ? (
-                    <div className="border-thai-orange/20 bg-thai-cream/20 space-y-4 rounded-lg border p-3">
-                      {commande.details.map((detail, index) => {
-                        const isExtra = !!detail.extra
-                        const platDetails = detail.plat
-                        const extraDetails = detail.extra
+                    <div className="space-y-6">
+                      <div className="flex flex-col gap-4">
+                        {commande.details.map((detail, index) => {
+                          const isExtra = !!detail.extra
+                          const platDetails = detail.plat
+                          const extraDetails = detail.extra
 
-                        // Adapter les données pour CommandePlatModal
+                          // Adapter les données pour CommandePlatModal
 
-                        const detailForModal = {
-                          ...detail,
-                          plat: platDetails || null,
-                          extra: extraDetails || null,
-                        } as any
-
-                        return (
-                          <CommandePlatModalTrigger
-                            key={`${detail.plat_r || "unknown"}-${index}`}
+                          const detailForModal = {
+                            ...detail,
+                            plat: platDetails || null,
+                            extra: extraDetails || null,
                             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                            plat={platDetails as any}
-                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                            extra={extraDetails as any}
-                            detail={detailForModal}
-                            formatPrix={formatPrix}
-                            mode="readonly"
-                            showPriceDetails={true}
-                            showBadgePanier={false}
-                          >
-                            <div
-                              className="group animate-fadeIn relative cursor-pointer hover:z-10"
-                              style={{ animationDelay: `${index * 100}ms` }}
+                          } as any
+
+                          return (
+                            <CommandePlatModalTrigger
+                              key={`${detail.plat_r || "unknown"}-${index}`}
+                              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                              plat={platDetails as any}
+                              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                              extra={extraDetails as any}
+                              detail={detailForModal}
+                              formatPrix={formatPrix}
+                              mode="readonly"
+                              showPriceDetails={true}
+                              showBadgePanier={false}
                             >
-                              <div className="hover:bg-thai-cream/20 hover:border-thai-orange hover:ring-thai-orange/30 flex w-full transform items-start gap-3 rounded-lg border border-gray-200 bg-white p-3 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:ring-2">
-                                {/* Image du plat/extra */}
-                                <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-md md:h-20 md:w-20">
-                                  <Image
-                                    src={
-                                      isExtra
-                                        ? extraDetails?.photo_url ||
-                                          getStorageUrl(STORAGE_DEFAULTS.EXTRA)
-                                        : platDetails?.photo_du_plat || ""
-                                    }
-                                    alt={
-                                      isExtra
-                                        ? extraDetails?.nom_extra || detail.nom_plat || "Extra"
-                                        : platDetails?.plat || "Plat"
-                                    }
-                                    fill
-                                    className="object-cover"
-                                    sizes="(max-width: 768px) 64px, 80px"
-                                    onError={(_e) => {
-                                      // Note: Next/Image onError is less flexible for DOM manipulation.
-                                      // For now we rely on the src fallback above.
-                                      // Typically we would use a state variable for fallback src if needed.
-                                    }}
-                                  />
-                                </div>
-
-                                {/* Détails du plat */}
-                                <div className="min-w-0 flex-1">
-                                  <h4 className="text-thai-green mb-1 truncate text-lg font-medium">
-                                    {isExtra
-                                      ? extraDetails?.nom_extra || "Extra"
-                                      : platDetails?.plat || "Plat non trouvé"}
-                                  </h4>
-                                  <div className="flex items-center gap-4 text-sm text-gray-600">
-                                    <span className="flex items-center gap-1">
-                                      <span className="font-medium">Quantité:</span>
-                                      <span className="bg-thai-orange/10 text-thai-orange rounded-full px-2 py-1 font-medium">
-                                        {detail.quantite_plat_commande}
-                                      </span>
-                                    </span>
-                                    <span className="flex items-center gap-1">
-                                      <span className="font-medium">Prix unitaire:</span>
-                                      <span className="text-thai-green font-semibold">
-                                        {formatPrix(
-                                          parseFloat(
-                                            isExtra
-                                              ? extraDetails?.prix?.toString() || "0"
-                                              : platDetails?.prix?.toString() || "0"
-                                          )
-                                        )}
-                                      </span>
-                                    </span>
-                                  </div>
-                                </div>
-                                {/* Prix total */}
-                                <div className="text-right">
-                                  <div className="text-thai-orange text-xl font-bold md:text-2xl">
-                                    {formatPrix(
-                                      parseFloat(
-                                        isExtra
-                                          ? extraDetails?.prix?.toString() || "0"
-                                          : platDetails?.prix?.toString() || "0"
-                                      ) * (detail.quantite_plat_commande || 0)
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </CommandePlatModalTrigger>
-                        )
-                      })}
+                              <CartItemCard
+                                name={
+                                  isExtra
+                                    ? extraDetails?.nom_extra || "Extra"
+                                    : platDetails?.plat || "Plat non trouvé"
+                                }
+                                imageUrl={
+                                  isExtra
+                                    ? extraDetails?.photo_url ||
+                                      getStorageUrl(STORAGE_DEFAULTS.EXTRA)
+                                    : platDetails?.photo_du_plat || ""
+                                }
+                                unitPrice={parseFloat(
+                                  isExtra
+                                    ? extraDetails?.prix?.toString() || "0"
+                                    : platDetails?.prix?.toString() || "0"
+                                )}
+                                quantity={detail.quantite_plat_commande || 0}
+                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                isVegetarian={(platDetails as any)?.is_veggie}
+                                readOnly={true}
+                                onQuantityChange={() => {}}
+                                onRemove={() => {}}
+                                className="hover:border-thai-orange h-full border-gray-100 shadow-sm transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
+                                cardClassName="h-full"
+                                imageAspectRatio="square"
+                                showSpiceSelector={true}
+                                spiceDistribution={detail.spice_distribution || undefined}
+                                onSpiceDistributionChange={() => {}}
+                              />
+                            </CommandePlatModalTrigger>
+                          )
+                        })}
+                      </div>
 
                       {/* Total final */}
                       <div className="border-thai-orange/20 mt-6 border-t pt-4">

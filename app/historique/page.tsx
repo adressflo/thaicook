@@ -5,6 +5,7 @@ import { AppLayout } from "@/components/layout/AppLayout"
 import { OfflineBannerCompact } from "@/components/pwa/OfflineBanner"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { useOnlineStatus } from "@/hooks/useOnlineStatus"
 import {
   usePrismaCommandesByClient,
@@ -41,6 +42,7 @@ const HistoriquePage = memo(() => {
 
   // Client profile (pour obtenir idclient)
   const [clientProfile, setClientProfile] = useState<{ idclient?: number } | null>(null)
+  const [isVideoOpen, setIsVideoOpen] = useState(false)
 
   useEffect(() => {
     if (currentUser) {
@@ -192,11 +194,40 @@ const HistoriquePage = memo(() => {
           {/* Section Suivi des Commandes */}
           <Card className="border-thai-orange/20 group mx-0 rounded-none border-x-0 shadow-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl sm:mx-0 sm:rounded-xl sm:border-x">
             <CardHeader>
-              <CardTitle className="text-thai-green flex items-center gap-2 text-2xl font-bold">
-                <Clock className="h-6 w-6 transition-transform duration-300 group-hover:rotate-12" />
-                Suivi de vos commandes
-              </CardTitle>
-              <CardDescription>Commandes en cours de traitement ou confirmées.</CardDescription>
+              <div className="flex items-center gap-4">
+                <Dialog open={isVideoOpen} onOpenChange={setIsVideoOpen}>
+                  <DialogTrigger asChild>
+                    <div className="relative cursor-pointer transition-transform hover:scale-105">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src="/media/suividecommande/centredecommandement.png"
+                        alt="Suivi de vos commandes"
+                        className="h-24 w-40 rounded-lg border-2 border-amber-200 object-cover shadow-md"
+                      />
+                      <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-black/10 opacity-0 transition-opacity hover:opacity-100">
+                        <Clock className="h-8 w-8 text-white drop-shadow-md" />
+                      </div>
+                    </div>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-md overflow-hidden rounded-xl border-0 p-0">
+                    <DialogTitle className="sr-only">Vidéo : Suivi de vos commandes</DialogTitle>
+                    <video
+                      src="/media/suividecommande/centredecommandement.mp4"
+                      autoPlay
+                      muted
+                      playsInline
+                      onEnded={() => setIsVideoOpen(false)}
+                      className="w-full"
+                    />
+                  </DialogContent>
+                </Dialog>
+                <div>
+                  <CardTitle className="text-thai-green text-2xl font-bold">
+                    Suivi de vos commandes
+                  </CardTitle>
+                  <CardDescription>Commandes en cours de traitement ou confirmées.</CardDescription>
+                </div>
+              </div>
             </CardHeader>
             <CardContent className="p-2 sm:p-6">
               {isLoadingCommandes || isLoadingExtras ? (

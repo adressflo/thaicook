@@ -90,9 +90,19 @@ const NAV_LINKS_AUTH: Array<{ label: string; href: string }> = [
   { label: "Contact et Nous trouver", href: "/nous-trouver" },
 ]
 
+import { useEffect, useState } from "react"
+
 export function RestaurantFooter() {
   const { isAuthenticated } = usePermissions()
-  const navLinks = isAuthenticated ? NAV_LINKS_AUTH : NAV_LINKS_GUEST
+  const [isMounted, setIsMounted] = useState(false)
+
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
+
+  // Use guest links during SSR and initial client render to strictly match server HTML
+  // Only switch to auth links after component has mounted on client
+  const navLinks = isMounted && isAuthenticated ? NAV_LINKS_AUTH : NAV_LINKS_GUEST
   return (
     <footer className="w-full pb-20 lg:pb-0">
       {/* Bande verte avec navigation + réseaux sociaux - Cachée sur mobile */}
