@@ -149,48 +149,49 @@ const SuiviCommande = memo(() => {
 
           <Card className="border-thai-orange/20 mx-0 rounded-none border-x-0 bg-white/80 shadow-xl backdrop-blur-sm transition-all duration-300 md:mx-0 md:rounded-xl md:border-x">
             <CardHeader className="p-4 pb-2 md:p-6">
-              <div className="flex flex-col items-center gap-4 text-center md:flex-row md:items-start md:text-left">
-                {/* Vignette Vidéo/Image */}
-                <Dialog open={isVideoModalOpen} onOpenChange={setIsVideoModalOpen}>
-                  <DialogTrigger asChild>
-                    <div className="relative cursor-pointer transition-transform hover:scale-105">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src="/media/suividecommande/centredecommandement.png"
-                        alt="Suivi Commande"
-                        className="h-24 w-40 rounded-lg border-2 border-white/50 object-cover shadow-md"
-                      />
-                      <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-black/10 transition-colors hover:bg-black/0">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/80 shadow-sm backdrop-blur-sm">
-                          <div className="ml-1 border-t-6 border-b-6 border-l-8 border-transparent border-t-transparent border-b-transparent border-l-orange-500"></div>
-                        </div>
+              <div className="flex w-full flex-col items-center gap-4 text-center md:flex-row md:items-center md:justify-between md:text-left">
+                <div className="flex flex-col items-center gap-4 md:flex-row">
+                  {/* Vignette Vidéo/Image */}
+                  <Dialog open={isVideoModalOpen} onOpenChange={setIsVideoModalOpen}>
+                    <DialogTrigger asChild>
+                      <div className="relative cursor-pointer transition-transform hover:scale-105">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src="/media/suividecommande/centredecommandement.png"
+                          alt="Suivi Commande"
+                          className="h-24 w-40 rounded-lg border-2 border-white/50 object-cover shadow-md"
+                        />
                       </div>
-                    </div>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-md overflow-hidden rounded-xl border-0 p-0">
-                    <VisuallyHidden>
-                      <DialogTitle>Aperçu vidéo suivi</DialogTitle>
-                    </VisuallyHidden>
-                    <video
-                      src="/media/suividecommande/centredecommandement.mp4"
-                      autoPlay
-                      muted
-                      playsInline
-                      loop // Loop ajouté pour l'ambiance
-                      className="w-full"
-                    />
-                  </DialogContent>
-                </Dialog>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-md overflow-hidden rounded-xl border-0 p-0">
+                      <VisuallyHidden>
+                        <DialogTitle>Aperçu vidéo suivi</DialogTitle>
+                      </VisuallyHidden>
+                      <video
+                        src="/media/suividecommande/centredecommandement.mp4"
+                        autoPlay
+                        muted
+                        playsInline
+                        onEnded={() => setIsVideoModalOpen(false)}
+                        className="w-full"
+                      />
+                    </DialogContent>
+                  </Dialog>
+
+                  <div>
+                    <CardTitle className="text-thai-green text-3xl font-bold">
+                      Suivi de commande
+                    </CardTitle>
+                    <p className="mt-1 text-sm font-medium text-gray-500">
+                      Visualisez la progression de votre commande en temps réel.
+                    </p>
+                  </div>
+                </div>
 
                 {/* Titre et Statut */}
-                <div className="flex flex-col items-center md:items-start">
-                  <CardTitle className="text-thai-green text-3xl font-bold">
-                    Suivi de commande
-                  </CardTitle>
-                  <div className="mt-1 flex flex-wrap items-center justify-center gap-2 text-lg md:justify-start">
-                    <span className="font-medium text-gray-600">Statut actuel:</span>
-                    <StatusBadge statut={commande.statut_commande} type="commande" />
-                  </div>
+                <div className="mt-1 flex flex-wrap items-center justify-center gap-2 text-lg md:mt-0 md:justify-end">
+                  <span className="font-medium text-gray-600">Statut actuel:</span>
+                  <StatusBadge statut={commande.statut_commande} type="commande" />
                 </div>
               </div>
             </CardHeader>

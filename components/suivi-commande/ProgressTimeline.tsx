@@ -264,7 +264,7 @@ export function ProgressTimeline({
          - Masques de fondu
          - Scrollbar cachée
       */}
-      <div className="relative h-[calc(100vh-320px)] min-h-[500px] w-full overflow-hidden rounded-xl border border-gray-100 bg-white/50 shadow-inner">
+      <div className="relative h-[calc(100vh-450px)] min-h-[350px] w-full overflow-hidden rounded-xl border border-gray-100 bg-white/50 shadow-inner">
         {/* Masque Fondu Haut */}
         <div className="pointer-events-none absolute inset-x-0 top-0 z-20 h-10 bg-linear-to-b from-white via-white/80 to-transparent" />
 
@@ -332,14 +332,6 @@ export function ProgressTimeline({
                                     : ""
                                 )}
                               />
-                              {/* Play overlay if video exists and usable */}
-                              {displayVideo && !isPending && (
-                                <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-black/10 transition-colors hover:bg-black/0">
-                                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/80 shadow-sm backdrop-blur-sm">
-                                    <div className="ml-1 border-t-6 border-b-6 border-l-8 border-transparent border-t-transparent border-b-transparent border-l-orange-500"></div>
-                                  </div>
-                                </div>
-                              )}
                             </div>
                           </DialogTrigger>
                           {displayVideo && (
@@ -350,7 +342,7 @@ export function ProgressTimeline({
                                 autoPlay
                                 muted
                                 playsInline
-                                loop
+                                onEnded={() => setOpenVideoId(null)}
                                 className="w-full"
                               />
                             </DialogContent>
