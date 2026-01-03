@@ -266,7 +266,7 @@ export function ProgressTimeline({
       */}
       <div className="relative h-[calc(100vh-320px)] min-h-[500px] w-full overflow-hidden rounded-xl border border-gray-100 bg-white/50 shadow-inner">
         {/* Masque Fondu Haut */}
-        <div className="pointer-events-none absolute inset-x-0 top-0 z-20 h-10 bg-gradient-to-b from-white via-white/80 to-transparent" />
+        <div className="pointer-events-none absolute inset-x-0 top-0 z-20 h-10 bg-linear-to-b from-white via-white/80 to-transparent" />
 
         {/* Zone de Scroll (Barre masquée) */}
         <div className="h-full overflow-y-auto px-1 pt-6 pb-16 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -274,7 +274,7 @@ export function ProgressTimeline({
             {/* Ligne Background - ajusté pour scroll */}
             {/* <div className="absolute top-4 bottom-4 left-[3.5rem] w-0.5 bg-gray-200 md:left-[3.5rem] -z-10" /> */}
 
-            {steps.map((step, index) => {
+            {steps.map((step, _index) => {
               const isCurrent = step.status === "current"
               const isPending = step.status === "pending"
               const isCancelled = step.status === "cancelled"
@@ -409,7 +409,7 @@ export function ProgressTimeline({
         </div>
 
         {/* Masque Fondu Bas */}
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-10 bg-gradient-to-t from-white via-white/80 to-transparent" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-10 bg-linear-to-t from-white via-white/80 to-transparent" />
       </div>
     </div>
   )

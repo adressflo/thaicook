@@ -10,7 +10,8 @@ import { CommandePlatModalTrigger } from "@/components/shared/CommandePlatModal"
 import { ProgressTimeline } from "@/components/suivi-commande/ProgressTimeline"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { useData } from "@/contexts/DataContext"
 import { usePrismaCommandeById, usePrismaExtras } from "@/hooks/usePrismaData"
 
@@ -18,6 +19,7 @@ import { useSession } from "@/lib/auth-client"
 import { extractRouteParam } from "@/lib/params-utils"
 import { toSafeNumber } from "@/lib/serialization"
 import { getStorageUrl, STORAGE_DEFAULTS } from "@/lib/storage-utils"
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
 import { format } from "date-fns"
 import { fr } from "date-fns/locale"
 import {
@@ -32,11 +34,12 @@ import {
 } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
-import { redirect, useParams } from "next/navigation"
+import { redirect, useParams, useRouter } from "next/navigation"
 import { memo, useEffect, useState } from "react"
 
 const SuiviCommande = memo(() => {
   const params = useParams()
+  const router = useRouter()
   const id = extractRouteParam(params?.id)
 
   // Better Auth session
@@ -44,7 +47,9 @@ const SuiviCommande = memo(() => {
   const currentUser = session?.user
 
   // Client profile
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [clientProfile, setClientProfile] = useState<any>(null)
+  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false)
 
   useEffect(() => {
     if (currentUser) {
@@ -52,15 +57,15 @@ const SuiviCommande = memo(() => {
     } else {
       setClientProfile(null)
     }
-  }, [currentUser?.id])
+  }, [currentUser])
 
   const {
     data: commande,
     isLoading: isLoadingCommande,
     error,
   } = usePrismaCommandeById(id ? Number(id) : undefined)
-  const { plats, isLoading: platsLoading } = useData()
-  const { data: extras, isLoading: extrasLoading } = usePrismaExtras()
+  const { isLoading: platsLoading } = useData()
+  const { isLoading: extrasLoading } = usePrismaExtras()
 
   // Vérifie que l'utilisateur connecté est bien le propriétaire de la commande
   useEffect(() => {
@@ -93,11 +98,11 @@ const SuiviCommande = memo(() => {
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Erreur</AlertTitle>
             <AlertDescription>
-              Impossible de charger les détails de cette commande. Elle n'existe peut-être pas ou a
-              été supprimée.
+              Impossible de charger les détails de cette commande. Elle n&apos;existe peut-être pas
+              ou a été supprimée.
             </AlertDescription>
             <Button asChild variant="secondary" className="mt-4">
-              <Link href="/historique">Retour à l'historique</Link>
+              <Link href="/historique">Retour à l&apos;historique</Link>
             </Button>
           </Alert>
         </div>
@@ -106,7 +111,7 @@ const SuiviCommande = memo(() => {
   }
 
   // Fonction pour formater les prix
-  const formatPrix = (prix: any): string => {
+  const formatPrix = (prix: number | string | null | undefined): string => {
     const numericPrix = toSafeNumber(prix)
     if (numericPrix % 1 === 0) {
       return `${numericPrix.toFixed(0)}€`
@@ -125,75 +130,83 @@ const SuiviCommande = memo(() => {
     }, 0)
   }
 
-  // Fonction pour obtenir la couleur du badge de statut
-  const getStatutColor = (statut: string | null): string => {
-    switch (statut) {
-      case "En attente de confirmation":
-        return "bg-yellow-100 text-yellow-800 border-yellow-300"
-      case "Confirmée":
-        return "bg-blue-100 text-blue-800 border-blue-300"
-      case "En préparation":
-        return "bg-orange-100 text-orange-800 border-orange-300"
-      case "Prête à récupérer":
-        return "bg-green-100 text-green-800 border-green-300"
-      case "Récupérée":
-        return "bg-gray-100 text-gray-800 border-gray-300"
-      case "Annulée":
-        return "bg-red-100 text-red-800 border-red-300"
-      default:
-        return "bg-gray-100 text-gray-800 border-gray-300"
-    }
-  }
-
-  // Fonction pour obtenir les détails d'un plat
-  const getPlatDetails = (platId: number) => {
-    return plats?.find((p) => p.idplats === platId)
-  }
-
   return (
     <AppLayout>
-      <div className="bg-gradient-thai min-h-screen px-4 py-8">
-        <div className="container mx-auto max-w-6xl">
-          <Button
-            asChild
-            variant="outline"
-            className="group mb-6 transform transition-all duration-200 hover:scale-105 hover:shadow-lg"
-          >
-            <Link href="/historique" className="flex items-center gap-2">
-              <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
-              Retour à l'historique
-            </Link>
-          </Button>
+      {/* Container principal sans padding latéral mobile (px-0) */}
+      <div className="bg-gradient-thai min-h-screen px-0 py-4 md:px-4 md:py-8">
+        <div className="animate-in fade-in mx-auto w-full max-w-6xl duration-500">
+          {/* Header Navigation (Desktop seulement ou style discret) */}
+          <div className="mb-6 hidden items-center justify-between px-4 md:flex md:px-0">
+            <Button
+              variant="outline"
+              onClick={() => router.back()}
+              className="border-thai-green/50 text-thai-green hover:bg-thai-green/10 hover:text-thai-green hover:border-thai-green inline-flex items-center justify-center rounded-full px-6 py-2 text-base font-bold shadow-sm transition-all hover:scale-105"
+            >
+              <ArrowLeft className="mr-2 h-5 w-5" />
+              Retour
+            </Button>
+          </div>
 
-          <Card className="border-thai-orange/20 transform shadow-xl transition-all duration-300 hover:shadow-2xl">
-            <CardHeader className="from-thai-orange to-thai-gold animate-fade-in rounded-t-lg bg-linear-to-r text-center text-white">
-              <div className="mb-2 flex items-center justify-center">
-                <ShoppingCart className="mr-2 h-8 w-8 animate-pulse" />
-                <CardTitle className="text-3xl font-bold">Suivi de votre Commande</CardTitle>
+          <Card className="border-thai-orange/20 mx-0 rounded-none border-x-0 bg-white/80 shadow-xl backdrop-blur-sm transition-all duration-300 md:mx-0 md:rounded-xl md:border-x">
+            <CardHeader className="p-4 pb-2 md:p-6">
+              <div className="flex flex-col items-center gap-4 text-center md:flex-row md:items-start md:text-left">
+                {/* Vignette Vidéo/Image */}
+                <Dialog open={isVideoModalOpen} onOpenChange={setIsVideoModalOpen}>
+                  <DialogTrigger asChild>
+                    <div className="relative cursor-pointer transition-transform hover:scale-105">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src="/media/suividecommande/centredecommandement.png"
+                        alt="Suivi Commande"
+                        className="h-24 w-40 rounded-lg border-2 border-white/50 object-cover shadow-md"
+                      />
+                      <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-black/10 transition-colors hover:bg-black/0">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/80 shadow-sm backdrop-blur-sm">
+                          <div className="ml-1 border-t-6 border-b-6 border-l-8 border-transparent border-t-transparent border-b-transparent border-l-orange-500"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-md overflow-hidden rounded-xl border-0 p-0">
+                    <VisuallyHidden>
+                      <DialogTitle>Aperçu vidéo suivi</DialogTitle>
+                    </VisuallyHidden>
+                    <video
+                      src="/media/suividecommande/centredecommandement.mp4"
+                      autoPlay
+                      muted
+                      playsInline
+                      loop // Loop ajouté pour l'ambiance
+                      className="w-full"
+                    />
+                  </DialogContent>
+                </Dialog>
+
+                {/* Titre et Statut */}
+                <div className="flex flex-col items-center md:items-start">
+                  <CardTitle className="text-thai-green text-3xl font-bold">
+                    Suivi de commande
+                  </CardTitle>
+                  <div className="mt-1 flex flex-wrap items-center justify-center gap-2 text-lg md:justify-start">
+                    <span className="font-medium text-gray-600">Statut actuel:</span>
+                    <StatusBadge statut={commande.statut_commande} type="commande" />
+                  </div>
+                </div>
               </div>
-              <CardDescription className="px-4 text-white/90">
-                Statut: {commande.statut_commande || "En attente"}
-              </CardDescription>
             </CardHeader>
 
-            <CardContent className="space-y-8 p-6 md:p-8">
+            <CardContent className="space-y-8 p-0 md:p-8">
               {/* Timeline de progression */}
-              <Card className="border-thai-orange/20 from-thai-cream/20 bg-linear-to-br to-white">
-                <CardContent className="p-6">
-                  <h3 className="text-thai-green mb-6 flex items-center gap-2 text-xl font-bold">
-                    <Clock className="text-thai-orange h-6 w-6" />
-                    Suivi de votre commande
-                  </h3>
-                  <ProgressTimeline
-                    currentStatus={commande.statut_commande || null}
-                    dateCommande={commande.date_de_prise_de_commande}
-                    dateRetrait={commande.date_et_heure_de_retrait_souhaitees}
-                  />
-                </CardContent>
-              </Card>
+              <div className="p-4 md:p-0">
+                <ProgressTimeline
+                  currentStatus={commande.statut_commande || null}
+                  dateCommande={commande.date_de_prise_de_commande}
+                  dateRetrait={commande.date_et_heure_de_retrait_souhaitees}
+                />
+              </div>
 
               {/* Articles commandés */}
-              <Card className="border-thai-orange/20 animate-fade-in">
+              <Card className="border-thai-orange/20 animate-fade-in mx-4 md:mx-0">
                 <CardContent className="p-4">
                   <h3 className="text-thai-green mb-4 flex items-center gap-2 font-semibold">
                     <ShoppingCart className="text-thai-orange h-5 w-5" />
@@ -207,16 +220,19 @@ const SuiviCommande = memo(() => {
                         const extraDetails = detail.extra
 
                         // Adapter les données pour CommandePlatModal
+
                         const detailForModal = {
                           ...detail,
                           plat: platDetails || null,
                           extra: extraDetails || null,
-                        } as any // Type casting pour compatibilité Prisma types
+                        } as any
 
                         return (
                           <CommandePlatModalTrigger
                             key={`${detail.plat_r || "unknown"}-${index}`}
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
                             plat={platDetails as any}
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
                             extra={extraDetails as any}
                             detail={detailForModal}
                             formatPrix={formatPrix}
@@ -246,7 +262,7 @@ const SuiviCommande = memo(() => {
                                     fill
                                     className="object-cover"
                                     sizes="(max-width: 768px) 64px, 80px"
-                                    onError={(e) => {
+                                    onError={(_e) => {
                                       // Note: Next/Image onError is less flexible for DOM manipulation.
                                       // For now we rely on the src fallback above.
                                       // Typically we would use a state variable for fallback src if needed.
@@ -326,7 +342,7 @@ const SuiviCommande = memo(() => {
 
               {/* Demandes spéciales */}
               {commande.demande_special_pour_la_commande && (
-                <Card className="border-thai-orange/20 animate-fade-in transform transition-all duration-300 hover:scale-[1.01] hover:shadow-xl">
+                <Card className="border-thai-orange/20 animate-fade-in mx-4 transform transition-all duration-300 hover:scale-[1.01] hover:shadow-xl md:mx-0">
                   <CardContent className="p-4">
                     <h3 className="text-thai-green mb-3 flex items-center gap-2 font-semibold">
                       <AlertCircle className="text-thai-orange h-5 w-5" />
@@ -342,7 +358,7 @@ const SuiviCommande = memo(() => {
               )}
 
               {/* Informations principales */}
-              <div className="grid gap-6 lg:grid-cols-2">
+              <div className="mx-4 grid gap-6 md:mx-0 lg:grid-cols-2">
                 <Card className="border-thai-orange/20">
                   <CardContent className="p-4">
                     <div className="space-y-6">
@@ -488,7 +504,7 @@ const SuiviCommande = memo(() => {
               </div>
 
               {/* Section 4: Messages selon le statut */}
-              <Card className="border-thai-green/20 from-thai-cream/30 to-thai-gold/10 animate-fade-in transform bg-linear-to-r transition-all duration-300 hover:scale-[1.01] hover:shadow-xl">
+              <Card className="border-thai-green/20 from-thai-cream/30 to-thai-gold/10 animate-fade-in mx-4 transform bg-linear-to-r transition-all duration-300 hover:scale-[1.01] hover:shadow-xl md:mx-0">
                 <CardContent className="p-4">
                   <div className="space-y-4 text-center">
                     {/* Bouton modifier (seulement si modifiable) */}
@@ -507,7 +523,7 @@ const SuiviCommande = memo(() => {
                             </Link>
                           </Button>
                           <p className="mt-2 text-xs text-gray-600">
-                            Vous pouvez modifier votre commande tant qu'elle n'est pas en
+                            Vous pouvez modifier votre commande tant qu&apos;elle n&apos;est pas en
                             préparation
                           </p>
                         </div>
