@@ -1,0 +1,9 @@
+{
+  "numbers": {
+    "currency": "{value, number, ::currency/EUR}"
+  },
+  "messages": {
+    "notFound": "Page non trouvée",
+    "error": "Une erreur est survenue"
+  }
+}

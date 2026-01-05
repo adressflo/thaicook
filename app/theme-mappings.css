@@ -1,0 +1,91 @@
+/**
+ * Tailwind CSS v4 Theme Mappings
+ *
+ * Maps abstract CSS classes (bg-primary, text-muted-foreground, etc.)
+ * to concrete Thai color palette classes for shadcn/ui components.
+ *
+ * Required because Tailwind v4 @theme syntax does not auto-generate
+ * utility classes from CSS variables like v3 did.
+ */
+
+@layer utilities {
+  /* ===== BACKGROUNDS ===== */
+  .bg-background {
+    @apply bg-white;
+  }
+
+  .bg-foreground {
+    @apply bg-thai-green;
+  }
+
+  .bg-muted {
+    @apply bg-gray-100;
+  }
+
+  .bg-popover {
+    @apply bg-white;
+  }
+
+  .bg-accent {
+    @apply bg-thai-cream;
+  }
+
+  .bg-primary {
+    @apply bg-thai-orange;
+  }
+
+  .bg-secondary {
+    @apply bg-gray-100;
+  }
+
+  .bg-border {
+    @apply bg-gray-300;
+  }
+
+  .bg-input {
+    @apply bg-white;
+  }
+
+  /* ===== TEXT COLORS ===== */
+  .text-foreground {
+    @apply text-thai-green;
+  }
+
+  .text-muted-foreground {
+    @apply text-gray-600;
+  }
+
+  .text-popover-foreground {
+    @apply text-gray-900;
+  }
+
+  .text-accent-foreground {
+    @apply text-thai-orange;
+  }
+
+  .text-primary {
+    @apply text-thai-orange;
+  }
+
+  .text-primary-foreground {
+    @apply text-white;
+  }
+
+  /* ===== BORDERS ===== */
+  .border-border {
+    @apply border-gray-200;
+  }
+
+  .border-input {
+    @apply border-gray-300;
+  }
+
+  /* ===== FOCUS RINGS ===== */
+  .ring-ring {
+    @apply ring-thai-orange;
+  }
+
+  .ring-offset-background {
+    @apply ring-offset-white;
+  }
+}

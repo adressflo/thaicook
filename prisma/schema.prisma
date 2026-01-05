@@ -1,0 +1,680 @@
+generator client {
+  provider        = "prisma-client"
+  output          = "../generated/prisma/client"
+  previewFeatures = ["fullTextSearchPostgres"]
+}
+datasource db {
+  provider  = "postgresql"
+}
+
+
+model activites_flux {
+  id            BigInt         @id @default(autoincrement())
+  type_activite String         @db.VarChar(50)
+  description   String
+  client_id     BigInt?
+  commande_id   Int?
+  evenement_id  Int?
+  timestamp     DateTime?      @default(now()) @db.Timestamptz(6)
+  lu            Boolean?       @default(false)
+  client_db     client_db?     @relation(fields: [client_id], references: [idclient], onDelete: NoAction, onUpdate: NoAction)
+  commande_db   commande_db?   @relation(fields: [commande_id], references: [idcommande], onDelete: NoAction, onUpdate: NoAction)
+  evenements_db evenements_db? @relation(fields: [evenement_id], references: [idevenements], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([client_id], map: "idx_activites_client")
+  @@index([timestamp(sort: Desc)], map: "idx_activites_flux_timestamp")
+  @@index([lu], map: "idx_activites_lu")
+  @@index([timestamp(sort: Desc)], map: "idx_activites_timestamp")
+  @@index([type_activite], map: "idx_activites_type")
+}
+
+model announcements {
+  id         BigInt    @id @default(autoincrement())
+  message    String
+  is_active  Boolean?  @default(false)
+  type       String?   @default("info") @db.VarChar(20)
+  priority   String?   @default("normal") @db.VarChar(20)
+  created_at DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at DateTime? @default(now()) @db.Timestamptz(6)
+  created_by String?   @default("admin")
+
+  @@index([is_active, created_at(sort: Desc)], map: "idx_announcements_active")
+}
+
+model articles_liste_courses {
+  id                   BigInt          @id @default(autoincrement())
+  liste_id             BigInt?
+  nom_article          String          @db.VarChar(255)
+  quantite             Decimal         @default(1) @db.Decimal(10, 2)
+  unite                String?         @default("pièce") @db.VarChar(50)
+  prix_unitaire_estime Decimal?        @db.Decimal(10, 2)
+  prix_total_estime    Decimal?        @db.Decimal(10, 2)
+  achete               Boolean?        @default(false)
+  date_achat           DateTime?       @db.Timestamptz(6)
+  commentaire          String?
+  ordre_affichage      Int?            @default(0)
+  created_at           DateTime?       @default(now()) @db.Timestamptz(6)
+  listes_courses       listes_courses? @relation(fields: [liste_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([achete], map: "idx_articles_achete")
+  @@index([achete], map: "idx_articles_liste_courses_achete")
+  @@index([liste_id], map: "idx_articles_liste_courses_liste_id")
+  @@index([liste_id], map: "idx_articles_liste_id")
+}
+
+model catalogue_articles {
+  id                    BigInt    @id @default(autoincrement())
+  nom_article           String    @unique @db.VarChar(255)
+  unite_habituelle      String?   @default("pièce") @db.VarChar(50)
+  prix_moyen            Decimal?  @db.Decimal(10, 2)
+  categorie             String?   @db.VarChar(100)
+  fournisseur_habituel  String?   @db.VarChar(255)
+  frequence_utilisation Int?      @default(1)
+  derniere_utilisation  DateTime? @default(now()) @db.Timestamptz(6)
+  created_at            DateTime? @default(now()) @db.Timestamptz(6)
+
+  @@index([frequence_utilisation(sort: Desc)], map: "idx_catalogue_articles_frequence")
+  @@index([nom_article], map: "idx_catalogue_articles_nom")
+  @@index([derniere_utilisation(sort: Desc)], map: "idx_catalogue_derniere_utilisation")
+  @@index([frequence_utilisation(sort: Desc)], map: "idx_catalogue_frequence")
+  @@index([nom_article], map: "idx_catalogue_nom")
+}
+
+model categories_articles {
+  id              BigInt  @id @default(autoincrement())
+  nom_categorie   String  @unique @db.VarChar(100)
+  couleur         String? @default("#6B7280") @db.VarChar(7)
+  icone           String? @default("package") @db.VarChar(50)
+  ordre_affichage Int?    @default(0)
+}
+
+model client_db {
+  role                               role_client?               @default(client)
+  nom                                String?
+  prenom                             String?
+  preference_client                  String?
+  numero_de_telephone                String?
+  email                              String?
+  adresse_numero_et_rue              String?
+  code_postal                        Int?
+  ville                              String?
+  comment_avez_vous_connu            String[]
+  souhaitez_vous_recevoir_actualites Boolean?                   @default(false)
+  date_de_naissance                  DateTime?                  @db.Date
+  photo_client                       String?
+  idclient                           BigInt                     @id @unique @default(autoincrement())
+  auth_user_id                       String                     @unique
+  deleted_at                         DateTime?
+  activites_flux                     activites_flux[]
+  commande_db                        commande_db[]
+  evenements_db                      evenements_db[]
+  historique_communication           historique_communication[]
+  notification_preferences           notification_preferences?
+  notification_queue                 notification_queue[]
+  notification_tokens                notification_tokens[]
+  notifications_history              notifications_history[]
+
+  @@index([auth_user_id, role], map: "idx_client_db_auth_user_id_role")
+  @@index([email], map: "idx_client_email")
+  @@index([auth_user_id], map: "idx_client_auth_user_id")
+  @@index([role], map: "idx_client_role")
+  @@index([numero_de_telephone], map: "idx_client_telephone")
+}
+
+model commande_db {
+  idcommande                          Int                     @id @default(autoincrement())
+  client_r                            String?
+  date_et_heure_de_retrait_souhaitees DateTime?               @db.Timestamptz(6)
+  date_de_prise_de_commande           DateTime?               @default(now()) @db.Timestamptz(6)
+  statut_commande                     statut_commande?        @default(En_attente_de_confirmation)
+  demande_special_pour_la_commande    String?
+  statut_paiement                     statut_paiement?        @default(En_attente_sur_place)
+  notes_internes                      String?
+  type_livraison                      type_livraison?         @default(emporter)
+  adresse_specifique                  String?
+  client_r_id                         BigInt?
+  nom_evenement                       String?
+  epingle                             Boolean?                @default(false)
+  activites_flux                      activites_flux[]
+  client_db                           client_db?              @relation(fields: [client_r_id], references: [idclient], onDelete: NoAction, onUpdate: NoAction)
+  details_commande_db                 details_commande_db[]
+  notifications_history               notifications_history[]
+
+  @@index([client_r], map: "idx_commande_client")
+  @@index([client_r_id], map: "idx_commande_client_id")
+  @@index([client_r_id], map: "idx_commande_client_r_id")
+  @@index([client_r, statut_commande], map: "idx_commande_client_r_status")
+  @@index([client_r_id, statut_commande], map: "idx_commande_client_statut")
+  @@index([date_de_prise_de_commande], map: "idx_commande_date_prise")
+  @@index([date_et_heure_de_retrait_souhaitees], map: "idx_commande_date_retrait")
+  @@index([statut_commande], map: "idx_commande_statut")
+  @@index([statut_commande, date_de_prise_de_commande(sort: Desc)], map: "idx_commande_statut_date")
+  @@index([statut_paiement], map: "idx_commande_statut_paiement")
+  @@index([type_livraison], map: "idx_commande_type_livraison")
+}
+
+model details_commande_db {
+  iddetails               Int         @id(map: "détails_commande_db_pkey") @default(autoincrement())
+  commande_r              Int
+  plat_r                  Int?
+  quantite_plat_commande  Int?        @default(1)
+  nom_plat                String?
+  prix_unitaire           Decimal?    @db.Decimal(10, 2)
+  type                    String?
+  extra_id                Int?
+  est_offert              Boolean?    @default(false)
+  preference_epice_niveau Int?        @default(0)
+  spice_distribution      Json?
+  extras_db               extras_db?  @relation(fields: [extra_id], references: [idextra], onUpdate: NoAction)
+  commande_db             commande_db @relation(fields: [commande_r], references: [idcommande], onDelete: Cascade, onUpdate: NoAction, map: "détails_commande_db_commande_r_fkey")
+  plats_db                plats_db?   @relation(fields: [plat_r], references: [idplats], onDelete: Cascade, onUpdate: NoAction, map: "détails_commande_db_plat_r_fkey")
+
+  @@index([commande_r], map: "idx_details_commande")
+  @@index([commande_r], map: "idx_details_commande_commande_r")
+  @@index([commande_r], map: "idx_details_commande_id")
+  @@index([plat_r], map: "idx_details_commande_plat_r")
+  @@index([plat_r], map: "idx_details_plat_id")
+}
+
+model evenements_db {
+  idevenements                 Int                           @id(map: "Événements_db_pkey") @default(autoincrement())
+  nom_evenement                String?
+  contact_client_r             String?
+  date_evenement               DateTime?                     @db.Timestamptz(6)
+  type_d_evenement             String?                       @db.VarChar(255)
+  nombre_de_personnes          Int?
+  budget_client                Decimal?                      @db.Decimal(10, 2)
+  demandes_speciales_evenement String?
+  menu_final_convenu           String?
+  statut_evenement             statut_evenement?             @default(Demande_initiale)
+  prix_total_devise            Decimal?                      @db.Decimal(10, 2)
+  lien_devis_pdf               String?
+  acompte_demande              Decimal?                      @db.Decimal(10, 2)
+  acompte_recu                 Decimal?                      @db.Decimal(10, 2)
+  date_acompte_recu            DateTime?                     @db.Date
+  statut_acompte               statut_acompte?               @default(Non_applicable)
+  notes_internes_evenement     String?
+  menu_type_suggere_r          Int?
+  statut_paiement_final        statut_paiement_final?        @default(En_attente)
+  contact_client_r_id          BigInt?
+  email_contact                String?
+  numero_de_telephone          String?
+  plats_preselectionnes        Int[]
+  created_at                   DateTime?                     @default(now()) @db.Timestamptz(6)
+  updated_at                   DateTime?                     @default(now()) @db.Timestamptz(6)
+  activites_flux               activites_flux[]
+  client_db                    client_db?                    @relation(fields: [contact_client_r_id], references: [idclient], onDelete: NoAction, onUpdate: NoAction)
+  menus_evenementiels_types_db menus_evenementiels_types_db? @relation(fields: [menu_type_suggere_r], references: [idevenementiels], onUpdate: NoAction)
+  evenements_plats_r           evenements_plats_r[]
+  notifications_history        notifications_history[]
+
+  @@index([contact_client_r], map: "idx_evenements_client")
+  @@index([contact_client_r_id], map: "idx_evenements_client_id")
+  @@index([contact_client_r, statut_evenement], map: "idx_evenements_client_status")
+  @@index([contact_client_r_id], map: "idx_evenements_contact_client_r_id")
+  @@index([date_evenement], map: "idx_evenements_date")
+  @@index([menu_type_suggere_r], map: "idx_evenements_menu_type_suggere_r")
+  @@index([statut_evenement], map: "idx_evenements_statut")
+  @@index([statut_evenement, date_evenement(sort: Desc)], map: "idx_evenements_statut_date")
+  @@index([type_d_evenement], map: "idx_evenements_type")
+}
+
+model evenements_plats_r {
+  evenement_id  Int
+  plat_id       Int
+  evenements_db evenements_db @relation(fields: [evenement_id], references: [idevenements], onDelete: Cascade, onUpdate: NoAction, map: "Événements_plats_r_evenement_id_fkey")
+  plats_db      plats_db      @relation(fields: [plat_id], references: [idplats], onDelete: Cascade, onUpdate: NoAction, map: "Événements_plats_r_plat_id_fkey")
+
+  @@id([evenement_id, plat_id], map: "Événements_plats_r_pkey")
+  @@index([plat_id], map: "idx_evenements_plats_r_plat_id")
+}
+
+model extras_db {
+  idextra             Int                   @id @default(autoincrement())
+  nom_extra           String                @db.VarChar(255)
+  description         String?
+  prix                Decimal               @default(0.00) @db.Decimal(10, 2)
+  photo_url           String?               @default("https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png")
+  actif               Boolean?              @default(true)
+  created_at          DateTime?             @default(now()) @db.Timestamptz(6)
+  updated_at          DateTime?             @default(now()) @db.Timestamptz(6)
+  details_commande_db details_commande_db[]
+}
+
+model historique_communication {
+  id         BigInt     @id @default(autoincrement())
+  client_id  BigInt?
+  message    String
+  canal      String?    @db.VarChar(20)
+  timestamp  DateTime?  @default(now()) @db.Timestamptz(6)
+  envoye_par String?    @default("admin")
+  statut     String?    @default("envoyé") @db.VarChar(20)
+  client_db  client_db? @relation(fields: [client_id], references: [idclient], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([canal], map: "idx_historique_canal")
+  @@index([client_id], map: "idx_historique_client")
+  @@index([client_id], map: "idx_historique_communication_client")
+  @@index([timestamp(sort: Desc)], map: "idx_historique_communication_timestamp")
+  @@index([timestamp(sort: Desc)], map: "idx_historique_timestamp")
+}
+
+model ingredients_db {
+  idingredients       Int                    @id(map: "ingrédients_db_pkey") @default(autoincrement())
+  ingredient          String
+  categorie           categorie_ingredient[]
+  unite               unite_ingredient[]
+  stock_actuel        Int?
+  seuil_d_alerte      Int?
+  fournisseur         String[]
+  notes               String?
+  plats_ingredients_r plats_ingredients_r[]
+}
+
+model listes_courses {
+  id                         BigInt                   @id @default(autoincrement())
+  nom_liste                  String                   @db.VarChar(255)
+  description                String?
+  date_creation              DateTime?                @default(now()) @db.Timestamptz(6)
+  date_derniere_modification DateTime?                @default(now()) @db.Timestamptz(6)
+  statut                     String?                  @default("en_cours") @db.VarChar(20)
+  created_by                 String?                  @default("admin")
+  total_estimatif            Decimal?                 @default(0) @db.Decimal(10, 2)
+  articles_liste_courses     articles_liste_courses[]
+
+  @@index([date_creation(sort: Desc)], map: "idx_listes_courses_date")
+  @@index([statut], map: "idx_listes_courses_statut")
+}
+
+model menus_evenementiels_types_db {
+  idevenementiels                     Int                   @id(map: "menus_Événementiels_types_db_pkey") @default(autoincrement())
+  nom_menu_type                       String
+  description                         String?
+  adapte_pour_types_evenement         type_evenement[]
+  prix_indicatif_par_personne_interne Decimal?              @db.Decimal(10, 2)
+  nombre_de_convives_suggere          String?
+  photo_d_ambiance_menu               String?
+  notes_internes_menu_type            String?
+  evenements_db                       evenements_db[]
+  menus_types_plats_r                 menus_types_plats_r[]
+}
+
+model menus_types_plats_r {
+  menu_type_id                 Int
+  plat_id                      Int
+  menus_evenementiels_types_db menus_evenementiels_types_db @relation(fields: [menu_type_id], references: [idevenementiels], onDelete: Cascade, onUpdate: NoAction)
+  plats_db                     plats_db                     @relation(fields: [plat_id], references: [idplats], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([menu_type_id, plat_id])
+  @@index([plat_id], map: "idx_menus_types_plats_r_plat_id")
+}
+
+model notification_preferences {
+  id                    BigInt     @id @default(autoincrement())
+  client_id             BigInt?    @unique
+  commande_confirmee    Boolean?   @default(true)
+  commande_preparation  Boolean?   @default(true)
+  commande_prete        Boolean?   @default(true)
+  commande_retard       Boolean?   @default(true)
+  evenement_confirme    Boolean?   @default(true)
+  evenement_rappel_48h  Boolean?   @default(true)
+  evenement_rappel_24h  Boolean?   @default(true)
+  evenement_preparation Boolean?   @default(true)
+  promotions            Boolean?   @default(false)
+  nouveautes            Boolean?   @default(false)
+  newsletter            Boolean?   @default(false)
+  rappel_paiement       Boolean?   @default(true)
+  message_admin         Boolean?   @default(true)
+  notifications_enabled Boolean?   @default(true)
+  quiet_hours_start     DateTime?  @default(dbgenerated("'22:00:00'::time without time zone")) @db.Time(6)
+  quiet_hours_end       DateTime?  @default(dbgenerated("'08:00:00'::time without time zone")) @db.Time(6)
+  timezone              String?    @default("Europe/Paris") @db.VarChar(50)
+  created_at            DateTime?  @default(now()) @db.Timestamptz(6)
+  updated_at            DateTime?  @default(now()) @db.Timestamptz(6)
+  client_db             client_db? @relation(fields: [client_id], references: [idclient], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([client_id], map: "idx_notification_preferences_client")
+}
+
+model notification_queue {
+  id                     BigInt                  @id @default(autoincrement())
+  client_id              BigInt?
+  template_code          String?                 @db.VarChar(50)
+  variables              Json?                   @default("{}")
+  scheduled_for          DateTime?               @default(now()) @db.Timestamptz(6)
+  priority               String?                 @default("normal") @db.VarChar(10)
+  max_retries            Int?                    @default(3)
+  retry_count            Int?                    @default(0)
+  status                 String?                 @default("pending") @db.VarChar(20)
+  created_at             DateTime?               @default(now()) @db.Timestamptz(6)
+  processed_at           DateTime?               @db.Timestamptz(6)
+  error_message          String?
+  client_db              client_db?              @relation(fields: [client_id], references: [idclient], onDelete: Cascade, onUpdate: NoAction)
+  notification_templates notification_templates? @relation(fields: [template_code], references: [code], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([status], map: "idx_notification_queue_status")
+}
+
+model notification_templates {
+  id                    BigInt               @id @default(autoincrement())
+  code                  String               @unique @db.VarChar(50)
+  nom                   String               @db.VarChar(100)
+  title_template        String               @db.VarChar(255)
+  body_template         String
+  type_evenement        String               @db.VarChar(50)
+  priority              String?              @default("normal") @db.VarChar(10)
+  variables_disponibles String[]
+  auto_trigger          Boolean?             @default(false)
+  delay_minutes         Int?                 @default(0)
+  is_active             Boolean?             @default(true)
+  created_at            DateTime?            @default(now()) @db.Timestamptz(6)
+  updated_at            DateTime?            @default(now()) @db.Timestamptz(6)
+  notification_queue    notification_queue[]
+}
+
+model notification_tokens {
+  id           BigInt     @id @default(autoincrement())
+  client_id    BigInt?
+  device_token String
+  device_type  String?    @default("web") @db.VarChar(20)
+  user_agent   String?
+  endpoint_url String?
+  p256dh_key   String?
+  auth_key     String?
+  is_active    Boolean?   @default(true)
+  created_at   DateTime?  @default(now()) @db.Timestamptz(6)
+  last_used    DateTime?  @default(now()) @db.Timestamptz(6)
+  client_db    client_db? @relation(fields: [client_id], references: [idclient], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([client_id, device_token])
+  @@index([client_id, is_active], map: "idx_notification_tokens_client_active")
+}
+
+model notifications_history {
+  id                    BigInt         @id @default(autoincrement())
+  client_id             BigInt?
+  commande_id           Int?
+  evenement_id          Int?
+  title                 String         @db.VarChar(255)
+  body                  String
+  type_notification     String         @db.VarChar(50)
+  priority              String?        @default("normal") @db.VarChar(10)
+  data                  Json?          @default("{}")
+  device_tokens_sent    Int?           @default(0)
+  device_tokens_success Int?           @default(0)
+  device_tokens_failed  Int?           @default(0)
+  statut                String?        @default("pending") @db.VarChar(20)
+  created_at            DateTime?      @default(now()) @db.Timestamptz(6)
+  sent_at               DateTime?      @db.Timestamptz(6)
+  completed_at          DateTime?      @db.Timestamptz(6)
+  error_message         String?
+  client_db             client_db?     @relation(fields: [client_id], references: [idclient], onUpdate: NoAction)
+  commande_db           commande_db?   @relation(fields: [commande_id], references: [idcommande], onUpdate: NoAction)
+  evenements_db         evenements_db? @relation(fields: [evenement_id], references: [idevenements], onUpdate: NoAction)
+
+  @@index([client_id, created_at(sort: Desc)], map: "idx_notifications_history_client_date")
+  @@index([type_notification, created_at(sort: Desc)], map: "idx_notifications_history_type_date")
+}
+
+model plats_db {
+  idplats             Int                   @id @default(autoincrement())
+  plat                String
+  description         String?
+  prix                Decimal?              @db.Decimal(10, 2)
+  lundi_dispo         jour_dispo            @default(non)
+  mardi_dispo         jour_dispo
+  mercredi_dispo      jour_dispo            @default(non)
+  jeudi_dispo         jour_dispo            @default(non)
+  vendredi_dispo      jour_dispo?           @default(non)
+  samedi_dispo        jour_dispo?           @default(non)
+  dimanche_dispo      jour_dispo?           @default(non)
+  photo_du_plat       String?
+  est_epuise          Boolean?              @default(false)
+  epuise_depuis       DateTime?             @db.Timestamptz(6)
+  epuise_jusqu_a      DateTime?             @db.Timestamptz(6)
+  raison_epuisement   String?
+  est_vegetarien      Boolean?              @default(false)
+  niveau_epice        Int?                  @default(0)
+  categorie           String?               @db.VarChar(100)
+  details_commande_db details_commande_db[]
+  evenements_plats_r  evenements_plats_r[]
+  menus_types_plats_r menus_types_plats_r[]
+  plats_ingredients_r plats_ingredients_r[]
+  plats_rupture_dates plats_rupture_dates[]
+
+  @@index([lundi_dispo, mardi_dispo, mercredi_dispo, jeudi_dispo, vendredi_dispo, samedi_dispo, dimanche_dispo], map: "idx_plats_disponibilite")
+  @@index([est_epuise], map: "idx_plats_epuise")
+  @@index([prix], map: "idx_plats_prix")
+  @@index([est_vegetarien], map: "idx_plats_vegetarien")
+  @@index([niveau_epice], map: "idx_plats_niveau_epice")
+  @@index([categorie], map: "idx_plats_categorie")
+}
+
+model plats_ingredients_r {
+  plat_id        Int
+  ingredient_id  Int
+  ingredients_db ingredients_db @relation(fields: [ingredient_id], references: [idingredients], onDelete: Cascade, onUpdate: NoAction)
+  plats_db       plats_db       @relation(fields: [plat_id], references: [idplats], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([plat_id, ingredient_id])
+  @@index([ingredient_id], map: "idx_plats_ingredients_r_ingredient_id")
+}
+
+model plats_rupture_dates {
+  id             Int       @id @default(autoincrement())
+  plat_id        Int
+  date_rupture   DateTime  @db.Date
+  raison_rupture String?   @default("Rupture de stock")
+  type_rupture   String?   @default("stock")
+  notes_rupture  String?
+  is_active      Boolean?  @default(true)
+  created_at     DateTime? @default(now()) @db.Timestamptz(6)
+  created_by     String?
+  updated_at     DateTime? @default(now()) @db.Timestamptz(6)
+  plats_db       plats_db  @relation(fields: [plat_id], references: [idplats], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([date_rupture, is_active], map: "idx_plats_rupture_dates_date_active")
+  @@index([plat_id, date_rupture], map: "idx_plats_rupture_dates_plat_date")
+}
+
+model restaurant_settings {
+  id            BigInt    @id @default(autoincrement())
+  setting_key   String    @unique @db.VarChar(100)
+  setting_value String
+  setting_type  String?   @default("text") @db.VarChar(50)
+  description   String?
+  updated_at    DateTime? @default(now()) @db.Timestamptz(6)
+  updated_by    String?   @default("admin")
+
+  @@index([setting_key], map: "idx_restaurant_settings_key")
+}
+
+model system_settings {
+  id            BigInt    @id @default(autoincrement())
+  setting_key   String    @unique @db.VarChar(100)
+  setting_value String
+  setting_type  String?   @default("text") @db.VarChar(50)
+  description   String?
+  updated_at    DateTime? @default(now()) @db.Timestamptz(6)
+  updated_by    String?   @default("admin")
+
+  @@index([setting_key], map: "idx_system_settings_key")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @default(now()) @updatedAt
+  accounts      Account[]
+  sessions      Session[]
+
+  @@map("user")
+}
+
+model Account {
+  id                    String    @id @default(cuid())
+  providerId            String
+  accountId             String
+  type                  String    @default("credential")
+  provider              String    @default("credential")
+  accessToken           String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, accountId])
+  @@index([userId])
+  @@map("account")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("session")
+}
+
+model Verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String   @unique
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([identifier, value])
+  @@map("verification")
+}
+
+model hero_media {
+  id          String   @id @default(cuid())
+  type        String // 'image' | 'video'
+  url         String
+  titre       String?
+  description String?
+  ordre       Int      @default(0)
+  active      Boolean  @default(true)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  @@index([ordre, active], map: "idx_hero_media_ordre_active")
+  @@map("hero_media")
+}
+
+enum categorie_ingredient {
+  L_gumes             @map("Légumes")
+  pices___Herbes      @map("Épices & Herbes")
+  Viandes___Volailles @map("Viandes & Volailles")
+  Produits_Secs       @map("Produits Secs")
+  Sauces___Condiments @map("Sauces & Condiments")
+  Poisson
+  Fruit
+  Produit_Laitier     @map("Produit Laitier")
+  Boisson
+}
+
+enum jour_dispo {
+  oui
+  non
+}
+
+enum role_client {
+  client
+  admin
+}
+
+enum statut_acompte {
+  Non_applicable @map("Non applicable")
+  Demand_        @map("Demandé")
+  Re_u           @map("Reçu")
+}
+
+enum statut_commande {
+  En_attente_de_confirmation @map("En attente de confirmation")
+  Confirm_e                  @map("Confirmée")
+  En_pr_paration             @map("En préparation")
+  Pr_te___r_cup_rer          @map("Prête à récupérer")
+  R_cup_r_e                  @map("Récupérée")
+  Annul_e                    @map("Annulée")
+}
+
+enum statut_evenement {
+  Contact__tabli                @map("Contact établi")
+  Demande_initiale              @map("Demande initiale")
+  Menu_en_discussion            @map("Menu en discussion")
+  Devis___faire                 @map("Devis à faire")
+  Devis_envoy_                  @map("Devis envoyé")
+  Confirm____Acompte_en_attente @map("Confirmé / Acompte en attente")
+  Confirm____Acompte_re_u       @map("Confirmé / Acompte reçu")
+  En_pr_paration                @map("En préparation")
+  R_alis_                       @map("Réalisé")
+  Factur____Solde___payer       @map("Facturé / Solde à payer")
+  Pay__int_gralement            @map("Payé intégralement")
+  Annul_                        @map("Annulé")
+}
+
+enum statut_paiement {
+  En_attente_sur_place @map("En attente sur place")
+  Pay__sur_place       @map("Payé sur place")
+  Pay__en_ligne        @map("Payé en ligne")
+  Non_pay_             @map("Non payé")
+  Pay_e                @map("Payée")
+}
+
+enum statut_paiement_final {
+  En_attente @map("En attente")
+  Pay_       @map("Payé")
+  En_retard  @map("En retard")
+}
+
+enum type_evenement {
+  Anniversaire
+  Repas_d_entreprise @map("Repas d entreprise")
+  F_te_de_famille    @map("Fête de famille")
+  Cocktail_d_natoire @map("Cocktail dînatoire")
+  Buffet_traiteur    @map("Buffet traiteur")
+  Autre
+}
+
+enum type_livraison {
+  emporter  @map("À emporter")
+  Livraison
+  Sur_place @map("Sur place")
+}
+
+enum unite_ingredient {
+  g
+  L
+  ml
+  pi_ce     @map("pièce")
+  botte
+  bouteille
+  pack
+  boite
+}
+
+enum source_connaissance {
+  Bouche___oreille        @map("Bouche à oreille")
+  R_seaux_sociaux         @map("Réseaux sociaux")
+  Recherche_Google        @map("Recherche Google")
+  En_passant_devant       @map("En passant devant")
+  Recommandation_d_un_ami @map("Recommandation d un ami")
+  Autre
+}

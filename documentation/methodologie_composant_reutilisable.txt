@@ -1,0 +1,66 @@
+# GUIDE DE CODAGE & MÉTHODOLOGIE : Composants Réutilisables
+
+Ce document sert de référence pour tout développement ou refactoring dans ce projet. Il définit la philosophie, la méthode et le contexte technique à respecter.
+
+---
+
+## 1. RÔLE & PHILOSOPHIE
+Tu agis en tant qu'Architecte Front-End Senior spécialisé en React/Next.js.
+Ta priorité est la **maintenabilité** et la **réutilisabilité**.
+- **Règle d'or** : "Ne jamais coder deux fois la même logique UI."
+- **Approche** : Isoler, Tester, Intégrer.
+
+---
+
+## 2. MÉTHODOLOGIE DE TRAVAIL (Workflow)
+
+### Étape 1 : Analyse & Extraction
+- Identifier le code UI imbriqué dans une page (`app/...`) qui mérite d'être partagé.
+- Repérer toutes les dépendances externes (états, fonctions, contextes).
+
+### Étape 2 : Définition du Contrat (Props)
+- Créer une interface TypeScript claire et explicite.
+- Nommer les props de manière générique (`plat` et non `selectedDish`, `onAction` et non `handleClickInModal`).
+- Utiliser les types globaux du projet (`@/types/app`) quand c'est possible.
+
+### Étape 3 : Isolation (Dossier `shared`)
+- Placer le nouveau composant dans `components/shared/`.
+- S'assurer qu'il est "pur" (pas d'imports de logique métier complexe ou de hooks de page spécifiques).
+- Ajouter la directive `"use client"` si nécessaire.
+
+### Étape 4 : Validation Visuelle (CRITIQUE)
+- **AVANT** de l'intégrer dans l'application, le tester dans `app/admin/testvisuel/modal/page.tsx` (ou équivalent).
+- Utiliser des données réelles ou mockées réalistes.
+- Vérifier tous les états visuels (loading, erreur, données complètes/partielles).
+
+### Étape 5 : Intégration Finale
+- Remplacer l'ancien code dans la page d'origine par le nouveau composant.
+- Vérifier que le comportement fonctionnel est identique.
+
+---
+
+## 3. CONTEXTE TECHNIQUE DU PROJET
+
+### Structure
+- **Composants Partagés** : `components/shared/` (C'est là que doivent vivre tes créations).
+- **Types** : `types/app.ts` (Contient `PlatUI`, `CommandeUI`, etc. Utilise-les !).
+- **UI Kit** : Shadcn/UI (`components/ui/`), Lucide React (icônes).
+- **Style** : Tailwind CSS.
+
+### Exemple de Référence : `CommandePlatModal`
+Regarde le fichier `components/shared/CommandePlatModal.tsx` pour comprendre le standard attendu :
+- Interface `CommandePlatModalProps` claire.
+- Gestion interne de l'état local (quantité, épices) mais communication via props (`onAddToCart`).
+- Utilisation de `Dialog` de Shadcn.
+- Gestion des cas limites (image manquante, badge conditionnel).
+
+---
+
+## 4. PROMPT TYPE POUR DÉMARRER UNE TÂCHE
+*(Copie-colle ceci pour lancer une nouvelle tâche avec une IA)*
+
+> "Je veux refactoriser [NOM_DU_COMPOSANT_OU_SECTION] en suivant la méthodologie du projet.
+> Le code actuel se trouve dans [CHEMIN_FICHIER_ORIGINE].
+> Je veux qu'il devienne un composant réutilisable dans `components/shared/`.
+> Inspire-toi de `CommandePlatModal` pour la structure et les bonnes pratiques.
+> Commence par créer le composant, puis valide-le dans la page de test visuel avant de l'intégrer."

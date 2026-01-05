@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Désinscrire Service Workers - Chanthana</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    .container {
+      background: white;
+      color: #333;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    h1 {
+      color: #dc2626;
+      margin-top: 0;
+    }
+    .status {
+      background: #f3f4f6;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 20px 0;
+      font-family: monospace;
+      font-size: 14px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    button {
+      background: #dc2626;
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      font-size: 16px;
+      font-weight: bold;
+      border-radius: 8px;
+      cursor: pointer;
+      margin: 10px 10px 10px 0;
+      transition: all 0.2s;
+    }
+    button:hover {
+      background: #b91c1c;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+    }
+    button:disabled {
+      background: #9ca3af;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .success {
+      background: #dcfce7;
+      border: 2px solid #16a34a;
+      color: #15803d;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 20px 0;
+      display: none;
+    }
+    .warning {
+      background: #fef3c7;
+      border: 2px solid #f59e0b;
+      color: #92400e;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+    .step {
+      background: #eff6ff;
+      border-left: 4px solid #3b82f6;
+      padding: 15px;
+      margin: 15px 0;
+    }
+    .step h3 {
+      margin-top: 0;
+      color: #1e40af;
+    }
+    code {
+      background: #1f2937;
+      color: #10b981;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🚨 Désinscrire Tous les Service Workers</h1>
+
+    <div class="warning">
+      <strong>⚠️ Attention :</strong> Cette page va désinscrire TOUS les Service Workers et supprimer TOUS les caches. Utilisez uniquement en cas de problème critique.
+    </div>
+
+    <div class="step">
+      <h3>Étape 1 : Désinscrire automatiquement</h3>
+      <p>Cliquez sur le bouton ci-dessous pour démarrer le processus automatique :</p>
+      <button id="unregisterBtn" onclick="unregisterAll()">🗑️ Désinscrire Tous les SW</button>
+      <button id="clearCacheBtn" onclick="clearAllCaches()" disabled>🧹 Supprimer Tous les Caches</button>
+      <button id="reloadBtn" onclick="forceReload()" disabled>🔄 Recharger l'Application</button>
+    </div>
+
+    <div class="status" id="status">
+      <div>📋 En attente de démarrage...</div>
+    </div>
+
+    <div class="success" id="success">
+      <strong>✅ Succès !</strong> Tous les Service Workers ont été désinscrits.
+      <br><br>
+      <strong>IMPORTANT :</strong>
+      <ol>
+        <li>Fermez <strong>TOUS</strong> les onglets de <code>localhost:3000</code></li>
+        <li>Fermez complètement Chrome/Edge</li>
+        <li>Rouvrez le navigateur</li>
+        <li>Retournez sur <code>http://localhost:3000</code></li>
+      </ol>
+    </div>
+
+    <div class="step">
+      <h3>Étape 2 : Vérification manuelle (si nécessaire)</h3>
+      <p>Si le bouton ne fonctionne pas, ouvrez la console (F12) et collez ce code :</p>
+      <code style="display: block; padding: 10px; white-space: pre-wrap; margin-top: 10px;">
+(async () => {
+  console.log('🚀 Démarrage désinscription...');
+
+  // 1. Désinscrire tous les Service Workers
+  const regs = await navigator.serviceWorker.getRegistrations();
+  console.log(`📋 Trouvé ${regs.length} Service Worker(s)`);
+
+  for (const reg of regs) {
+    await reg.unregister();
+    console.log('✅ Désinscrit:', reg.scope);
+  }
+
+  // 2. Supprimer tous les caches
+  const cacheNames = await caches.keys();
+  console.log(`📋 Trouvé ${cacheNames.length} cache(s)`);
+
+  for (const name of cacheNames) {
+    await caches.delete(name);
+    console.log('✅ Cache supprimé:', name);
+  }
+
+  console.log('✅ TERMINÉ ! Fermez TOUS les onglets et redémarrez Chrome.');
+  alert('✅ Tous les Service Workers désinscrits ! Fermez TOUS les onglets localhost:3000 et redémarrez Chrome.');
+})();
+      </code>
+    </div>
+
+    <div class="step">
+      <h3>Étape 3 : Vérification finale</h3>
+      <p>Après redémarrage, ouvrez <code>chrome://serviceworker-internals/</code> pour vérifier qu'il ne reste aucun Service Worker pour <code>localhost:3000</code>.</p>
+    </div>
+  </div>
+
+  <script>
+    const statusDiv = document.getElementById('status');
+    const successDiv = document.getElementById('success');
+    const unregisterBtn = document.getElementById('unregisterBtn');
+    const clearCacheBtn = document.getElementById('clearCacheBtn');
+    const reloadBtn = document.getElementById('reloadBtn');
+
+    function log(message, type = 'info') {
+      const timestamp = new Date().toLocaleTimeString();
+      const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warning' ? '⚠️' : '📋';
+      const div = document.createElement('div');
+      div.style.margin = '5px 0';
+      div.style.color = type === 'error' ? '#dc2626' : type === 'success' ? '#16a34a' : '#374151';
+      div.innerHTML = `[${timestamp}] ${icon} ${message}`;
+      statusDiv.appendChild(div);
+      statusDiv.scrollTop = statusDiv.scrollHeight;
+    }
+
+    async function unregisterAll() {
+      try {
+        log('🚀 Démarrage de la désinscription des Service Workers...', 'info');
+        unregisterBtn.disabled = true;
+
+        if (!('serviceWorker' in navigator)) {
+          log('❌ Service Workers non supportés par ce navigateur', 'error');
+          return;
+        }
+
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        log(`📋 Trouvé ${registrations.length} Service Worker(s) enregistré(s)`, 'info');
+
+        if (registrations.length === 0) {
+          log('ℹ️ Aucun Service Worker à désinscrire', 'warning');
+          clearCacheBtn.disabled = false;
+          return;
+        }
+
+        for (const registration of registrations) {
+          try {
+            await registration.unregister();
+            log(`✅ Désinscrit: ${registration.scope}`, 'success');
+          } catch (error) {
+            log(`❌ Erreur désinscription ${registration.scope}: ${error.message}`, 'error');
+          }
+        }
+
+        log('✅ Tous les Service Workers ont été désinscrits !', 'success');
+        clearCacheBtn.disabled = false;
+
+      } catch (error) {
+        log(`❌ Erreur critique: ${error.message}`, 'error');
+        console.error(error);
+      }
+    }
+
+    async function clearAllCaches() {
+      try {
+        log('🧹 Démarrage de la suppression des caches...', 'info');
+        clearCacheBtn.disabled = true;
+
+        if (!('caches' in window)) {
+          log('❌ Cache API non supportée', 'error');
+          return;
+        }
+
+        const cacheNames = await caches.keys();
+        log(`📋 Trouvé ${cacheNames.length} cache(s)`, 'info');
+
+        if (cacheNames.length === 0) {
+          log('ℹ️ Aucun cache à supprimer', 'warning');
+          reloadBtn.disabled = false;
+          successDiv.style.display = 'block';
+          return;
+        }
+
+        for (const cacheName of cacheNames) {
+          try {
+            await caches.delete(cacheName);
+            log(`✅ Cache supprimé: ${cacheName}`, 'success');
+          } catch (error) {
+            log(`❌ Erreur suppression cache ${cacheName}: ${error.message}`, 'error');
+          }
+        }
+
+        log('✅ Tous les caches ont été supprimés !', 'success');
+        log('🎉 PROCESSUS TERMINÉ !', 'success');
+        reloadBtn.disabled = false;
+        successDiv.style.display = 'block';
+
+      } catch (error) {
+        log(`❌ Erreur critique: ${error.message}`, 'error');
+        console.error(error);
+      }
+    }
+
+    function forceReload() {
+      log('🔄 Fermeture de cet onglet... Fermez TOUS les onglets localhost:3000 et redémarrez Chrome !', 'warning');
+      setTimeout(() => {
+        window.close();
+        // Si window.close() échoue (onglet ouvert manuellement), rediriger
+        window.location.href = 'about:blank';
+      }, 2000);
+    }
+
+    // Log initial
+    log('✅ Page de désinscription chargée', 'success');
+    log('👉 Cliquez sur le bouton pour commencer', 'info');
+  </script>
+</body>
+</html>
