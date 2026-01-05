@@ -112,7 +112,6 @@ const ModifierCommande = memo(() => {
   const [hasChanges, setHasChanges] = useState(false)
 
   // États pour la UI mobile et sidebar
-  const [isCartCollapsed, setIsCartCollapsed] = useState(true)
   const [originalData, setOriginalData] = useState<{
     panierOriginal: PlatPanier[]
     dateOriginale: Date | undefined
@@ -283,7 +282,7 @@ const ModifierCommande = memo(() => {
 
       // Ouvrir automatiquement la sidebar si il y a des articles
       if (platsPanier.length > 0) {
-        setIsCartCollapsed(false)
+        // setIsCartCollapsed(false) - Removed unused
       }
     }
   }, [commande, plats, extras])
@@ -848,14 +847,13 @@ const ModifierCommande = memo(() => {
                         // "Repartir sur une commande vierge" : On vide le panier
                         if (panierModification.length > 0) {
                           setPanierModification([])
+                          setDemandesSpeciales("") // Réinitialiser les demandes spéciales aussi
                           toast({
                             title: "Nouvelle date, nouveau panier",
                             description: `Le panier a été vidé pour préparer votre commande pour ${jour.label}.`,
                             variant: "default",
                           })
                         }
-                        // Ouvrir automatiquement le menu pour ajouter des articles
-                        setIsCartCollapsed(false)
                       }}
                       className={cn(
                         "rounded-md px-4 py-2 text-sm transition-all duration-200 hover:scale-105 sm:px-5 sm:py-2.5",
@@ -962,7 +960,7 @@ const ModifierCommande = memo(() => {
                                 <span className="w-full border-t border-gray-200" />
                               </div>
                               <span className="bg-thai-cream relative px-4 text-sm text-gray-500">
-                                Autres articles disponibles
+                                Autres Plats disponibles
                               </span>
                             </div>
 
@@ -1005,46 +1003,7 @@ const ModifierCommande = memo(() => {
                                 />
                               ))}
 
-                            {/* Extras disponibles non commandés */}
-                            {extrasDisponibles
-                              .filter(
-                                (extra) =>
-                                  !panierModification.some(
-                                    (item) => item.id === `extra-${extra.idextra}`
-                                  )
-                              )
-                              .map((extra) => (
-                                <CartItemCard
-                                  key={`available-extra-${extra.idextra}`}
-                                  name={extra.nom_extra}
-                                  imageUrl={extra.photo_url || undefined}
-                                  unitPrice={toSafeNumber(extra.prix)}
-                                  quantity={0}
-                                  isSpicy={false}
-                                  onQuantityChange={(newQty) => {
-                                    if (newQty > 0) {
-                                      // Ajouter extra au panier
-                                      if (dateRetrait && heureRetrait) {
-                                        const newItem: PlatPanier = {
-                                          id: `extra-${extra.idextra}`,
-                                          nom: extra.nom_extra,
-                                          prix: extra.prix || "0",
-                                          quantite: newQty,
-                                          dateRetrait: new Date(dateRetrait.getTime()),
-                                          jourCommande: jourSelectionne || "",
-                                          type: "extra",
-                                          uniqueId: `extra-${extra.idextra}-${Date.now()}`,
-                                        }
-                                        setPanierModification((prev) => [...prev, newItem])
-                                      }
-                                    }
-                                  }}
-                                  onRemove={() => {}}
-                                  showSpiceSelector={false}
-                                  readOnly={false}
-                                  className="opacity-80 grayscale transition-all hover:opacity-100 hover:grayscale-0"
-                                />
-                              ))}
+                            {/* Extras disponibles cachés (gestion admin/exceptionnelle uniquement) */}
                           </>
                         )}
                     </div>

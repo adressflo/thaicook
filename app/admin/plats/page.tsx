@@ -42,7 +42,7 @@ import {
   Euro,
   Eye,
   EyeOff,
-  Image,
+  Image as ImageIcon,
   Package,
   Plus,
   Save,
@@ -50,6 +50,7 @@ import {
   Utensils,
   X,
 } from "lucide-react"
+import Image from "next/image"
 import { useEffect, useState } from "react"
 
 // Fonction pour formater le prix à la française
@@ -197,15 +198,15 @@ const NewExtraButton = () => {
 
               {/* Aperçu de l&apos;image */}
               <div className="mb-3">
-                <img
-                  src={newExtraForm.photo_url}
-                  alt="Aperçu"
-                  className="border-thai-orange/30 h-20 w-20 rounded-lg border-2 object-cover"
-                  onError={(e) => {
-                    ;(e.target as HTMLImageElement).src =
-                      "https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png"
-                  }}
-                />
+                <div className="relative h-20 w-20">
+                  <Image
+                    src={newExtraForm.photo_url}
+                    alt="Aperçu"
+                    fill
+                    className="border-thai-orange/30 rounded-lg border-2 object-cover"
+                    sizes="80px"
+                  />
+                </div>
               </div>
 
               {/* Zone de drag & drop */}
@@ -246,7 +247,7 @@ const NewExtraButton = () => {
                   </div>
                 ) : (
                   <div className="flex flex-col items-center gap-2">
-                    <Image className="text-thai-orange/50 h-8 w-8" />
+                    <ImageIcon className="text-thai-orange/50 h-8 w-8" />
                     <p className="text-thai-green/70 text-sm">
                       Glissez une image ici ou cliquez pour sélectionner
                     </p>
@@ -314,7 +315,7 @@ const NewExtraButton = () => {
 
 // Composant pour afficher et éditer les extras existants avec design Thai
 const ExistingExtrasDisplay = ({ refetchPlats }: { refetchPlats?: () => void }) => {
-  const { data: extras, isLoading, error, refetch: refetchExtras } = usePrismaExtras()
+  const { data: extras, isLoading, refetch: refetchExtras } = usePrismaExtras()
   const updateExtraMutation = usePrismaUpdateExtra()
   const deleteExtraMutation = usePrismaDeleteExtra()
   const createPlatMutation = usePrismaCreatePlat()
@@ -339,9 +340,7 @@ const ExistingExtrasDisplay = ({ refetchPlats }: { refetchPlats?: () => void }) 
       nom_extra: extra.nom_extra || "",
       prix: extra.prix?.toString() || "",
       description: extra.description || "",
-      photo_url:
-        extra.photo_url ||
-        "https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png",
+      photo_url: extra.photo_url || getStorageUrl(STORAGE_DEFAULTS.EXTRA),
     })
     setEditingExtra(extra.idextra)
     // Réinitialiser l&apos;état d&apos;upload
@@ -402,9 +401,7 @@ const ExistingExtrasDisplay = ({ refetchPlats }: { refetchPlats?: () => void }) 
         nom_plat: extra.nom_extra,
         description: extra.description || `Plat créé depuis l'extra ${extra.nom_extra}`,
         prix: extra.prix,
-        photo_url:
-          extra.photo_url ||
-          "https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png",
+        photo_url: extra.photo_url || extra.photo_url || getStorageUrl(STORAGE_DEFAULTS.EXTRA),
         actif: true,
       }
 
@@ -452,18 +449,6 @@ const ExistingExtrasDisplay = ({ refetchPlats }: { refetchPlats?: () => void }) 
     )
   }
 
-  if (error) {
-    return (
-      <Card className="border-thai-red/30 from-thai-red/5 border-2 bg-linear-to-br to-white">
-        <CardContent className="p-6 text-center">
-          <div className="text-thai-red mb-3 text-4xl">⚠️</div>
-          <p className="text-thai-red font-medium">Erreur lors du chargement des extras</p>
-          <p className="text-thai-red/70 mt-2 text-sm">Veuillez rafraîchir la page</p>
-        </CardContent>
-      </Card>
-    )
-  }
-
   if (!extras || extras.length === 0) {
     return (
       <Card className="border-thai-orange/40 hover:border-thai-orange/60 from-thai-cream/20 to-thai-orange/5 group border-2 border-dashed bg-linear-to-br via-white transition-all duration-500 hover:shadow-xl">
@@ -495,11 +480,13 @@ const ExistingExtrasDisplay = ({ refetchPlats }: { refetchPlats?: () => void }) 
                   // Mode édition avec design Thai
                   <div className="animate-fadeIn space-y-6">
                     <div className="border-thai-orange/20 flex items-center gap-4 border-b pb-4">
-                      <div className="group relative">
-                        <img
+                      <div className="group relative h-16 w-16">
+                        <Image
                           src={editForm.photo_url}
                           alt="Extra"
-                          className="border-thai-orange/30 group-hover:border-thai-orange h-16 w-16 rounded-xl border-2 object-cover transition-all duration-300"
+                          fill
+                          className="border-thai-orange/30 group-hover:border-thai-orange rounded-xl border-2 object-cover transition-all duration-300"
+                          sizes="64px"
                         />
                         <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-black/40 opacity-0 transition-all duration-300 group-hover:opacity-100">
                           <Edit2 className="h-5 w-5 text-white" />
@@ -545,31 +532,16 @@ const ExistingExtrasDisplay = ({ refetchPlats }: { refetchPlats?: () => void }) 
                     </div>
 
                     <div className="space-y-2">
-                      <Label className="text-thai-green font-semibold">Description</Label>
-                      <Textarea
-                        value={editForm.description}
-                        onChange={(e) =>
-                          setEditForm((prev) => ({ ...prev, description: e.target.value }))
-                        }
-                        className="border-thai-orange/30 focus:border-thai-orange focus:ring-thai-orange/20 bg-thai-cream/20 text-thai-green"
-                        placeholder="Description de l'extra..."
-                        rows={3}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
                       <Label className="text-thai-green font-semibold">Photo</Label>
 
                       {/* Aperçu de l&apos;image */}
-                      <div className="mb-3">
-                        <img
+                      <div className="relative mb-3 h-20 w-20">
+                        <Image
                           src={editForm.photo_url}
                           alt="Aperçu"
-                          className="border-thai-orange/30 h-20 w-20 rounded-lg border-2 object-cover"
-                          onError={(e) => {
-                            ;(e.target as HTMLImageElement).src =
-                              "https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png"
-                          }}
+                          fill
+                          className="border-thai-orange/30 rounded-lg border-2 object-cover"
+                          sizes="80px"
                         />
                       </div>
 
@@ -617,7 +589,7 @@ const ExistingExtrasDisplay = ({ refetchPlats }: { refetchPlats?: () => void }) 
                           </div>
                         ) : (
                           <div className="flex flex-col items-center gap-2">
-                            <Image className="text-thai-orange/50 h-8 w-8" />
+                            <ImageIcon className="text-thai-orange/50 h-8 w-8" />
                             <p className="text-thai-green/70 text-sm">
                               Glissez une image ici ou cliquez pour sélectionner
                             </p>
@@ -683,16 +655,15 @@ const ExistingExtrasDisplay = ({ refetchPlats }: { refetchPlats?: () => void }) 
                   // Mode affichage avec design Thai amélioré
                   <div className="animate-slideInUp flex items-center gap-6">
                     <div
-                      className="group relative cursor-pointer"
+                      className="group relative h-20 w-20 cursor-pointer"
                       onClick={() => handleStartEdit(extra)}
                     >
-                      <img
-                        src={
-                          extra.photo_url ||
-                          "https://lkaiwnkyoztebplqoifc.supabase.co/storage/v1/object/public/platphoto/extra.png"
-                        }
+                      <Image
+                        src={extra.photo_url || getStorageUrl(STORAGE_DEFAULTS.EXTRA)}
                         alt={extra.nom_extra}
-                        className="border-thai-orange/40 group-hover:border-thai-orange group-hover:shadow-thai-orange/20 h-20 w-20 transform rounded-xl border-3 object-cover shadow-lg transition-all duration-500 group-hover:scale-110 group-hover:rotate-3"
+                        fill
+                        className="border-thai-orange/40 group-hover:border-thai-orange group-hover:shadow-thai-orange/20 transform rounded-xl border-3 object-cover shadow-lg transition-all duration-500 group-hover:scale-110 group-hover:rotate-3"
+                        sizes="80px"
                       />
                       <div className="from-thai-orange/20 absolute inset-0 rounded-xl bg-linear-to-t to-transparent opacity-0 transition-all duration-300 group-hover:opacity-100"></div>
                       <div className="bg-thai-orange/90 absolute top-1 right-1 flex h-6 w-6 items-center justify-center rounded-full opacity-0 transition-all duration-300 group-hover:opacity-100">
@@ -830,7 +801,7 @@ export default function AdminGestionPlats() {
   const { data: extras } = usePrismaExtras() // Récupérer les extras de la table extras_db
   const createPlatMutation = usePrismaCreatePlat()
   const updatePlatMutation = usePrismaUpdatePlat()
-  const deleteExtraMutation = usePrismaDeleteExtra()
+  // Unused deleteExtraMutation removed
   const { toast } = useToast()
 
   useEffect(() => {
@@ -847,8 +818,8 @@ export default function AdminGestionPlats() {
         if (featured) {
           setFeaturedDishId(featured.idplats)
         }
-      } catch (error) {
-        console.error("Erreur lors du chargement du plat vedette:", error)
+      } catch {
+        console.error("Erreur lors du chargement du plat vedette")
       }
     }
     loadFeaturedDish()
