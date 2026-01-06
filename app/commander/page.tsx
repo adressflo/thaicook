@@ -15,9 +15,11 @@ import { OfflineBannerCompact } from "@/components/pwa/OfflineBanner"
 import { useOnlineStatus } from "@/hooks/useOnlineStatus"
 import {
   AlertCircle,
+  ArrowLeft,
   Calendar as CalendarIconLucide,
   Clock,
   CreditCard,
+  History as HistoryIcon,
   Loader2,
   MapPin,
   Phone,
@@ -90,7 +92,7 @@ const getAvailableDays = (plat: Plat): { value: string; label: string }[] => {
 }
 
 const Commander = memo(() => {
-  const { toast } = useToast()
+  const { toast: _toast } = useToast()
   const router = useRouter()
   const isOnline = useOnlineStatus()
   const { plats, isLoading: dataIsLoading, error: dataError } = useData()
@@ -101,6 +103,7 @@ const Commander = memo(() => {
   const currentUser = session?.user
 
   // Client profile (pour obtenir idclient)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [clientProfile, setClientProfile] = useState<any>(null)
 
   useEffect(() => {
@@ -109,6 +112,7 @@ const Commander = memo(() => {
     } else {
       setClientProfile(null)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser?.id])
 
   const idclient = clientProfile?.idclient
@@ -122,14 +126,15 @@ const Commander = memo(() => {
     viderPanier,
     totalPrix,
   } = useCart()
-  const isMobile = useIsMobile()
+  const _isMobile = useIsMobile()
   const platsSectionRef = useRef<HTMLDivElement>(null)
   const dayButtonsSectionRef = useRef<HTMLDivElement>(null)
   const hasAutoSelected = useRef(false)
 
   // États pour la sidebar mobile
-  const [highlightedPlatId, setHighlightedPlatId] = useState<string | null>(null)
+  const [highlightedPlatId, _setHighlightedPlatId] = useState<string | null>(null)
   const [featuredDishDays, setFeaturedDishDays] = useState<string[]>([])
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [featuredDish, setFeaturedDish] = useState<any>(null)
   const [modalContext, setModalContext] = useState<{
     plat: Plat
@@ -139,7 +144,7 @@ const Commander = memo(() => {
   } | null>(null)
 
   // États pour la validation et redirection
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [_isSubmitting, setIsSubmitting] = useState(false)
   const [redirectOrderId, setRedirectOrderId] = useState<string | null>(null)
   const [isClearCartModalOpen, setIsClearCartModalOpen] = useState(false)
   const [isVideoOpen, setIsVideoOpen] = useState(false)
@@ -337,6 +342,7 @@ const Commander = memo(() => {
   }
 
   const handleAjouterAuPanier = (
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     plat: any,
     quantite: number = 1,
     spicePreference?: string,
@@ -470,7 +476,7 @@ const Commander = memo(() => {
     )
 
     try {
-      let commandesCreees = 0
+      let _commandesCreees = 0
       let lastOrderId: string | null = null
 
       // Créer une commande pour chaque date de retrait
@@ -498,10 +504,10 @@ const Commander = memo(() => {
           lastOrderId = orderId.toString()
         }
 
-        commandesCreees++
+        _commandesCreees++
       }
 
-      const totalGeneral = panier.reduce(
+      const _totalGeneral = panier.reduce(
         (sum, item) => sum + parseFloat(item.prix || "0") * item.quantite,
         0
       )
@@ -593,9 +599,33 @@ const Commander = memo(() => {
           className={`mx-auto transition-all duration-500 ${
             panier.length > 0
               ? "grid w-full grid-cols-1 gap-0 sm:max-w-[95%] sm:gap-4 lg:grid-cols-[3fr_2fr] lg:gap-6 xl:max-w-[1600px]"
-              : "w-full sm:max-w-[95%] xl:max-w-6xl"
+              : "w-full sm:max-w-3xl"
           }`}
         >
+          {/* Header Navigation (Desktop seulement) */}
+          <div className="mb-6 hidden items-center justify-between px-4 md:flex md:px-0">
+            <Button
+              asChild
+              variant="outline"
+              className="border-thai-green/50 text-thai-green hover:bg-thai-green/10 hover:text-thai-green hover:border-thai-green inline-flex items-center justify-center rounded-full px-6 py-2 text-base font-bold shadow-sm transition-all hover:scale-105"
+            >
+              <Link href="/">
+                <ArrowLeft className="mr-2 h-5 w-5" />
+                Retour Accueil
+              </Link>
+            </Button>
+
+            <Button
+              asChild
+              className="bg-thai-orange hover:bg-thai-orange/90 inline-flex items-center justify-center rounded-full px-6 py-2 text-base font-bold text-white shadow-md transition-all hover:scale-105"
+            >
+              <Link href="/historique">
+                <HistoryIcon className="mr-2 h-5 w-5" />
+                Mes Commandes Passées
+              </Link>
+            </Button>
+          </div>
+
           {/* Section principale - Menu */}
           <div className="w-full">
             {/* Bannière offline compacte */}
@@ -654,7 +684,7 @@ const Commander = memo(() => {
               </CardHeader>
 
               <CardContent className="p-4 pt-4">
-                <Link href={"/evenements" as any} className="w-full">
+                <Link href="/evenements" className="w-full">
                   <Button
                     variant="outline"
                     className="border-thai-orange/30 text-thai-orange hover:bg-thai-orange/10 hover:text-thai-orange w-full"
@@ -1056,7 +1086,7 @@ const Commander = memo(() => {
                           <CardTitle className="text-thai-green text-xl font-bold sm:text-2xl">
                             Mon Panier
                           </CardTitle>
-                          <span className="bg-thai-orange flex h-6 min-w-[1.5rem] items-center justify-center rounded-full px-1.5 text-xs font-bold text-white shadow-sm">
+                          <span className="bg-thai-orange flex h-6 min-w-6 items-center justify-center rounded-full px-1.5 text-xs font-bold text-white shadow-sm">
                             {panier.reduce((total, item) => total + item.quantite, 0)}
                           </span>
                         </div>

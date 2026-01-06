@@ -39,7 +39,7 @@ import { memo, useEffect, useState } from "react"
 
 const SuiviCommande = memo(() => {
   const params = useParams()
-  const router = useRouter()
+  const _router = useRouter()
   const id = extractRouteParam(params?.id)
 
   // Better Auth session

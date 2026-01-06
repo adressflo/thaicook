@@ -25,6 +25,7 @@ import { fr } from "date-fns/locale"
 import { motion, PanInfo } from "framer-motion"
 import {
   AlertCircle,
+  ArrowLeft,
   Calendar as CalendarIconLucide,
   CreditCard,
   Loader2,
@@ -331,6 +332,29 @@ export default function PanierPage() {
       onDragEnd={onDragEnd}
     >
       <div className="w-full sm:container sm:mx-auto sm:max-w-6xl">
+        {/* Header Navigation (Desktop seulement) */}
+        <div className="mb-6 hidden items-center justify-between px-4 md:flex md:px-0">
+          <Button
+            asChild
+            variant="outline"
+            className="border-thai-green/50 text-thai-green hover:bg-thai-green/10 hover:text-thai-green hover:border-thai-green inline-flex items-center justify-center rounded-full px-6 py-2 text-base font-bold shadow-sm transition-all hover:scale-105"
+          >
+            <Link href="/commander">
+              <ArrowLeft className="mr-2 h-5 w-5" />
+              Retour au menu
+            </Link>
+          </Button>
+
+          <Button
+            asChild
+            className="bg-thai-orange hover:bg-thai-orange/90 inline-flex items-center justify-center rounded-full px-6 py-2 text-base font-bold text-white shadow-md transition-all hover:scale-105"
+          >
+            <Link href="/historique">
+              <History className="mr-2 h-5 w-5" />
+              Historique
+            </Link>
+          </Button>
+        </div>
         {!currentUser || !clientFirebaseUID ? (
           <Alert className="mb-6 border-blue-200 bg-blue-50 text-blue-800">
             <AlertCircle className="h-4 w-4" />
