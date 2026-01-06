@@ -3,22 +3,12 @@
 import { StatusBadge } from "@/components/historique/StatusBadge"
 import { CartItemCard } from "@/components/shared/CartItemCard"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
+import { ModalVideo } from "@/components/ui/ModalVideo"
 import {
   Select,
   SelectContent,
@@ -53,7 +43,6 @@ import { memo, useEffect, useMemo, useRef, useState } from "react"
 import { getClientProfile } from "@/app/profil/actions"
 import { CommandePlatModal } from "@/components/shared/CommandePlatModal"
 import { useData } from "@/contexts/DataContext"
-import { useMediaQuery } from "@/hooks/use-media-query"
 import {
   usePrismaCommandeById,
   usePrismaCreateCommande,
@@ -144,17 +133,99 @@ const ModifierCommande = memo(() => {
     }, 0)
   }, [commande])
 
-  // State for the shared modal
+  const changesSummary = useMemo(() => {
+    if (!originalData) return { sentences: [], hasContentChanges: false }
 
-  // State for the shared modal
-  // State for the shared modal
-  // State for the shared modal
+    const sentences: React.ReactNode[] = []
+    const oldMap = new Map<string, { nom: string; qte: number }>()
+    const newMap = new Map<string, { nom: string; qte: number }>()
+
+    originalData.panierOriginal.forEach((p) => {
+      const current = oldMap.get(p.id) || { nom: p.nom, qte: 0 }
+      oldMap.set(p.id, { ...current, qte: current.qte + p.quantite })
+    })
+
+    panierModification.forEach((p) => {
+      const current = newMap.get(p.id) || { nom: p.nom, qte: 0 }
+      newMap.set(p.id, { ...current, qte: current.qte + p.quantite })
+    })
+
+    const allIds = Array.from(new Set([...oldMap.keys(), ...newMap.keys()]))
+    let contentChanged = false
+
+    allIds.forEach((id) => {
+      const oldItem = oldMap.get(id) || { nom: "", qte: 0 }
+      const newItem = newMap.get(id) || { nom: oldMap.get(id)?.nom || "", qte: 0 }
+      const diff = newItem.qte - oldItem.qte
+
+      if (diff > 0) {
+        contentChanged = true
+        sentences.push(
+          <span key={`add-${id}`} className="text-thai-green block text-sm">
+            • Vous avez ajouté{" "}
+            <span className="text-thai-orange font-bold">
+              {diff} {diff > 1 ? "plats" : "plat"} de {newItem.nom}
+            </span>
+          </span>
+        )
+      } else if (diff < 0) {
+        contentChanged = true
+        sentences.push(
+          <span key={`remove-${id}`} className="text-thai-green block text-sm">
+            • Vous avez retiré{" "}
+            <span className="font-bold text-red-500">
+              {Math.abs(diff)} {Math.abs(diff) > 1 ? "plats" : "plat"} de {oldItem.nom}
+            </span>
+          </span>
+        )
+      }
+    })
+
+    // Vérification Date/Heure
+    const oldDateStr = originalData.dateOriginale
+      ? format(new Date(originalData.dateOriginale), "yyyy-MM-dd")
+      : ""
+    const newDateStr = dateRetrait ? format(dateRetrait, "yyyy-MM-dd") : ""
+
+    if (oldDateStr !== newDateStr && newDateStr) {
+      const formattedDate = dateRetrait
+        ? format(dateRetrait, "eeee dd MMMM", { locale: fr })
+            .split(" ")
+            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(" ")
+        : ""
+      sentences.push(
+        <span key="date-change" className="text-thai-green block text-sm">
+          • Vous changez la date pour le{" "}
+          <span className="text-thai-orange font-bold">{formattedDate}</span>
+        </span>
+      )
+    }
+
+    if (originalData.heureOriginale !== heureRetrait && heureRetrait) {
+      sentences.push(
+        <span key="time-change" className="text-thai-green block text-sm">
+          • Vous modifiez l'heure de retrait à{" "}
+          <span className="text-thai-orange font-bold">{heureRetrait}</span>
+        </span>
+      )
+    }
+
+    return { sentences, hasContentChanges: contentChanged }
+  }, [panierModification, originalData, dateRetrait, heureRetrait])
+
   const [isVideoOpen, setIsVideoOpen] = useState(false)
 
-  // State pour la modal de détail de plat
   const [selectedItemForModal, setSelectedItemForModal] = useState<PlatPanier | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const isDesktop = useMediaQuery("(min-width: 768px)")
+
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false)
+
+  const updateSpiceDistribution = (uniqueId: string, newDistribution: number[]) => {
+    setPanierModification((prev) =>
+      prev.map((p) => (p.uniqueId === uniqueId ? { ...p, spiceDistribution: newDistribution } : p))
+    )
+  }
 
   // Handler pour ouvrir la modal au clic sur un item
   const handleItemClick = (item: PlatPanier) => {
@@ -170,6 +241,7 @@ const ModifierCommande = memo(() => {
     spiceDistribution?: number[],
     uniqueId?: string
   ) => {
+    if (!plat && !uniqueId) return
     if (uniqueId) {
       // Modification existante
       modifierQuantiteItem(uniqueId, quantity)
@@ -1009,19 +1081,12 @@ const ModifierCommande = memo(() => {
                         if (item.type !== "extra") {
                           const plat = plats?.find((p) => p.idplats.toString() === item.id)
                           const niveauEpice = plat?.niveau_epice ?? 0
+                          // Afficher le sélecteur d'épices UNIQUEMENT si le plat a un niveau d'épice > 0
                           isSpicyPlat = niveauEpice > 0
                         }
 
                         // Handler pour la modification de la distribution d'épices
-                        const handleSpiceChange = (distribution: number[]) => {
-                          setPanierModification((prev) =>
-                            prev.map((p) =>
-                              p.uniqueId === item.uniqueId
-                                ? { ...p, spiceDistribution: distribution }
-                                : p
-                            )
-                          )
-                        }
+                        // Handler pour la modification de la distribution d'épices supprimé ici car redondant avec updateSpiceDistribution global
 
                         return (
                           <CartItemCard
@@ -1093,7 +1158,9 @@ const ModifierCommande = memo(() => {
                             }}
                             showSpiceSelector={isSpicyPlat && item.type !== "extra"}
                             spiceDistribution={item.spiceDistribution}
-                            onSpiceDistributionChange={handleSpiceChange}
+                            onSpiceDistributionChange={(newDist) =>
+                              item.uniqueId && updateSpiceDistribution(item.uniqueId, newDist)
+                            }
                             readOnly={false}
                             className="border-thai-orange/10"
                             onClick={() => handleItemClick(item)}
@@ -1142,6 +1209,7 @@ const ModifierCommande = memo(() => {
                                           dateRetrait: new Date(dateRetrait.getTime()),
                                           uniqueId: `${plat.idplats}-${Date.now()}`,
                                           type: "plat",
+                                          spiceDistribution: [newQty, 0, 0, 0],
                                         }
                                         setPanierModification((prev) => [...prev, newItem])
 
@@ -1284,88 +1352,78 @@ const ModifierCommande = memo(() => {
             >
               <Link href={`/suivi-commande/${commande.idcommande}`}>Annuler les modifications</Link>
             </Button>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button
-                  disabled={createCommande.isPending || deleteCommande.isPending || !hasChanges}
-                  className="bg-thai-orange flex-1 py-6 text-lg"
-                >
-                  {createCommande.isPending || deleteCommande.isPending ? (
-                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  ) : (
-                    <Save className="mr-2 h-5 w-5" />
-                  )}
-                  {panierModification.length === 0
-                    ? "Annuler la commande"
-                    : `Sauvegarder (${formatPrix(totalPrixModification)})`}
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent className="border-thai-orange border-2">
-                <AlertDialogHeader>
-                  <AlertDialogTitle className="text-thai-green text-xl font-bold">
-                    Confirmer les modifications ?
-                  </AlertDialogTitle>
-                  <AlertDialogDescription className="space-y-4 pt-2 text-base text-gray-600">
-                    <p>Voici le résumé de vos changements :</p>
-                    <div className="bg-thai-cream/20 space-y-2 rounded-lg p-4">
-                      <div className="flex justify-between">
-                        <span>Ancien total :</span>
-                        <span className="font-semibold">{formatPrix(originalTotal)}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Nouveau total :</span>
-                        <span className="text-thai-orange text-lg font-bold">
-                          {formatPrix(totalPrixModification)}
-                        </span>
-                      </div>
-                      <div className="border-thai-orange/20 flex justify-between border-t pt-2">
-                        <span>Différence :</span>
-                        <span
-                          className={cn(
-                            "font-bold",
-                            totalPrixModification > originalTotal
-                              ? "text-thai-orange"
-                              : "text-green-600"
-                          )}
-                        >
-                          {totalPrixModification > originalTotal ? "+" : ""}
-                          {formatPrix(totalPrixModification - originalTotal)}
-                        </span>
-                      </div>
-                      <div className="border-thai-orange/20 flex justify-between border-t pt-2 text-sm">
-                        <span>Articles :</span>
-                        <span>
-                          {commande.details?.length || 0} →{" "}
-                          {panierModification.reduce((acc, item) => acc + item.quantite, 0)}
-                        </span>
-                      </div>
-                    </div>
-                    {dateRetrait &&
-                      originalData?.dateOriginale &&
-                      !isSameDay(dateRetrait, originalData.dateOriginale) && (
-                        <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-2 text-sm text-yellow-800">
-                          Attention : La date de retrait a été modifiée.
-                        </div>
-                      )}
-                    <p>
-                      Votre commande sera mise à jour et repassera en statut{" "}
-                      <strong>"En attente de confirmation"</strong>.
-                    </p>
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel className="hover:bg-gray-100">Annuler</AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={sauvegarderModifications}
-                    className="bg-thai-orange hover:bg-thai-orange/90 text-white"
-                  >
-                    Confirmer et Sauvegarder
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+
+            <Button
+              disabled={createCommande.isPending || deleteCommande.isPending || !hasChanges}
+              className="bg-thai-orange flex-1 py-6 text-lg"
+              onClick={() => setIsConfirmModalOpen(true)}
+            >
+              {createCommande.isPending || deleteCommande.isPending ? (
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+              ) : (
+                <Save className="mr-2 h-5 w-5" />
+              )}
+              {panierModification.length === 0
+                ? "Annuler la commande"
+                : `Sauvegarder (${formatPrix(totalPrixModification)})`}
+            </Button>
           </div>
         </div>
+
+        {/* Modal : Confirmation de sauvegarde */}
+        <ModalVideo
+          isOpen={isConfirmModalOpen}
+          onOpenChange={setIsConfirmModalOpen}
+          title="Confirmer les modifications ?"
+          description={
+            <span className="flex flex-col gap-3 text-center">
+              {panierModification.length === 0 ? (
+                <span className="block font-medium text-red-500">
+                  Vous êtes sur le point d'annuler complètement votre commande.
+                </span>
+              ) : (
+                <>
+                  {changesSummary.sentences.length > 0 ? (
+                    <span className="bg-thai-cream/30 block space-y-2 rounded-lg p-4 text-left">
+                      {changesSummary.sentences}
+                    </span>
+                  ) : (
+                    <span className="block text-gray-500">Aucune modification détectée.</span>
+                  )}
+
+                  {changesSummary.hasContentChanges && (
+                    <span className="border-thai-orange/30 mt-2 block border-t pt-2">
+                      <span className="text-thai-green block font-medium">
+                        Nouveau montant total :
+                      </span>
+                      <span className="text-thai-orange block text-2xl font-bold">
+                        {formatPrix(totalPrixModification)}
+                      </span>
+                    </span>
+                  )}
+                </>
+              )}
+
+              <span className="text-thai-green mt-2 block text-xs">
+                Votre commande repassera en statut{" "}
+                <strong className="text-thai-orange">"En attente de confirmation"</strong>.
+              </span>
+            </span>
+          }
+          media="/media/avatars/hesitation.svg"
+          aspectRatio="1:1"
+          polaroid={true}
+          autoClose={true}
+          buttonLayout="double"
+          confirmText="Confirmer et Sauvegarder"
+          cancelText="Annuler"
+          maxWidth="md"
+          borderColor="thai-orange"
+          borderWidth={3}
+          shadowSize="2xl"
+          onConfirm={sauvegarderModifications}
+          onCancel={() => setIsConfirmModalOpen(false)}
+        />
       </div>
 
       {/* Modal de détail PLAT / EXTRA */}
@@ -1374,21 +1432,25 @@ const ModifierCommande = memo(() => {
           isOpen={isModalOpen}
           onOpenChange={setIsModalOpen}
           plat={
-            selectedItemForModal.type === "extra"
+            selectedItemForModal?.type === "extra"
               ? null
-              : (plats?.find((p) => p.idplats.toString() === selectedItemForModal.id) as PlatUI)
+              : selectedItemForModal
+                ? (plats?.find((p) => p.idplats.toString() === selectedItemForModal.id) as PlatUI)
+                : null
           }
           extra={
-            selectedItemForModal.type === "extra" && extras
+            selectedItemForModal?.type === "extra" && extras
               ? (extras.find(
                   (e) => e.idextra === parseInt(selectedItemForModal.id.replace("extra-", ""))
                 ) as any)
               : null
           }
           formatPrix={formatPrix}
-          currentQuantity={selectedItemForModal.quantite}
-          currentSpiceDistribution={selectedItemForModal.spiceDistribution}
-          uniqueId={selectedItemForModal.uniqueId}
+          currentQuantity={selectedItemForModal ? selectedItemForModal.quantite : 0}
+          currentSpiceDistribution={
+            selectedItemForModal ? selectedItemForModal.spiceDistribution : undefined
+          }
+          uniqueId={selectedItemForModal ? selectedItemForModal.uniqueId : undefined}
           onAddToCart={handleModalAddToCart}
           mode="interactive"
           showAddToCartButton={true}

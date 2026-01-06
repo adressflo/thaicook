@@ -506,7 +506,12 @@ export function ModalVideoContent({
 
           {/* Boutons d'action À L'INTÉRIEUR du cadre Polaroid */}
           {buttonLayout !== "none" && (
-            <div className={cn("mt-4 flex gap-3", buttonLayout === "single" && "justify-center")}>
+            <div
+              className={cn(
+                "mt-4 flex flex-col gap-2 sm:flex-row sm:gap-3",
+                buttonLayout === "single" && "justify-center"
+              )}
+            >
               {buttonLayout === "single" && (
                 <Button
                   onClick={handleConfirm}
@@ -633,7 +638,12 @@ export function ModalVideoContent({
 
             {/* Boutons d'action (mode normal) */}
             {buttonLayout !== "none" && (
-              <div className={cn("flex gap-3", buttonLayout === "single" && "justify-center")}>
+              <div
+                className={cn(
+                  "flex flex-col gap-2 sm:flex-row sm:gap-3",
+                  buttonLayout === "single" && "justify-center"
+                )}
+              >
                 {buttonLayout === "single" && (
                   <Button
                     onClick={handleConfirm}
