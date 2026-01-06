@@ -45,6 +45,7 @@ import {
 import { cn } from "@/lib/utils"
 import { addDays, format, getDay, isFuture, isSameDay, startOfDay, type Day } from "date-fns"
 import { fr } from "date-fns/locale"
+import { motion, PanInfo } from "framer-motion"
 
 import { getClientProfile } from "@/app/profil/actions"
 import { useData } from "@/contexts/DataContext"
@@ -571,14 +572,28 @@ const Commander = memo(() => {
     )
   }
 
+  const onDragEnd = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+    const swipeThreshold = 50
+    // Swipe Gauche -> Panier
+    if (info.offset.x < -swipeThreshold) {
+      router.push("/panier")
+    }
+  }
+
   return (
     <AppLayout>
-      <div className="bg-gradient-thai min-h-screen px-2 pt-8 pb-40 sm:px-4">
+      <motion.div
+        className="bg-gradient-thai min-h-screen px-0 pt-4 pb-4 sm:px-4 sm:pt-8"
+        drag="x"
+        dragConstraints={{ left: 0, right: 0 }}
+        dragElastic={0.1}
+        onDragEnd={onDragEnd}
+      >
         <div
           className={`mx-auto transition-all duration-500 ${
             panier.length > 0
-              ? "grid max-w-[95%] grid-cols-1 gap-4 lg:grid-cols-[3fr_2fr] lg:gap-6 xl:max-w-[1600px]"
-              : "max-w-[95%] xl:max-w-6xl"
+              ? "grid w-full grid-cols-1 gap-0 sm:max-w-[95%] sm:gap-4 lg:grid-cols-[3fr_2fr] lg:gap-6 xl:max-w-[1600px]"
+              : "w-full sm:max-w-[95%] xl:max-w-6xl"
           }`}
         >
           {/* Section principale - Menu */}
@@ -1003,7 +1018,7 @@ const Commander = memo(() => {
 
           {/* Section latérale droite - Panier */}
           {panier.length > 0 && (
-            <div className="w-full">
+            <div className="hidden w-full lg:block">
               {/* Desktop Sidebar - 30% fixe */}
               <div
                 id="cart-section"
@@ -1308,7 +1323,7 @@ const Commander = memo(() => {
             </div>
           )}
         </div>
-      </div>
+      </motion.div>
 
       {/* Modal de commande de plat */}
       {modalContext && (

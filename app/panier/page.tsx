@@ -22,6 +22,7 @@ import { getDistributionText, spiceTextToLevel } from "@/lib/spice-helpers"
 import type { PlatUI as Plat, PlatPanier } from "@/types/app"
 import { format } from "date-fns"
 import { fr } from "date-fns/locale"
+import { motion, PanInfo } from "framer-motion"
 import {
   AlertCircle,
   Calendar as CalendarIconLucide,
@@ -313,8 +314,22 @@ export default function PanierPage() {
     }
   }
 
+  const onDragEnd = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+    const swipeThreshold = 50
+    // Swipe Droite -> Commander
+    if (info.offset.x > swipeThreshold) {
+      router.push("/commander")
+    }
+  }
+
   return (
-    <div className="bg-gradient-thai min-h-screen px-1 pt-1 pb-8 sm:px-2 sm:py-8">
+    <motion.div
+      className="bg-gradient-thai min-h-screen px-0 pt-4 pb-4 sm:px-2 sm:py-8"
+      drag="x"
+      dragConstraints={{ left: 0, right: 0 }}
+      dragElastic={0.1}
+      onDragEnd={onDragEnd}
+    >
       <div className="w-full sm:container sm:mx-auto sm:max-w-6xl">
         {!currentUser || !clientFirebaseUID ? (
           <Alert className="mb-6 border-blue-200 bg-blue-50 text-blue-800">
@@ -330,7 +345,7 @@ export default function PanierPage() {
         ) : null}
 
         <Card
-          className="border-thai-orange/20 min-h-screen rounded-xl border-x-0 border-t-0 border-b-0 shadow-none sm:min-h-fit sm:rounded-lg sm:border sm:shadow-xl"
+          className="border-thai-orange/20 min-h-screen rounded-none border-x-0 border-t-0 border-b-0 shadow-none sm:min-h-fit sm:rounded-lg sm:border sm:shadow-xl"
           style={{ position: "relative", zIndex: 1 }}
         >
           <CardHeader className="border-b border-gray-100 pb-4">
@@ -647,6 +662,6 @@ export default function PanierPage() {
           }}
         />
       </div>
-    </div>
+    </motion.div>
   )
 }
