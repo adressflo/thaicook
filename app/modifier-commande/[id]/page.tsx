@@ -872,7 +872,7 @@ const ModifierCommande = memo(() => {
 
           {/* Articles actuels - Version principale (toujours visible) */}
           <Card className="border-thai-orange/20 mb-6 shadow-xl">
-            <CardContent className="p-6">
+            <CardContent className="p-3 sm:p-6">
               {panierModification.length === 0 &&
               !dateRetrait &&
               !heureRetrait &&
@@ -1044,7 +1044,7 @@ const ModifierCommande = memo(() => {
 
           {/* Informations de retrait modifiées */}
           <Card className="border-thai-orange/20 mb-6 shadow-xl">
-            <CardContent className="p-6">
+            <CardContent className="p-3 sm:p-6">
               <h3 className="text-thai-green mb-4 flex items-center gap-2 text-lg font-semibold">
                 <Clock className="text-thai-orange h-5 w-5" />
                 Informations de retrait
@@ -1087,7 +1087,7 @@ const ModifierCommande = memo(() => {
           </Card>
 
           {/* Boutons d'action */}
-          <div className="flex gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row">
             <Button
               asChild
               variant="outline"

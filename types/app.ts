@@ -76,7 +76,10 @@ export type ExtraInputData = Database["public"]["Tables"]["extras_db"]["Insert"]
 
 // Type pour l'interface utilisateur des plats
 export interface PlatUI
-  extends Omit<Plat, "epuise_depuis" | "epuise_jusqu_a" | "prix" | "est_vegetarien"> {
+  extends Omit<
+    Plat,
+    "epuise_depuis" | "epuise_jusqu_a" | "prix" | "est_vegetarien" | "niveau_epice"
+  > {
   id: number // Mappage de idplats vers id pour l'UI
   idplats: number
   plat: string

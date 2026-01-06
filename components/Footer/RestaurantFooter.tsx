@@ -112,6 +112,7 @@ export function RestaurantFooter() {
             {/* Navigation Links */}
             <nav className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
               {navLinks.map((link) => {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const href = link.href as any
                 return (
                   <Link
@@ -195,6 +196,7 @@ export function RestaurantFooter() {
             <p>&copy; {RESTAURANT_INFO.fullName}. Tous droits réservés</p>
             <span className="text-gray-400">•</span>
             <Link
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               href={"/mentions-legales" as any}
               className="hover:text-thai-orange whitespace-nowrap transition-colors"
             >
@@ -202,6 +204,7 @@ export function RestaurantFooter() {
             </Link>
             <span className="text-gray-400">•</span>
             <Link
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               href={"/confidentialite" as any}
               className="hover:text-thai-orange whitespace-nowrap transition-colors"
             >

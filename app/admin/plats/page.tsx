@@ -967,7 +967,7 @@ export default function AdminGestionPlats() {
       }
 
       refetch()
-    } catch (error) {
+    } catch {
       toast({
         title: "Erreur",
         description: "Impossible d'enregistrer le plat",
