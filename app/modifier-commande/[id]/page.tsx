@@ -121,7 +121,7 @@ const ModifierCommande = memo(() => {
   const [shouldHighlightDate, setShouldHighlightDate] = useState(false)
 
   // Calcul du total original pour le comparatif
-  const originalTotal = useMemo(() => {
+  const _originalTotal = useMemo(() => {
     if (!commande?.details) return 0
     return commande.details.reduce((total: number, detail: DetailCommande) => {
       const quantite = detail.quantite_plat_commande || 0
@@ -211,8 +211,18 @@ const ModifierCommande = memo(() => {
       )
     }
 
+    // Vérification Demandes Spéciales
+    if (originalData.demandesOriginales !== demandesSpeciales && demandesSpeciales) {
+      sentences.push(
+        <span key="demandes-change" className="text-thai-green block text-sm">
+          • Note personnalisée :{" "}
+          <span className="text-thai-orange font-bold">"{demandesSpeciales}"</span>
+        </span>
+      )
+    }
+
     return { sentences, hasContentChanges: contentChanged }
-  }, [panierModification, originalData, dateRetrait, heureRetrait])
+  }, [panierModification, originalData, dateRetrait, heureRetrait, demandesSpeciales])
 
   const [isVideoOpen, setIsVideoOpen] = useState(false)
 
@@ -234,6 +244,7 @@ const ModifierCommande = memo(() => {
   }
 
   // Handler pour l'ajout/modification depuis la modal
+
   const handleModalAddToCart = (
     plat: any,
     quantity: number,
@@ -953,13 +964,12 @@ const ModifierCommande = memo(() => {
                         )}
                       >
                         <CalendarIconLucide className="mr-2 h-4 w-4" />
-                        <SelectValue>
-                          {dateRetrait
-                            ? format(dateRetrait, "eeee dd MMMM", { locale: fr }).replace(
-                                /^\w/,
-                                (c) => c.toUpperCase()
-                              )
-                            : "Sélectionner"}
+                        <SelectValue placeholder="Sélectionner">
+                          {dateRetrait &&
+                            format(dateRetrait, "eeee dd MMMM", { locale: fr }).replace(
+                              /^\w/,
+                              (c) => c.toUpperCase()
+                            )}
                         </SelectValue>
                       </SelectTrigger>
                       <SelectContent>

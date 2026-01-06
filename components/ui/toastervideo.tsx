@@ -141,12 +141,12 @@ export function ToasterVideo() {
               description,
               action,
               media,
-              duration,
+              duration: _duration,
               position: _toastPosition,
               scrollingText,
               scrollDuration,
-              customX,
-              customY,
+              customX: _customX,
+              customY: _customY,
               ...props
             }) => (
               <ToastVideoItem
@@ -165,7 +165,7 @@ export function ToasterVideo() {
           )}
           <ToastViewport
             className={cn(
-              "fixed z-[9999] flex max-h-screen w-full flex-col-reverse p-4 md:max-w-fit",
+              "fixed z-9999 flex max-h-screen w-full flex-col-reverse p-4 md:max-w-fit",
               position === "custom" ? "" : positionClassMap[position as ToastPosition]
             )}
             style={
@@ -281,8 +281,8 @@ function ToastVideoItem({
   const playCountRef = useRef(0)
   const router = useRouter()
   const [syncedScrollDuration, setSyncedScrollDuration] = useState<number | null>(null)
-  const [dismissCalled, setDismissCalled] = useState(false)
-  const [currentCount, setCurrentCount] = useState(0)
+  const [_dismissCalled, setDismissCalled] = useState(false)
+  const [_currentCount, setCurrentCount] = useState(0)
 
   // Calculer le nombre de lectures cible
   const targetPlayCount =
@@ -371,6 +371,7 @@ function ToastVideoItem({
       }, delay)
       return () => clearTimeout(timer)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [media, id, customDuration, targetPlayCount, videoElement])
 
   // Map aspect ratio to Tailwind classes

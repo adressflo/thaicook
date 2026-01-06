@@ -351,10 +351,12 @@ export const OrderHistoryCard = React.memo<OrderHistoryCardProps>(
                     const isSpicy = niveauEpice > 0
 
                     // Fallback distribution si manquante pour les plats épicés
-                    let spiceDist = detail.spice_distribution as number[]
+                    let spiceDist = detail.spice_distribution as number[] | null
                     if (
                       isSpicy &&
-                      (!spiceDist || spiceDist.length === 0 || spiceDist.every((v) => v === 0))
+                      (!Array.isArray(spiceDist) ||
+                        spiceDist.length === 0 ||
+                        spiceDist.every((v) => v === 0))
                     ) {
                       const safeLevel = Math.min(Math.max(0, niveauEpice), 3)
                       spiceDist = [0, 0, 0, 0]
@@ -376,7 +378,7 @@ export const OrderHistoryCard = React.memo<OrderHistoryCardProps>(
                           isSpicy={isSpicy}
                           readOnly={true}
                           showSpiceSelector={isSpicy}
-                          spiceDistribution={spiceDist}
+                          spiceDistribution={spiceDist ?? undefined}
                           onQuantityChange={() => {}}
                           onRemove={() => {}}
                           desktopImageWidth="w-24"
