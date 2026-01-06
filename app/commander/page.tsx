@@ -23,7 +23,6 @@ import {
   Phone,
   Plus,
   Search,
-  ShoppingCart,
   Star,
   Trash2,
 } from "lucide-react"
@@ -35,6 +34,7 @@ import { parseAsString, useQueryState } from "nuqs"
 import { memo, Suspense, useEffect, useMemo, useRef, useState } from "react"
 
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import {
   Select,
   SelectContent,
@@ -141,6 +141,8 @@ const Commander = memo(() => {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [redirectOrderId, setRedirectOrderId] = useState<string | null>(null)
   const [isClearCartModalOpen, setIsClearCartModalOpen] = useState(false)
+  const [isVideoOpen, setIsVideoOpen] = useState(false)
+  const [isVideoPanierOpen, setIsVideoPanierOpen] = useState(false)
 
   // Feedback retour connexion
   const prevIsOnline = useRef(isOnline)
@@ -597,18 +599,46 @@ const Commander = memo(() => {
               </Alert>
             ) : null}
 
-            {/* Section 1: Header Pour Commander */}
-            <Card className="border-thai-orange/20 relative mb-6 shadow-xl">
-              <CardHeader className="from-thai-orange to-thai-gold rounded-t-lg bg-linear-to-r py-4 text-center text-white">
-                <div className="mb-1 flex items-center justify-center">
-                  <ShoppingCart className="mr-2 h-7 w-7" />
-                  <CardTitle className="text-2xl font-bold">Pour Commander</CardTitle>
+            {/* Section 1: Header Pour Commander (Style Modifier Commande) */}
+            <Card className="border-thai-orange/20 mx-0 mb-6 w-full rounded-none border-x-0 shadow-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl sm:mx-0 sm:rounded-xl sm:border-x">
+              <CardHeader className="border-b border-gray-100 pb-4">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+                  <Dialog open={isVideoOpen} onOpenChange={setIsVideoOpen}>
+                    <DialogTrigger asChild>
+                      <div className="relative mx-auto cursor-pointer transition-transform hover:scale-105 sm:mx-0">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src="/media/avatars/panier1.svg"
+                          alt="Pour Commander"
+                          className="h-24 w-40 rounded-lg border-2 border-amber-200 object-cover shadow-md"
+                        />
+                      </div>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-md overflow-hidden rounded-xl border-0 p-0">
+                      <DialogTitle className="sr-only">Animation : Pour Commander</DialogTitle>
+                      <video
+                        src="/media/animations/toasts/prisedecommande2.mp4"
+                        autoPlay
+                        muted
+                        playsInline
+                        className="w-full"
+                        onEnded={() => setIsVideoOpen(false)}
+                      />
+                    </DialogContent>
+                  </Dialog>
+
+                  <div className="text-center sm:text-left">
+                    <CardTitle className="text-thai-green text-xl font-bold sm:text-2xl">
+                      Pour Commander
+                    </CardTitle>
+                    <p className="mt-1 text-sm font-medium text-gray-600">
+                      Horaire : Lundi, Mercredi, Vendredi, Samedi de 18h00 à 20h30
+                    </p>
+                  </div>
                 </div>
-                <p className="text-xs text-white/90">
-                  Horaire : Lundi, Mercredi, Vendredi, Samedi de 18h00 à 20h30
-                </p>
               </CardHeader>
-              <CardContent className="p-4">
+
+              <CardContent className="p-4 pt-4">
                 <Link href={"/evenements" as any} className="w-full">
                   <Button
                     variant="outline"
@@ -980,31 +1010,57 @@ const Commander = memo(() => {
                 className="flex flex-col md:sticky md:top-8 md:max-h-[calc(100vh-4rem)]"
               >
                 <Card className="border-thai-orange/20 flex h-full flex-col overflow-hidden shadow-xl">
-                  <CardHeader className="from-thai-orange to-thai-gold relative rounded-t-lg bg-linear-to-r py-4 text-white">
-                    <div className="text-center">
-                      <div className="mb-1 flex items-center justify-center">
-                        <div className="relative mr-2">
-                          <ShoppingCart className="h-7 w-7" />
-                          <span className="text-thai-orange absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-white text-xs font-bold shadow-sm">
+                  <CardHeader className="border-b border-gray-100 pb-4">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+                      <Dialog open={isVideoPanierOpen} onOpenChange={setIsVideoPanierOpen}>
+                        <DialogTrigger asChild>
+                          <div className="relative mx-auto cursor-pointer transition-transform hover:scale-105 sm:mx-0">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src="/media/panier/paniersac.svg"
+                              alt="Mon Panier"
+                              className="h-24 w-40 rounded-lg border-2 border-amber-200 object-cover shadow-md"
+                            />
+                          </div>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-md overflow-hidden rounded-xl border-0 p-0">
+                          <DialogTitle className="sr-only">Animation : Mon Panier</DialogTitle>
+                          <video
+                            src="/media/panier/paniersac.mp4"
+                            autoPlay
+                            muted
+                            playsInline
+                            className="w-full"
+                            onEnded={() => setIsVideoPanierOpen(false)}
+                          />
+                        </DialogContent>
+                      </Dialog>
+
+                      <div className="flex-1 text-center sm:text-left">
+                        <div className="flex items-center justify-center gap-2 sm:justify-start">
+                          <CardTitle className="text-thai-green text-xl font-bold sm:text-2xl">
+                            Mon Panier
+                          </CardTitle>
+                          <span className="bg-thai-orange flex h-6 min-w-[1.5rem] items-center justify-center rounded-full px-1.5 text-xs font-bold text-white shadow-sm">
                             {panier.reduce((total, item) => total + item.quantite, 0)}
                           </span>
                         </div>
-                        <CardTitle className="text-2xl font-bold">Mon Panier</CardTitle>
+                        <p className="mt-1 text-sm font-medium text-gray-600">
+                          {panier.reduce((total, item) => total + item.quantite, 0)} plat
+                          {panier.reduce((total, item) => total + item.quantite, 0) > 1 ? "s" : ""}
+                        </p>
                       </div>
-                      <p className="text-xs text-white/90">
-                        {panier.reduce((total, item) => total + item.quantite, 0)} article
-                        {panier.reduce((total, item) => total + item.quantite, 0) > 1 ? "s" : ""}
-                      </p>
+
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="absolute top-4 right-4 h-8 w-8 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-500"
+                        onClick={() => setIsClearCartModalOpen(true)}
+                        title="Vider le panier"
+                      >
+                        <Trash2 className="h-5 w-5" />
+                      </Button>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="absolute top-2 right-2 h-8 w-8 bg-white/10 text-white transition-colors hover:bg-white/30"
-                      onClick={() => setIsClearCartModalOpen(true)}
-                      title="Vider le panier"
-                    >
-                      <Trash2 className="h-5 w-5" />
-                    </Button>
                   </CardHeader>
 
                   <CardContent className="flex-1 overflow-y-auto p-4">

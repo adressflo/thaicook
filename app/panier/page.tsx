@@ -4,10 +4,11 @@ import { getClientProfile } from "@/app/profil/actions"
 import { FloatingUserIcon } from "@/components/layout/FloatingUserIcon"
 import { CartItemCard } from "@/components/shared/CartItemCard"
 import { CommandePlatModal } from "@/components/shared/CommandePlatModal"
-import { PolaroidPhoto } from "@/components/shared/PolaroidPhoto"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { ModalVideo } from "@/components/ui/ModalVideo"
 import { Textarea } from "@/components/ui/textarea"
@@ -31,6 +32,8 @@ import {
   ShoppingCart,
   Trash2,
 } from "lucide-react"
+
+import Image from "next/image"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
@@ -90,7 +93,9 @@ export default function PanierPage() {
     useCart()
 
   const [demandesSpeciales, setDemandesSpeciales] = useState<string>("")
+
   const [isClearCartModalOpen, setIsClearCartModalOpen] = useState(false)
+  const [isVideoOpen, setIsVideoOpen] = useState(false)
 
   // State pour le modal global
   const [modalContext, setModalContext] = useState<{
@@ -328,32 +333,59 @@ export default function PanierPage() {
           className="border-thai-orange/20 min-h-screen rounded-xl border-x-0 border-t-0 border-b-0 shadow-none sm:min-h-fit sm:rounded-lg sm:border sm:shadow-xl"
           style={{ position: "relative", zIndex: 1 }}
         >
-          <CardHeader className="from-thai-orange to-thai-gold relative rounded-t-xl bg-linear-to-r py-4 text-white sm:rounded-t-lg sm:py-8">
-            <div className="flex items-center justify-center gap-2">
-              <ShoppingCart className="h-7 w-7" />
-              <CardTitle className="text-2xl font-bold">Mon Panier</CardTitle>
+          <CardHeader className="border-b border-gray-100 pb-4">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+              <Dialog open={isVideoOpen} onOpenChange={setIsVideoOpen}>
+                <DialogTrigger asChild>
+                  <div className="relative mx-auto cursor-pointer transition-transform hover:scale-105 sm:mx-0">
+                    <Image
+                      src="/media/panier/paniersac.svg"
+                      alt="Mon Panier"
+                      width={160}
+                      height={96}
+                      className="h-24 w-40 rounded-lg border-2 border-amber-200 object-cover shadow-md"
+                    />
+                  </div>
+                </DialogTrigger>
+                <DialogContent className="max-w-md overflow-hidden rounded-xl border-0 p-0">
+                  <DialogTitle className="sr-only">Animation : Mon Panier</DialogTitle>
+                  <video
+                    src="/media/panier/paniersac.mp4"
+                    autoPlay
+                    muted
+                    playsInline
+                    className="w-full"
+                    onEnded={() => setIsVideoOpen(false)}
+                  />
+                </DialogContent>
+              </Dialog>
+
+              <div className="flex-1 text-center sm:text-left">
+                <div className="flex items-center justify-center gap-2 sm:justify-start">
+                  <CardTitle className="text-thai-green text-xl font-bold sm:text-2xl">
+                    Mon Panier
+                  </CardTitle>
+                </div>
+                {panier.length > 0 && (
+                  <p className="mt-1 text-sm font-medium text-gray-600">
+                    {panier.reduce((total, item) => total + item.quantite, 0)} plat
+                    {panier.reduce((total, item) => total + item.quantite, 0) > 1 ? "s" : ""}
+                  </p>
+                )}
+              </div>
+
+              {panier.length > 0 && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute top-4 right-4 h-8 w-8 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-500"
+                  onClick={() => setIsClearCartModalOpen(true)}
+                  title="Vider le panier"
+                >
+                  <Trash2 className="h-5 w-5" />
+                </Button>
+              )}
             </div>
-            <div className="hidden sm:block">
-              <PolaroidPhoto
-                src="/media/avatars/panier1.svg"
-                alt="Avatar Chanthana"
-                title="panier"
-                position="bottom-right"
-                size={128}
-                rotation={3}
-              />
-            </div>
-            {panier.length > 0 && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute top-4 right-4 h-8 w-8 text-white hover:bg-white/20 sm:top-8 sm:right-8"
-                onClick={() => setIsClearCartModalOpen(true)}
-                title="Vider le panier"
-              >
-                <Trash2 className="h-5 w-5" />
-              </Button>
-            )}
           </CardHeader>
 
           <CardContent className="p-3 sm:p-6 md:p-8" style={{ position: "relative", zIndex: 1 }}>
