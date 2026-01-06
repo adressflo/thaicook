@@ -599,11 +599,11 @@ const Commander = memo(() => {
           className={`mx-auto transition-all duration-500 ${
             panier.length > 0
               ? "grid w-full grid-cols-1 gap-0 sm:max-w-[95%] sm:gap-4 lg:grid-cols-[3fr_2fr] lg:gap-6 xl:max-w-[1600px]"
-              : "w-full sm:max-w-3xl"
+              : "w-full sm:max-w-6xl"
           }`}
         >
           {/* Header Navigation (Desktop seulement) */}
-          <div className="mb-6 hidden items-center justify-between px-4 md:flex md:px-0">
+          <div className="col-span-full mb-6 hidden items-center justify-between px-4 md:flex md:px-0">
             <Button
               asChild
               variant="outline"

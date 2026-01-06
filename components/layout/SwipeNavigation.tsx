@@ -48,11 +48,13 @@ export function SwipeNavigation({
         if (xDiff > 0) {
           // Swipe Left (Finger goes Right -> Left)
           // Go to "Next" page (targetLeft)
-          if (targetLeft) router.push(targetLeft)
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          if (targetLeft) router.push(targetLeft as any)
         } else {
           // Swipe Right (Finger goes Left -> Right)
           // Go to "Previous" page (targetRight)
-          if (targetRight) router.push(targetRight)
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          if (targetRight) router.push(targetRight as any)
         }
       }
     }
