@@ -28,6 +28,7 @@ import {
   ArrowLeft,
   Calendar as CalendarIconLucide,
   CreditCard,
+  History as HistoryIcon,
   Loader2,
   MapPin,
   Phone,
@@ -350,7 +351,7 @@ export default function PanierPage() {
             className="bg-thai-orange hover:bg-thai-orange/90 inline-flex items-center justify-center rounded-full px-6 py-2 text-base font-bold text-white shadow-md transition-all hover:scale-105"
           >
             <Link href="/historique">
-              <History className="mr-2 h-5 w-5" />
+              <HistoryIcon className="mr-2 h-5 w-5" />
               Historique
             </Link>
           </Button>
