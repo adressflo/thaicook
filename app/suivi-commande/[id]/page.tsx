@@ -138,12 +138,24 @@ const SuiviCommande = memo(() => {
           {/* Header Navigation (Desktop seulement ou style discret) */}
           <div className="mb-6 hidden items-center justify-between px-4 md:flex md:px-0">
             <Button
+              asChild
               variant="outline"
-              onClick={() => router.back()}
               className="border-thai-green/50 text-thai-green hover:bg-thai-green/10 hover:text-thai-green hover:border-thai-green inline-flex items-center justify-center rounded-full px-6 py-2 text-base font-bold shadow-sm transition-all hover:scale-105"
             >
-              <ArrowLeft className="mr-2 h-5 w-5" />
-              Retour
+              <Link href="/historique">
+                <ArrowLeft className="mr-2 h-5 w-5" />
+                Retour
+              </Link>
+            </Button>
+
+            <Button
+              asChild
+              className="bg-thai-orange hover:bg-thai-orange/90 inline-flex items-center justify-center rounded-full px-6 py-2 text-base font-bold text-white shadow-sm transition-all hover:scale-105"
+            >
+              <Link href="/commander">
+                <ShoppingCart className="mr-2 h-5 w-5" />
+                Nouvelle commande
+              </Link>
             </Button>
           </div>
 

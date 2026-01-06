@@ -165,7 +165,7 @@ export function ToasterVideo() {
           )}
           <ToastViewport
             className={cn(
-              "fixed z-9999 flex max-h-screen w-full flex-col-reverse p-4 md:max-w-fit",
+              "fixed z-[9999] flex max-h-screen w-full flex-col-reverse p-4 md:max-w-fit",
               position === "custom" ? "" : positionClassMap[position as ToastPosition]
             )}
             style={

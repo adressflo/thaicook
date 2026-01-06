@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
+import { toastVideo } from "@/hooks/use-toast-video"
 import { getStorageUrl, STORAGE_DEFAULTS } from "@/lib/storage-utils"
 import { cn } from "@/lib/utils"
 import { addDays, format, getDay, isFuture, isSameDay, startOfDay, type Day } from "date-fns"
@@ -181,8 +182,6 @@ const ModifierCommande = memo(() => {
       }
     } else {
       // Nouvel ajout (depuis items disponibles)
-      // Note: Le cas "Available" crée un item avec un uniqueId temporaire dans CartItemCard
-      // Si on vient de la liste "Plats disponibles", on doit créer un nouvel item
       if (dateRetrait && heureRetrait) {
         const newItem: PlatPanier = {
           id: plat.idplats.toString(),
@@ -196,12 +195,43 @@ const ModifierCommande = memo(() => {
           spiceDistribution: spiceDistribution,
         }
         setPanierModification((prev) => [...prev, newItem])
-        toast({
-          title: "Ajouté au panier",
-          description: `${quantity}x ${plat.plat} ajouté.`,
-        })
       }
     }
+
+    // Notification visuelle
+    toastVideo({
+      title: uniqueId ? "Panier mis à jour !" : "Plat ajouté !",
+      description: (
+        <>
+          <span className="text-thai-green font-medium">{quantity}</span>
+          <span className="text-thai-orange font-medium">
+            {" "}
+            {plat.plat}
+            {quantity > 1 ? "s" : ""}
+          </span>
+          <span className="text-thai-green font-medium">
+            {" "}
+            {uniqueId ? "mis à jour" : "ajouté"}
+            {quantity > 1 ? "s" : ""} à votre panier pour le{" "}
+          </span>
+          <span className="text-thai-orange font-medium">
+            {dateRetrait && format(dateRetrait, "eeee dd MMMM", { locale: fr })}
+          </span>
+        </>
+      ),
+      media: "/media/animations/toasts/ajoutpaniernote.mp4",
+      aspectRatio: "1:1",
+      polaroid: true,
+      borderColor: "thai-green",
+      maxWidth: "xs",
+      animateBorder: true,
+      hoverScale: true,
+      rotation: true,
+      typingAnimation: true,
+      typingSpeed: 10,
+      mangaExplosion: true,
+    })
+
     setIsModalOpen(false)
   }
 
@@ -709,7 +739,12 @@ const ModifierCommande = memo(() => {
         {/* Section principale - Modification */}
         <div className="w-full">
           {/* Header avec navigation */}
-          <div className="mb-6 flex items-center justify-between">
+          <div
+            className={cn(
+              "mb-6 flex items-center justify-between",
+              !hasChanges && "hidden sm:flex"
+            )}
+          >
             <Button
               asChild
               variant="outline"
@@ -996,14 +1031,64 @@ const ModifierCommande = memo(() => {
                             unitPrice={toSafeNumber(item.prix)}
                             quantity={item.quantite}
                             isSpicy={isSpicyPlat}
-                            onQuantityChange={(newQty) =>
+                            onQuantityChange={(newQty) => {
+                              const diff = newQty - item.quantite
                               modifierQuantiteItem(item.uniqueId!, newQty)
-                            }
+
+                              if (diff > 0) {
+                                toastVideo({
+                                  title: "Portion ajoutée !",
+                                  description: (
+                                    <>
+                                      Une portion de{" "}
+                                      <span className="text-thai-orange font-bold">{item.nom}</span>{" "}
+                                      ajoutée.
+                                    </>
+                                  ),
+                                  media: "/media/animations/toasts/ajoutpaniernote.mp4",
+                                  aspectRatio: "1:1",
+                                  polaroid: true,
+                                  borderColor: "thai-green",
+                                  maxWidth: "xs",
+                                  animateBorder: true,
+                                  hoverScale: true,
+                                  rotation: true,
+                                  mangaExplosion: true,
+                                })
+                              } else if (diff < 0) {
+                                toastVideo({
+                                  title: "Portion retirée —",
+                                  description: (
+                                    <>
+                                      Une portion de{" "}
+                                      <span className="text-thai-orange font-bold">{item.nom}</span>{" "}
+                                      retirée.
+                                    </>
+                                  ),
+                                  media: "/media/animations/toasts/ajoutpaniernote.mp4",
+                                  aspectRatio: "1:1",
+                                  polaroid: true,
+                                  borderColor: "thai-orange",
+                                  maxWidth: "xs",
+                                  animateBorder: true,
+                                  hoverScale: true,
+                                  rotation: true,
+                                  mangaExplosion: true,
+                                })
+                              }
+                            }}
                             onRemove={() => {
                               supprimerDuPanierItem(item.uniqueId!)
-                              toast({
+                              toastVideo({
                                 title: "Article supprimé",
                                 description: `${item.nom} a été retiré de votre commande.`,
+                                media: "/media/animations/toasts/ajoutpaniernote.mp4",
+                                aspectRatio: "1:1",
+                                polaroid: true,
+                                borderColor: "thai-orange",
+                                maxWidth: "xs",
+                                animateBorder: true,
+                                hoverScale: true,
                               })
                             }}
                             showSpiceSelector={isSpicyPlat && item.type !== "extra"}
@@ -1059,6 +1144,28 @@ const ModifierCommande = memo(() => {
                                           type: "plat",
                                         }
                                         setPanierModification((prev) => [...prev, newItem])
+
+                                        toastVideo({
+                                          title: "Portion ajoutée !",
+                                          description: (
+                                            <>
+                                              Une portion de{" "}
+                                              <span className="text-thai-orange font-bold">
+                                                {plat.plat}
+                                              </span>{" "}
+                                              ajoutée.
+                                            </>
+                                          ),
+                                          media: "/media/animations/toasts/ajoutpaniernote.mp4",
+                                          aspectRatio: "1:1",
+                                          polaroid: true,
+                                          borderColor: "thai-green",
+                                          maxWidth: "xs",
+                                          animateBorder: true,
+                                          hoverScale: true,
+                                          rotation: true,
+                                          mangaExplosion: true,
+                                        })
                                       }
                                     }
                                   }}
