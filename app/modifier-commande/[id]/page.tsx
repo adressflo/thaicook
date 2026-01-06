@@ -50,7 +50,9 @@ import { useParams, useRouter } from "next/navigation"
 import { memo, useEffect, useMemo, useRef, useState } from "react"
 
 import { getClientProfile } from "@/app/profil/actions"
+import { CommandePlatModal } from "@/components/shared/CommandePlatModal"
 import { useData } from "@/contexts/DataContext"
+import { useMediaQuery } from "@/hooks/use-media-query"
 import {
   usePrismaCommandeById,
   usePrismaCreateCommande,
@@ -61,7 +63,14 @@ import {
 import { useSession } from "@/lib/auth-client"
 import { extractRouteParam } from "@/lib/params-utils"
 import { toSafeNumber } from "@/lib/serialization"
-import type { Client, DetailCommande, ExtraUI, PlatUI as Plat, PlatPanier } from "@/types/app"
+import type {
+  Client,
+  DetailCommande,
+  ExtraUI,
+  PlatUI as Plat,
+  PlatPanier,
+  PlatUI,
+} from "@/types/app"
 
 const dayNameToNumber: { [key: string]: Day } = {
   dimanche: 0,
@@ -138,7 +147,63 @@ const ModifierCommande = memo(() => {
 
   // State for the shared modal
   // State for the shared modal
+  // State for the shared modal
   const [isVideoOpen, setIsVideoOpen] = useState(false)
+
+  // State pour la modal de détail de plat
+  const [selectedItemForModal, setSelectedItemForModal] = useState<PlatPanier | null>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const isDesktop = useMediaQuery("(min-width: 768px)")
+
+  // Handler pour ouvrir la modal au clic sur un item
+  const handleItemClick = (item: PlatPanier) => {
+    setSelectedItemForModal(item)
+    setIsModalOpen(true)
+  }
+
+  // Handler pour l'ajout/modification depuis la modal
+  const handleModalAddToCart = (
+    plat: any,
+    quantity: number,
+    spicePreference?: string,
+    spiceDistribution?: number[],
+    uniqueId?: string
+  ) => {
+    if (uniqueId) {
+      // Modification existante
+      modifierQuantiteItem(uniqueId, quantity)
+      if (spiceDistribution) {
+        setPanierModification((prev) =>
+          prev.map((p) =>
+            p.uniqueId === uniqueId ? { ...p, spiceDistribution: spiceDistribution } : p
+          )
+        )
+      }
+    } else {
+      // Nouvel ajout (depuis items disponibles)
+      // Note: Le cas "Available" crée un item avec un uniqueId temporaire dans CartItemCard
+      // Si on vient de la liste "Plats disponibles", on doit créer un nouvel item
+      if (dateRetrait && heureRetrait) {
+        const newItem: PlatPanier = {
+          id: plat.idplats.toString(),
+          nom: plat.plat,
+          prix: plat.prix ? String(plat.prix) : "0",
+          quantite: quantity,
+          jourCommande: jourSelectionne || "",
+          dateRetrait: new Date(dateRetrait.getTime()),
+          uniqueId: `${plat.idplats}-${Date.now()}`,
+          type: "plat",
+          spiceDistribution: spiceDistribution,
+        }
+        setPanierModification((prev) => [...prev, newItem])
+        toast({
+          title: "Ajouté au panier",
+          description: `${quantity}x ${plat.plat} ajouté.`,
+        })
+      }
+    }
+    setIsModalOpen(false)
+  }
 
   // Vérification permissions simple (propriétaire de la commande uniquement)
   const _canEdit = currentUser && String(commande?.client_r_id) === currentUser.id
@@ -639,7 +704,7 @@ const ModifierCommande = memo(() => {
   }
 
   return (
-    <div className="bg-gradient-thai min-h-screen px-0 pt-8 pb-40 sm:px-4">
+    <div className="bg-gradient-thai min-h-screen px-0 py-4 pb-40 sm:px-4">
       <div className="w-full sm:container sm:mx-auto sm:max-w-5xl">
         {/* Section principale - Modification */}
         <div className="w-full">
@@ -648,13 +713,13 @@ const ModifierCommande = memo(() => {
             <Button
               asChild
               variant="outline"
-              className="group hidden transform transition-all duration-200 hover:scale-105 hover:shadow-lg sm:flex"
+              className="border-thai-green/50 text-thai-green hover:bg-thai-green/10 hover:text-thai-green hover:border-thai-green hidden items-center justify-center rounded-full px-6 py-2 text-base font-bold shadow-sm transition-all hover:scale-105 sm:inline-flex"
             >
               <Link
                 href={`/suivi-commande/${commande.idcommande}`}
                 className="flex items-center gap-2"
               >
-                <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
+                <ArrowLeft className="mr-2 h-5 w-5" />
                 Retour au suivi
               </Link>
             </Button>
@@ -946,6 +1011,7 @@ const ModifierCommande = memo(() => {
                             onSpiceDistributionChange={handleSpiceChange}
                             readOnly={false}
                             className="border-thai-orange/10"
+                            onClick={() => handleItemClick(item)}
                           />
                         )
                       })}
@@ -1000,6 +1066,22 @@ const ModifierCommande = memo(() => {
                                   showSpiceSelector={false} // Pas de sélecteur tant que pas ajouté
                                   readOnly={false}
                                   className="opacity-80 grayscale transition-all hover:opacity-100 hover:grayscale-0"
+                                  onClick={() => {
+                                    // Créer un objet PlatPanier temporaire pour la modal
+                                    const tempItem: PlatPanier = {
+                                      id: plat.idplats.toString(),
+                                      nom: plat.plat,
+                                      prix: plat.prix ? String(plat.prix) : "0",
+                                      quantite: 0, // 0 pour indiquer mode ajout
+                                      jourCommande: jourSelectionne || "",
+                                      dateRetrait:
+                                        (dateRetrait && new Date(dateRetrait.getTime())) ||
+                                        new Date(),
+                                      uniqueId: undefined, // Pas d'ID unique défini, sera traité comme ajout
+                                      type: "plat",
+                                    }
+                                    handleItemClick(tempItem)
+                                  }}
                                 />
                               ))}
 
@@ -1178,6 +1260,34 @@ const ModifierCommande = memo(() => {
           </div>
         </div>
       </div>
+
+      {/* Modal de détail PLAT / EXTRA */}
+      {selectedItemForModal && (
+        <CommandePlatModal
+          isOpen={isModalOpen}
+          onOpenChange={setIsModalOpen}
+          plat={
+            selectedItemForModal.type === "extra"
+              ? null
+              : (plats?.find((p) => p.idplats.toString() === selectedItemForModal.id) as PlatUI)
+          }
+          extra={
+            selectedItemForModal.type === "extra" && extras
+              ? (extras.find(
+                  (e) => e.idextra === parseInt(selectedItemForModal.id.replace("extra-", ""))
+                ) as any)
+              : null
+          }
+          formatPrix={formatPrix}
+          currentQuantity={selectedItemForModal.quantite}
+          currentSpiceDistribution={selectedItemForModal.spiceDistribution}
+          uniqueId={selectedItemForModal.uniqueId}
+          onAddToCart={handleModalAddToCart}
+          mode="interactive"
+          showAddToCartButton={true}
+          showQuantitySelector={true}
+        />
+      )}
     </div>
   )
 })
