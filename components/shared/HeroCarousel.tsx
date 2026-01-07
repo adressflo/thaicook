@@ -23,7 +23,7 @@ import { cn } from "@/lib/utils"
 import Autoplay from "embla-carousel-autoplay"
 import Fade from "embla-carousel-fade"
 import useEmblaCarousel from "embla-carousel-react"
-import { motion, useScroll, useTransform } from "framer-motion"
+import { motion } from "framer-motion"
 import { ArrowRight, Sparkles } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
@@ -51,7 +51,7 @@ export function HeroCarousel({
   isAuthenticated = false,
 }: HeroCarouselProps) {
   const { isInstalled, canInstall, install } = usePWAInstalled()
-  const { isMobile } = useBreakpoints()
+  const { isMobile: _isMobile } = useBreakpoints()
   const [selectedIndex, setSelectedIndex] = useState(0)
   const [selectedLang, setSelectedLang] = useState<"fr" | "th" | "en" | "nl">("fr")
   const [showInstallDialog, setShowInstallDialog] = useState(false)
@@ -64,20 +64,6 @@ export function HeroCarousel({
     { code: "nl" as const, flag: "/flags/nl.webp", label: "Nederlands" },
   ]
 
-  // Scroll animations for navigation card
-  const { scrollYProgress } = useScroll({
-    offset: ["start start", "end start"],
-  })
-
-  // Transform scroll progress into animation values
-  const rotateX = useTransform(scrollYProgress, [0, 1], [20, 0])
-  const scale = useTransform(scrollYProgress, [0, 1], isMobile ? [0.7, 0.9] : [1.05, 1])
-  const translateY = useTransform(scrollYProgress, [0, 1], [0, -100])
-
-  // Détecter prefers-reduced-motion
-  const prefersReducedMotion =
-    typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches
-
   // Configuration Embla avec Autoplay et Fade
   const [emblaRef, emblaApi] = useEmblaCarousel(
     {
@@ -86,16 +72,12 @@ export function HeroCarousel({
     },
     [
       Fade(),
-      ...(prefersReducedMotion
-        ? [] // Désactiver autoplay si prefers-reduced-motion
-        : [
-            Autoplay({
-              delay: autoPlayDuration,
-              stopOnInteraction: false, // Continue après interaction
-              stopOnMouseEnter: true, // Pause au hover
-              stopOnFocusIn: true,
-            }),
-          ]),
+      Autoplay({
+        delay: autoPlayDuration,
+        stopOnInteraction: false, // Continue après interaction
+        stopOnMouseEnter: true, // Pause au hover
+        stopOnFocusIn: true,
+      }),
     ]
   )
 
@@ -170,26 +152,14 @@ export function HeroCarousel({
       className="relative h-[55vh] min-h-[400px] w-full overflow-hidden md:h-[80vh] md:min-h-[650px]"
       style={{ perspective: "1000px" }}
     >
-      {/* Card navigation en haut à gauche - Avec scroll animations */}
+      {/* Card navigation en haut à gauche - Sans déformation */}
       <motion.div
         className="absolute top-4 left-4 z-30 md:top-6 md:left-12"
-        style={
-          prefersReducedMotion || isMobile
-            ? {}
-            : {
-                rotateX,
-                scale,
-                translateY,
-              }
-        }
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
       >
-        <div className="relative transition-all duration-500 md:rounded-2xl md:border md:border-white/20 md:bg-linear-to-br md:from-white/15 md:via-white/10 md:to-white/5 md:p-6 md:shadow-2xl md:backdrop-blur-xl md:hover:scale-[1.02] md:hover:border-white/40 md:hover:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.5)]">
-          {/* Effet de brillance (Desktop seulement) */}
-          <div className="absolute inset-0 hidden rounded-2xl bg-linear-to-tr from-transparent via-white/5 to-transparent opacity-0 transition-opacity duration-500 hover:opacity-100 md:block" />
-
+        <div className="relative rounded-2xl border border-white/10 bg-stone-900/95 p-5 shadow-2xl backdrop-blur-xl transition-all duration-500 hover:border-white/20 md:p-6">
           <div className="relative flex flex-col items-center gap-4">
             {/* Logo + Nom - Style 2026: Logo seul centré sur mobile */}
             <Link href="/" className="group flex items-center gap-3">
@@ -219,10 +189,15 @@ export function HeroCarousel({
                   className="relative z-10 object-contain"
                 />
               </motion.div>
-              {/* Nom masqué sur mobile, visible sur desktop */}
-              <span className="group-hover:text-thai-orange hidden text-2xl font-bold whitespace-nowrap text-white drop-shadow-xl transition-colors duration-300 md:inline">
-                ChanthanaThaiCook
-              </span>
+              {/* Nom + sous-titre masqués sur mobile, visibles sur desktop */}
+              <div className="hidden flex-col md:flex">
+                <span className="group-hover:text-thai-orange text-thai-green text-2xl font-bold whitespace-nowrap drop-shadow-xl transition-colors duration-300">
+                  ChanthanaThaiCook
+                </span>
+                <span className="text-sm font-medium text-white/90 drop-shadow-md">
+                  Cuisine Thaï Authentique
+                </span>
+              </div>
             </Link>
 
             {/* Conteneur boutons masqué sur mobile */}
