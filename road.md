@@ -785,9 +785,26 @@ npm run test:e2e
   - [x] Indicateurs navigation discrets (dots en bas centre)
   - [x] Responsive : Aspect ratio adaptatif mobile/desktop
   - [x] Hauteur carousel : 80vh min-h-[650px]
-  - [x] 2 vidéos actives dans hero_media (Supabase)
+  - [x] 2 vidéos actives dans hero_media
   - [x] Autoplay 7s configurable + pause au hover
   - [x] Respect prefers-reduced-motion
+
+#### 📣 Bannières d'Annonce Dynamiques
+
+- [x] **Système d'annonces administrable** :
+  - [x] Chargement via `announcementTypeConfig` (Info, Warning, Error, Success)
+  - [x] Affichage conditionnel (si active et message présent)
+  - [x] Design color-coded avec icônes (AlertTriangle, CheckCircle, Info, XCircle)
+  - [x] Positionnement sticky sous le header
+
+#### 🚀 QuickNav (Navigation Rapide)
+
+- [x] **Barre de navigation animée** :
+  - [x] Animation "Vague" continue (défilement de couleur orange)
+  - [x] Arrêt de l'animation au survol ou au clic
+  - [x] Navigation fluide vers les ancres (`#card-commander`, `#card-profil`, etc.)
+  - [x] Effet "Highlight" sur la carte cible (3s)
+  - [x] Liens contextuels (Visiteur vs Connecté)
 
 - [x] 🔥🔥 **Card navigation en haut à gauche** : ✅
   - [x] Logo + ChanthanaThaiCook

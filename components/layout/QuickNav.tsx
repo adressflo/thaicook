@@ -1,8 +1,7 @@
-'use client'
+"use client"
 
-import Link from 'next/link'
-import { useState, useEffect, useRef } from 'react'
-import { motion } from 'framer-motion'
+import { motion } from "framer-motion"
+import { useEffect, useRef, useState } from "react"
 
 interface NavLink {
   label: string
@@ -15,24 +14,24 @@ interface QuickNavProps {
 
 // Navigation pour visiteurs non connectés - liens vers cards
 const NAV_LINKS_GUEST: NavLink[] = [
-  { label: 'Commander', href: '#card-commander' },
-  { label: 'Installer l\'App', href: '#card-installer' },
-  { label: 'Événements', href: '#card-evenements' },
-  { label: 'Nous trouver', href: '#card-nous-trouver' },
-  { label: 'Découvertes', href: '#card-decouvertes' },
-  { label: 'À propos', href: '#card-a-propos' },
+  { label: "Commander", href: "#card-commander" },
+  { label: "Installer l'App", href: "#card-installer" },
+  { label: "Événements", href: "#card-evenements" },
+  { label: "Nous trouver", href: "#card-nous-trouver" },
+  { label: "Découvertes", href: "#card-decouvertes" },
+  { label: "À propos", href: "#card-a-propos" },
 ]
 
 // Navigation pour utilisateurs connectés - liens vers cards
 const NAV_LINKS_AUTH: NavLink[] = [
-  { label: 'Commander', href: '#card-commander' },
-  { label: 'Installer l\'App', href: '#card-installer' },
-  { label: 'Événements', href: '#card-evenements' },
-  { label: 'Nous trouver', href: '#card-nous-trouver' },
-  { label: 'Découvertes', href: '#card-decouvertes' },
-  { label: 'Mon Profil', href: '#card-profil' },
-  { label: 'Suivi', href: '#card-suivi' },
-  { label: 'À propos', href: '#card-a-propos' },
+  { label: "Commander", href: "#card-commander" },
+  { label: "Installer l'App", href: "#card-installer" },
+  { label: "Événements", href: "#card-evenements" },
+  { label: "Nous trouver", href: "#card-nous-trouver" },
+  { label: "Découvertes", href: "#card-decouvertes" },
+  { label: "Mon Profil", href: "#card-profil" },
+  { label: "Suivi", href: "#card-suivi" },
+  { label: "À propos", href: "#card-a-propos" },
 ]
 
 export function QuickNav({ isAuthenticated = false }: QuickNavProps) {
@@ -83,7 +82,7 @@ export function QuickNav({ isAuthenticated = false }: QuickNavProps) {
     }
 
     if ((window as any).highlightCard) {
-      (window as any).highlightCard(cardId)
+      ;(window as any).highlightCard(cardId)
     }
 
     // Reprendre l'animation après 3 secondes (durée du highlight)
@@ -96,40 +95,41 @@ export function QuickNav({ isAuthenticated = false }: QuickNavProps) {
 
   return (
     <nav
-      className="quick-nav w-full py-4 sticky top-0 z-30"
+      className="quick-nav sticky top-0 z-30 hidden w-full py-4 md:block"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      <div className="w-full px-8">
-        <ul className="flex items-center justify-center gap-6 flex-wrap">
+      <div className="w-full px-4 md:px-8">
+        {/* Mobile: Horizontal Scroll | Desktop: Centered Wrap */}
+        <ul className="scrollbar-hide flex items-center gap-4 overflow-x-auto px-2 py-2 whitespace-nowrap md:flex-wrap md:justify-center md:gap-6 md:overflow-visible md:px-0">
           {navLinks.map((link, index) => {
             // Calculer la couleur selon l'état
-            let color = '#2d5016' // vert par défaut
+            let color = "#2d5016" // vert par défaut
             if (isClicked) {
               // Mode clic : seul l'élément cliqué est orange
-              color = index === clickedIndex ? '#ff7b54' : '#2d5016'
+              color = index === clickedIndex ? "#ff7b54" : "#2d5016"
             } else {
               // Mode vague : l'élément actif est orange
-              color = index === activeWaveIndex ? '#ff7b54' : '#2d5016'
+              color = index === activeWaveIndex ? "#ff7b54" : "#2d5016"
             }
 
             return (
-              <motion.li key={link.href}>
+              <motion.li key={link.href} className="shrink-0">
                 <button
                   onClick={() => {
-                    const cardId = link.href.replace('#', '')
+                    const cardId = link.href.replace("#", "")
                     handleClick(cardId, index)
                   }}
-                  className="relative block bg-transparent border-none cursor-pointer"
+                  className="relative block cursor-pointer border-none bg-transparent p-2 md:p-0"
                 >
                   <motion.span
-                    className="text-lg font-semibold inline-block"
+                    className="inline-block text-base font-semibold md:text-lg"
                     animate={{
                       color: color,
                     }}
                     transition={{
                       duration: 0.6,
-                      ease: 'easeInOut',
+                      ease: "easeInOut",
                     }}
                   >
                     {link.label}
