@@ -167,12 +167,12 @@ export function HeroCarousel({
 
   return (
     <div
-      className="relative h-[80vh] min-h-[650px] w-full overflow-hidden"
+      className="relative h-[65vh] min-h-[450px] w-full overflow-hidden md:h-[80vh] md:min-h-[650px]"
       style={{ perspective: "1000px" }}
     >
       {/* Card navigation en haut à gauche - Avec scroll animations */}
       <motion.div
-        className="absolute top-6 left-12 z-30"
+        className="absolute top-4 left-4 z-30 md:top-6 md:left-12"
         style={
           prefersReducedMotion
             ? {}
@@ -186,14 +186,14 @@ export function HeroCarousel({
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.7, ease: "easeOut" }}
       >
-        <div className="relative rounded-2xl border border-white/20 bg-linear-to-br from-white/15 via-white/10 to-white/5 p-6 shadow-2xl backdrop-blur-xl transition-all duration-500 hover:scale-[1.02] hover:border-white/40 hover:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.5)]">
-          {/* Effet de brillance */}
-          <div className="absolute inset-0 rounded-2xl bg-linear-to-tr from-transparent via-white/5 to-transparent opacity-0 transition-opacity duration-500 hover:opacity-100" />
+        <div className="relative transition-all duration-500 md:rounded-2xl md:border md:border-white/20 md:bg-linear-to-br md:from-white/15 md:via-white/10 md:to-white/5 md:p-6 md:shadow-2xl md:backdrop-blur-xl md:hover:scale-[1.02] md:hover:border-white/40 md:hover:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.5)]">
+          {/* Effet de brillance (Desktop seulement) */}
+          <div className="absolute inset-0 hidden rounded-2xl bg-linear-to-tr from-transparent via-white/5 to-transparent opacity-0 transition-opacity duration-500 hover:opacity-100 md:block" />
 
           <div className="relative flex flex-col items-center gap-4">
             {/* Logo + Nom */}
             <Link href="/" className="group flex items-center gap-3">
-              <div className="relative h-14 w-14 shrink-0">
+              <div className="relative h-12 w-12 shrink-0 md:h-14 md:w-14">
                 <div className="bg-thai-orange/20 group-hover:bg-thai-orange/40 absolute inset-0 rounded-full blur-xl transition-all duration-500" />
                 <Image
                   src="/logo.svg"
@@ -201,39 +201,42 @@ export function HeroCarousel({
                   fill
                   priority
                   sizes="56px"
-                  className="relative z-10 object-contain transition-all duration-500 group-hover:scale-110 group-hover:rotate-6"
+                  className="relative z-10 object-contain shadow-black/20 drop-shadow-lg transition-all duration-500 group-hover:scale-110 group-hover:rotate-6"
                 />
               </div>
-              <span className="group-hover:text-thai-orange text-2xl font-bold whitespace-nowrap text-white drop-shadow-2xl transition-colors duration-300">
+              <span className="group-hover:text-thai-orange pt-2 text-xl font-bold whitespace-nowrap text-white drop-shadow-xl transition-colors duration-300 md:pt-0 md:text-2xl">
                 ChanthanaThaiCook
               </span>
             </Link>
 
-            {/* Séparateur décoratif */}
-            <div className="h-px w-full bg-linear-to-r from-transparent via-white/30 to-transparent" />
+            {/* Conteneur boutons masqué sur mobile */}
+            <div className="hidden w-full flex-col gap-4 md:flex">
+              {/* Séparateur décoratif */}
+              <div className="h-px w-full bg-linear-to-r from-transparent via-white/30 to-transparent" />
 
-            {/* Bouton Commander */}
-            <Link href="/commander" className="group/btn w-full">
-              <Button
-                size="lg"
-                className="from-thai-orange to-thai-orange/90 hover:from-thai-orange/90 hover:to-thai-orange hover:shadow-thai-orange/50 relative w-full overflow-hidden bg-linear-to-r text-lg font-bold text-white shadow-xl transition-all duration-300 hover:-translate-y-1 hover:scale-105"
-              >
-                <span className="relative z-10">Commander</span>
-                <div className="absolute inset-0 -translate-x-full bg-linear-to-r from-transparent via-white/20 to-transparent transition-transform duration-700 group-hover/btn:translate-x-full" />
-              </Button>
-            </Link>
+              {/* Bouton Commander */}
+              <Link href="/commander" className="group/btn w-full">
+                <Button
+                  size="lg"
+                  className="from-thai-orange to-thai-orange/90 hover:from-thai-orange/90 hover:to-thai-orange hover:shadow-thai-orange/50 relative w-full overflow-hidden bg-linear-to-r text-lg font-bold text-white shadow-xl transition-all duration-300 hover:-translate-y-1 hover:scale-105"
+                >
+                  <span className="relative z-10">Commander</span>
+                  <div className="absolute inset-0 -translate-x-full bg-linear-to-r from-transparent via-white/20 to-transparent transition-transform duration-700 group-hover/btn:translate-x-full" />
+                </Button>
+              </Link>
 
-            {/* Bouton Nous Trouver */}
-            <Link href="/nous-trouver" className="group/btn w-full">
-              <Button
-                size="lg"
-                variant="outline"
-                className="hover:text-thai-green relative w-full overflow-hidden border-2 border-white/50 bg-white/10 text-lg font-bold text-white backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:scale-105 hover:border-white hover:bg-white"
-              >
-                <span className="relative z-10">Nous Trouver</span>
-                <div className="absolute inset-0 -translate-x-full bg-linear-to-r from-transparent via-white/20 to-transparent transition-transform duration-700 group-hover/btn:translate-x-full" />
-              </Button>
-            </Link>
+              {/* Bouton Nous Trouver */}
+              <Link href="/nous-trouver" className="group/btn w-full">
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="hover:text-thai-green relative w-full overflow-hidden border-2 border-white/50 bg-white/10 text-lg font-bold text-white backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:scale-105 hover:border-white hover:bg-white"
+                >
+                  <span className="relative z-10">Nous Trouver</span>
+                  <div className="absolute inset-0 -translate-x-full bg-linear-to-r from-transparent via-white/20 to-transparent transition-transform duration-700 group-hover/btn:translate-x-full" />
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </motion.div>
@@ -281,7 +284,7 @@ export function HeroCarousel({
       </div>
 
       {/* Header Navigation - Centré */}
-      <header className="absolute top-0 right-0 left-0 z-20 bg-linear-to-b from-black/5 to-transparent px-4 py-6 backdrop-blur-[2px]">
+      <header className="absolute top-0 right-0 left-0 z-20 hidden bg-linear-to-b from-black/5 to-transparent px-4 py-6 backdrop-blur-[2px] md:block">
         <nav className="flex items-center justify-center gap-8">
           <a
             href="#navigation-cards"
@@ -382,20 +385,22 @@ export function HeroCarousel({
       />
 
       {/* Bouton CTA Installer l'Application - Bas droite */}
-      <div className="absolute right-4 bottom-4 z-30">
-        <Button
-          size="lg"
-          variant="outline"
-          onClick={() => {
-            if (!isInstalled && canInstall) {
-              setShowInstallDialog(true)
-            }
-          }}
-          className="hover:text-thai-green border-2 border-white bg-white/10 font-bold text-white backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:bg-white"
-        >
-          {isInstalled ? "Application Installée" : "Installer l'App"}
-        </Button>
-      </div>
+      {!isInstalled && (
+        <div className="absolute right-4 bottom-4 z-30">
+          <Button
+            size="lg"
+            variant="outline"
+            onClick={() => {
+              if (canInstall) {
+                setShowInstallDialog(true)
+              }
+            }}
+            className="hover:text-thai-green border-2 border-white bg-white/10 font-bold text-white backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:bg-white"
+          >
+            Installer l'App
+          </Button>
+        </div>
+      )}
 
       {/* Dialog de confirmation installation PWA */}
       <AlertDialog open={showInstallDialog} onOpenChange={setShowInstallDialog}>

@@ -88,6 +88,15 @@ export function NavigationCards({
       icon: Utensils,
     },
     {
+      id: "card-nous-trouver",
+      title: "Nous Trouver",
+      buttonTitle: "Nous Trouver",
+      description: "Venez nous rendre visite à Marigny-Marmande",
+      image: "/illustrations/nous trouver.svg",
+      link: "/nous-trouver",
+      icon: MapPin,
+    },
+    {
       id: "card-installer",
       title: isInstalled ? "Application Installée" : "Installer l'Application",
       buttonTitle: isInstalled ? "Ouvrir" : "Installer",
@@ -114,24 +123,6 @@ export function NavigationCards({
       image: "/illustrations/pourvosevenement.svg",
       link: "/evenements",
       icon: Calendar,
-    },
-    {
-      id: "card-nous-trouver",
-      title: "Nous Trouver",
-      buttonTitle: "Nous Trouver",
-      description: "Venez nous rendre visite à Marigny-Marmande",
-      image: "/illustrations/nous trouver.svg",
-      link: "/nous-trouver",
-      icon: MapPin,
-    },
-    {
-      id: "card-decouvertes",
-      title: "Découvertes",
-      buttonTitle: "Découvrir",
-      description: "Nouveautés, plats du moment et suivez nos coulisses sur les réseaux sociaux",
-      image: "/illustrations/pourcommander.svg", // Temporaire - à remplacer par image appropriée
-      link: "/actualites",
-      icon: Sparkles,
     },
     {
       id: "card-profil",
@@ -164,16 +155,26 @@ export function NavigationCards({
       link: "/a-propos",
       icon: Users,
     },
+    {
+      id: "card-decouvertes",
+      title: "Découvertes",
+      buttonTitle: "Découvrir",
+      description: "Nouveautés, plats du moment et suivez nos coulisses sur les réseaux sociaux",
+      image: "/illustrations/pourcommander.svg", // Temporaire - à remplacer par image appropriée
+      link: "/actualites",
+      icon: Sparkles,
+    },
   ]
 
   // Filtrer les cards : masquer celles qui nécessitent une connexion si non connecté
+  // Et masquer la carte d'installation si l'app est déjà installée
   const visibleCards = isAuthenticated
-    ? cards // Tout afficher si connecté
-    : cards.filter((card) => !card.disabled) // Masquer les cards disabled si non connecté
+    ? cards.filter((card) => !(isInstalled && card.id === "card-installer"))
+    : cards.filter((card) => !card.disabled && !(isInstalled && card.id === "card-installer"))
 
   return (
-    <section className="flex-1 py-16" id="navigation-cards">
-      <div className="w-full px-8">
+    <section className="flex-1 pt-16 pb-4" id="navigation-cards">
+      <div className="w-full px-0 md:px-8">
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4" style={{ gridAutoRows: "1fr" }}>
           {visibleCards.map((card, index) => {
             const isHighlighted = highlightedCardId === card.id
