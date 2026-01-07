@@ -167,14 +167,14 @@ export function HeroCarousel({
 
   return (
     <div
-      className="relative h-[65vh] min-h-[450px] w-full overflow-hidden md:h-[80vh] md:min-h-[650px]"
+      className="relative h-[55vh] min-h-[400px] w-full overflow-hidden md:h-[80vh] md:min-h-[650px]"
       style={{ perspective: "1000px" }}
     >
       {/* Card navigation en haut à gauche - Avec scroll animations */}
       <motion.div
         className="absolute top-4 left-4 z-30 md:top-6 md:left-12"
         style={
-          prefersReducedMotion
+          prefersReducedMotion || isMobile
             ? {}
             : {
                 rotateX,
@@ -182,29 +182,45 @@ export function HeroCarousel({
                 translateY,
               }
         }
-        initial={{ opacity: 0, x: -100 }}
+        initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.7, ease: "easeOut" }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
       >
         <div className="relative transition-all duration-500 md:rounded-2xl md:border md:border-white/20 md:bg-linear-to-br md:from-white/15 md:via-white/10 md:to-white/5 md:p-6 md:shadow-2xl md:backdrop-blur-xl md:hover:scale-[1.02] md:hover:border-white/40 md:hover:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.5)]">
           {/* Effet de brillance (Desktop seulement) */}
           <div className="absolute inset-0 hidden rounded-2xl bg-linear-to-tr from-transparent via-white/5 to-transparent opacity-0 transition-opacity duration-500 hover:opacity-100 md:block" />
 
           <div className="relative flex flex-col items-center gap-4">
-            {/* Logo + Nom */}
+            {/* Logo + Nom - Style 2026: Logo seul centré sur mobile */}
             <Link href="/" className="group flex items-center gap-3">
-              <div className="relative h-12 w-12 shrink-0 md:h-14 md:w-14">
-                <div className="bg-thai-orange/20 group-hover:bg-thai-orange/40 absolute inset-0 rounded-full blur-xl transition-all duration-500" />
+              {/* Logo - Animation pulse glow 2026 */}
+              <motion.div
+                className="relative h-12 w-12 shrink-0 md:h-14 md:w-14"
+                animate={{
+                  scale: [1, 1.05, 1],
+                  filter: [
+                    "drop-shadow(0 0 0px rgba(255,123,84,0))",
+                    "drop-shadow(0 0 12px rgba(255,123,84,0.8))",
+                    "drop-shadow(0 0 0px rgba(255,123,84,0))",
+                  ],
+                }}
+                transition={{
+                  duration: 2.5,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+              >
                 <Image
                   src="/logo.svg"
                   alt="Logo ChanthanaThaiCook"
                   fill
                   priority
                   sizes="56px"
-                  className="relative z-10 object-contain shadow-black/20 drop-shadow-lg transition-all duration-500 group-hover:scale-110 group-hover:rotate-6"
+                  className="relative z-10 object-contain"
                 />
-              </div>
-              <span className="group-hover:text-thai-orange pt-2 text-xl font-bold whitespace-nowrap text-white drop-shadow-xl transition-colors duration-300 md:pt-0 md:text-2xl">
+              </motion.div>
+              {/* Nom masqué sur mobile, visible sur desktop */}
+              <span className="group-hover:text-thai-orange hidden text-2xl font-bold whitespace-nowrap text-white drop-shadow-xl transition-colors duration-300 md:inline">
                 ChanthanaThaiCook
               </span>
             </Link>

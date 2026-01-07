@@ -69,9 +69,11 @@ export function NavigationCards({
     }
 
     // Exposer la fonction globalement
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ;(window as any).highlightCard = highlightCard
 
     return () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       delete (window as any).highlightCard
     }
   }, [])
@@ -173,9 +175,12 @@ export function NavigationCards({
     : cards.filter((card) => !card.disabled && !(isInstalled && card.id === "card-installer"))
 
   return (
-    <section className="flex-1 pt-16 pb-4" id="navigation-cards">
+    <section className="pt-4 pb-4 md:pt-16" id="navigation-cards">
       <div className="w-full px-0 md:px-8">
-        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4" style={{ gridAutoRows: "1fr" }}>
+        <div
+          className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4"
+          style={{ gridAutoRows: "1fr" }}
+        >
           {visibleCards.map((card, index) => {
             const isHighlighted = highlightedCardId === card.id
 
@@ -200,6 +205,7 @@ export function NavigationCards({
                   }}
                 >
                   <Link
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     href={(card.disabled ? "#" : card.link) as any}
                     className="flex h-full flex-col"
                     onClick={(e) => {
@@ -225,15 +231,15 @@ export function NavigationCards({
                           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                         />
                       ) : (
-                        <img
+                        <Image
                           src={card.image}
                           alt={card.title}
+                          fill
                           className={cn(
-                            "h-full w-full object-cover transition-all duration-700",
-                            card.image === "/installapp.svg" && "object",
+                            "object-cover transition-all duration-700",
                             !card.disabled && "group-hover:scale-110 group-hover:brightness-110"
                           )}
-                          loading="lazy"
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                         />
                       )}
 

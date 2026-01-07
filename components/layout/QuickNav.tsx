@@ -81,7 +81,9 @@ export function QuickNav({ isAuthenticated = false }: QuickNavProps) {
       clearInterval(intervalRef.current)
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if ((window as any).highlightCard) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ;(window as any).highlightCard(cardId)
     }
 
