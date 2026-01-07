@@ -21,7 +21,6 @@ import { useBreakpoints } from "@/hooks/use-mobile"
 import { usePWAInstalled } from "@/hooks/usePWAInstalled"
 import { cn } from "@/lib/utils"
 import Autoplay from "embla-carousel-autoplay"
-import Fade from "embla-carousel-fade"
 import useEmblaCarousel from "embla-carousel-react"
 import { motion } from "framer-motion"
 import { ArrowRight, Sparkles } from "lucide-react"
@@ -64,17 +63,17 @@ export function HeroCarousel({
     { code: "nl" as const, flag: "/flags/nl.webp", label: "Nederlands" },
   ]
 
-  // Configuration Embla avec Autoplay et Fade
+  // Configuration Embla avec Autoplay - Swipe activé sur mobile
   const [emblaRef, emblaApi] = useEmblaCarousel(
     {
       loop: true,
-      duration: 30, // Durée de la transition en ms (fade rapide)
+      duration: 30, // Durée de la transition en ms
+      dragFree: false, // Snap aux slides
     },
     [
-      Fade(),
       Autoplay({
         delay: autoPlayDuration,
-        stopOnInteraction: false, // Continue après interaction
+        stopOnInteraction: true, // Pause après interaction (swipe)
         stopOnMouseEnter: true, // Pause au hover
         stopOnFocusIn: true,
       }),
@@ -159,7 +158,7 @@ export function HeroCarousel({
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
       >
-        <div className="relative rounded-2xl border border-white/10 bg-stone-900/95 p-5 shadow-2xl backdrop-blur-xl transition-all duration-500 hover:border-white/20 md:p-6">
+        <div className="relative transition-all duration-500 md:rounded-2xl md:border md:border-white/10 md:bg-stone-900/95 md:p-6 md:shadow-2xl md:backdrop-blur-xl md:hover:border-white/20">
           <div className="relative flex flex-col items-center gap-4">
             {/* Logo + Nom - Style 2026: Logo seul centré sur mobile */}
             <Link href="/" className="group flex items-center gap-3">
@@ -368,7 +367,7 @@ export function HeroCarousel({
 
       {/* Overlay gradient (tiers inférieur) */}
       <div
-        className="absolute inset-0 bg-linear-to-t from-black/70 via-black/30 to-transparent"
+        className="pointer-events-none absolute inset-0 bg-linear-to-t from-black/70 via-black/30 to-transparent"
         style={{
           background:
             "linear-gradient(180deg, transparent 0%, transparent 60%, rgba(0,0,0,0.7) 100%)",

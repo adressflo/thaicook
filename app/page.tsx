@@ -74,7 +74,7 @@ const TableauDeBord = memo(() => {
   const photoUploadedRecently = false // TODO: Implémenter la logique de calcul de date
 
   return (
-    <div className="bg-gradient-thai flex min-h-screen flex-col pb-16 md:pb-0">
+    <div className="bg-gradient-thai flex flex-col pb-0 md:min-h-screen">
       {/* Hero Carousel avec médias dynamiques */}
       {!isLoadingHeroMedias && (
         <HeroCarousel medias={heroMedias} isAuthenticated={isAuthenticated} />
@@ -111,6 +111,7 @@ const TableauDeBord = memo(() => {
         isAuthenticated={isAuthenticated}
         userPhoto={clientProfile?.photo_client || null}
         photoUploadedRecently={photoUploadedRecently}
+        className="md:flex-1"
       />
 
       {/* Section "Pourquoi créer un compte" - Visible uniquement pour visiteurs non connectés */}

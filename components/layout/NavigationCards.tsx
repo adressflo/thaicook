@@ -40,12 +40,14 @@ interface NavigationCardsProps {
   isAuthenticated: boolean
   userPhoto?: string | null
   photoUploadedRecently?: boolean
+  className?: string
 }
 
 export function NavigationCards({
   isAuthenticated,
   userPhoto,
   photoUploadedRecently = false,
+  className,
 }: NavigationCardsProps) {
   const { isInstalled, canInstall, install } = usePWAInstalled()
   const [showInstallDialog, setShowInstallDialog] = useState(false)
@@ -175,17 +177,22 @@ export function NavigationCards({
     : cards.filter((card) => !card.disabled && !(isInstalled && card.id === "card-installer"))
 
   return (
-    <section className="pt-4 pb-4 md:pt-16" id="navigation-cards">
+    <section className={cn("py-4 md:py-16", className)} id="navigation-cards">
       <div className="w-full px-0 md:px-8">
         <div
-          className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4"
+          className="scrollbar-hide flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-4 md:grid md:grid-cols-2 md:gap-8 md:overflow-visible md:px-0 md:pb-0 lg:grid-cols-4"
           style={{ gridAutoRows: "1fr" }}
         >
           {visibleCards.map((card, index) => {
             const isHighlighted = highlightedCardId === card.id
 
             return (
-              <Tilt key={card.title} className="h-full" rotation={10} scale={1.02}>
+              <Tilt
+                key={card.title}
+                className="h-full min-w-[85vw] snap-center sm:min-w-[350px] md:min-w-0"
+                rotation={10}
+                scale={1.02}
+              >
                 <Card
                   id={card.id}
                   className={cn(
@@ -293,7 +300,7 @@ export function NavigationCards({
                         </h3>
                         <p
                           className={cn(
-                            "text-center transition-colors duration-300",
+                            "line-clamp-2 text-left transition-colors duration-300",
                             card.disabled
                               ? "text-gray-400"
                               : "text-thai-green/70 group-hover:text-thai-green"
