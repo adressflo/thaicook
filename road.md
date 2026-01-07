@@ -777,244 +777,113 @@ npm run test:e2e
 
 #### 🎬 Hero Section Dynamique
 
-- [x] 🔥🔥🔥 **Carousel média administratif** : Images + vidéos courtes (5-8s) ✅
-  - [x] Upload depuis interface admin (/admin/hero-media) ✅
+- [x] **Carousel média administratif** : Images + vidéos courtes
+  - [x] Upload depuis interface admin (/admin/hero-media)
   - [x] Support image (JPG, PNG, WebP) + vidéo (MP4, WebM)
-  - [x] Drag & drop pour réorganiser l'ordre ✅
-  - [x] Transition fade douce entre médias (Embla Carousel + Autoplay + Fade)
+  - [x] Drag & drop pour réorganiser l'ordre
+  - [x] Transition slide entre médias (Embla Carousel + Autoplay)
   - [x] Indicateurs navigation discrets (dots en bas centre)
-  - [x] Responsive : Aspect ratio adaptatif mobile/desktop
-  - [x] Hauteur carousel : 80vh min-h-[650px]
-  - [x] 2 vidéos actives dans hero_media
-  - [x] Autoplay 7s configurable + pause au hover
-  - [x] Respect prefers-reduced-motion
+  - [x] Responsive : Hauteur 55vh mobile / 80vh desktop
+  - [x] Autoplay 7s configurable + pause au hover/swipe
+  - [x] Swipe tactile activé sur mobile
+  - [ ] Transition Fade (actuellement slide, Fade supprimé)
 
 #### 📣 Bannières d'Annonce Dynamiques
 
 - [x] **Système d'annonces administrable** :
-  - [x] Chargement via `announcementTypeConfig` (Info, Warning, Error, Success)
+  - [x] Chargement via `announcementTypeConfig`
   - [x] Affichage conditionnel (si active et message présent)
-  - [x] Design color-coded avec icônes (AlertTriangle, CheckCircle, Info, XCircle)
-  - [x] Positionnement sticky sous le header
+  - [x] Design color-coded avec icônes (Info, Warning, Error, Success)
 
 #### 🚀 QuickNav (Navigation Rapide)
 
-- [x] **Barre de navigation animée** :
-  - [x] Animation "Vague" continue (défilement de couleur orange)
+- [x] **Barre de navigation animée** (desktop uniquement) :
+  - [x] Animation "Vague" continue (couleur orange)
   - [x] Arrêt de l'animation au survol ou au clic
-  - [x] Navigation fluide vers les ancres (`#card-commander`, `#card-profil`, etc.)
+  - [x] Navigation fluide vers les ancres cards
   - [x] Effet "Highlight" sur la carte cible (3s)
   - [x] Liens contextuels (Visiteur vs Connecté)
 
-- [x] 🔥🔥 **Card navigation en haut à gauche** : ✅
-  - [x] Logo + ChanthanaThaiCook
-  - [x] Bouton Commander (gradient orange)
-  - [x] Bouton Nous Trouver (outline blanc)
-  - [x] Design glassmorphism (backdrop-blur-xl)
-  - [x] Animations hover (scale, shadow, shine sweep)
-  - [x] Animations scroll Framer Motion :
-    - Rotation 3D (20° → 0°)
-    - Scale responsive (mobile: 0.7→0.9, desktop: 1.05→1)
-    - Translation parallax (0 → -100px)
-    - Perspective 1000px pour effet 3D
+#### 🧭 Card Branding (Haut Gauche)
+
+- [x] **Card navigation Hero** :
+  - [x] Logo avec animation pulse glow
+  - [x] Titre "ChanthanaThaiCook" en vert thai (desktop)
+  - [x] Sous-titre "Cuisine Thaï Authentique" en blanc (desktop)
+  - [x] Bouton Commander (gradient orange, desktop)
+  - [x] Bouton Nous Trouver (outline blanc, desktop)
+  - [x] Design glassmorphism stone-900 (desktop uniquement)
   - [x] Slide-in animation au chargement
-  - [x] Position : top-20 left-12
+  - [ ] Animations scroll 3D (supprimées - causaient déformation)
 
-#### 🧭 Navigation Contextuelle
+#### 🧭 Navigation Cards
 
-- [x] 🔥🔥🔥 **Cartes navigation adaptatives selon auth** : ✅
-  - [x] **Visiteur non connecté** : 6 cartes (4 actives + 2 désactivées)
-    - Pour Commander ✓
-    - Nous Trouver ✓
-    - Pour vos Événements ✓
-    - À propos de nous ✓
-    - Découvertes (Actualités) ✓
-    - Installer l'Application ✓
-  - [x] **Utilisateur connecté** : 8 cartes actives
-    - Les 6 ci-dessus + Mon Profil + Suivi & Historique
-  - [x] Grid responsive : lg:grid-cols-4 (4 colonnes desktop)
-  - [x] Full-width layout avec px-8
-  - [x] Image PWA card : /installapp.svg
+- [x] **Cartes navigation adaptatives selon auth** :
+  - [x] Visiteur non connecté : 6 cartes actives
+  - [x] Utilisateur connecté : 8 cartes actives
+  - [x] Carte "Installer l'Application" masquée si déjà installé
+  - [x] Grid responsive : lg:4 cols, md:2 cols
+  - [x] **Mobile : Slider horizontal swipeable** (snap-x)
+  - [x] Effet Tilt 3D au hover (via composant Tilt)
+  - [x] Card highlighting au clic (glow 3s)
+  - [x] Description limitée à 2 lignes (line-clamp-2)
 
-#### 💡 Section "Pourquoi Créer un Compte" (Non-connectés uniquement)
+#### 💡 Section "Pourquoi Créer un Compte"
 
-- [x] 🔥🔥 **Bénéfices pratiques (pas marketing)** : ✅ COMPLÉTÉ
-  - ✅ Composant: `components/shared/SectionPourquoiCompte.tsx` (lignes 20-96)
-  - ✅ 3 bénéfices affichés: Suivi temps réel (Bell), Historique (History), Gestion événements (Calendar)
-  - ✅ Boutons [Créer mon compte] → `/auth/signup` et [Se connecter] → `/auth/login`
-  - ✅ Affiché uniquement aux visiteurs non connectés (lignes 16-18)
-  - ✅ Intégré dans `app/page.tsx` ligne 112
+- [x] **Visible uniquement aux non-connectés** :
+  - [x] 3 bénéfices : Suivi temps réel, Historique, Gestion événements
+  - [x] Boutons CTA vers /auth/signup et /auth/login
 
 #### 📱 Section PWA Intelligente
 
-- [x] 🔥🔥🔥 **Hook `usePWAInstalled`** : ✅ COMPLÉTÉ
-  - ✅ Fichier: `hooks/usePWAInstalled.ts` (entièrement fonctionnel)
-  - ✅ Détecte `display-mode: standalone` (ligne 23)
-  - ✅ Support iOS `navigator.standalone` (ligne 24)
-  - ✅ Écoute `beforeinstallprompt` event (ligne 36)
-  - ✅ Retourne: `isInstalled`, `canInstall`, `install()`, `installPrompt`
-
-- [x] 🔥🔥 **Affichage conditionnel** : ✅ COMPLÉTÉ
-  - ✅ Utilisé dans HeroCarousel (ligne 49) et NavigationCards (ligne 54)
-  - ✅ Card "Installer l'Application" avec dialog d'installation
-  - ✅ Bouton conditionnel selon `canInstall`
-
-#### 🚫 Suppressions
-
-- [x] 🔥 **Page `/suivi`** : ✅ N'EXISTE PAS (aucune action nécessaire)
-  - ✅ La page `/suivi` n'a jamais été créée
-  - ✅ La navigation pointe déjà vers `/historique`
-  - ✅ Routes existantes: `/suivi-commande/[id]` et `/suivi-evenement/[id]` (pages de détail)
-- [x] 🔥 **Card navigation** : ✅ Déjà configurée comme "Suivi / Historique"
-  - ✅ Fichier: `components/layout/NavigationCards.tsx` (lignes 153-162)
-- [x] 🔥 **Section témoignages** : ✅ N'existe pas (jamais créée)
-- [x] 🔥 **Promotions/offres/fidélité** : ✅ N'existe pas (jamais créé)
-
-#### 💜 Suggestions Pratiques
-
-- [ ] 💜 **Chanthana accueil animée** : Animation Lottie de Chanthana faisant le wai (salut thaï) au chargement - générer via IA une animation 3-5s
-- [ ] 💜 **Parallax léger sur Hero** : Effet parallax subtil avec react-scroll-parallax (gratuit) sur les images/vidéos du carousel
-- [ ] 💜 **Indicateur de chargement Chanthana** : Remplacer le spinner par une mini-animation de Chanthana qui cuisine (Lottie)
-- [ ] 💜 **Effet 3D cards au hover** : Ajouter Tilt Card 3D de 21st.dev `npx shadcn@latest add "https://21st.dev/r/llaxmi/tilt-card"` sur NavigationCards
-- [ ] 💜 **Bulle info contextuelle** : Chanthana avec bulle "Sawadee ! Qu'est-ce qui vous ferait plaisir ?" pour nouveaux visiteurs (localStorage)
-
-#### 🔧 Spécifications Techniques Détaillées
-
-**Hero Carousel :**
-
-- [ ] **Bibliothèque** : Embla Carousel (shadcn/ui intégré)
-- [ ] **Auto-play** : Ajustable par admin (default 7s par média)
-- [ ] **Pause au hover** : Activée automatiquement
-- [ ] **Prefers-reduced-motion** : Auto-détecté (désactive auto-play si actif)
-- [ ] **Contrôles navigation** : Dots discrets uniquement (pas de flèches)
-- [ ] **Transitions** : Fade 800ms cubic-bezier(0.4, 0, 0.2, 1)
-
-**Overlay Hero :**
-
-- [ ] **Position** : Tiers inférieur (70% image visible, 30% overlay)
-- [ ] **Fond** : Gradient `linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.7) 100%)`
-- [ ] **Backdrop blur** : 8px sur zone texte uniquement
-- [ ] **Boutons CTA** :
-  - [Commander] : Solid bg-thai-orange
-  - [Découvrir] : Outline blanc + smooth scroll vers section navigation
-
-**Navigation Cards (6 cartes) :**
-
-- [x] **Visiteur non connecté** : 6 cartes affichées ✅
-  - Pour Commander (actif)
-  - Nous Trouver (actif)
-  - Pour vos Événements (actif)
-  - À propos de nous (actif)
-  - Découvertes (actif) ← NOUVELLE CARTE
-  - Mon Profil (désactivé/grisé)
-- [x] **Utilisateur connecté** : 6 cartes actives ✅
-  - Ajouter : Mon Profil (actif) + Suivi (actif)
-  - Badge "Nouveau !" sur Mon Profil si `photo_client` récente (<7 jours)
-- [x] **Nouvelle carte "Découvertes"** : ✅
-  - Route : `/actualites`
-  - Icon : Sparkles ✨
-  - Description : "Nouveautés, plats du moment et suivez nos coulisses sur les réseaux sociaux"
-  - Image : Photo plat saisonnier ou collage Instagram
-- [x] **Grid responsive** : ✅
-  - Desktop (≥1024px) : 4 colonnes (lg:grid-cols-4)
-  - Tablet (768-1023px) : 2 colonnes (md:grid-cols-2)
-  - Mobile (<768px) : 1 colonne (grid)
-- [x] **Animations** : Stagger 150ms top to bottom (framer-motion) ✅
-- [x] **Rotation Polaroid** : Straight par défaut, tilt -2deg au hover ✅
-- [x] **Photo profil par défaut** : `/image avatar/profildefaut.svg` ✅
-- [x] **Card highlighting au clic** : Rotation + scale + élévation + glow 3s ✅
-  - Glow pulsant : Dégradé orange thaï (#ff7b54) → vert thaï (#2d5016)
-  - Scroll automatique smooth vers card ciblée (scrollIntoView)
-
-**Médias Hero - Spécifications :**
-
-- [ ] **Images** :
-  - Format prioritaire : WebP 1920x1080
-  - Fallback : JPEG
-  - Ratio : 16:9 (standard)
-  - Taille max : 10MB
-- [ ] **Vidéos** :
-  - Durée max : 10-15 secondes
-  - Codecs : MP4 H.264 + WebM VP9 (compatibilité)
-  - Audio : Muted forcé
-  - Sous-titres : Non nécessaires
-  - Taille max : 10MB
-
-**Fallbacks & Error Handling :**
-
-- [ ] **Cascade fallback médias** :
-  1. Essayer vidéo
-  2. Si erreur → Image associée
-  3. Si pas d'image → `/hero-default.jpg`
-  4. Pendant chargement → Blur-up placeholder (LQIP)
-- [ ] **Aucun média actif** : Afficher image par défaut
-
-**Bonus Implémentés :**
-
-- [ ] **Badge "Nouveau !" card Mon Profil** : Si `photo_client` uploadée < 7 jours (logique calcul date à implémenter)
-- [x] **Smooth scroll CTA "Découvrir"** : Scroll vers section navigation cards ✅
-- [x] **Photo client dans card Mon Profil** : Depuis `client_db.photo_client` ✅
+- [x] **Hook `usePWAInstalled`** :
+  - [x] Détecte display-mode standalone + iOS standalone
+  - [x] Retourne isInstalled, canInstall, install()
+- [x] **Affichage conditionnel** :
+  - [x] Card et bouton Hero conditionnels selon canInstall
+  - [x] Dialog confirmation installation
 
 #### 🎨 Polish & Accessibilité
 
-- [x] 🔥🔥 **Sélecteur de langue** : Permettre changement langue (fr/th/en) ✅
-  - [x] DropdownMenu avec drapeaux waving WebP (fr.webp, th.webp, gb.webp, nl.webp)
-  - [x] Position : bottom-4 left-4 (bas gauche)
-  - [x] État local : useState selectedLang (fr/th/en/nl)
-  - [x] Hover scale 110% + transition smooth
-  - [ ] ⚠️ Intégration next-intl routing (Phase 6 - futur)
-- [x] 🔥🔥 **Header navigation simplifié** : ✅
-  - [x] Centré avec gap-8
-  - [x] Liens : Événements, À Propos, Actualités
-  - [x] Liens auth conditionnels : Mon Profil, Suivi (si isAuthenticated)
-  - [x] Couleurs : text-white/90 hover:text-thai-orange
-  - [x] Backdrop blur minimal : from-black/5 backdrop-blur-[2px]
-  - [x] Smooth scroll vers sections navigation cards
-- [x] 🔥🔥 **Bouton Installer l'App** : ✅
-  - [x] Position : bottom-4 right-4 (bas droite)
-  - [x] Design : bg-white/10 backdrop-blur-sm border-2 border-white
-  - [x] Hook usePWAInstalled pour détecter installation
-  - [x] Texte conditionnel : "Application Installée" vs "Installer l'App"
-- [x] 🔥 **Footer enrichi** : ✅
-  - [x] **10 icônes réseaux sociaux avec effet dock magnification** (macOS style)
-    - Facebook, Instagram, WhatsApp, TikTok, YouTube, Google Maps, Email, Phone, Messenger, X
-    - Framer Motion : useSpring physics (mass 0.1, stiffness 150, damping 12)
-    - Magnification : 40px → 60px based on mouse distance (150px range)
-    - GPU-accelerated transforms (will-change: width)
-  - [x] **Email professionnel** : contact@cthaicook.com (ImprovMX gratuit)
-  - [x] **Layout centré** : Navigation en haut + icônes dock en dessous (justify-center)
-  - [x] **Suppression logo et texte "ChanthanaThaiCook"** du footer (20 lignes supprimées)
-  - [x] Composant RestaurantFooter créé (components/Footer/)
-  - [x] Horaires d'ouverture détaillés avec jour de fermeture
-  - [x] Contact : téléphone, email, adresse avec liens directs
-  - [x] Navigation complète (3 sections : Navigation, Légal, Support)
-  - [x] Moyens de paiement affichés
-  - [x] CTA sticky mobile (Appeler + Localiser)
-  - [x] Design cohérent avec palette thaï (vert, orange)
-  - [x] Intégré dans app/layout.tsx
-  - ⚠️ **À personnaliser** : Téléphone, adresse, horaires réels, URLs réseaux sociaux (TikTok, YouTube, X en placeholder)
-- [x] 🔥 **Animations entrance** : Hero fade-in, cards stagger animation ✅
-  - [x] Card navigation : Framer Motion scroll animations + slide-in
-  - [x] Navigation cards : Stagger 150ms (via animationDelay CSS)
-- [x] 🔥🔥 **QuickNav - Navigation rapide entre Hero et Cards** : ✅
-  - [x] Composant `QuickNav.tsx` créé (145 lignes)
-  - [x] Position : sticky top-0 z-30 entre HeroCarousel et NavigationCards
-  - [x] **Animation vague séquentielle automatique** :
-    - Animation continue toutes les 800ms (chaque lien vert → orange → vert)
-    - Pause automatique au survol de la navigation
-    - Reprise automatique quand la souris quitte
-  - [x] **Interaction clic** :
-    - Vague s'arrête, seul le lien cliqué reste orange 3 secondes
-    - Appel global `window.highlightCard()` pour déclencher effet sur card
-    - Reprise animation vague après 3 secondes
-  - [x] **Liens dynamiques** : NAV_LINKS_GUEST vs NAV_LINKS_AUTH
-    - Visiteur : Commander, Installer App, Événements, Nous trouver, Découvertes, À propos (6 liens)
-    - Authentifié : + Mon Profil, Suivi (8 liens)
-  - [x] **Liens vers cards** : Anchors `#card-*` avec scroll smooth + highlight
-  - [x] **Couleurs thaï** : Vert #2d5016 par défaut, Orange #ff7b54 au hover/actif
-  - [x] **Framer Motion** : Transitions color 0.6s ease-in-out
-  - [x] **Focus styles supprimés** : .quick-nav exclusions dans globals.css
-  - [x] **États gérés** : isPaused, isClicked, clickedIndex, activeWaveIndex
+- [x] **Sélecteur de langue** : Drapeaux waving (fr/th/en/nl)
+- [x] **Header navigation** : Liens centrés, smooth scroll
+- [x] **Bouton Installer l'App** : Bas droite Hero
+- [x] **Footer enrichi** : Icônes dock magnification
+- [x] **Animations entrance** : Fade-in, stagger cards
+
+#### 🚫 Suppressions Confirmées
+
+- [x] Page `/suivi` : N'existe pas (navigation vers /historique)
+- [x] Section témoignages : N'existe pas
+- [x] Promotions/fidélité : N'existe pas
+
+#### 💜 Suggestions Futures
+
+- [ ] Animation Lottie Chanthana wai au chargement
+- [ ] Parallax léger sur Hero
+- [ ] Indicateur chargement Chanthana cuisine
+- [ ] Bulle info contextuelle nouveaux visiteurs
+
+#### 🔧 Spécifications Techniques
+
+**Hero Carousel :**
+
+- [x] Embla Carousel + Autoplay
+- [x] Auto-play 7s, pause au hover/swipe
+- [x] Dots navigation discrets
+- [x] Overlay gradient tiers inférieur
+- [ ] Badge "Nouveau !" sur Mon Profil (logique date à implémenter)
+
+**Navigation Cards :**
+
+- [x] 8 cartes (6 visiteur + 2 auth)
+- [x] Mobile : Slider horizontal snap-x
+- [x] Desktop : Grid 4 colonnes
+- [x] Effet Tilt 3D au hover
+- [x] Card highlighting glow 3s
+- [x] Photo client depuis `photo_client`
+
+---
 
 #### 🎨 Icônes Réseaux Sociaux Personnalisées
 
@@ -1057,167 +926,153 @@ npm run test:e2e
 
 ### 🛒 B. Page Commander (/commander)
 
-**Migration** : `20251111183339_add_plat_features`
+**Page principale** : `app/commander/page.tsx` (1430 lignes)
 
-- [x] ✅ Ajout champs `plats_db` :
-  - `est_vegetarien` (Boolean, default: false) + index
-  - `niveau_epice` (Int 0-3, default: 0) + index
-  - `categorie` (String VARCHAR(100)) + index
-- [x] ✅ Table `restaurant_settings` : Gestion configuration restaurant
-  - `plat_vedette_id` : ID du plat mis en avant cette semaine
+#### 🏗️ Structure et Layout
 
-**Server Actions** : `app/actions/restaurant-settings.ts` (241 lignes)
+- [x] **Layout 2 colonnes** : Menu principal (gauche) + Plat vedette/Panier (droite)
+- [x] **Header contextuel** :
+  - Bouton "← Retour Accueil"
+  - Bouton "Mes Commandes Passées" (icône history, lien /historique)
+  - Icône cloche notification (badge compteur)
+  - Avatar Chanthana animé en haut à droite
+- [x] **Section titre** :
+  - Illustration Chanthana chef
+  - Titre "Pour Commander"
+  - Sous-titre horaires : "Horaire : Lundi, Mercredi, Vendredi, Samedi de 18h00 à 20h30"
+  - Lien "Voir nos prochains événements" (calendrier)
+- [x] **Footer complet** : Navigation, icônes réseaux sociaux, contact
 
-- [x] ✅ `setFeaturedDish(plat_id)` : Définir/retirer plat vedette + validation jours disponibles
-- [x] ✅ `getFeaturedDish()` : Récupération plat vedette avec jours disponibles calculés
-- [x] ✅ `isFeaturedDish(platId)` : Vérifier si plat est vedette actuel
+#### 🔍 Recherche et Filtres
 
-**Zod Schemas** : `lib/validations.ts`
+- [x] **Barre de recherche** :
+  - Input avec placeholder "Ex: Pad Thaï, Curry, Nems..."
+  - Icône loupe
+  - Filtrage dynamique en temps réel (case-insensitive)
+- [x] **Sélecteur de jour** :
+  - 7 boutons horizontaux (Lundi → Dimanche)
+  - Style : Boutons orange avec hover effect
+  - Texte : "Ou choisissez un jour pour voir le menu"
+  - Met à jour la liste des plats disponibles
 
-- [x] ✅ `platSchema` étendu : `est_vegetarien`, `niveau_epice` (0-3), `categorie` (enum)
-- [x] ✅ `platVedetteSchema` : Validation plat_id nullable
-- [x] ✅ `restaurantSettingSchema` : Validation settings key-value
+#### 📅 Sélection Date/Heure de Retrait
 
-**Types** : `types/app.ts`
+- [x] **Apparaît après sélection jour** :
+  - Dropdown "Date de retrait \*" : 8 prochaines dates calculées
+  - Dropdown "Heure de retrait \*" : 18h00-20h30 (pas 5 min)
+- [x] **Workflow 3 étapes** : Jour → Date → Heure
+- [x] **Auto-sélection** depuis dernier article panier
 
-- [x] ✅ `PlatPanier` étendu : Champ `demandeSpeciale` pour préférences épices
+#### ⭐ Section Plat Vedette (FeaturedDish)
 
-#### 🔥🔥 Améliorations Complétées
+- [x] **Composant** : `components/commander/FeaturedDishSection.tsx` (165 lignes)
+- [x] **Position** : Sidebar droite, au-dessus du panier
+- [x] **Design Polaroid** :
+  - Badge étoile ⭐ gold en haut à gauche
+  - Image plat grande
+  - Titre + prix (badge)
+  - Description scrollable
+- [x] **Jours disponibles** : Badges avec highlight gold si jour courant
+- [x] **Comportement clic** : Scroll vers sélecteur jours
+- [x] **Bouton** : "Au menu cette semaine !"
 
-- [x] 🔥🔥 **nuqs - Filtres menu** : URL state pour catégorie ✅ (line 29: useQueryState)
-  - Extension: Ajouter recherche, épicé, végétarien (Phase 2)
+#### 🍱 Grille des Plats
 
-- [x] ✅ **Badges spéciaux plats** : Icônes végétarien, épicé
-  - Implémentation : `app/commander/page.tsx` lignes 683-697
-  - Badge végétarien : 🌱 vert si `est_vegetarien = true`
-  - Badge épicé : 🔥 rouge répété selon `niveau_epice` (1-3)
-  - Style : `Badge variant="outline"` avec couleurs custom
-  - ⚠️ **Configuration requise** : Définir valeurs dans Prisma Studio pour affichage
+- [x] **Layout** : Grid responsive (1-3 colonnes selon breakpoint)
+- [x] **Cartes plats** :
+  - Image avec overlay gradient
+  - Badge "Disponible" (vert)
+  - Titre + description (truncated)
+  - Prix formaté (ex: 12,90€)
+  - Bouton "Ajouter" (+ icône)
+- [x] **Badges régime/goût** :
+  - 🌱 "Végétarien" (vert)
+  - 🌶️ "Peut être épicé" (orange/rouge)
+- [x] **Hover effects** : Scale, shadow, brightness
 
-- [x] ✅ **Sélecteur Niveau Épicé** : Choix 0-3 piments dans modal plat
-  - Composant principal : `components/shared/Spice.tsx` (266 lignes)
-  - Intégration : `components/shared/CommandePlatModal.tsx` lignes 271-282
-  - Design : Cercles gradient avec Lucide `Flame` + `Leaf` icons
-  - Niveaux : 🍃 Non épicé | 🔥 Un peu épicé | 🔥🔥 Épicé | 🔥🔥🔥 Très épicé (Piment Thaï)
-  - Gradient couleurs : vert (green-400→600) → jaune (yellow-400→orange-500) → orange (orange-400→red-500) → rouge (red-500→700)
-  - Distribution système : `spiceDistribution: number[]` = [nonÉpicé, peuÉpicé, épicé, trèsÉpicé]
-  - Helper function : `lib/spice-helpers.ts` → `getDistributionText()` génère texte formaté
-  - Storage : Props `spicePreference` + `spiceDistribution` dans `onAddToCart`
-  - Toast avertissement : Si niveau 3 (Piment Thaï) sélectionné → `toastVideo()` warning (lignes 89-118)
-  - Affichage conditionnel : Seulement si `plat.niveau_epice > 0` (ligne 272)
-  - Animations : Framer Motion `whileHover`, `whileTap`, badges count avec scale animation
-  - Props Spice : `distribution`, `onDistributionChange`, `readOnly`, `showBackground`, `hideZeros`
-  - ⚠️ **Configuration requise** : Définir `niveau_epice` (0-3) dans Prisma Studio ou admin plats
+#### 🔥 Modal Commande Plat
 
-- [x] ✅ **Section "Cette semaine au menu"** : Plat vedette avec Chanthana + Polaroid
-  - Composant : `components/commander/FeaturedDishSection.tsx` (172 lignes)
-  - API Route : `app/api/featured-dish/route.ts` (force-dynamic)
-  - Position : Entre header et filtres menu (ligne 463 commander/page.tsx)
-  - Layout responsive :
-    - Vidéo Chanthana : `platsemaine.mp4` (1.81 MB, 720x720, 1:1, 3s loop)
-    - Bulle dialogue animée : "Cette semaine au menu !" (bounce animation)
-    - Polaroid plat : Style cards actuelles + étoile ⭐ gold top-left
-  - Badges jours : Highlight gold sur jours où plat vedette disponible
-  - Comportement clic : Scroll smooth vers section jours via `handleScrollToDays()`
-  - Admin : Bouton "⭐ Vedette" dans `/admin/plats` lignes 1389-1403
-  - Bouton toggle : Gold rempli si vedette, outline sinon
-  - Asset vidéo : Prompt générateur dans `public/videogif/promptvideoVEO.md`
-  - ⚠️ **Configuration requise** : Cliquer bouton "⭐ Vedette" sur un plat dans admin
+- [x] **Composant** : `components/shared/CommandePlatModal.tsx` (640 lignes)
+- [x] **Ouverture** : Clic sur carte plat
+- [x] **Contenu** :
+  - Image plat grande avec effet 3D tilt (`Floating3DCard`)
+  - Titre + description complète
+  - Prix unitaire
+- [x] **Sélecteur quantité** : Boutons +/- avec compteur central
+- [x] **SmartSpice Selector** (si plat épicé) :
+  - 4 niveaux : 🍃 Non épicé | 🔥 Un peu | 🔥🔥 Épicé | 🔥🔥🔥 Très épicé
+  - Icônes feuille/piment avec badges numériques
+  - Gradient couleurs (vert → rouge)
+- [x] **Rappel date retrait** : Affiché avant validation
+- [x] **Bouton** : "Ajouter au panier" (prix total)
+- [x] **Haptic feedback** : Vibration au clic (mobile)
 
-- [x] ✅ **Modal Remerciement Polaroid** : Après validation commande
-  - Composant : `components/commander/PolaroidThankYouModal.tsx` (146 lignes)
-  - Style : Photo Polaroid avec bordure blanche 8px + rotation hover
-  - Illustration : Chanthana chef 👩‍🍳 + sawadee 🙏 avec animations
-  - Message : "Khop khun kha ! 🙏 Merci pour votre commande"
-  - Éléments décoratifs : Cœurs animés + sparkles ✨
-  - Progress bar : Barre animée gradient orange-gold
-  - Auto-fermeture : 5s (configurable via `autoCloseDelay`)
-  - Redirect : `/historique` (configurable via `redirectTo`)
-  - Accessibilité : aria-describedby + sr-only title/description
-  - Intégration : `commander/page.tsx` ligne 358 (remplace toast)
-  - Props : `isOpen`, `onClose`, `autoCloseDelay?`, `redirectTo?`
-  - Animations : zoom-in-95, pulse, bounce, ping (Tailwind)
+#### 🛒 Sidebar Panier
 
-- [x] ✅ **Recherche plats en temps réel** : Filtrage case-insensitive par nom
-  - Implémentation : `commander/page.tsx` lignes 190-196
-  - Affichage jours disponibilité dans résultats
-  - Quick-select jour depuis résultat recherche
+- [x] **Apparition** : Dès premier article ajouté
+- [x] **CartItemCard** (`components/shared/CartItemCard.tsx` 443 lignes) :
+  - Miniature image
+  - Badge quantité superposé sur image
+  - Nom plat + prix unitaire
+  - Icône niveau épice choisi
+  - Boutons +/- quantité
+  - Bouton suppression (poubelle rouge)
+  - Swipe-to-delete (mobile)
+- [x] **SmartSpice dans panier** : Modification distribution épices
+- [x] **Zone "Demandes spéciales"** : Textarea pour instructions
+- [x] **Informations** :
+  - "Paiement sur place uniquement"
+  - Adresse de retrait
+- [x] **Bouton validation** : Prix total dynamique (ex: "Valider (25,80 €)")
+- [x] **Groupage par date** : Articles groupés visuellement si dates différentes
 
-- [x] ✅ **Sélection Jour/Date/Heure complet** : Workflow 3 étapes
-  - Jours ouverture dynamiques selon disponibilité plats (lignes 253-281)
-  - 8 prochaines dates calculées pour jour sélectionné
-  - Heures: 18h00 - 20h30 (pas de 5 min)
-  - Auto-sélection depuis dernier article panier
+#### 🎉 Animations et Feedbacks
 
-- [x] ✅ **Groupage panier par date retrait** : Organisation automatique
-  - Articles groupés visuellement par date (lignes 432-484)
-  - Création commande séparée par date
+- [x] **Toast ajout panier** :
+  - Illustration Chanthana
+  - Message "Plat ajouté !"
+  - Animation slide-in
+- [x] **Badge notification** : Compteur sur icône panier header
+- [x] **Transitions fluides** : Modals, sidebar, hovers
+- [x] **Toast vidéo** : `toastVideo()` avec MP4 pour certaines actions
 
-- [x] ✅ **Toast vidéo ajout panier** : Feedback animé MP4
-  - Animation: `ajoutpaniernote.mp4` (lignes 378-402)
-  - TypingAnimation pour texte coloré
-  - Style Polaroid avec progress bar
+#### 📦 Composants Techniques
 
-- [x] ✅ **Persistence panier localStorage** : Sauvegarde automatique
-  - CartContext avec JSON serialization (lignes 31-61)
-  - Reconversion dates ISO au chargement
-  - UniqueId par article pour gestion fine
+##### `components/shared/Spice.tsx` (312 lignes)
 
-- [x] ✅ **Intégration Better Auth** : Authentification complète
-  - useSession() pour vérification connexion (lignes 103-117)
-  - getClientProfile() pour mapping User.id → client_db
-  - Validation profil avant commande
+- [x] Sélecteur 4 niveaux épicé interactif
+- [x] `SPICE_LEVELS` config avec labels, icônes, couleurs
+- [x] Toast vidéo avertissement si niveau 3
+- [x] Props : `distribution`, `onDistributionChange`, `readOnly`, `showBackground`, `hideZeros`
+- [x] Tooltips explicatifs par niveau
 
-- [x] ✅ **Layout responsive 3 breakpoints** : Mobile/Tablet/Desktop
-  - Mobile: 1 colonne, FeaturedDish compact
-  - Tablet: 2 colonnes, sélecteurs côte à côte
-  - Desktop: Layout 3fr_2fr, Polaroid sticky sidebar (lignes 555-560)
+##### `components/shared/SmartSpice.tsx` (128 lignes)
 
-- [x] ✅ **Distribution épicée SmartSpice** : Gestion multi-portions
-  - 4 niveaux: Non épicé → Piment Thai
-  - Répartition intelligente sur plusieurs portions
-  - Indicateurs visuels couleur + warning niveau max
-  - Composants: `SmartSpice.tsx` (124 lignes) + `Spice.tsx` (266 lignes)
+- [x] Wrapper intelligent autour de `Spice`
+- [x] Bascule automatique lecture seule ↔ interactif
+- [x] Redistribution automatique au changement quantité
+- [x] Logique ajout : nouvelles portions = Non épicé (niveau 0)
 
-- [x] ✅ **Avatar Chanthana animé** : Composant `ChanthanaAvatar.tsx` (84 lignes)
-  - Animations Framer Motion (idle/happy)
-  - Support messages dynamiques + réactions
-  - Responsive mobile/desktop
+#### 📦 Base de Données
 
-#### 🔥 Tâches Restantes
+- [x] Champs `plats_db` : `est_vegetarien`, `niveau_epice` (0-3), `categorie`
+- [x] Table `restaurant_settings` : `plat_vedette_id`
+- [x] Server Actions : `setFeaturedDish()`, `getFeaturedDish()`, `isFeaturedDish()`
 
-- [x] ✅ **Icône panier visuelle** : DÉJÀ IMPLÉMENTÉ
-  - ✅ Import ShoppingCart de lucide-react (ligne 26)
-  - ✅ Header section avec icône 7x7 px (ligne 579)
-  - ✅ Cart sidebar avec badge quantité (ligne 925)
-  - ✅ Badge numérique superposé fonctionnel
+#### 📱 Mobile UX
 
-- [x] 🔥 **Mobile UX - Bottom navigation** : ✅ COMPLÉTÉ
-  - ✅ **5 Onglets fixes** : Accueil, Menu, Panier, Contact/Historique, Profil
-  - ✅ **Barre Panier Intelligente** : Résumé (Total articles + Prix) clickable au-dessus de la nav
-  - ✅ **UX Moderne** : Suppression sidebar sur mobile, navigation pouce facile
-  - ✅ **Optimisation** : Suppression doublon `BottomNav` dans layout
+- [x] **MobileNav.tsx** : Bottom navigation 5 onglets
+- [x] **Barre Panier intelligente** : Résumé total + prix au-dessus nav
+- [x] **Layout 1 colonne** : Menu empilé verticalement
+- [x] **Sidebar cachée** : Remplacée par bottom nav
 
-- [x] ✅ **Avatar Chanthana animations** : COMPLÉTÉ
-  - ✅ Fichier: `components/commander/ChanthanaAvatar.tsx` (84 lignes)
-  - ✅ Animations idle/happy avec Framer Motion
-  - ✅ Bulle de dialogue personnalisable
-  - ✅ Position responsive mobile/desktop
+#### 💜 Suggestions Futures
 
-- [x] ✅ **Animation ajout panier** : COMPLÉTÉ (Toast vidéo)
-  - ✅ Toast vidéo avec MP4 `ajoutpaniernote.mp4` (lignes 378-402)
-  - ✅ TypingAnimation pour texte coloré
-  - ✅ Style Polaroid avec progress bar
-
-#### 💜 Suggestions Pratiques
-
-- [ ] 💜 **Chanthana guide interactif** : Animation Chanthana qui pointe vers les plats du jour ou les nouveautés
-- [ ] 💜 **Animation "vol" ajout panier** : Effet image du plat qui vole vers l'icône panier (Framer Motion layoutId)
-- [ ] 💜 **Skeleton loading plats** : Squelettes animés pendant chargement (meilleure UX que spinner)
-- [ ] 💜 **Bottom sheet panier mobile** : Remplacer sidebar par bottom sheet glissant sur mobile
-- [ ] 💜 **Chanthana réactions contextuelles** : Animations différentes selon action (ajout=sourire, suppression=triste)
-- [ ] 💜 **Haptic feedback mobile** : Vibration légère au clic sur boutons (`navigator.vibrate` - gratuit, natif)
-- [ ] 💜 **Raccourci "Ma dernière commande"** : Bouton rapide pour recommander les mêmes plats que la dernière fois
+- [ ] Animation "vol" ajout panier (Framer Motion layoutId)
+- [ ] Skeleton loading plats
+- [ ] Bottom sheet panier mobile (remplacer sidebar)
+- [ ] Haptic feedback étendu
+- [ ] Raccourci "Ma dernière commande"
 
 ### 🛍️ C. Page Panier (/panier)
 
