@@ -186,12 +186,12 @@ export default function NousTrouverPage() {
             </div>
           </Card>
 
-          {/* BLOC 2 : ACTION (Horaires + Contact Enrichi) */}
-          <Card className="border-thai-orange/20 animate-fade-in mb-4 overflow-hidden rounded-none border-x-0 shadow-sm sm:mb-6 sm:rounded-xl sm:border-x sm:shadow-xl">
-            <div className="grid grid-cols-1 divide-y divide-gray-100 lg:grid-cols-2 lg:divide-x lg:divide-y-0">
-              {/* Colonne Gauche : Horaires */}
-              <div className="flex flex-col justify-center p-6">
-                <div className="mx-auto max-w-lg text-center md:text-left">
+          {/* BLOC 2 : ACTION (Séparé en 2 Cartes) */}
+          <div className="mb-4 grid grid-cols-1 gap-4 sm:mb-6 sm:gap-6 lg:grid-cols-2">
+            {/* Carte Horaires */}
+            <Card className="border-thai-orange/20 animate-fade-in overflow-hidden rounded-none border-x-0 shadow-sm sm:rounded-xl sm:border-x sm:shadow-xl">
+              <CardContent className="flex h-full flex-col justify-center p-6">
+                <div className="mx-auto w-full max-w-lg text-center md:text-left">
                   <div className="mb-6 flex items-center justify-center md:justify-start">
                     <VideoModalTrigger
                       imageSrc="/media/statut/enattentedeconfirmation/enattentedeconfirmation.svg"
@@ -224,10 +224,12 @@ export default function NousTrouverPage() {
                     </div>
                   </div>
                 </div>
-              </div>
+              </CardContent>
+            </Card>
 
-              {/* Colonne Droite : Contact Direct Enrichi */}
-              <div className="flex flex-col justify-center p-6">
+            {/* Carte Contact */}
+            <Card className="border-thai-orange/20 animate-fade-in overflow-hidden rounded-none border-x-0 shadow-sm sm:rounded-xl sm:border-x sm:shadow-xl">
+              <CardContent className="flex h-full flex-col justify-center p-6">
                 <h3 className="text-thai-green mb-6 text-center text-xl font-semibold md:text-left">
                   💬 Contactez-nous
                 </h3>
@@ -259,7 +261,7 @@ export default function NousTrouverPage() {
                     </svg>
                     <div className="flex flex-col text-left">
                       <span className="text-lg font-semibold">WhatsApp</span>
-                      <span className="text-sm opacity-90">07 49 28 37 07</span>
+                      <span className="text-xs opacity-90">07 49 28 37 07</span>
                     </div>
                     <ExternalLink className="ml-auto h-5 w-5 opacity-70" />
                   </Button>
@@ -277,9 +279,9 @@ export default function NousTrouverPage() {
                     <ExternalLink className="ml-auto h-5 w-5 opacity-70" />
                   </Button>
                 </div>
-              </div>
-            </div>
-          </Card>
+              </CardContent>
+            </Card>
+          </div>
 
           {/* Bouton Commander Mobile */}
           <div className="flex justify-center pt-4 pb-8 sm:hidden">
