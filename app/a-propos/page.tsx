@@ -1,18 +1,28 @@
-﻿import { AppLayout } from "@/components/layout/AppLayout"
-import AProposButtons from "@/components/shared/AProposButtons"
+﻿"use client"
+
+import { AppLayout } from "@/components/layout/AppLayout"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Award, Calendar, Heart, Home, Star, Users, Utensils } from "lucide-react"
-import { Metadata } from "next"
+import { motion, PanInfo } from "framer-motion"
+import { ArrowLeft, Award, Calendar, Heart, ShoppingBag, Star, Users, Utensils } from "lucide-react"
 import Link from "next/link"
-
-export const metadata: Metadata = {
-  title: "À Propos - ChanthanaThaiCook",
-  description:
-    "Découvrez l'histoire de ChanthanaThaiCook, notre passion pour la cuisine thaïlandaise authentique et notre engagement envers l'excellence culinaire.",
-}
+import { useRouter } from "next/navigation"
 
 export default function AProposPage() {
+  const router = useRouter()
+
+  // Navigation par swipe (mobile uniquement)
+  // Swipe Gauche (<--) -> Accueil | Swipe Droite (-->) -> Commander
+  const onDragEnd = (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+    const swipeThreshold = 80
+    if (info.offset.x < -swipeThreshold) {
+      // Swipe Gauche
+      router.push("/")
+    } else if (info.offset.x > swipeThreshold) {
+      // Swipe Droite
+      router.push("/commander")
+    }
+  }
   const features = [
     {
       title: "Cuisine Authentique",
@@ -45,25 +55,31 @@ export default function AProposPage() {
   ]
   return (
     <AppLayout>
-      <div className="bg-gradient-thai min-h-screen px-4 py-8">
-        <div className="container mx-auto max-w-4xl">
-          {/* Bouton retour optimisé - même style que les autres pages */}
-          <div className="mb-6 flex justify-start">
+      <motion.div
+        className="bg-gradient-thai min-h-screen px-0 py-4 sm:px-4 sm:py-8"
+        drag="x"
+        dragConstraints={{ left: 0, right: 0 }}
+        dragElastic={0.1}
+        onDragEnd={onDragEnd}
+      >
+        <div className="mx-auto w-full max-w-4xl px-0 sm:px-4">
+          {/* Bouton retour - masqué sur mobile, style /nous-trouver */}
+          <div className="mb-6 hidden justify-start sm:flex">
             <Link href="/" passHref>
               <Button
                 variant="outline"
                 size="sm"
-                className="border-thai-orange/20 hover:border-thai-orange/40 text-thai-green hover:text-thai-green group rounded-full bg-white/90 px-4 py-2 shadow-md backdrop-blur-sm transition-all duration-200 hover:bg-white hover:shadow-lg"
+                className="border-thai-green/50 text-thai-green hover:bg-thai-green/10 hover:text-thai-green hover:border-thai-green group inline-flex items-center justify-center rounded-full bg-white px-6 py-2 text-base font-bold shadow-sm transition-all hover:scale-105"
               >
-                <Home className="mr-2 h-4 w-4 transition-transform duration-200 group-hover:scale-110" />
-                <span className="hidden sm:inline">Retour à l'accueil</span>
-                <span className="sm:hidden">Accueil</span>
+                <ArrowLeft className="mr-2 h-4 w-4 transition-transform duration-200 group-hover:-translate-x-1" />
+                Retour Accueil
               </Button>
             </Link>
           </div>
           {/* Header optimisé avec animations */}
           <div className="animate-fade-in mb-12 text-center">
             <div className="relative mb-6">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/logo.ico"
                 alt="Chanthana Thai Cook Logo"
@@ -82,29 +98,13 @@ export default function AProposPage() {
               Des saveurs traditionnelles préparées avec passion pour éveiller vos sens et vous
               transporter au cœur de la Thaïlande.
             </p>
-
-            {/* Social Media Buttons améliorés */}
-            <AProposButtons />
-          </div>
-
-          {/* Statistiques impressionnantes */}
-          <div className="mb-12 grid grid-cols-2 gap-4 md:grid-cols-4">
-            <div className="border-thai-orange/20 rounded-xl border bg-white/80 p-4 text-center shadow-md backdrop-blur-sm transition-all duration-200 hover:shadow-lg">
-              <div className="text-thai-orange mb-1 text-2xl font-bold md:text-3xl">20+</div>
-              <div className="text-thai-green/70 text-sm">Années d'expérience</div>
-            </div>
-            <div className="border-thai-orange/20 rounded-xl border bg-white/80 p-4 text-center shadow-md backdrop-blur-sm transition-all duration-200 hover:shadow-lg">
-              <div className="text-thai-orange mb-1 text-2xl font-bold md:text-3xl">100%</div>
-              <div className="text-thai-green/70 text-sm">Authentique</div>
-            </div>
-            <div className="border-thai-orange/20 rounded-xl border bg-white/80 p-4 text-center shadow-md backdrop-blur-sm transition-all duration-200 hover:shadow-lg">
-              <div className="text-thai-orange mb-1 text-2xl font-bold md:text-3xl">500+</div>
-              <div className="text-thai-green/70 text-sm">Clients satisfaits</div>
-            </div>
-            <div className="border-thai-orange/20 rounded-xl border bg-white/80 p-4 text-center shadow-md backdrop-blur-sm transition-all duration-200 hover:shadow-lg">
-              <div className="text-thai-orange mb-1 text-2xl font-bold md:text-3xl">4.9⭐</div>
-              <div className="text-thai-green/70 text-sm">Note moyenne</div>
-            </div>
+            {/* CTA Commander */}
+            <Link href="/commander">
+              <Button className="bg-thai-orange hover:bg-thai-orange/90 rounded-full px-8 py-3 text-lg font-bold text-white shadow-lg transition-all hover:scale-105 hover:shadow-xl">
+                <ShoppingBag className="mr-2 h-5 w-5" />
+                Commander
+              </Button>
+            </Link>
           </div>
 
           {/* Pourquoi Choisir ChanthanaThaiCook */}
@@ -212,7 +212,10 @@ export default function AProposPage() {
                   </div>
                   <div className="order-1 flex justify-center md:order-2">
                     <div className="group relative">
-                      <div className="from-thai-orange to-thai-gold absolute -inset-4 rounded-full bg-linear-to-r opacity-20 transition-opacity duration-300 group-hover:opacity-30"></div>
+                      {/* Glow Pulse - respiration du halo */}
+                      <div className="from-thai-orange to-thai-gold absolute -inset-4 animate-[glowPulse_3s_ease-in-out_infinite] rounded-full bg-linear-to-r blur-sm" />
+                      {/* Image avec effet hover */}
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src="/chanthana.svg"
                         alt="Chanthana en cuisine"
@@ -290,7 +293,7 @@ export default function AProposPage() {
             </div>
           </Card>
         </div>
-      </div>
+      </motion.div>
     </AppLayout>
   )
 }

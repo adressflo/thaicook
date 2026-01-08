@@ -1567,6 +1567,29 @@ npm run test:e2e
 - [x] ✅ **Icônes custom** : MessengerIcon, WhatsAppIcon, EmailIcon
 - [x] ✅ **Icônes Lucide** : MapPin, Navigation, Phone, ArrowLeft, ShoppingBag, etc.
 
+### 👤 N. Page À Propos (/a-propos)
+
+**Fichier** : `app/a-propos/page.tsx` - **PAGE COMPLÈTE**
+
+#### ✅ Structure & Design
+
+- [x] ✅ **Client Component** : conversion `"use client"` pour animations/swipe
+- [x] ✅ **Header Modernisé** : Logo + Tagline + CTA "Commander" (Orange)
+- [x] ✅ **Animation Chanthana** : Photo avec halo "Glow Pulse" et effet stable (plus de float)
+- [x] ✅ **Contenu Simplifié** : Suppression des stats inutiles, focus sur l'histoire (Depuis 2002)
+
+#### ✅ Navigation Swipe (Mobile)
+
+- [x] ✅ **Swipe Gauche (<--)** : Redirection vers **Accueil** `/`
+- [x] ✅ **Swipe Droite (-->)** : Redirection vers **Commander** `/commander`
+- [x] ✅ **Technologie** : `framer-motion` (drag="x", constraints, threshold 80px)
+
+#### ✅ Composants & Fixes
+
+- [x] ✅ **Bouton Retour** : Style unifié avec `/nous-trouver` (Green Pill + ArrowLeft)
+- [x] ✅ **Warning Images** : Gestion `eslint-disable` pour `<img>` vs `next/image`
+- [x] ✅ **CSS Animations** : Keyframes `glowPulse` ajoutées dans `globals.css`
+
 ---
 
 ## 🛠️ Phase 3 : Interface Admin & Workflows (🔥🔥 MOYENNE)
