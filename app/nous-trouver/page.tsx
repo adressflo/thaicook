@@ -154,9 +154,6 @@ export default function NousTrouverPage() {
 
               {/* Barre d'Actions (Itinéraires + Téléphone) */}
               <div className="border-t border-gray-100 bg-gray-50/50 p-6">
-                <h3 className="text-thai-green mb-4 text-center text-lg font-semibold">
-                  � Actions rapides
-                </h3>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
                   {/* Google Maps */}
                   <Button
