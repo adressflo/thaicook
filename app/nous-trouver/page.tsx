@@ -7,6 +7,7 @@ import { AppLayout } from "@/components/layout/AppLayout"
 import { VideoModalTrigger } from "@/components/shared/VideoModalTrigger"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { motion, PanInfo } from "framer-motion"
 import {
   AlertCircle,
   ArrowLeft,
@@ -18,13 +19,26 @@ import {
   ShoppingBag,
 } from "lucide-react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { useState } from "react"
 
 export const dynamic = "force-dynamic"
 
 export default function NousTrouverPage() {
+  const router = useRouter()
   const [mapLoading, setMapLoading] = useState(true)
   const [mapError, setMapError] = useState(false)
+
+  // Navigation par swipe (mobile uniquement)
+  // Swipe droite → Accueil | Swipe gauche → Commander
+  const onDragEnd = (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+    const swipeThreshold = 80
+    if (info.offset.x > swipeThreshold) {
+      router.push("/")
+    } else if (info.offset.x < -swipeThreshold) {
+      router.push("/commander")
+    }
+  }
 
   const address = "2 impasse de la poste, 37120 Marigny-Marmande, France"
   const encodedAddress = encodeURIComponent(address)
@@ -50,7 +64,13 @@ export default function NousTrouverPage() {
 
   return (
     <AppLayout>
-      <div className="bg-gradient-thai min-h-screen w-full pt-2 pb-4 sm:py-8">
+      <motion.div
+        className="bg-gradient-thai min-h-screen w-full pt-2 pb-4 sm:py-8"
+        drag="x"
+        dragConstraints={{ left: 0, right: 0 }}
+        dragElastic={0.1}
+        onDragEnd={onDragEnd}
+      >
         <div className="mx-auto w-full max-w-4xl sm:px-4">
           {/* Boutons navigation : Retour et Commander (Masqués sur mobile) */}
           <div className="mb-6 hidden items-center justify-between sm:flex">
@@ -192,26 +212,31 @@ export default function NousTrouverPage() {
             {/* Carte Horaires */}
             <Card className="border-thai-orange/20 animate-fade-in overflow-hidden rounded-none border-x-0 shadow-sm sm:rounded-xl sm:border-x sm:shadow-xl">
               <CardContent className="p-6 md:p-8">
-                <div className="flex flex-col items-center gap-6 md:flex-row md:items-start">
+                <div className="flex flex-col items-center gap-6 text-center">
+                  {/* Image cliquable */}
                   <VideoModalTrigger
                     imageSrc="/media/statut/enattentedeconfirmation/enattentedeconfirmation.svg"
                     videoSrc="/media/statut/enattentedeconfirmation/enattentemontre.mp4"
                     alt="Horaires"
                     title="Nos Horaires"
-                    imageClassName="h-20 w-32 rounded-lg"
+                    imageClassName="h-24 w-36 rounded-lg"
                   />
-                  <div className="flex-1 space-y-4 text-center md:text-left">
+
+                  {/* Infos horaires */}
+                  <div className="space-y-3">
                     <h3 className="text-thai-green text-2xl font-bold md:text-3xl">
                       Nos Horaires d'Ouverture
                     </h3>
-                    <div className="space-y-2">
-                      <p className="text-thai-green text-base font-medium">
-                        📅 Lundi • Mercredi • Vendredi • Samedi
-                      </p>
-                      <p className="text-thai-orange text-2xl font-bold">🕕 18h00 - 20h30</p>
-                      <p className="text-thai-green/70 text-sm">📝 Sur commande uniquement</p>
-                    </div>
+                    <p className="text-thai-green text-lg font-medium">
+                      📅 Lundi • Mercredi • Vendredi • Samedi
+                    </p>
+                    <p className="text-thai-orange text-3xl font-bold">🕕 18h00 - 20h30</p>
                   </div>
+
+                  {/* Message subtil */}
+                  <p className="text-thai-green/60 text-sm italic">
+                    Sur commande uniquement • Pensez à commander à l'avance 🙏
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -265,7 +290,7 @@ export default function NousTrouverPage() {
             </Link>
           </div>
         </div>
-      </div>
+      </motion.div>
     </AppLayout>
   )
 }

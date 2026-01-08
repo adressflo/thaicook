@@ -1514,32 +1514,58 @@ npm run test:e2e
 
 ### 📍 M. Page Nous Trouver (/nous-trouver)
 
-**Fichier** : `app/nous-trouver/page.tsx` (326 lignes) - **PAGE COMPLÈTE**
+**Fichier** : `app/nous-trouver/page.tsx` (297 lignes) - **PAGE COMPLÈTE**
 
-#### ✅ Fonctionnalités Existantes (Complètes)
+#### ✅ Structure & Layout
 
-- [x] ✅ **Carte Google Maps** : Iframe avec adresse complète
-- [x] ✅ **États carte** : Loading (spinner) + Error (fallback bouton)
-- [x] ✅ **Boutons itinéraires** : Google Maps + Waze avec liens directs
-- [x] ✅ **Coordonnées complètes** : Adresse, téléphone `tel:`, email `mailto:`
-- [x] ✅ **Contact direct** : Messenger + WhatsApp avec boutons stylés
-- [x] ✅ **Horaires d'ouverture** : Lun/Mer/Ven/Sam 18h00-20h30
-- [x] ✅ **Header gradient** : Orange → Gold avec MapPin icon
-- [x] ✅ **AppLayout wrapper** : Navigation cohérente
-- [x] ✅ **Bouton retour accueil** : Style cohérent avec autres pages
-- [x] ✅ **Responsive design** : Grid 1-2 colonnes selon breakpoint
-- [x] ✅ **Hover effects** : Animations subtiles sur les sections
+- [x] ✅ **AppLayout wrapper** : Navigation cohérente avec header/footer
+- [x] ✅ **Container responsive** : `max-w-4xl mx-auto` avec padding adaptatif
+- [x] ✅ **Boutons navigation desktop** : Retour Accueil + Commander (masqués mobile)
+- [x] ✅ **Bouton Commander mobile** : CTA flottant en bas de page (`sm:hidden`)
 
-#### 🔥 Tâches Restantes
+#### ✅ Bloc Localisation (Carte + Actions)
 
-- [ ] 🔥 **Clé API Google Maps** : Remplacer `VOTRE_CLE_API_GOOGLE_MAPS` par vraie clé
-- [ ] 🔥 **URL Facebook** : Remplacer `https://m.me/chanthanathaikok` par vraie page
+- [x] ✅ **Header avec VideoModalTrigger** : Image exploratrice cliquable + vidéo
+- [x] ✅ **Titre "Nous Trouver"** : Icône MapPin animée (bounce) + adresse complète
+- [x] ✅ **Carte Google Maps** : Iframe pleine largeur (`min-h-[400px]`)
+- [x] ✅ **États carte** : Loading (Loader2 spinner) + Error (fallback bouton externe)
+- [x] ✅ **Barre actions 3 boutons** : Google Maps (bleu) + Waze (cyan) + Appeler (orange)
+- [x] ✅ **Liens directs** : URLs encodées pour itinéraire (`navigate=yes` pour Waze)
 
-#### 💜 Suggestions Pratiques
+#### ✅ Bloc Horaires (Design Centré)
 
-- [ ] 💜 **Chanthana accueil** : Avatar Chanthana faisant le wai "Bienvenue !"
-- [ ] 💜 **Photo du restaurant** : Ajouter photo extérieur/intérieur du restaurant
-- [ ] 💜 **Parking info** : Indiquer possibilités de stationnement
+- [x] ✅ **VideoModalTrigger** : Image "en attente" cliquable avec vidéo
+- [x] ✅ **Titre "Nos Horaires d'Ouverture"** : Style `text-2xl md:text-3xl`
+- [x] ✅ **Jours ouverture** : 📅 Lundi • Mercredi • Vendredi • Samedi
+- [x] ✅ **Plage horaire** : 🕕 18h00 - 20h30 (style orange bold `text-3xl`)
+- [x] ✅ **Message subtil** : "Sur commande uniquement • Pensez à commander à l'avance 🙏" (italique)
+- [x] ✅ **Layout centré** : `flex flex-col items-center text-center`
+
+#### ✅ Bloc Contact
+
+- [x] ✅ **Titre "Contactez-nous"** : Avec emoji 💬
+- [x] ✅ **Grid 3 boutons** : Messenger + WhatsApp + Email
+- [x] ✅ **Messenger** : Lien `https://m.me/chanthanathaikok` avec icône custom
+- [x] ✅ **WhatsApp** : Lien `https://wa.me/33749283707` avec icône custom
+- [x] ✅ **Email** : Lien `mailto:chanthanacook@gmail.com` avec icône custom
+- [x] ✅ **Hover effects** : Scale + border color + shadow sur chaque bouton
+
+#### ✅ Navigation Swipe (Mobile)
+
+- [x] ✅ **Framer Motion** : `motion.div` avec `drag="x"` sur container principal
+- [x] ✅ **Swipe droite** : Navigation vers `/` (Accueil)
+- [x] ✅ **Swipe gauche** : Navigation vers `/commander`
+- [x] ✅ **Threshold 80px** : Évite déclenchements accidentels
+- [x] ✅ **dragElastic 0.1** : Effet élastique subtil
+- [x] ✅ **dragConstraints** : Limité à `{ left: 0, right: 0 }`
+
+#### ✅ Composants Utilisés
+
+- [x] ✅ **VideoModalTrigger** : 2 instances (header + horaires)
+- [x] ✅ **Card/CardContent/CardHeader** : Structure shadcn/ui
+- [x] ✅ **Button** : Composant UI pour actions
+- [x] ✅ **Icônes custom** : MessengerIcon, WhatsAppIcon, EmailIcon
+- [x] ✅ **Icônes Lucide** : MapPin, Navigation, Phone, ArrowLeft, ShoppingBag, etc.
 
 ---
 
