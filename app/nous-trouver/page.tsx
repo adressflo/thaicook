@@ -186,8 +186,8 @@ export default function NousTrouverPage() {
             </div>
           </Card>
 
-          {/* BLOC 2 : ACTION (Séparé en 2 Cartes) */}
-          <div className="mb-4 grid grid-cols-1 gap-4 sm:mb-6 sm:gap-6 lg:grid-cols-2">
+          {/* BLOC 2 : ACTION (Séparé en 2 Cartes, empilées verticalement) */}
+          <div className="mb-4 grid grid-cols-1 gap-4 sm:mb-6 sm:gap-6">
             {/* Carte Horaires */}
             <Card className="border-thai-orange/20 animate-fade-in overflow-hidden rounded-none border-x-0 shadow-sm sm:rounded-xl sm:border-x sm:shadow-xl">
               <CardContent className="flex h-full flex-col justify-center p-6">
