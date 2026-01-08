@@ -1076,78 +1076,72 @@ npm run test:e2e
 
 ### 🛍️ C. Page Panier (/panier)
 
-#### ✅ Améliorations Complétées
+**Page principale** : `app/panier/page.tsx` (693 lignes)
 
-- [x] ✅ **Photo Polaroid Header** : Composant réutilisable `PolaroidPhoto.tsx`
-  - Padding effet Polaroid authentique (10px/20px)
-  - Bordures Thai green + rotation hover 3°
-  - Caption et shadow effects
+#### 🏗️ Structure Visualisée (Screenshots)
 
-- [x] ✅ **Gestion panier complète** : CartContext + localStorage
-  - Fichier: `contexts/CartContext.tsx` (167 lignes)
-  - Ajout/modification/suppression articles
-  - Persistence localStorage avec dates ISO
-  - UniqueId par article pour gestion fine
-  - Reconversion dates au chargement
+- [x] **Header Panier** :
+  - Illustration Chanthana avec sacs courses
+  - Titre "Mon Panier" + compteur plats (ex: "2 plats")
+  - Bouton corbeille (vider panier) en haut droite
+- [x] **Groupement par Retrait** :
+  - Container "Votre Commande"
+  - Header data : "📅 Retrait prévu le [Date] à [Heure]" (Orange)
+- [x] **Footer Actions** :
+  - Total commande (ex: "25,80€") bien visible
+  - Info "💳 Paiement sur place : Nous acceptons la carte bleue" (Vert)
+  - Zone "Demandes spéciales" (Textarea large)
+  - Boutons : "Retour à Commander" (Outline) et "Valider (Prix)" (Solid Orange)
 
-- [x] ✅ **Modification quantité intelligente** : Ajustement épices auto
-  - Fichier: `app/panier/page.tsx` lignes 271-310
-  - Boutons +/- avec suppression si qty <= 0
-  - Distribution épicée ajustée automatiquement
-  - Toast confirmation modifications
+#### 📦 Composants & Fonctionnalités
 
-- [x] ✅ **Suppression avec confirmation** : Modal vidéo avant action
-  - Composant: `CartItemCard.tsx` lignes 308-383
-  - ModalVideo avec question + boutons Confirmer/Annuler
-  - Animation et feedback visuel
+##### `components/shared/CartItemCard.tsx` (443 lignes)
 
-- [x] ✅ **Calcul total prix temps réel** : Somme dynamique
-  - `totalGeneral = sum(prix * quantite)` (ligne 160-163)
-  - Formatage selon décimales (0€ ou 2.50€)
+- [x] **Carte Article** :
+  - Miniature image carrée
+  - Nom + Prix unitaire (ex: "12,90€")
+  - **Sélecteur Quantité** : Boutons [-] [1] [+]
+  - **Icône Épicée** : Badge vert/rouge (feuille/piment) dynamique
+  - **Actions** : Bouton supprimer (Poubelle décalée à droite)
+- [x] **Comportement Mobile** :
+  - Swipe-to-delete (Fond rouge avec poubelle)
+  - Layout adaptatif (Col vs Row)
 
-- [x] ✅ **Groupement par date retrait** : Organisation visuelle
-  - Articles groupés par date de retrait (lignes 119-158)
-  - Section distincte par date
+##### Gestion Panier `contexts/CartContext.tsx`
 
-- [x] ✅ **Demandes spéciales** : Textarea avec feedback
-  - Champ libre pour allergies/préférences (lignes 490-512)
-  - Toast vidéo au blur si texte rempli
-  - Envoyé dans `demande_special_pour_la_commande`
+- [x] **État Global** : `panier`, `ajouterAuPanier`, `modifierQuantite`, `viderPanier`
+- [x] **Persistence** : `localStorage` (avec sérialisation/désérialisation dates)
+- [x] **Logique d'ajout** : Fusion intelligente si même produit + mêmes options (épices, date, demande)
+- [x] **Calculs** : `totalArticles`, `totalPrix` en temps réel
 
-- [x] ✅ **Création commandes multiples** : Par date retrait
-  - Une commande Prisma par date unique
-  - Détails: plat_r, quantité, épices, distribution
-  - Redirection vers `/suivi-commande/{id}`
+#### 🎉 Feedback & Animations (Confirmé par images)
 
-- [x] ✅ **Distribution épicée SmartSpice** : Lecture et édition
-  - Composants: `SmartSpice.tsx` (124 lignes) + `Spice.tsx` (266 lignes)
-  - Mode lecture seule dans récapitulatif
-  - Mode édition dans modal modification
-  - Ajustement auto lors changement quantité
+- [x] **Toast "Attention ça pique !"** :
+  - Déclenché si niveau épicé élevé sélectionné
+  - Style Polaroid avec Avatar Chanthana animé
+  - Jauge visuelle piments
+- [x] **Toast "Khop khun Kha !"** :
+  - Déclenché à la validation commande
+  - Message : "Votre commande a été enregistrée avec succès"
+  - Animation typing text
+- [x] **Toast "Plat mis à jour"** : Petit toast vert en bas droite lors modif quantité
 
-- [x] ✅ **Responsive mobile-first** : 3 breakpoints
-  - Mobile: Layout vertical, padding réduit (px-1)
-  - Tablet: Éléments côte à côte
-  - Desktop: Container centré max-w-6xl
+#### ✅ Validation Commande
 
-- [x] ✅ **Intégration auth Better Auth** : Validation avant commande
-  - Vérification session utilisateur (useSession)
-  - Toast erreur si profil incomplet
-  - Bouton disabled si non connecté
+- [x] **Flux de validation** :
+  - Vérification session (`getClientProfile`)
+  - Création entrée `commande_db` via Server Action
+  - Redirection vers `/suivi-commande/[id]`
+- [x] **Sécurité** :
+  - Validation Zod des entrées
+  - Protection accès (Client uniquement)
 
-- [x] ✅ **Page confirmation visuelle** : FAIT via redirection suivi-commande
-  - Redirection vers `/suivi-commande/{id}` après validation
-  - Toast vidéo "Khop khun kha" avant redirection
+#### 💜 Améliorations Futures (Suggestions)
 
-- [x] ✅ **Message confirmation lisible** : FAIT via toast vidéo
-  - Toast vidéo avec animation MP4 + Polaroid style
-  - TypingAnimation pour texte coloré
-
-#### 🔥🔥 Fonctionnalités Prioritaires (Restantes)
-
-- [ ] 🔥🔥 **Sauvegarde panier non connecté** : Proposer création compte
-  - Panier localStorage existe déjà ✅
-  - À ajouter: Modal "Créer compte pour conserver"
+- [ ] 🔥🔥 **Sauvegarde panier non connecté** : Proposer création compte pour conserver le panier
+- [ ] **Mode "Invité"** : Commander sans compte (optionnel)
+- [ ] **Paiement en ligne** : Intégration Stripe future
+- [ ] **Email récapitulatif** : Envoi mail après validation
 
 - [ ] 🔥 **Gestion heure retrait avancée** :
   - Note heure indicative (peut être ajustée)
