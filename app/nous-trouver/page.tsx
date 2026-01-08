@@ -101,148 +101,95 @@ export default function NousTrouverPage() {
                 </div>
               </div>
             </CardHeader>
-            {/* Séparation et Grille Localisation */}
-            <div className="border-thai-orange/20 grid grid-cols-1 divide-y divide-gray-100 border-t lg:grid-cols-[70%_30%] lg:divide-x lg:divide-y-0">
-              {/* Colonne Gauche : Carte (Haut) & Itinéraires (Bas) */}
-              <div className="flex flex-col">
-                {/* 1. Section Carte */}
-                <div className="relative min-h-[350px] flex-1">
-                  {/* État de chargement */}
-                  {mapLoading && (
-                    <div className="absolute inset-0 z-10 flex items-center justify-center bg-gray-100">
-                      <div className="flex flex-col items-center gap-3">
-                        <Loader2 className="text-thai-orange h-8 w-8 animate-spin" />
-                        <p className="text-sm text-gray-600">Chargement de la carte...</p>
-                      </div>
+            {/* BLOC 1 : LOCALISATION (Carte 100% + Barre d'Actions) */}
+            <div className="border-thai-orange/20 flex flex-col border-t">
+              {/* Section Carte (100% largeur) */}
+              <div className="relative min-h-[400px]">
+                {/* État de chargement */}
+                {mapLoading && (
+                  <div className="absolute inset-0 z-10 flex items-center justify-center bg-gray-100">
+                    <div className="flex flex-col items-center gap-3">
+                      <Loader2 className="text-thai-orange h-8 w-8 animate-spin" />
+                      <p className="text-sm text-gray-600">Chargement de la carte...</p>
                     </div>
-                  )}
+                  </div>
+                )}
 
-                  {/* État d'erreur */}
-                  {mapError && (
-                    <div className="flex h-full flex-col items-center justify-center bg-orange-50 p-6 text-center">
-                      <AlertCircle className="mx-auto mb-3 h-8 w-8 text-orange-500" />
-                      <p className="mb-4 text-orange-700">Impossible de charger la carte.</p>
-                      <Button
-                        onClick={() => window.open(googleMapsDirectionUrl, "_blank")}
-                        variant="outline"
-                        className="border-orange-300 text-orange-700 hover:bg-orange-50"
-                      >
-                        <ExternalLink className="mr-2 h-4 w-4" />
-                        Ouvrir dans Google Maps
-                      </Button>
-                    </div>
-                  )}
-
-                  {/* Carte */}
-                  {!mapError && (
-                    <iframe
-                      src={googleMapsEmbedUrl}
-                      width="100%"
-                      height="100%"
-                      style={{ border: 0, minHeight: "350px" }}
-                      allowFullScreen
-                      loading="lazy"
-                      referrerPolicy="no-referrer-when-downgrade"
-                      className="h-full w-full"
-                      title="Carte de localisation Chanthanacook"
-                      onLoad={() => setMapLoading(false)}
-                      onError={() => {
-                        setMapLoading(false)
-                        setMapError(true)
-                      }}
-                    />
-                  )}
-                </div>
-
-                {/* 2. Section Itinéraires (Now Below) */}
-                <div className="border-t border-gray-100 p-6">
-                  <h3 className="text-thai-green mb-4 text-center text-lg font-semibold">
-                    🗺️ Obtenir un itinéraire
-                  </h3>
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
+                {/* État d'erreur */}
+                {mapError && (
+                  <div className="flex h-full flex-col items-center justify-center bg-orange-50 p-6 text-center">
+                    <AlertCircle className="mx-auto mb-3 h-8 w-8 text-orange-500" />
+                    <p className="mb-4 text-orange-700">Impossible de charger la carte.</p>
                     <Button
                       onClick={() => window.open(googleMapsDirectionUrl, "_blank")}
-                      className="group w-full rounded-lg bg-blue-500 py-3 text-white shadow-md transition-all duration-200 hover:scale-105 hover:bg-blue-600 hover:shadow-lg"
+                      variant="outline"
+                      className="border-orange-300 text-orange-700 hover:bg-orange-50"
                     >
-                      <Navigation className="mr-2 h-4 w-4 transition-transform group-hover:scale-110 sm:h-5 sm:w-5" />
-                      <span className="text-sm sm:text-base">Google Maps</span>
-                      <ExternalLink className="ml-2 h-3 w-3 opacity-70" />
-                    </Button>
-                    <Button
-                      onClick={() => window.open(wazeUrl, "_blank")}
-                      className="group w-full rounded-lg bg-cyan-500 py-3 text-white shadow-md transition-all duration-200 hover:scale-105 hover:bg-cyan-600 hover:shadow-lg"
-                    >
-                      <Navigation className="mr-2 h-4 w-4 transition-transform group-hover:scale-110 sm:h-5 sm:w-5" />
-                      <span className="text-sm sm:text-base">Waze</span>
-                      <ExternalLink className="ml-2 h-3 w-3 opacity-70" />
+                      <ExternalLink className="mr-2 h-4 w-4" />
+                      Ouvrir dans Google Maps
                     </Button>
                   </div>
-                </div>
+                )}
+
+                {/* Carte */}
+                {!mapError && (
+                  <iframe
+                    src={googleMapsEmbedUrl}
+                    width="100%"
+                    height="100%"
+                    style={{ border: 0, minHeight: "400px" }}
+                    allowFullScreen
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    className="h-full w-full"
+                    title="Carte de localisation Chanthanacook"
+                    onLoad={() => setMapLoading(false)}
+                    onError={() => {
+                      setMapLoading(false)
+                      setMapError(true)
+                    }}
+                  />
+                )}
               </div>
 
-              {/* Colonne Droite : Coordonnées */}
-              <div className="flex flex-col justify-center space-y-6 p-6">
-                <div className="mb-4 flex items-center justify-center md:justify-start">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src="/logo.ico" alt="Chanthana Thai Cook" className="mr-3 h-8 w-8" />
-                  <h3 className="text-thai-green text-xl font-semibold">Nos coordonnées</h3>
-                </div>
+              {/* Barre d'Actions (Itinéraires + Téléphone) */}
+              <div className="border-t border-gray-100 bg-gray-50/50 p-6">
+                <h3 className="text-thai-green mb-4 text-center text-lg font-semibold">
+                  � Actions rapides
+                </h3>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
+                  {/* Google Maps */}
+                  <Button
+                    onClick={() => window.open(googleMapsDirectionUrl, "_blank")}
+                    className="group w-full rounded-lg bg-blue-500 py-6 text-white shadow-md transition-all duration-200 hover:scale-105 hover:bg-blue-600 hover:shadow-lg"
+                  >
+                    <Navigation className="mr-2 h-5 w-5 transition-transform group-hover:scale-110" />
+                    <span className="text-base font-medium">Google Maps</span>
+                  </Button>
 
-                <div className="space-y-6">
-                  {/* Adresse */}
-                  <div className="group hover:bg-thai-cream/30 flex items-start space-x-4 rounded-lg p-3 transition-all duration-200">
-                    <div className="bg-thai-orange/10 group-hover:bg-thai-orange/20 rounded-full p-2 transition-colors">
-                      <MapPin className="text-thai-orange h-5 w-5" />
-                    </div>
-                    <div className="flex-1 text-left">
-                      <h4 className="text-thai-green mb-1 text-lg font-semibold">Adresse</h4>
-                      <p className="text-thai-green/80 text-sm leading-relaxed">
-                        2 impasse de la poste
-                        <br />
-                        37120 Marigny-Marmande
-                        <br />
-                        France
-                      </p>
-                    </div>
-                  </div>
+                  {/* Waze */}
+                  <Button
+                    onClick={() => window.open(wazeUrl, "_blank")}
+                    className="group w-full rounded-lg bg-cyan-500 py-6 text-white shadow-md transition-all duration-200 hover:scale-105 hover:bg-cyan-600 hover:shadow-lg"
+                  >
+                    <Navigation className="mr-2 h-5 w-5 transition-transform group-hover:scale-110" />
+                    <span className="text-base font-medium">Waze</span>
+                  </Button>
 
                   {/* Téléphone */}
-                  <div className="group hover:bg-thai-cream/30 flex items-start space-x-4 rounded-lg p-3 transition-all duration-200">
-                    <div className="bg-thai-orange/10 group-hover:bg-thai-orange/20 rounded-full p-2 transition-colors">
-                      <Phone className="text-thai-orange h-5 w-5" />
-                    </div>
-                    <div className="flex-1 text-left">
-                      <h4 className="text-thai-green mb-1 text-lg font-semibold">Téléphone</h4>
-                      <a
-                        href="tel:+33749283707"
-                        className="text-thai-orange hover:text-thai-orange-dark text-base font-medium transition-colors hover:underline"
-                      >
-                        07 49 28 37 07
-                      </a>
-                    </div>
-                  </div>
-
-                  {/* Email */}
-                  <div className="group hover:bg-thai-cream/30 flex items-start space-x-4 rounded-lg p-3 transition-all duration-200">
-                    <div className="bg-thai-orange/10 group-hover:bg-thai-orange/20 rounded-full p-2 transition-colors">
-                      <Mail className="text-thai-orange h-5 w-5" />
-                    </div>
-                    <div className="flex-1 text-left">
-                      <h4 className="text-thai-green mb-1 text-lg font-semibold">Email</h4>
-                      <a
-                        href="mailto:chanthanacook@gmail.com"
-                        className="text-thai-orange hover:text-thai-orange-dark text-sm break-all transition-colors hover:underline"
-                      >
-                        chanthanacook@gmail.com
-                      </a>
-                    </div>
-                  </div>
+                  <Button
+                    onClick={() => window.open("tel:0749283707", "_blank")}
+                    className="bg-thai-orange hover:bg-thai-orange/90 group w-full rounded-lg py-6 text-white shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg"
+                  >
+                    <Phone className="mr-2 h-5 w-5 transition-transform group-hover:scale-110" />
+                    <span className="text-base font-medium">Appeler</span>
+                  </Button>
                 </div>
               </div>
             </div>
           </Card>
 
-          {/* BLOC 2 : ACTION (Horaires + Contact) */}
+          {/* BLOC 2 : ACTION (Horaires + Contact Enrichi) */}
           <Card className="border-thai-orange/20 animate-fade-in mb-4 overflow-hidden rounded-none border-x-0 shadow-sm sm:mb-6 sm:rounded-xl sm:border-x sm:shadow-xl">
             <div className="grid grid-cols-1 divide-y divide-gray-100 lg:grid-cols-2 lg:divide-x lg:divide-y-0">
               {/* Colonne Gauche : Horaires */}
@@ -282,12 +229,12 @@ export default function NousTrouverPage() {
                 </div>
               </div>
 
-              {/* Colonne Droite : Contact Direct */}
+              {/* Colonne Droite : Contact Direct Enrichi */}
               <div className="flex flex-col justify-center p-6">
                 <h3 className="text-thai-green mb-6 text-center text-xl font-semibold md:text-left">
-                  💬 Contact direct
+                  💬 Contactez-nous
                 </h3>
-                <div className="flex flex-col space-y-4">
+                <div className="flex flex-col space-y-3">
                   {/* Messenger */}
                   <Button
                     onClick={handleMessengerClick}
@@ -296,7 +243,7 @@ export default function NousTrouverPage() {
                     <MessageCircle className="mr-3 h-6 w-6 transition-transform group-hover:scale-110" />
                     <div className="flex flex-col text-left">
                       <span className="text-lg font-semibold">Messenger</span>
-                      <span className="text-sm opacity-90">Réponse rapide</span>
+                      <span className="text-xs opacity-90">Réponse rapide</span>
                     </div>
                     <ExternalLink className="ml-auto h-5 w-5 opacity-70" />
                   </Button>
@@ -316,6 +263,19 @@ export default function NousTrouverPage() {
                     <div className="flex flex-col text-left">
                       <span className="text-lg font-semibold">WhatsApp</span>
                       <span className="text-sm opacity-90">07 49 28 37 07</span>
+                    </div>
+                    <ExternalLink className="ml-auto h-5 w-5 opacity-70" />
+                  </Button>
+
+                  {/* Email */}
+                  <Button
+                    onClick={() => window.open("mailto:chanthanacook@gmail.com", "_blank")}
+                    className="group w-full rounded-lg bg-gray-700 py-6 text-white shadow-md transition-all duration-200 hover:scale-105 hover:bg-gray-800 hover:shadow-lg"
+                  >
+                    <Mail className="mr-3 h-6 w-6 transition-transform group-hover:scale-110" />
+                    <div className="flex flex-col text-left">
+                      <span className="text-lg font-semibold">Email</span>
+                      <span className="text-sm opacity-90">chanthanacook@gmail.com</span>
                     </div>
                     <ExternalLink className="ml-auto h-5 w-5 opacity-70" />
                   </Button>
