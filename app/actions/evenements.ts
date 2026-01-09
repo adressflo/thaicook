@@ -2,11 +2,11 @@
 
 import type { client_db, evenements_db } from "@/generated/prisma/client"
 import { Prisma } from "@/generated/prisma/client"
-import { Decimal } from "@/generated/prisma/client/runtime/library"
 import { prisma } from "@/lib/prisma"
 import { authAction } from "@/lib/safe-action"
 import { evenementSchema, evenementUpdateSchema, getByIdSchema } from "@/lib/validations"
 import type { EvenementUI } from "@/types/app"
+// Decimal handled inline via Prisma types
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
 
@@ -95,7 +95,7 @@ export const createEvenement = authAction
         date_evenement: new Date(rest.date_evenement),
         type_d_evenement: type_d_evenement, // Ajout du mapping
         nombre_de_personnes: rest.nombre_personnes,
-        budget_client: budget_approximatif ? new Decimal(budget_approximatif) : null,
+        budget_client: budget_approximatif ? budget_approximatif : null,
         demandes_speciales_evenement: description_evenement || null,
         statut_evenement: "Demande_initiale",
         plats_preselectionnes: rest.plats_preselectionnes,
@@ -154,7 +154,7 @@ export const updateEvenement = authAction
         updateData.date_evenement = new Date(date_evenement)
       }
       if (budget_approximatif) {
-        updateData.budget_client = new Decimal(budget_approximatif)
+        updateData.budget_client = budget_approximatif
       }
 
       const evenement = await prisma.evenements_db.update({

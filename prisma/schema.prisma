@@ -114,11 +114,55 @@ model client_db {
   notification_tokens                notification_tokens[]
   notifications_history              notifications_history[]
 
+  documents_admin      document_admin[]
+
   @@index([auth_user_id, role], map: "idx_client_db_auth_user_id_role")
   @@index([email], map: "idx_client_email")
   @@index([auth_user_id], map: "idx_client_auth_user_id")
   @@index([role], map: "idx_client_role")
   @@index([numero_de_telephone], map: "idx_client_telephone")
+}
+
+model document_admin {
+  id              String        @id @default(cuid())
+  numero_ref      String        @unique @db.VarChar(50) // ex: F-2026-001
+  type            type_document @default(DEVIS)
+  statut          String        @default("brouillon") // brouillon, envoyé, validé, payé, annulé
+  
+  // Relations
+  client_id       BigInt?
+  client          client_db?    @relation(fields: [client_id], references: [idclient])
+  
+  // Contenu (Snapshot)
+  nom_client_snapshot     String?       @db.VarChar(255)
+  adresse_client_snapshot String?       @db.Text
+  date_creation           DateTime      @default(now()) @db.Timestamptz(6)
+  date_echeance   DateTime?     @db.Timestamptz(6)
+  
+  // Données financières
+  total_ht        Decimal       @default(0) @db.Decimal(10, 2)
+  tva_montant     Decimal       @default(0) @db.Decimal(10, 2)
+  total_ttc       Decimal       @default(0) @db.Decimal(10, 2)
+  
+  // Contenu riche (Lignes du devis stockées en JSON pour historique inaltérable)
+  lignes_json     Json          @default("[]") 
+  notes_privees   String?       @db.Text
+  mentions_legales String?      @db.Text
+  
+  created_at      DateTime      @default(now())
+  updated_at      DateTime      @updatedAt
+
+  @@index([type])
+  @@index([statut])
+  @@index([client_id])
+  @@index([date_creation(sort: Desc)])
+}
+
+enum type_document {
+  DEVIS
+  FACTURE
+  AVOIR
+  TICKET
 }
 
 model commande_db {

@@ -2,7 +2,7 @@
 
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Bell, CreditCard, Layout, MessageSquare, Palette, Sparkles } from "lucide-react"
+import { Bell, CreditCard, FileText, Layout, MessageSquare, Palette, Sparkles } from "lucide-react"
 import Link from "next/link"
 
 const sections = [
@@ -61,6 +61,14 @@ const sections = [
     description: "Conteneurs, cartes produits et statistiques",
     count: "9",
     color: "thai-green",
+  },
+  {
+    title: "Documents PDF",
+    href: "/admin/testvisuel/documents",
+    icon: FileText,
+    description: "Design des Devis, Factures et Reçus",
+    count: "3",
+    color: "thai-orange",
   },
 ]
 

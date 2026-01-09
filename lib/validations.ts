@@ -547,3 +547,35 @@ export const composedDateSchema = z
     (data) => validateRealDate(data.year, data.month, data.day),
     "Date impossible (ex: 31 février n'existe pas)"
   )
+
+// --- DOCUMENTS (Devis/Factures) ---
+
+export const ligneDocumentSchema = z.object({
+  type: z.enum(["PLAT", "CUSTOM"]),
+  plat_id: z.number().optional(), // Si type=PLAT
+  description: z.string().min(1, "La description est requise"),
+  quantite: z.number().min(0.01, "Quantité positive requise"),
+  prix_unitaire: z.number().min(0, "Prix positif requis"),
+  tva_taux: z.number().default(0),
+  total_ht: z.number(),
+  photo_url: z.string().optional(),
+})
+
+export const documentSchema = z.object({
+  type: z.enum(["DEVIS", "FACTURE", "AVOIR", "TICKET"]),
+  client_id: z.number().optional(), // Optionnel si client de passage
+  nom_client_snapshot: z.string().min(1, "Nom du client requis"), // On garde le nom même si le client est supprimé
+  adresse_client_snapshot: z.string().optional(),
+  date_creation: z.date(),
+  date_echeance: z.date().optional(),
+  statut: z.string().default("brouillon"),
+
+  lignes: z.array(ligneDocumentSchema).min(1, "Au moins une ligne requise"),
+
+  notes_privees: z.string().optional(),
+  mentions_legales: z.string().optional(),
+})
+
+export const documentUpdateSchema = documentSchema.partial().extend({
+  id: z.string(),
+})

@@ -8,6 +8,7 @@ import {
   Beaker,
   Bot,
   ChevronLeft,
+  FileText,
   Home,
   LayoutGrid,
   Package,
@@ -46,6 +47,12 @@ const adminNavItems = [
     href: "/admin/clients",
     icon: Users,
     description: "Gestion de la clientèle",
+  },
+  {
+    title: "Documents",
+    href: "/admin/documents",
+    icon: FileText,
+    description: "Devis, Factures et Reçus",
   },
   {
     title: "Statistiques",

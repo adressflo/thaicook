@@ -117,6 +117,40 @@ Notre feuille de route pour faire évoluer l'expérience ChanthanaThaiCook. Ce d
 
 ---
 
+### ✅ 1.5️⃣ PDF Generation - Migration Playwright [TERMINÉ]
+
+**Statut : 100% ✅ (Playwright 1.57.0)**
+
+<details>
+<summary>📊 Détails de la migration PDF</summary>
+
+✅ **Migration @react-pdf/renderer → Playwright**
+
+- [x] **Suppression `@react-pdf/renderer`** : 54 packages retirés
+- [x] **Playwright 1.57.0** : Mise à jour vers dernière version stable
+- [x] **Template HTML React** : `components/pdf/templates/DevisTemplate.tsx`
+  - Styles CSS inline pour rendu Playwright
+  - Support natif images WebP (MinIO)
+  - Design premium avec gradients, badges, cards
+- [x] **API Route** : `app/api/pdf/generate/route.ts`
+  - Génération serveur via `chromium.launch()`
+  - `page.pdf({ format: 'A4', printBackground: true })`
+  - Gestion propre des erreurs et fermeture browser
+- [x] **Playground** : `app/admin/testvisuel/documents/page.tsx`
+  - Interface de test avec prévisualisation iframe
+  - Boutons Générer/Télécharger
+
+**Avantages Playwright vs @react-pdf :**
+
+- ✅ Support WebP natif (images MinIO)
+- ✅ CSS complet (Tailwind, Flexbox, Grid)
+- ✅ Stack unifiée (déjà utilisé pour tests E2E)
+- ✅ Rendu pixel-perfect Chrome
+
+</details>
+
+---
+
 ### 🔥🔥🔥🔥 2️⃣ Next Safe Action - Validation Zod Complète [CRITIQUE]
 
 **Dépend de : Prisma ORM ✅**
