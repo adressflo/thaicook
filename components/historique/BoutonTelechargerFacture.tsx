@@ -1,15 +1,12 @@
 "use client"
 
-import FactureCommandePDF from "@/components/pdf/FactureCommandePDF"
 import { Button } from "@/components/ui/button"
 import type { CommandeUI } from "@/types/app"
-import { PDFDownloadLink } from "@react-pdf/renderer"
 import { Download, Loader2 } from "lucide-react"
 import React from "react"
 
 interface BoutonTelechargerFactureProps {
   commande: CommandeUI
-  // On ajoute une prop pour le style, pour pouvoir le mettre à côté de l'autre bouton
   className?: string
 }
 
@@ -17,34 +14,98 @@ const BoutonTelechargerFacture: React.FC<BoutonTelechargerFactureProps> = ({
   commande,
   className,
 }) => {
-  // Fix pour Next.js 15/16 + react-pdf : éviter le rendu SSR qui peut causer "promise.then is not a function"
-  const [isMounted, setIsMounted] = React.useState(false)
+  const [isLoading, setIsLoading] = React.useState(false)
 
-  React.useEffect(() => {
-    setIsMounted(true)
-  }, [])
+  const handleDownload = async () => {
+    setIsLoading(true)
+    try {
+      // Construire le nom du client
+      const clientName = commande.client
+        ? `${commande.client.prenom || ""} ${commande.client.nom || ""}`.trim() || "Client"
+        : commande.client_r || "Client"
 
-  // Nom du fichier qui sera téléchargé
-  const nomFichier = `facture-chanthana-${commande.idcommande}.pdf`
+      // Construire l'adresse
+      const clientAddress = commande.client
+        ? [
+            commande.client.adresse_numero_et_rue,
+            commande.client.code_postal,
+            commande.client.ville,
+          ]
+            .filter(Boolean)
+            .join(", ")
+        : commande.adresse_specifique || ""
 
-  // On s'assure que la commande n'est pas nulle avant de rendre le composant
-  if (!commande || !isMounted) {
+      // Préparer les données pour l'API Playwright
+      const data = {
+        docType: "FACTURE" as const,
+        docRef: `FAC-${commande.idcommande}`,
+        docDate: new Date().toLocaleDateString("fr-FR"),
+        client: {
+          name: clientName,
+          address: clientAddress,
+          phone: commande.client?.numero_de_telephone || "",
+        },
+        event: {
+          name: "Commande",
+          date: commande.date_et_heure_de_retrait_souhaitees
+            ? new Date(commande.date_et_heure_de_retrait_souhaitees).toLocaleDateString("fr-FR")
+            : "",
+          location: commande.adresse_specifique || commande.type_livraison || "",
+        },
+        products:
+          commande.details?.map((d) => ({
+            name: d.plat?.plat || d.nom_plat || "Plat",
+            desc: `x${d.quantite_plat_commande}`,
+            img: d.plat?.photo_du_plat || undefined,
+          })) || [],
+        total: commande.total || 0,
+        mentions: "Merci pour votre commande !",
+      }
+
+      const response = await fetch("/api/pdf/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      })
+
+      if (!response.ok) {
+        throw new Error("Erreur lors de la génération du PDF")
+      }
+
+      // Télécharger le PDF
+      const blob = await response.blob()
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement("a")
+      link.href = url
+      link.download = `facture-chanthana-${commande.idcommande}.pdf`
+      link.click()
+      URL.revokeObjectURL(url)
+    } catch (error) {
+      console.error("Erreur téléchargement facture:", error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  if (!commande) {
     return null
   }
 
   return (
-    <PDFDownloadLink document={<FactureCommandePDF commande={commande} />} fileName={nomFichier}>
-      {({ loading }) => (
-        <Button variant="outline" size="sm" disabled={loading} className={className}>
-          {loading ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          ) : (
-            <Download className="mr-2 h-4 w-4" />
-          )}
-          {loading ? "Génération..." : "Facture"}
-        </Button>
+    <Button
+      variant="outline"
+      size="sm"
+      disabled={isLoading}
+      className={className}
+      onClick={handleDownload}
+    >
+      {isLoading ? (
+        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+      ) : (
+        <Download className="mr-2 h-4 w-4" />
       )}
-    </PDFDownloadLink>
+      {isLoading ? "Génération..." : "Facture"}
+    </Button>
   )
 }
 
