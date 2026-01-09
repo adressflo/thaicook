@@ -5,7 +5,7 @@
 @import "./theme-mappings.css";
 
 @theme {
-  /* Couleurs Thai - Configuration v4 avec structure objet correcte */
+  /* Couleurs Thai */
   --color-thai-orange: #ff7b54;
   --color-thai-orange-light: #ffb386;
   --color-thai-orange-dark: #e85a31;

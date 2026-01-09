@@ -20,6 +20,8 @@ export interface DevisTemplateData {
     name: string
     desc: string
     img?: string
+    qty?: number
+    price?: string
   }>
   total: number
   mentions?: string
