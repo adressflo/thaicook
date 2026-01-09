@@ -25,6 +25,7 @@ export interface DevisTemplateData {
   }>
   total: number
   mentions?: string
+  nombrePersonnes?: string
 }
 
 export interface DevisTemplateProps {

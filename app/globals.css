@@ -22,7 +22,7 @@
   --breakpoint-xs: 480px;
 }
 
-/* Configuration Tailwind v4 */
+/* Configuration Tailwind */
 @plugin "tailwindcss-animate";
 @custom-variant dark (&:where(.dark, .dark *));
 

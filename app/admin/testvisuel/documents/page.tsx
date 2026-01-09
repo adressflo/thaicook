@@ -22,12 +22,21 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 // Types
 interface SelectedPlat {
   plat: PlatUI
-  quantite: number
+  customPrice: string
 }
 
 type DocType = "DEVIS" | "FACTURE" | "TICKET"
 
 function generatePreviewHTML(data: DevisTemplateData): string {
+  // Format prix: "12.90" → "12,90 €", "12.00" → "12 €", "12.9" → "12,90 €"
+  const formatPrice = (price: string): string => {
+    const num = parseFloat(price)
+    if (isNaN(num)) return ""
+    // Nombre entier → pas de décimales, sinon toujours 2 décimales
+    const formatted = num % 1 === 0 ? num.toString() : num.toFixed(2).replace(".", ",")
+    return `${formatted} €`
+  }
+
   const productsHTML = data.products
     .map(
       (product) => `
@@ -43,10 +52,7 @@ function generatePreviewHTML(data: DevisTemplateData): string {
           <div class="product-name">${product.name}</div>
           <div class="product-desc">${product.desc}</div>
         </div>
-        <div class="product-price">
-          <div class="qty">x${product.qty || 1}</div>
-          ${product.price ? `<div class="price">${product.price}€</div>` : ""}
-        </div>
+        <div class="product-price">${product.price ? formatPrice(product.price) : ""}</div>
       </div>
     `
     )
@@ -82,7 +88,8 @@ function generatePreviewHTML(data: DevisTemplateData): string {
     .info-title { font-size: 13px; font-weight: 700; color: #2d5016; margin-bottom: 2px; }
     .info-details { font-size: 11px; color: #666; line-height: 1.5; }
     .products-section { margin-bottom: 16px; }
-    .products-header { background: #2d5016; color: white; padding: 10px 14px; border-radius: 6px 6px 0 0; font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .products-header { background: #2d5016; color: white; padding: 10px 14px; border-radius: 6px 6px 0 0; font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; display: flex; justify-content: space-between; align-items: center; }
+    .products-header-info { font-size: 10px; font-weight: 500; opacity: 0.9; }
     .product-item { display: flex; gap: 10px; padding: 12px; border-bottom: 1px solid #e5e7eb; background: white; border-left: 1px solid #e5e7eb; border-right: 1px solid #e5e7eb; align-items: center; }
     .product-item:last-child { border-radius: 0 0 6px 6px; border-bottom: 1px solid #e5e7eb; }
     .product-icon { width: 50px; height: 50px; border-radius: 8px; background: #f5f5f0; display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }
@@ -91,13 +98,11 @@ function generatePreviewHTML(data: DevisTemplateData): string {
     .product-details { flex: 1; }
     .product-name { font-size: 13px; font-weight: 600; color: #2d5016; margin-bottom: 2px; }
     .product-desc { font-size: 10px; color: #666; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-    .product-price { text-align: right; min-width: 70px; }
-    .product-price .qty { font-size: 10px; color: #999; }
-    .product-price .price { font-size: 14px; font-weight: 700; color: #2d5016; }
+    .product-price { font-size: 14px; font-weight: 700; color: #f97316; text-align: right; min-width: 60px; }
     .divider { height: 2px; background: repeating-linear-gradient(to right, #f97316 0px, #f97316 8px, transparent 8px, transparent 16px); margin: 16px 0; }
     .total-section { background: linear-gradient(135deg, #f5f5f0 0%, #ebebeb 100%); padding: 16px; border-radius: 10px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; }
     .total-label { font-size: 13px; color: #666; font-weight: 600; text-transform: uppercase; }
-    .total-amount { font-size: 28px; font-weight: 700; color: #2d5016; }
+    .total-amount { font-size: 28px; font-weight: 700; color: #f97316; }
     .mentions { font-size: 9px; color: #999; line-height: 1.5; padding: 12px; background: #fafafa; border-radius: 6px; border: 1px solid #e5e7eb; }
     .legal-tva { font-size: 10px; color: #666; font-style: italic; text-align: center; margin-bottom: 16px; padding: 8px; background: #fef3c7; border-radius: 4px; border: 1px solid #fcd34d; }
     .signature-section { margin-top: 20px; }
@@ -158,7 +163,10 @@ function generatePreviewHTML(data: DevisTemplateData): string {
       </div>
     </div>
     <div class="products-section">
-      <div class="products-header">Menu Proposé</div>
+      <div class="products-header">
+        <span>Menu Proposé</span>
+        ${data.nombrePersonnes ? `<span class="products-header-info">${data.nombrePersonnes} personnes</span>` : ""}
+      </div>
       ${productsHTML}
     </div>
     <div class="divider"></div>
@@ -166,7 +174,7 @@ function generatePreviewHTML(data: DevisTemplateData): string {
     <!-- Total Section -->
     <div class="total-section">
       <div class="total-label">Total HT</div>
-      <div class="total-amount">${data.total.toFixed(2)} €</div>
+      <div class="total-amount">${formatPrice(data.total.toString())}</div>
     </div>
     
     <!-- Mention légale TVA -->
@@ -246,6 +254,20 @@ export default function TestDocumentsPage() {
   const [showPrices, setShowPrices] = useState(true)
   const [useManualTotal, setUseManualTotal] = useState(false)
   const [manualTotal, setManualTotal] = useState("")
+  const [nombrePersonnes, setNombrePersonnes] = useState("120")
+
+  // Événement info
+  const [eventName, setEventName] = useState("Repas des Vœux du Maire")
+  const [eventDate, setEventDate] = useState("10/01/2026 à 17h")
+  const [eventLocation, setEventLocation] = useState("Salle des fêtes de Marigny Marmande")
+
+  // Plat personnalisé
+  const [showCustomPlat, setShowCustomPlat] = useState(false)
+  const [customPlatName, setCustomPlatName] = useState("Buffet Thaï Tradition")
+  const [customPlatDesc, setCustomPlatDesc] = useState(
+    "Notre buffet signature avec une sélection de nos meilleures spécialités thaïlandaises."
+  )
+  const [customPlatPrice, setCustomPlatPrice] = useState("")
 
   // Charger les plats réels
   useEffect(() => {
@@ -271,16 +293,14 @@ export default function TestDocumentsPage() {
   const handleAddPlat = (platId: string) => {
     const plat = plats.find((p) => p.idplats.toString() === platId)
     if (plat && !selectedPlats.find((sp) => sp.plat.idplats === plat.idplats)) {
-      setSelectedPlats([...selectedPlats, { plat, quantite: 1 }])
+      setSelectedPlats([...selectedPlats, { plat, customPrice: plat.prix || "" }])
     }
   }
 
-  // Modifier la quantité
-  const handleQuantityChange = (platId: number, quantite: number) => {
+  // Modifier le prix
+  const handlePriceChange = (platId: number, price: string) => {
     setSelectedPlats(
-      selectedPlats.map((sp) =>
-        sp.plat.idplats === platId ? { ...sp, quantite: Math.max(1, quantite) } : sp
-      )
+      selectedPlats.map((sp) => (sp.plat.idplats === platId ? { ...sp, customPrice: price } : sp))
     )
   }
 
@@ -291,11 +311,16 @@ export default function TestDocumentsPage() {
 
   // Calculer le total
   const total = useMemo(() => {
-    return selectedPlats.reduce((sum, sp) => {
-      const prix = parseFloat(sp.plat.prix || "0")
-      return sum + prix * sp.quantite
+    let sum = selectedPlats.reduce((acc, sp) => {
+      const prix = parseFloat(sp.customPrice || "0")
+      return acc + prix
     }, 0)
-  }, [selectedPlats])
+    // Ajouter le plat personnalisé si activé
+    if (showCustomPlat && customPlatPrice) {
+      sum += parseFloat(customPlatPrice) || 0
+    }
+    return sum
+  }, [selectedPlats, showCustomPlat, customPlatPrice])
 
   // Générer les données pour le template
   const getData = useCallback((): DevisTemplateData => {
@@ -306,19 +331,33 @@ export default function TestDocumentsPage() {
       docDate: new Date().toLocaleDateString("fr-FR"),
       client: { name: clientName, address: clientAddress, phone: clientPhone },
       event: {
-        name: "Repas des Vœux du Maire",
-        location: "Salle des fêtes de Marigny Marmande",
-        date: "10/01/2026 à 17h",
+        name: eventName,
+        location: eventLocation,
+        date: eventDate,
       },
-      products: selectedPlats.map((sp) => ({
-        name: sp.plat.plat,
-        desc: sp.plat.description || "",
-        img: sp.plat.photo_du_plat ? getStorageUrl(sp.plat.photo_du_plat) : undefined,
-        qty: sp.quantite,
-        price: showPrices ? sp.plat.prix || "0" : undefined,
-      })),
+      products: [
+        // Plat personnalisé (si activé)
+        ...(showCustomPlat
+          ? [
+              {
+                name: customPlatName,
+                desc: customPlatDesc,
+                img: "http://localhost:3000/media/statut/evenement/buffet/buffetclin.svg",
+                price: showPrices && customPlatPrice ? customPlatPrice : undefined,
+              },
+            ]
+          : []),
+        // Plats sélectionnés
+        ...selectedPlats.map((sp) => ({
+          name: sp.plat.plat,
+          desc: sp.plat.description || "",
+          img: sp.plat.photo_du_plat ? getStorageUrl(sp.plat.photo_du_plat) : undefined,
+          price: showPrices && sp.customPrice ? sp.customPrice : undefined,
+        })),
+      ],
       total: finalTotal,
       mentions: "Budget TTC global validé. Acompte de 30% à la commande.",
+      nombrePersonnes,
     }
   }, [
     docType,
@@ -330,6 +369,14 @@ export default function TestDocumentsPage() {
     showPrices,
     useManualTotal,
     manualTotal,
+    nombrePersonnes,
+    eventName,
+    eventDate,
+    eventLocation,
+    showCustomPlat,
+    customPlatName,
+    customPlatDesc,
+    customPlatPrice,
   ])
 
   // Prévisualisation HTML live
@@ -444,6 +491,98 @@ export default function TestDocumentsPage() {
             </div>
           </div>
 
+          {/* Événement */}
+          <div className="bg-card rounded-lg border p-4">
+            <h2 className="mb-3 text-lg font-semibold">📅 Événement</h2>
+            <div className="space-y-2">
+              <div>
+                <Label className="text-xs">Nom de l&apos;événement</Label>
+                <Input
+                  value={eventName}
+                  onChange={(e) => setEventName(e.target.value)}
+                  className="h-8 text-sm"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <Label className="text-xs">Date & Heure</Label>
+                  <Input
+                    value={eventDate}
+                    onChange={(e) => setEventDate(e.target.value)}
+                    className="h-8 text-sm"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Nb personnes</Label>
+                  <Input
+                    value={nombrePersonnes}
+                    onChange={(e) => setNombrePersonnes(e.target.value)}
+                    className="h-8 text-sm"
+                    placeholder="120"
+                  />
+                </div>
+              </div>
+              <div>
+                <Label className="text-xs">Lieu</Label>
+                <Input
+                  value={eventLocation}
+                  onChange={(e) => setEventLocation(e.target.value)}
+                  className="h-8 text-sm"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Plat personnalisé */}
+          <div className="bg-card rounded-lg border p-4">
+            <div className="mb-3 flex items-center justify-between">
+              <h2 className="text-lg font-semibold">🎨 Plat personnalisé</h2>
+              <label className="flex cursor-pointer items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={showCustomPlat}
+                  onChange={(e) => setShowCustomPlat(e.target.checked)}
+                  className="h-4 w-4 rounded"
+                />
+                <span className="text-sm">Activer</span>
+              </label>
+            </div>
+            {showCustomPlat && (
+              <div className="space-y-2">
+                <div>
+                  <Label className="text-xs">Nom du plat</Label>
+                  <Input
+                    value={customPlatName}
+                    onChange={(e) => setCustomPlatName(e.target.value)}
+                    className="h-8 text-sm"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Description</Label>
+                  <Input
+                    value={customPlatDesc}
+                    onChange={(e) => setCustomPlatDesc(e.target.value)}
+                    className="h-8 text-sm"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="flex-1">
+                    <Label className="text-xs">Prix</Label>
+                    <div className="flex items-center gap-1">
+                      <Input
+                        value={customPlatPrice}
+                        onChange={(e) => setCustomPlatPrice(e.target.value)}
+                        className="h-8 text-sm"
+                        placeholder="850"
+                      />
+                      <span className="text-sm text-gray-500">€</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* Plats Selector */}
           <div className="bg-card rounded-lg border p-4">
             <h2 className="mb-3 text-lg font-semibold">🍜 Plats</h2>
@@ -476,7 +615,7 @@ export default function TestDocumentsPage() {
                     key={sp.plat.idplats}
                     className="flex items-center gap-2 rounded-lg bg-gray-50 p-2"
                   >
-                    <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-md bg-gray-200">
+                    <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-md bg-gray-200">
                       {sp.plat.photo_du_plat ? (
                         <Image
                           src={getStorageUrl(sp.plat.photo_du_plat)}
@@ -492,17 +631,17 @@ export default function TestDocumentsPage() {
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-medium">{sp.plat.plat}</p>
-                      <p className="text-xs text-gray-500">{sp.plat.prix}€</p>
                     </div>
-                    <Input
-                      type="number"
-                      min={1}
-                      value={sp.quantite}
-                      onChange={(e) =>
-                        handleQuantityChange(sp.plat.idplats, parseInt(e.target.value) || 1)
-                      }
-                      className="h-8 w-14 text-center text-sm"
-                    />
+                    <div className="flex items-center gap-1">
+                      <Input
+                        type="text"
+                        value={sp.customPrice}
+                        onChange={(e) => handlePriceChange(sp.plat.idplats, e.target.value)}
+                        className="h-8 w-16 text-right text-sm"
+                        placeholder="0"
+                      />
+                      <span className="text-sm text-gray-500">€</span>
+                    </div>
                     <Button
                       variant="ghost"
                       size="icon"
