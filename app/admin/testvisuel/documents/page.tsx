@@ -72,8 +72,7 @@ function generatePreviewHTML(data: DevisTemplateData): string {
     .page { max-width: 100%; }
     .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 2px solid #f5f5f0; }
     .header-left { display: flex; gap: 14px; align-items: center; }
-    .avatar-container { width: 70px; height: 70px; border-radius: 12px; background: linear-gradient(135deg, #fef7e0 0%, #fff5cc 100%); padding: 6px; overflow: hidden; flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border: 2px solid #f97316; }
-    .avatar { width: 100%; height: 100%; object-fit: contain; border-radius: 8px; }
+    .avatar { width: 130px; height: 85px; border-radius: 8px; flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border: 2px solid #f97316; background-size: cover; background-position: center; background-repeat: no-repeat; }
     .company-info { display: flex; flex-direction: column; gap: 2px; }
     .company-name { font-size: 16px; font-weight: 700; color: #2d5016; }
     .company-tagline { font-size: 11px; color: #666; font-weight: 500; }
@@ -133,13 +132,12 @@ function generatePreviewHTML(data: DevisTemplateData): string {
   <div class="page">
     <div class="header">
       <div class="header-left">
-        <div class="avatar-container">
-          <img src="http://localhost:3000/media/statut/evenement/buffet/buffet1.png" alt="Buffet" class="avatar" />
-        </div>
+        <div class="avatar" style="background-image: url('http://localhost:3000/media/statut/evenement/buffet/buffet.svg');"></div>
         <div class="company-info">
           <div class="company-name">CHANTHANATHAICOOK</div>
           <div class="company-tagline">Traiteur Thaïlandais</div>
           <div class="company-address">2 impasse de la poste, 37120 Marigny Marmande</div>
+          <div class="company-address">07 49 28 37 07</div>
           <div class="company-address">SIRET : 510 941 164 RM 37 - EI</div>
         </div>
       </div>
@@ -152,12 +150,10 @@ function generatePreviewHTML(data: DevisTemplateData): string {
     </div>
     <div class="info-section">
       <div class="info-card">
-        <div class="info-label">Client</div>
         <div class="info-title">${data.client.name}</div>
         <div class="info-details">${data.client.address}${data.client.phone ? `<br />${data.client.phone}` : ""}</div>
       </div>
       <div class="info-card event">
-        <div class="info-label">Événement</div>
         <div class="info-title" style="color: #f97316;">${data.event.name}</div>
         <div class="info-details">${data.event.date}<br />${data.event.location}</div>
       </div>
@@ -211,7 +207,7 @@ function generatePreviewHTML(data: DevisTemplateData): string {
     <!-- Zone de signature -->
     <div class="signature-section">
       <div class="signature-box">
-        <div class="signature-title">Signature du client</div>
+        <div class="signature-title">Signature</div>
         <div class="signature-mention">Mention manuscrite : "Bon pour accord"</div>
         <div class="signature-line">
           <div>Date : ____/____/________</div>
@@ -255,6 +251,10 @@ export default function TestDocumentsPage() {
   const [useManualTotal, setUseManualTotal] = useState(false)
   const [manualTotal, setManualTotal] = useState("")
   const [nombrePersonnes, setNombrePersonnes] = useState("120")
+
+  // Document info (éditable)
+  const [docRef, setDocRef] = useState(`N°${new Date().getFullYear()}001`)
+  const [docDate, setDocDate] = useState(new Date().toLocaleDateString("fr-FR"))
 
   // Événement info
   const [eventName, setEventName] = useState("Repas des Vœux du Maire")
@@ -327,8 +327,8 @@ export default function TestDocumentsPage() {
     const finalTotal = useManualTotal && manualTotal ? parseFloat(manualTotal) : total
     return {
       docType: docType === "TICKET" ? "RECU" : docType,
-      docRef: `N°${new Date().getFullYear()}${String(Math.floor(Math.random() * 1000)).padStart(3, "0")}`,
-      docDate: new Date().toLocaleDateString("fr-FR"),
+      docRef,
+      docDate,
       client: { name: clientName, address: clientAddress, phone: clientPhone },
       event: {
         name: eventName,
@@ -361,6 +361,8 @@ export default function TestDocumentsPage() {
     }
   }, [
     docType,
+    docRef,
+    docDate,
     clientName,
     clientAddress,
     clientPhone,
@@ -457,6 +459,24 @@ export default function TestDocumentsPage() {
                   {type === "TICKET" ? "Reçu" : type.charAt(0) + type.slice(1).toLowerCase()}
                 </Button>
               ))}
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <div>
+                <Label className="text-xs">N° Devis</Label>
+                <Input
+                  value={docRef}
+                  onChange={(e) => setDocRef(e.target.value)}
+                  className="h-8 text-sm"
+                />
+              </div>
+              <div>
+                <Label className="text-xs">Date émis</Label>
+                <Input
+                  value={docDate}
+                  onChange={(e) => setDocDate(e.target.value)}
+                  className="h-8 text-sm"
+                />
+              </div>
             </div>
           </div>
 
