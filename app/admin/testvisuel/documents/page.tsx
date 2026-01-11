@@ -126,27 +126,69 @@ function generatePreviewHTML(data: DevisTemplateData): string {
     }
     .page { max-width: 100%; }
     .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; padding-bottom: 8px; border-bottom: none; }
-    .header-left { display: flex; gap: 16px; align-items: center; }
-    .avatar { width: 130px; height: 85px; border-radius: 8px; flex-shrink: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 2px solid #ff7b54; background-size: cover; background-position: center; background-repeat: no-repeat; }
+    .header-left { display: flex; gap: 20px; align-items: center; }
+    .avatar { 
+      width: 160px; 
+      height: 100px; 
+      border-radius: 12px; 
+      flex-shrink: 0; 
+      background-size: cover; 
+      background-position: center; 
+      background-repeat: no-repeat;
+      /* Removed heavy border/shadow to match 'clean' look of image, but keeping logic if user wants it back easily */
+    }
     .company-info { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
     .company-name { font-size: 24px; font-weight: 800; color: #2d5016; margin-bottom: 4px; letter-spacing: -1px; line-height: 1; }
-    .company-row { display: flex; align-items: center; gap: 10px; font-size: 10px; color: #4b5563; line-height: 1.4; }
+    .company-row { display: flex; align-items: center; gap: 10px; font-size: 12px; color: #4b5563; line-height: 1.4; }
     .company-icon { display: none; }
     .company-phone { font-weight: 700; color: #1a1a1a; }
     .company-siret { font-size: 10px; color: #9ca3af; margin-top: 4px; }
     .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
-    .doc-info-container { text-align: right; }
-    .doc-main-title { font-size: 24px; font-weight: 800; color: #2d5016; text-transform: uppercase; letter-spacing: -1px; margin-bottom: 4px; line-height: 1; }
-    .doc-meta { font-size: 11px; color: #4b5563; font-weight: 600; }
+    .header-glass-card {
+      background: white;
+      border: 1px solid #e5e7eb;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      border-radius: 12px;
+      padding: 16px 24px;
+      text-align: right;
+    }
+    .doc-main-title { 
+      font-size: 24px; 
+      font-weight: 800; 
+      color: #2d5016; /* Green Title */
+      letter-spacing: -0.5px; 
+      margin-bottom: 4px; 
+      line-height: 1; 
+    }
+    .doc-number { color: #ea580c; } /* Orange number */
+    .doc-meta { font-size: 11px; color: #6b7280; font-weight: 500; }
     .doc-validity { font-size: 10px; color: #ff7b54; font-style: italic; margin-top: 2px; }
     .info-section { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
-    .info-card { border-left: 3px solid #2d5016; background: #fffcf5; padding: 12px 14px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); border: none; border-left-width: 3px; display: flex; flex-direction: column; height: 100%; }
-    .info-card.event { border-left-color: #ff7b54; background: #fff8f5; }
-    .info-header { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
-    .info-icon { width: 12px; height: 12px; flex-shrink: 0; }
-    .info-icon.client { color: #2d5016; }
-    .info-icon.event { color: #ff7b54; }
-    .info-title { font-size: 12px; font-weight: 600; color: #2d5016; line-height: 1.3; letter-spacing: 0.5px; }
+    .info-card {
+      background: #f0fdf4; /* Green-50 */
+      border-radius: 12px; 
+      padding: 16px; 
+      border: 2px solid #bbf7d0; /* Green-200 */
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+    .info-card.event { 
+      background: #fff7ed; /* Orange-50 */
+      border-color: #fed7aa; /* Orange-200 */
+    }
+    .info-header { 
+      display: flex; 
+      align-items: center; 
+      gap: 10px; 
+      margin-bottom: 8px; 
+      padding-bottom: 8px; 
+      border-bottom: 2px dashed #bbf7d0; 
+    }
+    .info-card.event .info-header { 
+      border-bottom-color: #fed7aa;
+    }
+    .info-title { font-size: 11px; font-weight: 700; color: #1a1a1a; }
     .info-details { font-size: 10px; color: #4b5563; line-height: 1.4; }
     /* Card Style Product Section */
     .product-card-container {
@@ -294,10 +336,10 @@ function generatePreviewHTML(data: DevisTemplateData): string {
       z-index: 10;
     }
     .signature-section { margin-top: 20px; }
-    .signature-box { border: 2px dashed #d1d5db; border-radius: 8px; padding: 16px; background: #fafafa; }
-    .signature-title { font-size: 12px; font-weight: 700; color: #1a1a1a; margin-bottom: 8px; }
+    .signature-box { border: 2px dashed #fde68a; border-radius: 8px; padding: 16px; background: #fffbeb; }
+    .signature-title { font-size: 12px; font-weight: 700; color: #92400e; margin-bottom: 8px; }
     .signature-mention { font-size: 10px; color: #ff7b54; font-style: italic; margin-bottom: 16px; }
-    .signature-line { display: flex; justify-content: space-between; font-size: 11px; color: #666; padding-top: 30px; border-top: 1px solid #e5e7eb; }
+    .signature-line { display: flex; justify-content: space-between; font-size: 11px; color: #92400e; padding-top: 24px; border-top: 2px dashed #fde68a; }
     .signature-space { min-width: 150px; }
     .footer-section { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 20px; padding-top: 12px; border-top: 1px solid #e5e7eb; }
     .footer-qr { text-align: center; }
@@ -344,9 +386,8 @@ function generatePreviewHTML(data: DevisTemplateData): string {
     }
     
     .info-box-title {
-      font-size: 11px;
+      font-size: 12px;
       font-weight: 700;
-      text-transform: uppercase;
       letter-spacing: 0.5px;
     }
     
@@ -397,31 +438,33 @@ function generatePreviewHTML(data: DevisTemplateData): string {
         </div>
       </div>
       <div class="header-right">
-        <div class="doc-info-container">
-          <div class="doc-main-title">${data.docType} ${data.docRef}</div>
+        <div class="header-glass-card">
+          <div class="doc-main-title">
+            ${data.docType === "DEVIS" ? "Devis n°" : data.docType} <span class="doc-number">${data.docRef.replace(/^N°/, "").replace("DEVIS N°", "").replace("Devis N°", "")}</span>
+          </div>
           <div class="doc-meta">Émis le ${data.docDate}</div>
           <div class="doc-validity">Valable 1 mois</div>
         </div>
       </div>
     </div>
-    <div class="info-section">
-      <div class="info-card">
-        <div class="info-header">
+    <div class="cards-grid">
+      <div class="info-box-card green-theme">
+        <div class="info-box-header">
           <div class="icon-circle bg-green">
             <svg viewBox="0 0 24 24">
               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
               <circle cx="12" cy="7" r="4"></circle>
             </svg>
           </div>
-          <div class="info-title">${data.client.name}</div>
+          <div class="info-box-title">${data.client.name}</div>
         </div>
-        <div class="info-details">
+        <div class="info-box-content">
           ${data.client.address.replace(/,/g, "<br />")}<br />
           ${data.client.phone}
         </div>
       </div>
-      <div class="info-card event">
-        <div class="info-header">
+      <div class="info-box-card orange-theme">
+        <div class="info-box-header">
           <div class="icon-circle bg-orange">
             <svg viewBox="0 0 24 24">
               <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
@@ -430,9 +473,9 @@ function generatePreviewHTML(data: DevisTemplateData): string {
               <line x1="3" y1="10" x2="21" y2="10"></line>
             </svg>
           </div>
-          <div class="info-title" style="color: #ff7b54;">${data.event.name}</div>
+          <div class="info-box-title">${data.event.name}</div>
         </div>
-        <div class="info-details">
+        <div class="info-box-content">
           ${data.event.date}<br />
           ${data.event.location}
         </div>

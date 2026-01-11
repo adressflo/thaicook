@@ -135,23 +135,18 @@ export function DevisTemplate({ data }: DevisTemplateProps) {
           }
           
           .avatar-container {
-            width: 80px;
-            height: 80px;
+            width: 160px;
+            height: 100px;
             border-radius: 12px;
-            background: #f5f5f0;
-            padding: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             overflow: hidden;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            flex-shrink: 0;
+            display: block; /* Ensure block display for image */
           }
           
           .avatar {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            border-radius: 8px;
           }
           
           .company-info {
@@ -162,11 +157,11 @@ export function DevisTemplate({ data }: DevisTemplateProps) {
           }
           
           .company-name {
-            font-size: 28px;
+            font-size: 24px;
             font-weight: 800;
             color: #2d5016;
             letter-spacing: -1px;
-            margin-bottom: 6px;
+            margin-bottom: 2px;
             line-height: 1;
           }
           
@@ -174,7 +169,7 @@ export function DevisTemplate({ data }: DevisTemplateProps) {
             display: flex;
             align-items: center;
             gap: 6px;
-            font-size: 11px;
+            font-size: 12px;
             color: #4b5563;
             line-height: 1.4;
           }
@@ -194,24 +189,30 @@ export function DevisTemplate({ data }: DevisTemplateProps) {
             margin-top: 2px;
           }
           
-          .doc-info-container {
+          .header-glass-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border-radius: 12px;
+            padding: 16px 24px;
             text-align: right;
           }
-          
+
           .doc-main-title {
-            font-size: 28px;
+            font-size: 24px;
             font-weight: 800;
-            color: #2d5016;
-            text-transform: uppercase;
-            letter-spacing: -1px;
+            color: #2d5016; /* Green Title */
+            letter-spacing: -0.5px;
             margin-bottom: 4px;
             line-height: 1;
           }
           
+          .doc-number { color: #ea580c; }
+          
           .doc-meta {
             font-size: 11px;
-            color: #4b5563;
-            font-weight: 600;
+            color: #6b7280;
+            font-weight: 500;
           }
           
           .doc-validity {
@@ -229,23 +230,31 @@ export function DevisTemplate({ data }: DevisTemplateProps) {
           }
           
           .info-card {
-            border-left: 3px solid #2d5016;
-            background: #fffcf5;
-            padding: 12px;
-            border-radius: 12px;
+            background: #f0fdf4; /* Green-50 */
+            border-radius: 12px; 
+            padding: 16px; 
+            border: 2px solid #bbf7d0; /* Green-200 */
           }
           
           .info-card.event {
-             border-left-color: #ff7b54;
-             background: #fff8f5;
+             background: #fff7ed; /* Orange-50 */
+             border-color: #fed7aa; /* Orange-200 */
           }
 
           .info-header {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 6px;
+             display: flex; 
+             align-items: center; 
+             gap: 8px; 
+             margin-bottom: 8px; 
+             padding-bottom: 8px; 
+             border-bottom: 2px dashed #bbf7d0; /* Dashed separator */
           }
+
+          .info-card.event .info-header {
+             border-bottom-color: #fed7aa;
+          }
+
+
           
           .info-icon {
             width: 12px;
@@ -472,9 +481,8 @@ export function DevisTemplate({ data }: DevisTemplateProps) {
           }
           
           .info-box-title {
-            font-size: 11px;
+            font-size: 12px;
             font-weight: 700;
-            text-transform: uppercase;
             letter-spacing: 0.5px;
           }
           
@@ -496,16 +504,16 @@ export function DevisTemplate({ data }: DevisTemplateProps) {
           }
 
           .signature-box {
-            border: 2px dashed #d1d5db;
+            border: 2px dashed #fde68a;
             border-radius: 8px;
             padding: 16px;
-            background: #fafafa;
+            background: #fffbeb;
           }
 
           .signature-title {
             font-size: 12px;
             font-weight: 700;
-            color: #1a1a1a;
+            color: #92400e;
             margin-bottom: 8px;
           }
 
@@ -520,9 +528,9 @@ export function DevisTemplate({ data }: DevisTemplateProps) {
             display: flex;
             justify-content: space-between;
             font-size: 11px;
-            color: #666;
-            padding-top: 30px;
-            border-top: 1px solid #e5e7eb;
+            color: #92400e;
+            padding-top: 24px;
+            border-top: 2px dashed #fde68a;
           }
 
           .signature-space {
@@ -630,9 +638,12 @@ export function DevisTemplate({ data }: DevisTemplateProps) {
               </div>
             </div>
             <div className="header-right">
-              <div className="doc-info-container">
+              <div className="header-glass-card">
                 <div className="doc-main-title">
-                  {data.docType} {data.docRef}
+                  {data.docType === "DEVIS" ? "Devis n°" : data.docType}{" "}
+                  <span className="doc-number">
+                    {data.docRef.replace(/^N°/, "").replace("DEVIS N°", "").replace("Devis N°", "")}
+                  </span>
                 </div>
                 <div className="doc-meta">Émis le {data.docDate}</div>
                 <div className="doc-validity">Valable 1 mois</div>
@@ -641,9 +652,9 @@ export function DevisTemplate({ data }: DevisTemplateProps) {
           </div>
 
           {/* CLIENT & EVENT INFO */}
-          <div className="info-section">
-            <div className="info-card">
-              <div className="info-header">
+          <div className="cards-grid">
+            <div className="info-box-card green-theme">
+              <div className="info-box-header">
                 {/* User Icon */}
                 <div className="icon-circle bg-green">
                   <svg viewBox="0 0 24 24">
@@ -651,16 +662,16 @@ export function DevisTemplate({ data }: DevisTemplateProps) {
                     <circle cx="12" cy="7" r="4" />
                   </svg>
                 </div>
-                <div className="info-title">{data.client.name}</div>
+                <div className="info-box-title">{data.client.name}</div>
               </div>
-              <div className="info-details">
+              <div className="info-box-content">
                 {data.client.address}
                 <br />
                 {data.client.phone}
               </div>
             </div>
-            <div className="info-card event">
-              <div className="info-header">
+            <div className="info-box-card orange-theme">
+              <div className="info-box-header">
                 {/* Calendar Icon */}
                 <div className="icon-circle bg-orange">
                   <svg viewBox="0 0 24 24">
@@ -670,11 +681,9 @@ export function DevisTemplate({ data }: DevisTemplateProps) {
                     <line x1="3" y1="10" x2="21" y2="10" />
                   </svg>
                 </div>
-                <div className="info-title" style={{ color: "#ff7b54" }}>
-                  {data.event.name}
-                </div>
+                <div className="info-box-title">{data.event.name}</div>
               </div>
-              <div className="info-details">
+              <div className="info-box-content">
                 {data.event.date}
                 <br />
                 {data.event.location}
