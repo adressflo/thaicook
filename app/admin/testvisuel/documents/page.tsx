@@ -100,14 +100,38 @@ function generatePreviewHTML(data: DevisTemplateData): string {
       font-weight: 500;
       text-rendering: optimizeLegibility;
     }
+    .icon-circle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .icon-circle svg {
+      width: 14px;
+      height: 14px;
+      fill: none;
+      stroke: white;
+      stroke-width: 2.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .bg-green {
+      background: linear-gradient(135deg, #2d5016 0%, #4a7c23 100%);
+    }
+    .bg-orange {
+      background: linear-gradient(135deg, #ff7b54 0%, #ffb386 100%);
+    }
     .page { max-width: 100%; }
-    .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; padding-bottom: 8px; border-bottom: none; }
-    .header-left { display: flex; gap: 14px; align-items: center; }
-    .avatar { width: 130px; height: 85px; border-radius: 8px; flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border: 2px solid #ff7b54; background-size: cover; background-position: center; background-repeat: no-repeat; }
-    .company-info { display: flex; flex-direction: column; gap: 4px; margin-top: 4px; }
+    .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; padding-bottom: 8px; border-bottom: none; }
+    .header-left { display: flex; gap: 16px; align-items: center; }
+    .avatar { width: 130px; height: 85px; border-radius: 8px; flex-shrink: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 2px solid #ff7b54; background-size: cover; background-position: center; background-repeat: no-repeat; }
+    .company-info { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
     .company-name { font-size: 24px; font-weight: 800; color: #2d5016; margin-bottom: 4px; letter-spacing: -1px; line-height: 1; }
-    .company-row { display: flex; align-items: flex-start; gap: 6px; font-size: 10px; color: #4b5563; line-height: 1.4; }
-    .company-icon { width: 12px; height: 12px; color: #ff7b54; flex-shrink: 0; margin-top: 1px; }
+    .company-row { display: flex; align-items: center; gap: 10px; font-size: 10px; color: #4b5563; line-height: 1.4; }
+    .company-icon { display: none; }
     .company-phone { font-weight: 700; color: #1a1a1a; }
     .company-siret { font-size: 10px; color: #9ca3af; margin-top: 4px; }
     .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
@@ -115,33 +139,160 @@ function generatePreviewHTML(data: DevisTemplateData): string {
     .doc-main-title { font-size: 24px; font-weight: 800; color: #2d5016; text-transform: uppercase; letter-spacing: -1px; margin-bottom: 4px; line-height: 1; }
     .doc-meta { font-size: 11px; color: #4b5563; font-weight: 600; }
     .doc-validity { font-size: 10px; color: #ff7b54; font-style: italic; margin-top: 2px; }
-    .info-section { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
-    .info-card { border-left: 3px solid #2d5016; background: #fffcf5; padding: 10px 12px; border-radius: 4px; box-shadow: none; border: none; border-left-width: 3px; display: flex; flex-direction: column; height: 100%; }
+    .info-section { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+    .info-card { border-left: 3px solid #2d5016; background: #fffcf5; padding: 12px 14px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); border: none; border-left-width: 3px; display: flex; flex-direction: column; height: 100%; }
     .info-card.event { border-left-color: #ff7b54; background: #fff8f5; }
-    .info-header { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+    .info-header { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
     .info-icon { width: 12px; height: 12px; flex-shrink: 0; }
     .info-icon.client { color: #2d5016; }
     .info-icon.event { color: #ff7b54; }
     .info-title { font-size: 12px; font-weight: 600; color: #2d5016; line-height: 1.3; letter-spacing: 0.5px; }
     .info-details { font-size: 10px; color: #4b5563; line-height: 1.4; }
-    .products-section { margin-bottom: 16px; }
-    .products-header { background: #2d5016; color: white; padding: 10px 14px; border-radius: 6px 6px 0 0; font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; display: flex; justify-content: space-between; align-items: center; }
-    .products-header-info { font-size: 10px; font-weight: 500; opacity: 0.9; }
-    .product-item { display: flex; gap: 10px; padding: 12px; border-bottom: 1px solid #e5e7eb; background: white; border-left: 1px solid #e5e7eb; border-right: 1px solid #e5e7eb; align-items: center; }
-    .product-item:last-child { border-radius: 0 0 6px 6px; border-bottom: 1px solid #e5e7eb; }
-    .product-icon { width: 50px; height: 50px; border-radius: 8px; background: #f5f5f0; display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }
+    /* Card Style Product Section */
+    .product-card-container {
+      background-color: #fffbeb; /* Amber 50 */
+      border: 2px solid #fde68a; /* Amber 200 */
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 24px;
+    }
+
+    .product-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      padding: 0 4px 12px 4px;
+      border-bottom: 2px dashed #fde68a; /* Amber 200 */
+    }
+
+    .product-card-title {
+      font-size: 24px; /* Matches text-2xl/text-3xl */
+      font-weight: 900;
+      color: #92400e;
+      letter-spacing: -0.5px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .product-card-info {
+      font-size: 16px; /* Matches text-base */
+      color: #92400e; /* text-amber-800 */
+      font-weight: 800;
+      background: rgba(255, 255, 255, 0.8);
+      padding: 6px 16px;
+      border-radius: 9999px;
+      border: 1px solid #fed7aa; /* ring-orange-200 */
+      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .product-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px; /* Space between floating cards */
+    }
+
+    .product-item {
+      display: flex;
+      gap: 12px;
+      padding: 12px;
+      background: white;
+      border: 1px solid #f0f0f0;
+      border-radius: 12px;
+      align-items: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.01);
+    }
+    
+    /* Remove old borders */
+    .product-item:not(:last-child), 
+    .product-item:last-child {
+      border-bottom: 1px solid #f0f0f0;
+      border-left: 1px solid #f0f0f0;
+      border-right: 1px solid #f0f0f0;
+    }
+
+    .product-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 10px;
+      background: #f5f5f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+
     .product-icon img { width: 100%; height: 100%; object-fit: cover; }
     .product-emoji { font-size: 24px; }
-    .product-details { flex: 1; }
-    .product-name { font-size: 13px; font-weight: 600; color: #1a1a1a; margin-bottom: 2px; }
-    .product-desc { font-size: 10px; color: #666; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-    .product-price { font-size: 14px; font-weight: 700; color: #ff7b54; text-align: right; min-width: 60px; }
-    .divider { height: 2px; background: repeating-linear-gradient(to right, #ff7b54 0px, #ff7b54 8px, transparent 8px, transparent 16px); margin: 16px 0; }
-    .total-section { background: linear-gradient(135deg, #f5f5f0 0%, #ebebeb 100%); padding: 16px; border-radius: 10px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; }
-    .total-label { font-size: 13px; color: #666; font-weight: 600; text-transform: uppercase; }
-    .total-amount { font-size: 28px; font-weight: 700; color: #2d5016; }
+    
+    .product-details { flex: 1; min-width: 0; }
+    
+    .product-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: #2d5016; /* Thai Green */
+      margin-bottom: 2px;
+    }
+
+    .product-desc {
+      font-size: 10px;
+      color: #666;
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .product-price {
+      font-size: 14px;
+      font-weight: 700;
+      color: #ea580c; /* Orange-600 */
+      text-align: right;
+      min-width: 70px;
+    }
+    
+    .product-card-footer {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 2px dashed #fde68a; /* Amber 200 */
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .total-label {
+      font-size: 18px; /* text-lg */
+      font-weight: 800; /* font-extrabold */
+      color: #92400e; /* text-amber-800 */
+      opacity: 0.9;
+      text-transform: none; /* Removed uppercase */
+    }
+    
+    .total-amount {
+      font-size: 24px; /* text-2xl */
+      font-weight: 900; /* font-black */
+      color: #ea580c; /* text-orange-600 */
+    }
+
     .mentions { font-size: 10px; color: #999; line-height: 1.5; padding: 12px; background: #fafafa; border-radius: 6px; border: 1px solid #e5e7eb; }
-    .legal-tva { font-size: 10px; color: #666; font-style: italic; text-align: center; margin-bottom: 16px; padding: 8px; background: #fef3c7; border-radius: 4px; border: 1px solid #fcd34d; }
+    .legal-tva { 
+      font-size: 10px; 
+      color: #9ca3af; 
+      font-style: italic; 
+      text-align: right; 
+      margin-top: -12px; 
+      padding-right: 16px;
+      padding-bottom: 8px;
+      border: none;
+      position: relative;
+      z-index: 10;
+    }
     .signature-section { margin-top: 20px; }
     .signature-box { border: 2px dashed #d1d5db; border-radius: 8px; padding: 16px; background: #fafafa; }
     .signature-title { font-size: 12px; font-weight: 700; color: #1a1a1a; margin-bottom: 8px; }
@@ -155,15 +306,61 @@ function generatePreviewHTML(data: DevisTemplateData): string {
     .footer-mentions { font-size: 8px; color: #666; flex: 1; text-align: center; padding: 0 10px; }
     .footer-logo { width: 50px; height: 50px; }
     .footer-logo img { width: 100%; height: 100%; object-fit: contain; }
-    .cards-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
-    .bank-details { background: #fef7e0; padding: 12px; border-radius: 8px; border-left: 3px solid #2d5016; }
-    .bank-title { font-size: 10px; font-weight: 700; color: #2d5016; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
-    .bank-info { font-size: 10px; color: #1a1a1a; line-height: 1.5; }
-    .bank-name { font-size: 10px; color: #666; margin-top: 4px; }
-    .payment-conditions { background: #fef7e0; padding: 12px; border-radius: 8px; border-left: 3px solid #ff7b54; }
-    .payment-title { font-size: 10px; font-weight: 700; color: #ff7b54; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
-    .payment-text { font-size: 10px; color: #1a1a1a; line-height: 1.5; }
-    .small-text { font-size: 10px; color: #666; }
+    .cards-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+    
+    .info-box-card {
+      background: #fffbf7;
+      border-radius: 16px;
+      padding: 16px;
+      height: 100%;
+      border: 2px solid transparent;
+    }
+    
+    .info-box-card.green-theme {
+      border-color: #dcfce7; /* Light Green Border */
+    }
+    
+    .info-box-card.orange-theme {
+      border-color: #ffedd5; /* Light Orange Border */
+    }
+    
+    .info-box-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      padding-bottom: 8px;
+      border-bottom: 1px dashed;
+    }
+    
+    .green-theme .info-box-header {
+      border-bottom-color: #dcfce7;
+      color: #2d5016;
+    }
+    
+    .orange-theme .info-box-header {
+      border-bottom-color: #ffedd5;
+      color: #ff7b54;
+    }
+    
+    .info-box-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .info-box-content {
+      font-size: 10px;
+      color: #1a1a1a;
+      line-height: 1.6;
+    }
+    
+    .info-box-sub {
+      color: #666;
+      font-size: 10px;
+      margin-top: 4px;
+    }
   </style>
 </head>
 <body>
@@ -175,10 +372,12 @@ function generatePreviewHTML(data: DevisTemplateData): string {
           <div class="company-name">ChanthanaThaiCook</div>
           
           <div class="company-row">
-            <svg class="company-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
+            <div class="icon-circle bg-green">
+              <svg viewBox="0 0 24 24">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                <circle cx="12" cy="10" r="3"></circle>
+              </svg>
+            </div>
             <div style="font-weight: 500;">
               2 Impasse de la Poste<br/>
               37120 Marigny Marmande
@@ -186,9 +385,11 @@ function generatePreviewHTML(data: DevisTemplateData): string {
           </div>
 
           <div class="company-row">
-            <svg class="company-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-            </svg>
+            <div class="icon-circle bg-orange">
+              <svg viewBox="0 0 24 24">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+              </svg>
+            </div>
             <span class="company-phone">07 49 28 37 07</span>
           </div>
 
@@ -206,9 +407,12 @@ function generatePreviewHTML(data: DevisTemplateData): string {
     <div class="info-section">
       <div class="info-card">
         <div class="info-header">
-          <svg class="info-icon client" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-          </svg>
+          <div class="icon-circle bg-green">
+            <svg viewBox="0 0 24 24">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+          </div>
           <div class="info-title">${data.client.name}</div>
         </div>
         <div class="info-details">
@@ -218,9 +422,14 @@ function generatePreviewHTML(data: DevisTemplateData): string {
       </div>
       <div class="info-card event">
         <div class="info-header">
-          <svg class="info-icon event" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-          </svg>
+          <div class="icon-circle bg-orange">
+            <svg viewBox="0 0 24 24">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+          </div>
           <div class="info-title" style="color: #ff7b54;">${data.event.name}</div>
         </div>
         <div class="info-details">
@@ -229,22 +438,40 @@ function generatePreviewHTML(data: DevisTemplateData): string {
         </div>
       </div>
     </div>
-    <div class="products-section">
-      <div class="products-header">
-        <span>Menu Proposé</span>
-        ${data.nombrePersonnes ? `<span class="products-header-info">${data.nombrePersonnes} personnes</span>` : ""}
+    
+    <!-- New Product Card Container -->
+    <div class="product-card-container">
+      <div class="product-card-header">
+        <div class="product-card-title">
+           <div class="icon-circle bg-green" style="width: 28px; height: 28px;">
+             <svg viewBox="0 0 24 24" style="width: 16px; height: 16px;">
+               <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/>
+               <path d="M7 2v20"/>
+               <path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/>
+             </svg>
+           </div>
+           Menu Proposé
+        </div>
+        ${
+          data.nombrePersonnes
+            ? `<div class="product-card-info">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+          ${data.nombrePersonnes} personnes</div>`
+            : ""
+        }
       </div>
-      ${productsHTML}
+      
+      <div class="product-list">
+        ${productsHTML}
+      </div>
+
+      <div class="product-card-footer">
+        <div class="total-label">Total HT</div>
+        <div class="total-amount">${formatPrice(data.total.toString())}</div>
+      </div>
     </div>
-    <div class="divider"></div>
-    
-    <!-- Total Section -->
-    <div class="total-section">
-      <div class="total-label">Total HT</div>
-      <div class="total-amount">${formatPrice(data.total.toString())}</div>
-    </div>
-    
-    <!-- Mention légale TVA -->
     <div class="legal-tva">
       TVA non applicable, art. 293 B du CGI
     </div>
@@ -252,22 +479,45 @@ function generatePreviewHTML(data: DevisTemplateData): string {
     <!-- Cards Grid (Bank + Conditions side by side) -->
     <div class="cards-grid">
       <!-- Coordonnées bancaires -->
-      <div class="bank-details">
-        <div class="bank-title">Coordonnées bancaires</div>
-        <div class="bank-info">
+      <div class="info-box-card green-theme">
+        <div class="info-box-header">
+          <div class="icon-circle bg-green">
+            <svg viewBox="0 0 24 24">
+              <line x1="3" y1="21" x2="21" y2="21" />
+              <line x1="5" y1="21" x2="5" y2="10" />
+              <line x1="19" y1="21" x2="19" y2="10" />
+              <path d="M5 10a4 4 0 1 1 14 0" />
+              <path d="M12 7V3" />
+              <path d="M10 2L14 2" />
+            </svg>
+          </div>
+          <div class="info-box-title">Coordonnées bancaires</div>
+        </div>
+        <div class="info-box-content">
           <div><strong>IBAN :</strong> FR76 3000 4031 4400 0103 0315 066</div>
           <div><strong>BIC :</strong> BNPAFRPPXXX</div>
-          <div class="bank-name">Hellobank! - MME CHAMPA CHANTHANA</div>
+          <div class="info-box-sub">Hellobank! - MME CHAMPA CHANTHANA</div>
         </div>
       </div>
       
       <!-- Conditions de règlement -->
-      <div class="payment-conditions">
-        <div class="payment-title">Conditions de règlement</div>
-        <div class="payment-text">
+      <div class="info-box-card orange-theme">
+        <div class="info-box-header">
+          <div class="icon-circle bg-orange">
+            <svg viewBox="0 0 24 24">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <polyline points="14 2 14 8 20 8" />
+              <line x1="16" y1="13" x2="8" y2="13" />
+              <line x1="16" y1="17" x2="8" y2="17" />
+              <polyline points="10 9 9 9 8 9" />
+            </svg>
+          </div>
+          <div class="info-box-title">Conditions de règlement</div>
+        </div>
+        <div class="info-box-content">
           Acompte de 30% à la signature du devis.<br/>
           Solde à régler le jour de la livraison.<br/><br/>
-          <span class="small-text">
+          <span class="info-box-sub">
             Pénalités de retard : 10% l'an.<br/>
             Indemnité forfaitaire (pros) : 40 €.
           </span>
