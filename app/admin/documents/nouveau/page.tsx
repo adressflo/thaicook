@@ -36,7 +36,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { CommandList } from "cmdk"
 import { format } from "date-fns"
 import { fr } from "date-fns/locale"
-import { CalendarIcon, Check, ChevronsUpDown, Loader2, Plus, Trash2 } from "lucide-react"
+import { CalendarIcon, Check, ChevronsUpDown, FileText, Loader2, Plus, Trash2 } from "lucide-react"
 import { useAction } from "next-safe-action/hooks"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
@@ -47,13 +47,27 @@ import { z } from "zod"
 
 type DocumentFormValues = z.infer<typeof documentSchema>
 
-const defaultValues: Partial<DocumentFormValues> = {
+const defaultValues: DocumentFormValues = {
   type: "DEVIS",
   date_creation: new Date(),
   statut: "brouillon",
   nom_client_snapshot: "",
-  lignes: [{ description: "", quantite: 1, prix_unitaire: 0, type: "CUSTOM", photo_url: "" }],
+  adresse_client_snapshot: "",
+  notes_privees: "",
+  lignes: [
+    {
+      description: "",
+      quantite: 1,
+      prix_unitaire: 0,
+      type: "CUSTOM",
+      photo_url: "",
+      tva_taux: 0,
+      total_ht: 0,
+    },
+  ],
   mentions_legales: "Devis valable 30 jours. TVA non applicable, art. 293 B du CGI.",
+  client_id: undefined,
+  date_echeance: undefined,
 }
 
 type PlatItem = {
@@ -66,7 +80,8 @@ type PlatItem = {
 export default function DocumentEditorPage() {
   const router = useRouter()
   const form = useForm<DocumentFormValues>({
-    resolver: zodResolver(documentSchema),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    resolver: zodResolver(documentSchema) as any,
     defaultValues,
   })
 
@@ -91,8 +106,8 @@ export default function DocumentEditorPage() {
         router.push("/admin/documents")
       }
     },
-    onError: (error) => {
-      toast.error("Erreur lors de la création : " + error.serverError)
+    onError: ({ error }) => {
+      toast.error("Erreur lors de la création : " + (error.serverError || "Erreur inconnue"))
     },
   })
 
@@ -237,7 +252,14 @@ export default function DocumentEditorPage() {
                 variant="outline"
                 size="sm"
                 onClick={() =>
-                  append({ description: "", quantite: 1, prix_unitaire: 0, type: "CUSTOM" })
+                  append({
+                    description: "",
+                    quantite: 1,
+                    prix_unitaire: 0,
+                    type: "CUSTOM",
+                    tva_taux: 0,
+                    total_ht: 0,
+                  })
                 }
               >
                 <Plus className="mr-2 h-4 w-4" /> Ajouter une ligne

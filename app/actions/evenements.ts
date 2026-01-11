@@ -1,7 +1,7 @@
 "use server"
 
 import type { client_db, evenements_db } from "@/generated/prisma/client"
-import { Prisma } from "@/generated/prisma/client"
+import { Prisma, statut_evenement } from "@/generated/prisma/client"
 import { prisma } from "@/lib/prisma"
 import { authAction } from "@/lib/safe-action"
 import { evenementSchema, evenementUpdateSchema, getByIdSchema } from "@/lib/validations"
@@ -97,7 +97,7 @@ export const createEvenement = authAction
         nombre_de_personnes: rest.nombre_personnes,
         budget_client: budget_approximatif ? budget_approximatif : null,
         demandes_speciales_evenement: description_evenement || null,
-        statut_evenement: "Demande_initiale",
+        statut_evenement: statut_evenement.Demande_initiale,
         plats_preselectionnes: rest.plats_preselectionnes,
       }
 

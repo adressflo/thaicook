@@ -6,11 +6,8 @@ import type {
   details_commande_db,
   extras_db,
   plats_db,
-  statut_commande,
-  statut_paiement,
-  type_livraison,
 } from "@/generated/prisma/client"
-import { Prisma } from "@/generated/prisma/client"
+import { Prisma, statut_commande, statut_paiement, type_livraison } from "@/generated/prisma/client"
 import { prisma } from "@/lib/prisma"
 import { authAction } from "@/lib/safe-action"
 import {
@@ -55,12 +52,12 @@ function mapStatutCommande(statut: string | null): CommandeUI["statut_commande"]
 function mapStatutCommandeToDB(statutUI: CommandeUI["statut_commande"]): statut_commande | null {
   if (!statutUI) return null
   const reverseMapping: Record<string, statut_commande> = {
-    "En attente de confirmation": "En_attente_de_confirmation",
-    Confirmée: "Confirm_e",
-    "En préparation": "En_pr_paration",
-    "Prête à récupérer": "Pr_te___r_cup_rer",
-    Récupérée: "R_cup_r_e",
-    Annulée: "Annul_e",
+    "En attente de confirmation": statut_commande.En_attente_de_confirmation,
+    Confirmée: statut_commande.Confirm_e,
+    "En préparation": statut_commande.En_pr_paration,
+    "Prête à récupérer": statut_commande.Pr_te___r_cup_rer,
+    Récupérée: statut_commande.R_cup_r_e,
+    Annulée: statut_commande.Annul_e,
   }
   if (Object.prototype.hasOwnProperty.call(reverseMapping, statutUI)) {
     return reverseMapping[statutUI]
@@ -71,11 +68,11 @@ function mapStatutCommandeToDB(statutUI: CommandeUI["statut_commande"]): statut_
 function mapStatutPaiementToDB(statutUI: CommandeUI["statut_paiement"]): statut_paiement | null {
   if (!statutUI) return null
   const reverseMapping: Record<string, statut_paiement> = {
-    "En attente sur place": "En_attente_sur_place",
-    "Payé sur place": "Pay__sur_place",
-    "Payé en ligne": "Pay__en_ligne",
-    "Non payé": "Non_pay_",
-    Payée: "Pay_e",
+    "En attente sur place": statut_paiement.En_attente_sur_place,
+    "Payé sur place": statut_paiement.Pay__sur_place,
+    "Payé en ligne": statut_paiement.Pay__en_ligne,
+    "Non payé": statut_paiement.Non_pay_,
+    Payée: statut_paiement.Pay_e,
   }
   if (Object.prototype.hasOwnProperty.call(reverseMapping, statutUI)) {
     return reverseMapping[statutUI]
@@ -111,9 +108,9 @@ function mapTypeLivraison(type: string | null): CommandeUI["type_livraison"] {
 function mapTypeLivraisonToDB(typeUI: CommandeUI["type_livraison"]): type_livraison | null {
   if (!typeUI) return null
   const mapping: Record<string, type_livraison> = {
-    "À emporter": "emporter",
-    Livraison: "Livraison",
-    "Sur place": "Sur_place",
+    "À emporter": type_livraison.emporter,
+    Livraison: type_livraison.Livraison,
+    "Sur place": type_livraison.Sur_place,
   }
   if (Object.prototype.hasOwnProperty.call(mapping, typeUI)) {
     return mapping[typeUI]
@@ -405,10 +402,10 @@ export const createCommande = authAction
             demande_special_pour_la_commande: data.demande_special_pour_la_commande || null,
             type_livraison:
               mapTypeLivraisonToDB(data.type_livraison as CommandeUI["type_livraison"]) ||
-              "emporter",
+              type_livraison.emporter,
             adresse_specifique: data.adresse_specifique || null,
-            statut_commande: "En_attente_de_confirmation",
-            statut_paiement: "En_attente_sur_place",
+            statut_commande: statut_commande.En_attente_de_confirmation,
+            statut_paiement: statut_paiement.En_attente_sur_place,
           },
         })
 

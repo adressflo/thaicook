@@ -58,34 +58,72 @@ function generatePreviewHTML(data: DevisTemplateData): string {
     )
     .join("")
 
-  const badgeColor =
-    data.docType === "DEVIS" ? "#f97316" : data.docType === "FACTURE" ? "#3b82f6" : "#16a34a"
-
   return `<!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    /* Using Geist font via CDN to match application theme */
+    @font-face {
+      font-family: 'Geist';
+      src: url('https://cdn.jsdelivr.net/npm/geist@1.3.0/dist/fonts/geist-sans/Geist-Regular.woff2') format('woff2');
+      font-weight: 400;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'Geist';
+      src: url('https://cdn.jsdelivr.net/npm/geist@1.3.0/dist/fonts/geist-sans/Geist-Medium.woff2') format('woff2');
+      font-weight: 500;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'Geist';
+      src: url('https://cdn.jsdelivr.net/npm/geist@1.3.0/dist/fonts/geist-sans/Geist-SemiBold.woff2') format('woff2');
+      font-weight: 600;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'Geist';
+      src: url('https://cdn.jsdelivr.net/npm/geist@1.3.0/dist/fonts/geist-sans/Geist-Bold.woff2') format('woff2');
+      font-weight: 700;
+      font-style: normal;
+    }
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Inter', sans-serif; background: white; color: #1a1a1a; padding: 24px; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      font-family: 'Geist', sans-serif; 
+      background: white; 
+      color: #1a1a1a; 
+      padding: 24px;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      font-weight: 500;
+      text-rendering: optimizeLegibility;
+    }
     .page { max-width: 100%; }
-    .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 2px solid #f5f5f0; }
+    .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; padding-bottom: 8px; border-bottom: none; }
     .header-left { display: flex; gap: 14px; align-items: center; }
-    .avatar { width: 130px; height: 85px; border-radius: 8px; flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border: 2px solid #f97316; background-size: cover; background-position: center; background-repeat: no-repeat; }
-    .company-info { display: flex; flex-direction: column; gap: 2px; }
-    .company-name { font-size: 16px; font-weight: 700; color: #2d5016; }
-    .company-tagline { font-size: 11px; color: #666; font-weight: 500; }
-    .company-address { font-size: 10px; color: #999; margin-top: 2px; }
+    .avatar { width: 130px; height: 85px; border-radius: 8px; flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border: 2px solid #ff7b54; background-size: cover; background-position: center; background-repeat: no-repeat; }
+    .company-info { display: flex; flex-direction: column; gap: 4px; margin-top: 4px; }
+    .company-name { font-size: 24px; font-weight: 800; color: #2d5016; margin-bottom: 4px; letter-spacing: -1px; line-height: 1; }
+    .company-row { display: flex; align-items: flex-start; gap: 6px; font-size: 10px; color: #4b5563; line-height: 1.4; }
+    .company-icon { width: 12px; height: 12px; color: #ff7b54; flex-shrink: 0; margin-top: 1px; }
+    .company-phone { font-weight: 700; color: #1a1a1a; }
+    .company-siret { font-size: 10px; color: #9ca3af; margin-top: 4px; }
     .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
-    .doc-badge { background: linear-gradient(135deg, ${badgeColor} 0%, ${badgeColor}dd 100%); color: white; padding: 6px 16px; border-radius: 6px; font-weight: 700; font-size: 12px; letter-spacing: 1px; }
-    .doc-ref, .doc-date { font-size: 11px; color: #666; font-weight: 500; }
-    .info-section { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
-    .info-card { border-left: 3px solid #2d5016; background: #f9fafb; padding: 12px; border-radius: 6px; }
-    .info-card.event { border-left-color: #f97316; }
-    .info-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.5px; color: #999; font-weight: 600; margin-bottom: 6px; }
-    .info-title { font-size: 13px; font-weight: 700; color: #2d5016; margin-bottom: 2px; }
-    .info-details { font-size: 11px; color: #666; line-height: 1.5; }
+    .doc-info-container { text-align: right; }
+    .doc-main-title { font-size: 24px; font-weight: 800; color: #2d5016; text-transform: uppercase; letter-spacing: -1px; margin-bottom: 4px; line-height: 1; }
+    .doc-meta { font-size: 11px; color: #4b5563; font-weight: 600; }
+    .doc-validity { font-size: 10px; color: #ff7b54; font-style: italic; margin-top: 2px; }
+    .info-section { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+    .info-card { border-left: 3px solid #2d5016; background: #fffcf5; padding: 10px 12px; border-radius: 4px; box-shadow: none; border: none; border-left-width: 3px; display: flex; flex-direction: column; height: 100%; }
+    .info-card.event { border-left-color: #ff7b54; background: #fff8f5; }
+    .info-header { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+    .info-icon { width: 12px; height: 12px; flex-shrink: 0; }
+    .info-icon.client { color: #2d5016; }
+    .info-icon.event { color: #ff7b54; }
+    .info-title { font-size: 12px; font-weight: 600; color: #2d5016; line-height: 1.3; letter-spacing: 0.5px; }
+    .info-details { font-size: 10px; color: #4b5563; line-height: 1.4; }
     .products-section { margin-bottom: 16px; }
     .products-header { background: #2d5016; color: white; padding: 10px 14px; border-radius: 6px 6px 0 0; font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; display: flex; justify-content: space-between; align-items: center; }
     .products-header-info { font-size: 10px; font-weight: 500; opacity: 0.9; }
@@ -95,19 +133,19 @@ function generatePreviewHTML(data: DevisTemplateData): string {
     .product-icon img { width: 100%; height: 100%; object-fit: cover; }
     .product-emoji { font-size: 24px; }
     .product-details { flex: 1; }
-    .product-name { font-size: 13px; font-weight: 600; color: #2d5016; margin-bottom: 2px; }
+    .product-name { font-size: 13px; font-weight: 600; color: #1a1a1a; margin-bottom: 2px; }
     .product-desc { font-size: 10px; color: #666; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-    .product-price { font-size: 14px; font-weight: 700; color: #f97316; text-align: right; min-width: 60px; }
-    .divider { height: 2px; background: repeating-linear-gradient(to right, #f97316 0px, #f97316 8px, transparent 8px, transparent 16px); margin: 16px 0; }
+    .product-price { font-size: 14px; font-weight: 700; color: #ff7b54; text-align: right; min-width: 60px; }
+    .divider { height: 2px; background: repeating-linear-gradient(to right, #ff7b54 0px, #ff7b54 8px, transparent 8px, transparent 16px); margin: 16px 0; }
     .total-section { background: linear-gradient(135deg, #f5f5f0 0%, #ebebeb 100%); padding: 16px; border-radius: 10px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; }
     .total-label { font-size: 13px; color: #666; font-weight: 600; text-transform: uppercase; }
-    .total-amount { font-size: 28px; font-weight: 700; color: #f97316; }
-    .mentions { font-size: 9px; color: #999; line-height: 1.5; padding: 12px; background: #fafafa; border-radius: 6px; border: 1px solid #e5e7eb; }
+    .total-amount { font-size: 28px; font-weight: 700; color: #2d5016; }
+    .mentions { font-size: 10px; color: #999; line-height: 1.5; padding: 12px; background: #fafafa; border-radius: 6px; border: 1px solid #e5e7eb; }
     .legal-tva { font-size: 10px; color: #666; font-style: italic; text-align: center; margin-bottom: 16px; padding: 8px; background: #fef3c7; border-radius: 4px; border: 1px solid #fcd34d; }
     .signature-section { margin-top: 20px; }
     .signature-box { border: 2px dashed #d1d5db; border-radius: 8px; padding: 16px; background: #fafafa; }
     .signature-title { font-size: 12px; font-weight: 700; color: #1a1a1a; margin-bottom: 8px; }
-    .signature-mention { font-size: 10px; color: #f97316; font-style: italic; margin-bottom: 16px; }
+    .signature-mention { font-size: 10px; color: #ff7b54; font-style: italic; margin-bottom: 16px; }
     .signature-line { display: flex; justify-content: space-between; font-size: 11px; color: #666; padding-top: 30px; border-top: 1px solid #e5e7eb; }
     .signature-space { min-width: 150px; }
     .footer-section { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 20px; padding-top: 12px; border-top: 1px solid #e5e7eb; }
@@ -121,11 +159,11 @@ function generatePreviewHTML(data: DevisTemplateData): string {
     .bank-details { background: #fef7e0; padding: 12px; border-radius: 8px; border-left: 3px solid #2d5016; }
     .bank-title { font-size: 10px; font-weight: 700; color: #2d5016; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
     .bank-info { font-size: 10px; color: #1a1a1a; line-height: 1.5; }
-    .bank-name { font-size: 9px; color: #666; margin-top: 4px; }
-    .payment-conditions { background: #fef7e0; padding: 12px; border-radius: 8px; border-left: 3px solid #f97316; }
-    .payment-title { font-size: 10px; font-weight: 700; color: #f97316; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+    .bank-name { font-size: 10px; color: #666; margin-top: 4px; }
+    .payment-conditions { background: #fef7e0; padding: 12px; border-radius: 8px; border-left: 3px solid #ff7b54; }
+    .payment-title { font-size: 10px; font-weight: 700; color: #ff7b54; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
     .payment-text { font-size: 10px; color: #1a1a1a; line-height: 1.5; }
-    .small-text { font-size: 9px; color: #666; }
+    .small-text { font-size: 10px; color: #666; }
   </style>
 </head>
 <body>
@@ -134,28 +172,61 @@ function generatePreviewHTML(data: DevisTemplateData): string {
       <div class="header-left">
         <div class="avatar" style="background-image: url('http://localhost:3000/media/statut/evenement/buffet/buffet.svg');"></div>
         <div class="company-info">
-          <div class="company-name">CHANTHANATHAICOOK</div>
-          <div class="company-tagline">Traiteur Thaïlandais</div>
-          <div class="company-address">2 impasse de la poste, 37120 Marigny Marmande</div>
-          <div class="company-address">07 49 28 37 07</div>
-          <div class="company-address">SIRET : 510 941 164 RM 37 - EI</div>
+          <div class="company-name">ChanthanaThaiCook</div>
+          
+          <div class="company-row">
+            <svg class="company-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            <div style="font-weight: 500;">
+              2 Impasse de la Poste<br/>
+              37120 Marigny Marmande
+            </div>
+          </div>
+
+          <div class="company-row">
+            <svg class="company-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+            </svg>
+            <span class="company-phone">07 49 28 37 07</span>
+          </div>
+
+          <div class="company-siret">SIRET : 510 941 164 RM 37 - EI</div>
         </div>
       </div>
       <div class="header-right">
-        <div class="doc-badge">${data.docType}</div>
-        <div class="doc-ref">${data.docRef}</div>
-        <div class="doc-date">Émis le ${data.docDate}</div>
-        <div class="doc-date" style="color: #f97316; font-weight: 600;">Valable 1 mois</div>
+        <div class="doc-info-container">
+          <div class="doc-main-title">${data.docType} ${data.docRef}</div>
+          <div class="doc-meta">Émis le ${data.docDate}</div>
+          <div class="doc-validity">Valable 1 mois</div>
+        </div>
       </div>
     </div>
     <div class="info-section">
       <div class="info-card">
-        <div class="info-title">${data.client.name}</div>
-        <div class="info-details">${data.client.address}${data.client.phone ? `<br />${data.client.phone}` : ""}</div>
+        <div class="info-header">
+          <svg class="info-icon client" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+          <div class="info-title">${data.client.name}</div>
+        </div>
+        <div class="info-details">
+          ${data.client.address.replace(/,/g, "<br />")}<br />
+          ${data.client.phone}
+        </div>
       </div>
       <div class="info-card event">
-        <div class="info-title" style="color: #f97316;">${data.event.name}</div>
-        <div class="info-details">${data.event.date}<br />${data.event.location}</div>
+        <div class="info-header">
+          <svg class="info-icon event" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          <div class="info-title" style="color: #ff7b54;">${data.event.name}</div>
+        </div>
+        <div class="info-details">
+          ${data.event.date}<br />
+          ${data.event.location}
+        </div>
       </div>
     </div>
     <div class="products-section">
