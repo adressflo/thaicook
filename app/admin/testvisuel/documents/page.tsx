@@ -458,8 +458,8 @@ function generatePreviewHTML(data: DevisTemplateData): string {
             <span class="doc-type">${data.docType}</span>
             <span class="doc-ref">N° ${data.docRef.replace(/^N°/, "").replace("DEVIS N°", "").replace("Devis N°", "")}</span>
           </div>
-          <div class="doc-meta">Émis le ${data.docDate}</div>
-          <div class="doc-validity">Valable 1 mois</div>
+          <div class="doc-meta">Émis le <span style="font-weight:bold; color:#000000">${data.docDate}</span></div>
+          ${data.docType !== "FACTURE" ? `<div class="doc-validity">Valable 1 mois</div>` : ""}
         </div>
       </div>
     </div>
@@ -509,7 +509,7 @@ function generatePreviewHTML(data: DevisTemplateData): string {
                <path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/>
              </svg>
            </div>
-           Menu Proposé
+           ${data.docType === "FACTURE" ? "Prestations" : "Menu Proposé"}
         </div>
         ${
           data.nombrePersonnes
@@ -526,9 +526,28 @@ function generatePreviewHTML(data: DevisTemplateData): string {
         ${productsHTML}
       </div>
 
-      <div class="product-card-footer">
-        <div class="total-label">Total HT</div>
-        <div class="total-amount">${formatPrice(data.total.toString())}</div>
+      <div class="product-card-footer" style="${data.acomptePaid && data.acomptePaid > 0 && data.docType === "FACTURE" ? "display:block;" : ""}">
+        ${
+          data.acomptePaid && data.acomptePaid > 0 && data.docType === "FACTURE"
+            ? `
+          <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+            <span class="total-label" style="font-size:16px;">Total HT</span>
+            <span class="total-amount" style="font-size:18px;">${formatPrice(data.total.toString())}</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; margin-bottom:8px; color:#666;">
+            <span class="total-label" style="font-size:14px; font-weight:600;">Acompte déjà versé</span>
+            <span class="total-amount" style="font-size:14px; color:#2d5016;">- ${formatPrice(data.acomptePaid.toString())}</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; border-top:1px dashed #fde68a; padding-top:8px;">
+            <span class="total-label">Net à payer</span>
+            <span class="total-amount">${formatPrice((data.total - data.acomptePaid).toString())}</span>
+          </div>
+          `
+            : `
+          <div class="total-label">Total HT</div>
+          <div class="total-amount">${formatPrice(data.total.toString())}</div>
+          `
+        }
       </div>
     </div>
     <div class="legal-tva">
@@ -563,28 +582,50 @@ function generatePreviewHTML(data: DevisTemplateData): string {
       <div class="info-box-card orange-theme">
         <div class="info-box-header">
           <div class="icon-circle bg-orange">
-            <svg viewBox="0 0 24 24">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-              <polyline points="14 2 14 8 20 8" />
-              <line x1="16" y1="13" x2="8" y2="13" />
-              <line x1="16" y1="17" x2="8" y2="17" />
-              <polyline points="10 9 9 9 8 9" />
-            </svg>
+            ${
+              data.docType === "FACTURE"
+                ? `<svg viewBox="0 0 24 24">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                  <line x1="16" y1="13" x2="8" y2="13" />
+                  <line x1="16" y1="17" x2="8" y2="17" />
+                  <polyline points="10 9 9 9 8 9" />
+                </svg>`
+                : `<svg viewBox="0 0 24 24">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                  <line x1="16" y1="13" x2="8" y2="13" />
+                  <line x1="16" y1="17" x2="8" y2="17" />
+                  <polyline points="10 9 9 9 8 9" />
+                </svg>`
+            }
           </div>
           <div class="info-box-title">Conditions de règlement</div>
         </div>
         <div class="info-box-content">
-          Acompte de 30% à la signature du devis.<br/>
-          Solde à régler le jour de la livraison.<br/><br/>
-          <span class="info-box-sub">
-            Pénalités de retard : 10% l'an.<br/>
-            Indemnité forfaitaire (pros) : 40 €.
-          </span>
+          ${
+            data.docType === "FACTURE"
+              ? `Escompte pour paiement anticipé : Néant.<br />
+                 Date limite de paiement : À réception du document.<br /><br />
+                 <span class="info-box-sub">
+                   Pénalités de retard : 10% l'an.<br />
+                   Indemnité forfaitaire (pros) : 40 €.
+                 </span>`
+              : `Acompte de 30% à la signature du devis.<br/>
+                 Solde à régler le jour de la livraison.<br/><br/>
+                 <span class="info-box-sub">
+                   Pénalités de retard : 10% l'an.<br/>
+                   Indemnité forfaitaire (pros) : 40 €.
+                 </span>`
+          }
         </div>
       </div>
     </div>
     
     <!-- Zone de signature -->
+    ${
+      data.docType !== "FACTURE"
+        ? `
     <div class="signature-section">
       <div class="signature-box">
         <div class="signature-title">Signature</div>
@@ -594,7 +635,9 @@ function generatePreviewHTML(data: DevisTemplateData): string {
           <div class="signature-space">Signature :</div>
         </div>
       </div>
-    </div>
+    </div>`
+        : ""
+    }
     
     <!-- Footer with QR left, logo right -->
     <div class="footer-section">
@@ -689,6 +732,9 @@ export default function TestDocumentsPage() {
     setSelectedPlats(selectedPlats.filter((sp) => sp.plat.idplats !== platId))
   }
 
+  // Facture specific state
+  const [acomptePaid, setAcomptePaid] = useState<string>("")
+
   // Calculer le total
   const total = useMemo(() => {
     let sum = selectedPlats.reduce((acc, sp) => {
@@ -716,7 +762,14 @@ export default function TestDocumentsPage() {
         date: eventDate,
       },
       products: [
-        // Plat personnalisé (si activé)
+        // Plats sélectionnés
+        ...selectedPlats.map((sp) => ({
+          name: sp.plat.plat,
+          desc: sp.plat.description || "",
+          img: sp.plat.photo_du_plat ? getStorageUrl(sp.plat.photo_du_plat) : undefined,
+          price: showPrices && sp.customPrice ? sp.customPrice : undefined,
+        })),
+        // Plat personnalisé (si activé) - moved to end
         ...(showCustomPlat
           ? [
               {
@@ -727,17 +780,11 @@ export default function TestDocumentsPage() {
               },
             ]
           : []),
-        // Plats sélectionnés
-        ...selectedPlats.map((sp) => ({
-          name: sp.plat.plat,
-          desc: sp.plat.description || "",
-          img: sp.plat.photo_du_plat ? getStorageUrl(sp.plat.photo_du_plat) : undefined,
-          price: showPrices && sp.customPrice ? sp.customPrice : undefined,
-        })),
       ],
       total: finalTotal,
       mentions: "Budget TTC global validé. Acompte de 30% à la commande.",
       nombrePersonnes,
+      acomptePaid: docType === "FACTURE" && acomptePaid ? parseFloat(acomptePaid) : undefined,
     }
   }, [
     docType,
@@ -759,6 +806,7 @@ export default function TestDocumentsPage() {
     customPlatName,
     customPlatDesc,
     customPlatPrice,
+    acomptePaid,
   ])
 
   // Prévisualisation HTML live
@@ -857,6 +905,20 @@ export default function TestDocumentsPage() {
                   className="h-8 text-sm"
                 />
               </div>
+              {docType === "FACTURE" && (
+                <div className="col-span-2 mt-2">
+                  <Label className="text-xs font-semibold text-blue-600">
+                    Acompte déjà perçu (€)
+                  </Label>
+                  <Input
+                    type="number"
+                    value={acomptePaid}
+                    onChange={(e) => setAcomptePaid(e.target.value)}
+                    className="h-8 border-blue-200 bg-blue-50 text-sm"
+                    placeholder="ex: 300"
+                  />
+                </div>
+              )}
             </div>
           </div>
 
@@ -1125,7 +1187,7 @@ export default function TestDocumentsPage() {
               srcDoc={previewHTML}
               className="h-full w-full rounded border bg-white"
               title="Prévisualisation PDF"
-              sandbox="allow-same-origin"
+              sandbox="allow-scripts allow-same-origin"
             />
           </div>
         </div>

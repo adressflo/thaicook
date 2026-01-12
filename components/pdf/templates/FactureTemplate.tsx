@@ -2,7 +2,7 @@
 /* eslint-disable @next/next/no-img-element */
 // This component renders raw HTML for Playwright PDF generation, not a Next.js page
 
-export interface DevisTemplateData {
+export interface FactureTemplateData {
   docType: "DEVIS" | "FACTURE" | "RECU"
   docRef: string
   docDate: string
@@ -26,14 +26,13 @@ export interface DevisTemplateData {
   total: number
   mentions?: string
   nombrePersonnes?: string
-  acomptePaid?: number
 }
 
-export interface DevisTemplateProps {
-  data: DevisTemplateData
+export interface FactureTemplateProps {
+  data: FactureTemplateData
 }
 
-export function DevisTemplate({ data }: DevisTemplateProps) {
+export function FactureTemplate({ data }: FactureTemplateProps) {
   return (
     <html lang="fr">
       <head>
@@ -450,14 +449,26 @@ export function DevisTemplate({ data }: DevisTemplateProps) {
 
           .legal-tva {
             font-size: 10px;
-            color: #666;
+            color: #9ca3af;
             font-style: italic;
-            text-align: center;
+            textAlign: center;
             margin-bottom: 20px;
             padding: 8px;
             background: #fef3c7;
             border-radius: 4px;
             border: 1px solid #fcd34d;
+          }
+
+          .legal-tva {
+            font-size: 10px;
+            color: #9ca3af;
+            font-style: italic;
+            text-align: right;
+            margin-top: -12px;
+            padding-right: 16px;
+            padding-bottom: 8px;
+            border: none;
+            position: relative;
           }
 
           .cards-grid {
@@ -837,7 +848,13 @@ export function DevisTemplate({ data }: DevisTemplateProps) {
 
             <div
               className="product-card-footer"
-              style={{ borderTop: "2px dashed #fde68a", paddingTop: "12px", marginTop: "12px" }}
+              style={{
+                borderTop: "2px dashed #fde68a",
+                paddingTop: "12px",
+                marginTop: "12px",
+                paddingBottom: "16px",
+                borderBottom: "2px dashed #fde68a",
+              }}
             >
               <div className="total-label">Total HT</div>
               <div
