@@ -126,7 +126,8 @@ function generatePreviewHTML(data: DevisTemplateData): string {
     }
     .page { max-width: 100%; }
     .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; padding-bottom: 8px; border-bottom: none; }
-    .header-left { display: flex; gap: 20px; align-items: center; }
+    .header-left { display: flex; gap: 20px; align-items: flex-start; }
+    .logo-column { display: flex; flex-direction: column; gap: 6px; align-items: center; }
     .avatar { 
       width: 160px; 
       height: 100px; 
@@ -149,18 +150,29 @@ function generatePreviewHTML(data: DevisTemplateData): string {
       border: 1px solid #e5e7eb;
       box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
       border-radius: 12px;
-      padding: 16px 24px;
-      text-align: right;
+      padding: 12px 24px;
+      text-align: center;
+      min-width: 140px;
     }
     .doc-main-title { 
-      font-size: 24px; 
-      font-weight: 800; 
-      color: #2d5016; /* Green Title */
-      letter-spacing: -0.5px; 
-      margin-bottom: 4px; 
-      line-height: 1; 
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      line-height: 1.2;
+      margin-bottom: 6px;
     }
-    .doc-number { color: #ea580c; } /* Orange number */
+    .doc-type {
+      font-size: 20px;
+      font-weight: 800;
+      color: #2d5016;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .doc-ref {
+      font-size: 14px;
+      font-weight: 700;
+      color: #ea580c;
+    }
     .doc-meta { font-size: 11px; color: #6b7280; font-weight: 500; }
     .doc-validity { font-size: 10px; color: #ff7b54; font-style: italic; margin-top: 2px; }
     .info-section { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
@@ -302,7 +314,9 @@ function generatePreviewHTML(data: DevisTemplateData): string {
     .product-card-footer {
       margin-top: 16px;
       padding-top: 16px;
-      border-top: 2px dashed #fde68a; /* Amber 200 */
+      padding-bottom: 16px; /* Space for bottom line */
+      border-top: 2px dashed #fde68a;
+      border-bottom: 2px dashed #fde68a; /* New separator below */
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -408,13 +422,16 @@ function generatePreviewHTML(data: DevisTemplateData): string {
   <div class="page">
     <div class="header">
       <div class="header-left">
-        <div class="avatar" style="background-image: url('http://localhost:3000/media/statut/evenement/buffet/buffet.svg');"></div>
+        <div class="logo-column">
+          <div class="avatar" style="background-image: url('http://localhost:3000/media/statut/evenement/buffet/buffet.svg');"></div>
+          <div class="company-siret">SIRET : 510 941 164 RM 37 - EI</div>
+        </div>
         <div class="company-info">
           <div class="company-name">ChanthanaThaiCook</div>
           
           <div class="company-row">
-            <div class="icon-circle bg-green">
-              <svg viewBox="0 0 24 24">
+            <div>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ea580c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
                 <circle cx="12" cy="10" r="3"></circle>
               </svg>
@@ -426,21 +443,20 @@ function generatePreviewHTML(data: DevisTemplateData): string {
           </div>
 
           <div class="company-row">
-            <div class="icon-circle bg-orange">
-              <svg viewBox="0 0 24 24">
+            <div>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ea580c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
               </svg>
             </div>
             <span class="company-phone">07 49 28 37 07</span>
           </div>
-
-          <div class="company-siret">SIRET : 510 941 164 RM 37 - EI</div>
         </div>
       </div>
       <div class="header-right">
         <div class="header-glass-card">
           <div class="doc-main-title">
-            ${data.docType === "DEVIS" ? "Devis n°" : data.docType} <span class="doc-number">${data.docRef.replace(/^N°/, "").replace("DEVIS N°", "").replace("Devis N°", "")}</span>
+            <span class="doc-type">${data.docType}</span>
+            <span class="doc-ref">N° ${data.docRef.replace(/^N°/, "").replace("DEVIS N°", "").replace("Devis N°", "")}</span>
           </div>
           <div class="doc-meta">Émis le ${data.docDate}</div>
           <div class="doc-validity">Valable 1 mois</div>

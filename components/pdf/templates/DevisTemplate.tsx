@@ -131,6 +131,13 @@ export function DevisTemplate({ data }: DevisTemplateProps) {
           .header-left {
             display: flex;
             gap: 20px;
+            align-items: flex-start;
+          }
+          
+          .logo-column {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
             align-items: center;
           }
           
@@ -194,20 +201,32 @@ export function DevisTemplate({ data }: DevisTemplateProps) {
             border: 1px solid #e5e7eb;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
             border-radius: 12px;
-            padding: 16px 24px;
-            text-align: right;
+            padding: 12px 24px;
+            text-align: center;
+            min-width: 140px;
           }
 
           .doc-main-title {
-            font-size: 24px;
-            font-weight: 800;
-            color: #2d5016; /* Green Title */
-            letter-spacing: -0.5px;
-            margin-bottom: 4px;
-            line-height: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            line-height: 1.2;
+            margin-bottom: 6px;
           }
           
-          .doc-number { color: #ea580c; }
+          .doc-type {
+            font-size: 20px;
+            font-weight: 800;
+            color: #2d5016;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          }
+          
+          .doc-ref {
+            font-size: 14px;
+            font-weight: 700;
+            color: #ea580c;
+          }
           
           .doc-meta {
             font-size: 11px;
@@ -395,7 +414,9 @@ export function DevisTemplate({ data }: DevisTemplateProps) {
           .product-card-footer {
             margin-top: 16px;
             padding-top: 16px;
-            border-top: 2px dashed #fde68a; /* Amber 200 */
+            padding-bottom: 16px;
+            border-top: 2px dashed #fde68a;
+            border-bottom: 2px dashed #fde68a;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -599,20 +620,32 @@ export function DevisTemplate({ data }: DevisTemplateProps) {
           {/* HEADER */}
           <div className="header">
             <div className="header-left">
-              <div className="avatar-container">
-                <img
-                  src="http://localhost:3000/media/statut/evenement/buffet/buffet1.png"
-                  alt="Logo"
-                  className="avatar"
-                />
+              <div className="logo-column">
+                <div className="avatar-container">
+                  <img
+                    src="http://localhost:3000/media/statut/evenement/buffet/buffet1.png"
+                    alt="Logo"
+                    className="avatar"
+                  />
+                </div>
+                <div className="company-siret">SIRET : 510 941 164 RM 37 - EI</div>
               </div>
               <div className="company-info">
                 <div className="company-name">ChanthanaThaiCook</div>
 
                 <div className="company-row">
                   {/* Map Pin Icon */}
-                  <div className="icon-circle bg-green">
-                    <svg viewBox="0 0 24 24">
+                  <div>
+                    <svg
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="#ea580c"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
                       <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
                       <circle cx="12" cy="10" r="3" />
                     </svg>
@@ -626,22 +659,30 @@ export function DevisTemplate({ data }: DevisTemplateProps) {
 
                 <div className="company-row">
                   {/* Phone Icon */}
-                  <div className="icon-circle bg-orange">
-                    <svg viewBox="0 0 24 24">
+                  <div>
+                    <svg
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="#ea580c"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
                       <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
                     </svg>
                   </div>
                   <span className="company-phone">07 49 28 37 07</span>
                 </div>
-
-                <div className="company-siret">SIRET : 510 941 164 RM 37 - EI</div>
               </div>
             </div>
             <div className="header-right">
               <div className="header-glass-card">
                 <div className="doc-main-title">
-                  {data.docType === "DEVIS" ? "Devis n°" : data.docType}{" "}
-                  <span className="doc-number">
+                  <span className="doc-type">{data.docType}</span>
+                  <span className="doc-ref">
+                    N°{" "}
                     {data.docRef.replace(/^N°/, "").replace("DEVIS N°", "").replace("Devis N°", "")}
                   </span>
                 </div>
