@@ -2,6 +2,7 @@
 
 import { getPlats } from "@/app/actions/plats"
 import type { DevisTemplateData } from "@/components/pdf/templates/DevisTemplate"
+import { TicketTemplate } from "@/components/pdf/templates/TicketTemplate"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -28,6 +29,36 @@ interface SelectedPlat {
 type DocType = "DEVIS" | "FACTURE" | "TICKET"
 
 function generatePreviewHTML(data: DevisTemplateData): string {
+  if (data.docType === "TICKET") {
+    // Map to TicketTemplateData
+    const ticketData = {
+      docRef: data.docRef,
+      products: data.products,
+      total: data.total,
+      orderNumber: (data as unknown as { orderNumber?: number }).orderNumber,
+      pickupDate: (data as unknown as { pickupDate?: string }).pickupDate,
+      pickupTime: (data as unknown as { pickupTime?: string }).pickupTime,
+      orderDate: (data as unknown as { orderDate?: string }).orderDate,
+      encashmentDate: (data as unknown as { encashmentDate?: string }).encashmentDate,
+    }
+
+    return `<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <style>
+    @font-face { font-family: 'Geist'; src: url('https://cdn.jsdelivr.net/npm/geist@1.3.0/dist/fonts/geist-sans/Geist-Regular.woff2') format('woff2'); }
+    @font-face { font-family: 'Geist'; src: url('https://cdn.jsdelivr.net/npm/geist@1.3.0/dist/fonts/geist-sans/Geist-Bold.woff2') format('woff2'); font-weight: 700; }
+    @font-face { font-family: 'Geist'; src: url('https://cdn.jsdelivr.net/npm/geist@1.3.0/dist/fonts/geist-sans/Geist-Black.woff2') format('woff2'); font-weight: 900; }
+    body { font-family: 'Geist', sans-serif; padding: 40px; background: white; -webkit-font-smoothing: antialiased; }
+  </style>
+</head>
+<body>
+  ${TicketTemplate(ticketData)}
+</body>
+</html>`
+  }
+
   // Format prix: "12.90" → "12,90 €", "12.00" → "12 €", "12.9" → "12,90 €"
   const formatPrice = (price: string): string => {
     const num = parseFloat(price)
@@ -419,7 +450,6 @@ function generatePreviewHTML(data: DevisTemplateData): string {
   </style>
 </head>
 <body>
-  <div class="page">
     <div class="header">
       <div class="header-left">
         <div class="logo-column">
@@ -428,25 +458,15 @@ function generatePreviewHTML(data: DevisTemplateData): string {
         </div>
         <div class="company-info">
           <div class="company-name">ChanthanaThaiCook</div>
-          
           <div class="company-row">
             <div>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ea580c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                <circle cx="12" cy="10" r="3"></circle>
-              </svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ea580c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
             </div>
-            <div style="font-weight: 500;">
-              2 Impasse de la Poste<br/>
-              37120 Marigny Marmande
-            </div>
+            <div style="font-weight: 500;">2 Impasse de la Poste<br/>37120 Marigny Marmande</div>
           </div>
-
           <div class="company-row">
             <div>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ea580c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
-              </svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ea580c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
             </div>
             <span class="company-phone">07 49 28 37 07</span>
           </div>
@@ -463,68 +483,34 @@ function generatePreviewHTML(data: DevisTemplateData): string {
         </div>
       </div>
     </div>
+    
     <div class="cards-grid">
       <div class="info-box-card green-theme">
         <div class="info-box-header">
-          <div class="icon-circle bg-green">
-            <svg viewBox="0 0 24 24">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-              <circle cx="12" cy="7" r="4"></circle>
-            </svg>
-          </div>
+          <div class="icon-circle bg-green"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></div>
           <div class="info-box-title">${data.client.name}</div>
         </div>
-        <div class="info-box-content">
-          ${data.client.address.replace(/,/g, "<br />")}<br />
-          ${data.client.phone}
-        </div>
+        <div class="info-box-content">${data.client.address.replace(/,/g, "<br />")}<br />${data.client.phone}</div>
       </div>
       <div class="info-box-card orange-theme">
         <div class="info-box-header">
-          <div class="icon-circle bg-orange">
-            <svg viewBox="0 0 24 24">
-              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-              <line x1="16" y1="2" x2="16" y2="6"></line>
-              <line x1="8" y1="2" x2="8" y2="6"></line>
-              <line x1="3" y1="10" x2="21" y2="10"></line>
-            </svg>
-          </div>
+          <div class="icon-circle bg-orange"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></div>
           <div class="info-box-title">${data.event.name}</div>
         </div>
-        <div class="info-box-content">
-          ${data.event.date}<br />
-          ${data.event.location}
-        </div>
+        <div class="info-box-content">${data.event.date}<br />${data.event.location}</div>
       </div>
     </div>
     
-    <!-- New Product Card Container -->
     <div class="product-card-container">
       <div class="product-card-header">
         <div class="product-card-title">
-           <div class="icon-circle bg-green" style="width: 28px; height: 28px;">
-             <svg viewBox="0 0 24 24" style="width: 16px; height: 16px;">
-               <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/>
-               <path d="M7 2v20"/>
-               <path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/>
-             </svg>
-           </div>
+           <div class="icon-circle bg-green" style="width: 28px; height: 28px;"><svg viewBox="0 0 24 24" style="width: 16px; height: 16px;"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg></div>
            ${data.docType === "FACTURE" ? "Prestations" : "Menu Proposé"}
         </div>
-        ${
-          data.nombrePersonnes
-            ? `<div class="product-card-info">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-          </svg>
-          ${data.nombrePersonnes} personnes</div>`
-            : ""
-        }
+        ${data.nombrePersonnes ? `<div class="product-card-info"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>${data.nombrePersonnes} personnes</div>` : ""}
       </div>
       
-      <div class="product-list">
-        ${productsHTML}
-      </div>
+      <div class="product-list">${productsHTML}</div>
 
       <div class="product-card-footer" style="${data.acomptePaid && data.acomptePaid > 0 && data.docType === "FACTURE" ? "display:block;" : ""}">
         ${
@@ -541,34 +527,19 @@ function generatePreviewHTML(data: DevisTemplateData): string {
           <div style="display:flex; justify-content:space-between; border-top:1px dashed #fde68a; padding-top:8px;">
             <span class="total-label">Net à payer</span>
             <span class="total-amount">${formatPrice((data.total - data.acomptePaid).toString())}</span>
-          </div>
-          `
+          </div>`
             : `
           <div class="total-label">Total HT</div>
-          <div class="total-amount">${formatPrice(data.total.toString())}</div>
-          `
+          <div class="total-amount">${formatPrice(data.total.toString())}</div>`
         }
       </div>
     </div>
-    <div class="legal-tva">
-      TVA non applicable, art. 293 B du CGI
-    </div>
+    <div class="legal-tva">TVA non applicable, art. 293 B du CGI</div>
     
-    <!-- Cards Grid (Bank + Conditions side by side) -->
     <div class="cards-grid">
-      <!-- Coordonnées bancaires -->
       <div class="info-box-card green-theme">
         <div class="info-box-header">
-          <div class="icon-circle bg-green">
-            <svg viewBox="0 0 24 24">
-              <line x1="3" y1="21" x2="21" y2="21" />
-              <line x1="5" y1="21" x2="5" y2="10" />
-              <line x1="19" y1="21" x2="19" y2="10" />
-              <path d="M5 10a4 4 0 1 1 14 0" />
-              <path d="M12 7V3" />
-              <path d="M10 2L14 2" />
-            </svg>
-          </div>
+          <div class="icon-circle bg-green"><svg viewBox="0 0 24 24"><line x1="3" y1="21" x2="21" y2="21" /><line x1="5" y1="21" x2="5" y2="10" /><line x1="19" y1="21" x2="19" y2="10" /><path d="M5 10a4 4 0 1 1 14 0" /><path d="M12 7V3" /><path d="M10 2L14 2" /></svg></div>
           <div class="info-box-title">Coordonnées bancaires</div>
         </div>
         <div class="info-box-content">
@@ -577,82 +548,26 @@ function generatePreviewHTML(data: DevisTemplateData): string {
           <div class="info-box-sub">Hellobank! - MME CHAMPA CHANTHANA</div>
         </div>
       </div>
-      
-      <!-- Conditions de règlement -->
       <div class="info-box-card orange-theme">
         <div class="info-box-header">
           <div class="icon-circle bg-orange">
-            ${
-              data.docType === "FACTURE"
-                ? `<svg viewBox="0 0 24 24">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                  <polyline points="14 2 14 8 20 8" />
-                  <line x1="16" y1="13" x2="8" y2="13" />
-                  <line x1="16" y1="17" x2="8" y2="17" />
-                  <polyline points="10 9 9 9 8 9" />
-                </svg>`
-                : `<svg viewBox="0 0 24 24">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                  <polyline points="14 2 14 8 20 8" />
-                  <line x1="16" y1="13" x2="8" y2="13" />
-                  <line x1="16" y1="17" x2="8" y2="17" />
-                  <polyline points="10 9 9 9 8 9" />
-                </svg>`
-            }
+            ${data.docType === "FACTURE" ? `<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /><polyline points="10 9 9 9 8 9" /></svg>` : `<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /><polyline points="10 9 9 9 8 9" /></svg>`}
           </div>
           <div class="info-box-title">Conditions de règlement</div>
         </div>
         <div class="info-box-content">
-          ${
-            data.docType === "FACTURE"
-              ? `Escompte pour paiement anticipé : Néant.<br />
-                 Date limite de paiement : À réception du document.<br /><br />
-                 <span class="info-box-sub">
-                   Pénalités de retard : 10% l'an.<br />
-                   Indemnité forfaitaire (pros) : 40 €.
-                 </span>`
-              : `Acompte de 30% à la signature du devis.<br/>
-                 Solde à régler le jour de la livraison.<br/><br/>
-                 <span class="info-box-sub">
-                   Pénalités de retard : 10% l'an.<br/>
-                   Indemnité forfaitaire (pros) : 40 €.
-                 </span>`
-          }
+          ${data.docType === "FACTURE" ? `Escompte pour paiement anticipé : Néant.<br />Date limite de paiement : À réception du document.<br /><br /><span class="info-box-sub">Pénalités de retard : 10% l'an.<br />Indemnité forfaitaire (pros) : 40 €.</span>` : `Acompte de 30% à la signature du devis.<br/>Solde à régler le jour de la livraison.<br/><br/><span class="info-box-sub">Pénalités de retard : 10% l'an.<br/>Indemnité forfaitaire (pros) : 40 €.</span>`}
         </div>
       </div>
     </div>
     
-    <!-- Zone de signature -->
-    ${
-      data.docType !== "FACTURE"
-        ? `
-    <div class="signature-section">
-      <div class="signature-box">
-        <div class="signature-title">Signature</div>
-        <div class="signature-mention">Mention manuscrite : "Bon pour accord"</div>
-        <div class="signature-line">
-          <div>Date : ____/____/________</div>
-          <div class="signature-space">Signature :</div>
-        </div>
-      </div>
-    </div>`
-        : ""
-    }
+    ${data.docType !== "FACTURE" ? `<div class="signature-section"><div class="signature-box"><div class="signature-title">Signature</div><div class="signature-mention">Mention manuscrite : "Bon pour accord"</div><div class="signature-line"><div>Date : ____/____/________</div><div class="signature-space">Signature :</div></div></div></div>` : ""}
     
-    <!-- Footer with QR left, logo right -->
     <div class="footer-section">
-      <div class="footer-qr">
-        <img src="http://localhost:3000/qrcode_cthaicook.com%20(1).png" alt="QR Code" />
-        <div class="footer-qr-label">cthaicook.com</div>
-      </div>
-      <div class="footer-mentions">
-        CHANTHANATHAICOOK - Traiteur Thaïlandais | 2 impasse de la poste, 37120 Marigny Marmande | SIRET : 510 941 164 RM 37 - EI
-      </div>
-      <div class="footer-logo">
-        <img src="http://localhost:3000/logo.svg" alt="Logo" />
-      </div>
+      <div class="footer-qr"><img src="http://localhost:3000/qrcode_cthaicook.com%20(1).png" alt="QR Code" /><div class="footer-qr-label">cthaicook.com</div></div>
+      <div class="footer-mentions">CHANTHANATHAICOOK - Traiteur Thaïlandais | 2 impasse de la poste, 37120 Marigny Marmande | SIRET : 510 941 164 RM 37 - EI</div>
+      <div class="footer-logo"><img src="http://localhost:3000/logo.svg" alt="Logo" /></div>
     </div>
-  </div>
 </body>
 </html>`
 }
@@ -752,7 +667,7 @@ export default function TestDocumentsPage() {
   const getData = useCallback((): DevisTemplateData => {
     const finalTotal = useManualTotal && manualTotal ? parseFloat(manualTotal) : total
     return {
-      docType: docType === "TICKET" ? "RECU" : docType,
+      docType: docType,
       docRef,
       docDate,
       client: { name: clientName, address: clientAddress, phone: clientPhone },
@@ -785,6 +700,23 @@ export default function TestDocumentsPage() {
       mentions: "Budget TTC global validé. Acompte de 30% à la commande.",
       nombrePersonnes,
       acomptePaid: docType === "FACTURE" && acomptePaid ? parseFloat(acomptePaid) : undefined,
+      // Données commande pour TICKET (valeurs de test)
+      ...(docType === "TICKET"
+        ? {
+            orderNumber: 42,
+            pickupDate: "Samedi 25 Janvier 2025",
+            pickupTime: "18:30",
+            orderDate: "22/01/25 à 00:00",
+            encashmentDate:
+              new Date().toLocaleDateString("fr-FR", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "2-digit",
+              }) +
+              " à " +
+              new Date().toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }),
+          }
+        : {}),
     }
   }, [
     docType,

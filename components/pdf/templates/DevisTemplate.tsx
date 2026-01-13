@@ -3,7 +3,7 @@
 // This component renders raw HTML for Playwright PDF generation, not a Next.js page
 
 export interface DevisTemplateData {
-  docType: "DEVIS" | "FACTURE" | "RECU"
+  docType: "DEVIS" | "FACTURE" | "TICKET"
   docRef: string
   docDate: string
   client: {

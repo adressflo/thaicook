@@ -1,4 +1,5 @@
 import type { DevisTemplateData } from "@/components/pdf/templates/DevisTemplate"
+import { TicketTemplate, type TicketTemplateData } from "@/components/pdf/templates/TicketTemplate"
 import { NextRequest, NextResponse } from "next/server"
 import { chromium } from "playwright"
 
@@ -6,6 +7,38 @@ export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
 function generateDocHTML(data: DevisTemplateData): string {
+  // For TICKET, use the dedicated TicketTemplate
+  if (data.docType === "TICKET") {
+    // Map DevisTemplateData to TicketTemplateData
+    const ticketData: TicketTemplateData = {
+      docRef: data.docRef,
+      products: data.products,
+      total: data.total,
+      // Ces champs viendront de la commande réelle, pour l'instant on utilise des valeurs par défaut
+      orderNumber: (data as unknown as { orderNumber?: number }).orderNumber,
+      pickupDate: (data as unknown as { pickupDate?: string }).pickupDate,
+      pickupTime: (data as unknown as { pickupTime?: string }).pickupTime,
+      orderDate: (data as unknown as { orderDate?: string }).orderDate,
+      encashmentDate: (data as unknown as { encashmentDate?: string }).encashmentDate,
+    }
+
+    return `<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <style>
+    @font-face { font-family: 'Geist'; src: url('https://cdn.jsdelivr.net/npm/geist@1.3.0/dist/fonts/geist-sans/Geist-Regular.woff2') format('woff2'); }
+    @font-face { font-family: 'Geist'; src: url('https://cdn.jsdelivr.net/npm/geist@1.3.0/dist/fonts/geist-sans/Geist-Bold.woff2') format('woff2'); font-weight: 700; }
+    @font-face { font-family: 'Geist'; src: url('https://cdn.jsdelivr.net/npm/geist@1.3.0/dist/fonts/geist-sans/Geist-Black.woff2') format('woff2'); font-weight: 900; }
+    body { font-family: 'Geist', sans-serif; padding: 40px; background: white; -webkit-font-smoothing: antialiased; }
+  </style>
+</head>
+<body>
+  ${TicketTemplate(ticketData)}
+</body>
+</html>`
+  }
+
   const isFacture = data.docType === "FACTURE"
 
   const productsHTML = data.products
@@ -354,6 +387,8 @@ function generateDocHTML(data: DevisTemplateData): string {
       </div>
     </div>
     
+    
+    
     <div class="cards-grid">
       <div class="info-box-card green-theme">
         <div class="info-box-header">
@@ -446,6 +481,7 @@ function generateDocHTML(data: DevisTemplateData): string {
     
     <div class="legal-tva">TVA non applicable, art. 293 B du CGI</div>
     
+    
     <div class="cards-grid">
       <div class="info-box-card green-theme">
         <div class="info-box-header">
@@ -471,9 +507,11 @@ function generateDocHTML(data: DevisTemplateData): string {
       ${conditionsHTML}
     </div>
     
+    
     ${signatureHTML}
     
     ${data.mentions ? `<div class="mentions">${data.mentions}</div>` : ""}
+    
     
     <div class="footer-section">
       <div class="footer-qr">
