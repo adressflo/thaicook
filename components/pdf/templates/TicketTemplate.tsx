@@ -15,6 +15,10 @@ export interface TicketTemplateData {
   pickupTime?: string // Heure de retrait: "18:30"
   orderDate?: string // Date de commande: "22/01/25 à 00:00"
   encashmentDate?: string // Date/heure génération ticket (= maintenant)
+  // Données client
+  clientName?: string
+  clientPhone?: string
+  clientAddress?: string
 }
 
 export function TicketTemplate(data: TicketTemplateData): string {
@@ -44,6 +48,9 @@ export function TicketTemplate(data: TicketTemplateData): string {
     new Date().toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "2-digit" }) +
       " à " +
       new Date().toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })
+  const clientName = data.clientName || "Client"
+  const clientPhone = data.clientPhone || ""
+  const clientAddress = data.clientAddress || ""
 
   // Generate products HTML
   const productsHTML = data.products
@@ -71,7 +78,7 @@ export function TicketTemplate(data: TicketTemplateData): string {
     <div style="max-width: 800px; margin: 0 auto; background: #fffbeb; border: 2px solid #fde68a; border-radius: 24px; overflow: hidden; font-family: 'Geist', sans-serif;">
         
         <!-- HEADER: Image | Date Retrait | Badge Encaissement + N° Commande -->
-        <div style="padding: 24px 32px; display: flex; align-items: center; justify-content: space-between; border-bottom: 2px dashed #fde68a;">
+        <div style="padding: 24px 32px; display: flex; align-items: center; justify-content: space-between;">
             
             <!-- Left: Image -->
             <div style="width: 100px; height: 70px; background: #fff; border-radius: 12px; overflow: hidden; flex-shrink: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
@@ -122,43 +129,68 @@ export function TicketTemplate(data: TicketTemplateData): string {
             </div>
         </div>
 
+        <!-- Separator below header -->
+        <div style="margin: 0 32px; background-image: linear-gradient(to right, #fde68a 60%, rgba(255,255,255,0) 0%); background-position: center; background-size: 15px 2px; background-repeat: repeat-x; height: 2px;"></div>
+
+        <!-- CLIENT INFO SECTION -->
+        <div style="padding: 12px 32px; text-align: center;">
+            <div style="font-size: 14px; font-weight: 800; color: #2d5016; text-transform: uppercase;">${clientName}</div>
+            <div style="font-size: 12px; color: #5c5c5c; margin-top: 2px;">
+                ${clientPhone ? `<span>${clientPhone}</span>` : ""}
+                ${clientPhone && clientAddress ? `<span style="margin: 0 6px; color: #fde68a;">|</span>` : ""}
+                ${clientAddress ? `<span>${clientAddress}</span>` : ""}
+            </div>
+        </div>
+
+        <!-- Separator above products -->
+        <div style="margin: 0 32px; background-image: linear-gradient(to right, #fde68a 60%, rgba(255,255,255,0) 0%); background-position: center; background-size: 15px 2px; background-repeat: repeat-x; height: 2px;"></div>
+
         <!-- PRODUCT LIST -->
         <div style="padding: 24px 32px;">
             <div style="display: flex; flex-direction: column; gap: 12px;">
                 ${productsHTML}
             </div>
 
-            <!-- Total -->
-            <div style="margin-top: 24px; padding-top: 20px; border-top: 2px dashed #fde68a; display: flex; justify-content: space-between; align-items: center;">
+            <!-- Total Separator Above -->
+            <div style="margin-top: 24px; padding-top: 20px; background-image: linear-gradient(to right, #fde68a 60%, rgba(255,255,255,0) 0%); background-position: bottom; background-size: 15px 2px; background-repeat: repeat-x; height: 2px;"></div>
+
+            <!-- Total Content -->
+            <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 15px;">
                 <span style="font-size: 18px; font-weight: 800; color: #92400e;">Total de la commande</span>
                 <span style="font-size: 24px; font-weight: 900; color: #ea580c;">${formatPrice(data.total)}</span>
             </div>
             
+            <!-- Separator Below -->
+            <div style="margin: 15px 0 5px 0; background-image: linear-gradient(to right, #fde68a 60%, rgba(255,255,255,0) 0%); background-position: center; background-size: 15px 2px; background-repeat: repeat-x; height: 2px;"></div>
+
+
+
             <!-- TVA -->
-            <div style="margin-top: 12px; text-align: right; font-size: 10px; color: #9ca3af; font-style: italic;">
+            <div style="text-align: right; font-size: 10px; color: #9ca3af; font-style: italic;">
                 TVA non applicable, art. 293 B du CGI
             </div>
+
         </div>
 
         <!-- FOOTER: QR | Company Info | Logo -->
-        <div style="background: #fffbeb; border-top: 2px dashed #fde68a; padding: 16px 32px; display: flex; align-items: center; justify-content: space-between;">
+        <div style="background: #fffbeb; border-top: 2px dashed #fde68a; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between;">
             
-            <!-- Left: QR -->
-            <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
-                <img src="http://localhost:3000/qrcode_cthaicook.com%20(1).png" style="width: 40px; height: 40px;" />
-                <span style="font-size: 10px; color: #2d5016; font-weight: bold;">cthaicook.com</span>
+            <!-- Left: QR + URL -->
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 2px; flex-shrink: 0;">
+                <img src="http://localhost:3000/qrcode_cthaicook.com%20(1).png" style="width: 36px; height: 36px;" />
+                <span style="font-size: 8px; color: #2d5016; font-weight: bold; letter-spacing: 0.5px;">cthaicook.com</span>
             </div>
             
             <!-- Center: Company Info -->
-            <div style="text-align: center; flex: 1; padding: 0 16px;">
-                <div style="font-weight: 700; font-size: 12px; color: #2d5016;">ChanthanaThaiCook</div>
-                <div style="font-size: 10px; color: #666; line-height: 1.3;">2 Impasse de la Poste, 37120 Marigny Marmande</div>
-                <div style="font-size: 10px; color: #666;">07 49 28 37 07 | SIRET : 510 941 164 RM 37 - EI</div>
+            <div style="text-align: center; flex: 1; padding: 0 12px;">
+                <div style="font-weight: 800; font-size: 11px; color: #2d5016; text-transform: uppercase; margin-bottom: 2px;">Chanthana Thai Cook</div>
+                <div style="font-size: 9px; color: #5c5c5c; line-height: 1.3;">2 Impasse de la Poste, 37120 Marigny Marmande</div>
+                <div style="font-size: 9px; color: #5c5c5c;">07 49 28 37 07 | SIRET : 510 941 164 RM 37 - EI</div>
             </div>
             
             <!-- Right: Logo -->
             <div style="flex-shrink: 0;">
-                <img src="http://localhost:3000/logo.svg" style="width: 40px; height: 40px;" />
+                <img src="http://localhost:3000/logo.svg" style="width: 36px; height: 36px;" />
             </div>
         </div>
     </div>

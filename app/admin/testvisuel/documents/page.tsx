@@ -40,6 +40,9 @@ function generatePreviewHTML(data: DevisTemplateData): string {
       pickupTime: (data as unknown as { pickupTime?: string }).pickupTime,
       orderDate: (data as unknown as { orderDate?: string }).orderDate,
       encashmentDate: (data as unknown as { encashmentDate?: string }).encashmentDate,
+      clientName: (data as unknown as { clientName?: string }).clientName,
+      clientPhone: (data as unknown as { clientPhone?: string }).clientPhone,
+      clientAddress: (data as unknown as { clientAddress?: string }).clientAddress,
     }
 
     return `<!DOCTYPE html>
@@ -572,14 +575,14 @@ function generatePreviewHTML(data: DevisTemplateData): string {
 </html>`
 }
 
-export default function TestDocumentsPage() {
+export function DevisFacturePlayground() {
   const [docType, setDocType] = useState<DocType>("DEVIS")
   const [isGenerating, setIsGenerating] = useState(false)
   const [plats, setPlats] = useState<PlatUI[]>([])
   const [selectedPlats, setSelectedPlats] = useState<SelectedPlat[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
-  // Client info
+  // Client info (DEVIS/FACTURE)
   const [clientName, setClientName] = useState("Commune de Marigny Marmande Mairie")
   const [clientAddress, setClientAddress] = useState("26 Gr Grande Rue, 37120 Marigny-Marmande")
   const [clientPhone, setClientPhone] = useState("02 47 58 31 11")
@@ -595,6 +598,7 @@ export default function TestDocumentsPage() {
   const [docDate, setDocDate] = useState(new Date().toLocaleDateString("fr-FR"))
 
   // Événement info
+
   const [eventName, setEventName] = useState("Repas des Vœux du Maire")
   const [eventDate, setEventDate] = useState("10/01/2026 à 17h")
   const [eventLocation, setEventLocation] = useState("Salle des fêtes de Marigny Marmande")
@@ -700,23 +704,6 @@ export default function TestDocumentsPage() {
       mentions: "Budget TTC global validé. Acompte de 30% à la commande.",
       nombrePersonnes,
       acomptePaid: docType === "FACTURE" && acomptePaid ? parseFloat(acomptePaid) : undefined,
-      // Données commande pour TICKET (valeurs de test)
-      ...(docType === "TICKET"
-        ? {
-            orderNumber: 42,
-            pickupDate: "Samedi 25 Janvier 2025",
-            pickupTime: "18:30",
-            orderDate: "22/01/25 à 00:00",
-            encashmentDate:
-              new Date().toLocaleDateString("fr-FR", {
-                day: "2-digit",
-                month: "2-digit",
-                year: "2-digit",
-              }) +
-              " à " +
-              new Date().toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }),
-          }
-        : {}),
     }
   }, [
     docType,
@@ -800,7 +787,7 @@ export default function TestDocumentsPage() {
           <div className="bg-card rounded-lg border p-4">
             <h2 className="mb-3 text-lg font-semibold">📋 Type</h2>
             <div className="grid grid-cols-3 gap-2">
-              {(["DEVIS", "FACTURE", "TICKET"] as DocType[]).map((type) => (
+              {(["DEVIS", "FACTURE"] as DocType[]).map((type) => (
                 <Button
                   key={type}
                   onClick={() => setDocType(type)}
@@ -816,29 +803,34 @@ export default function TestDocumentsPage() {
                   }
                   size="sm"
                 >
-                  {type === "TICKET" ? "Reçu" : type.charAt(0) + type.slice(1).toLowerCase()}
+                  {type === "TICKET" ? "Ticket" : type.charAt(0) + type.slice(1).toLowerCase()}
                 </Button>
               ))}
             </div>
-            <div className="mt-3 grid grid-cols-2 gap-2">
-              <div>
-                <Label className="text-xs">N° Devis</Label>
-                <Input
-                  value={docRef}
-                  onChange={(e) => setDocRef(e.target.value)}
-                  className="h-8 text-sm"
-                />
+
+            {/* Champs Devis/Facture */}
+            <div className="mt-4 space-y-3">
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <Label className="text-xs">N° Devis</Label>
+                  <Input
+                    value={docRef}
+                    onChange={(e) => setDocRef(e.target.value)}
+                    className="h-8 text-sm"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Date émis</Label>
+                  <Input
+                    value={docDate}
+                    onChange={(e) => setDocDate(e.target.value)}
+                    className="h-8 text-sm"
+                  />
+                </div>
               </div>
-              <div>
-                <Label className="text-xs">Date émis</Label>
-                <Input
-                  value={docDate}
-                  onChange={(e) => setDocDate(e.target.value)}
-                  className="h-8 text-sm"
-                />
-              </div>
+
               {docType === "FACTURE" && (
-                <div className="col-span-2 mt-2">
+                <div>
                   <Label className="text-xs font-semibold text-blue-600">
                     Acompte déjà perçu (€)
                   </Label>
@@ -928,6 +920,7 @@ export default function TestDocumentsPage() {
           </div>
 
           {/* Plat personnalisé */}
+
           <div className="bg-card rounded-lg border p-4">
             <div className="mb-3 flex items-center justify-between">
               <h2 className="text-lg font-semibold">🎨 Plat personnalisé</h2>
@@ -1113,7 +1106,7 @@ export default function TestDocumentsPage() {
 
         {/* RIGHT: Live Preview */}
         <div className="lg:col-span-2">
-          <div className="bg-card h-[calc(100vh-200px)] rounded-lg border p-4">
+          <div className="bg-card h-[1200px] rounded-lg border p-4">
             <h2 className="mb-3 text-lg font-semibold">👁️ Prévisualisation live</h2>
             <iframe
               srcDoc={previewHTML}
@@ -1123,6 +1116,289 @@ export default function TestDocumentsPage() {
             />
           </div>
         </div>
+      </div>
+    </div>
+  )
+}
+
+export function TicketPlayground() {
+  const [plats, setPlats] = useState<PlatUI[]>([])
+  const [selectedPlats, setSelectedPlats] = useState<SelectedPlat[]>([])
+
+  // Client info (TICKET - Default Fouquet)
+  const [ticketClientName, setTicketClientName] = useState("Fouquet")
+  const [ticketClientFirstName, setTicketClientFirstName] = useState("Florian")
+  const [ticketClientAddress, setTicketClientAddress] = useState("4 IMPASSE DE LA POSTE")
+  const [ticketClientZip, setTicketClientZip] = useState("37120")
+  const [ticketClientCity, setTicketClientCity] = useState("MARIGNY MARMANDE")
+  const [ticketClientPhone, setTicketClientPhone] = useState("06 51 48 44 04")
+
+  // Ticket Data
+  const [ticketOrderNumber, setTicketOrderNumber] = useState("2")
+  const [ticketPickupDate, setTicketPickupDate] = useState("Lundi 15 Décembre 2025")
+  const [ticketPickupTime, setTicketPickupTime] = useState("18:10")
+  const [ticketOrderDate, setTicketOrderDate] = useState("08/12/25 à 14:57")
+
+  // Plats
+  useEffect(() => {
+    const loadPlats = async () => {
+      try {
+        const data = await getPlats()
+        setPlats(data)
+      } catch (error) {
+        console.error("Erreur chargement plats:", error)
+      }
+    }
+    loadPlats()
+  }, [])
+
+  const handleAddPlat = (platId: string) => {
+    const plat = plats.find((p) => p.idplats.toString() === platId)
+    if (plat && !selectedPlats.find((sp) => sp.plat.idplats === plat.idplats)) {
+      setSelectedPlats([...selectedPlats, { plat, customPrice: plat.prix || "" }])
+    }
+  }
+
+  const handlePriceChange = (platId: number, price: string) => {
+    setSelectedPlats(
+      selectedPlats.map((sp) => (sp.plat.idplats === platId ? { ...sp, customPrice: price } : sp))
+    )
+  }
+
+  const handleRemovePlat = (platId: number) => {
+    setSelectedPlats(selectedPlats.filter((sp) => sp.plat.idplats !== platId))
+  }
+
+  const total = useMemo(() => {
+    return selectedPlats.reduce((acc, sp) => acc + (parseFloat(sp.customPrice || "0") || 0), 0)
+  }, [selectedPlats])
+
+  const getData = useCallback((): DevisTemplateData => {
+    return {
+      docType: "TICKET",
+      docRef: "TICKET",
+      docDate: ticketPickupDate,
+      client: { name: "", address: "", phone: "" },
+      event: { name: "", date: "", location: "" },
+      products: selectedPlats.map((sp) => {
+        // Typage sécurisé pour accéder aux propriétés de description potentielles
+        const platData = sp.plat as unknown as {
+          description?: string
+          description_du_plat?: string
+        }
+        return {
+          name: sp.plat.plat,
+          desc: platData.description || platData.description_du_plat || "",
+          img: sp.plat.photo_du_plat ? getStorageUrl(sp.plat.photo_du_plat) : undefined,
+          qty: 1,
+          price: sp.customPrice || sp.plat.prix || undefined,
+        }
+      }),
+      total,
+      mentions: "",
+      orderNumber: parseInt(ticketOrderNumber) || 0,
+      pickupDate: ticketPickupDate,
+      pickupTime: ticketPickupTime,
+      orderDate: ticketOrderDate,
+      encashmentDate: "13/01/26 à 16:36",
+      clientName: ticketClientName + (ticketClientFirstName ? " " + ticketClientFirstName : ""),
+      clientPhone: ticketClientPhone,
+      clientAddress: ticketClientAddress + " " + ticketClientZip + " " + ticketClientCity,
+    } as unknown as DevisTemplateData
+  }, [
+    ticketOrderNumber,
+    ticketPickupDate,
+    ticketPickupTime,
+    ticketOrderDate,
+    ticketClientName,
+    ticketClientFirstName,
+    ticketClientAddress,
+    ticketClientZip,
+    ticketClientCity,
+    ticketClientPhone,
+    selectedPlats,
+    total,
+  ])
+
+  const previewHTML = useMemo(() => generatePreviewHTML(getData()), [getData])
+
+  return (
+    <div className="container mx-auto">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className="space-y-4 lg:col-span-1">
+          <div className="bg-card rounded-lg border p-4">
+            <h2 className="mb-3 text-lg font-semibold">🎫 Ticket</h2>
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <Label className="text-xs">N° de Commande</Label>
+                  <Input
+                    value={ticketOrderNumber}
+                    onChange={(e) => setTicketOrderNumber(e.target.value)}
+                    className="h-8 text-sm"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Date de retrait</Label>
+                  <Input
+                    value={ticketPickupDate}
+                    onChange={(e) => setTicketPickupDate(e.target.value)}
+                    className="h-8 text-sm"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <Label className="text-xs">Heure de retrait</Label>
+                  <Input
+                    value={ticketPickupTime}
+                    onChange={(e) => setTicketPickupTime(e.target.value)}
+                    className="h-8 text-sm"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Commandé le</Label>
+                  <Input
+                    value={ticketOrderDate}
+                    onChange={(e) => setTicketOrderDate(e.target.value)}
+                    className="h-8 text-sm"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="bg-card rounded-lg border p-4">
+            <h2 className="mb-3 text-lg font-semibold">👤 Client</h2>
+            <div className="space-y-2">
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <Label className="text-xs">Nom</Label>
+                  <Input
+                    value={ticketClientName}
+                    onChange={(e) => setTicketClientName(e.target.value)}
+                    className="h-8 text-sm"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Prénom</Label>
+                  <Input
+                    value={ticketClientFirstName}
+                    onChange={(e) => setTicketClientFirstName(e.target.value)}
+                    className="h-8 text-sm"
+                  />
+                </div>
+              </div>
+              <div>
+                <Label className="text-xs">Adresse (Numéro et rue)</Label>
+                <Input
+                  value={ticketClientAddress}
+                  onChange={(e) => setTicketClientAddress(e.target.value)}
+                  className="h-8 text-sm"
+                />
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <div className="col-span-1">
+                  <Label className="text-xs">Code Postal</Label>
+                  <Input
+                    value={ticketClientZip}
+                    onChange={(e) => setTicketClientZip(e.target.value)}
+                    className="h-8 text-sm"
+                  />
+                </div>
+                <div className="col-span-2">
+                  <Label className="text-xs">Ville</Label>
+                  <Input
+                    value={ticketClientCity}
+                    onChange={(e) => setTicketClientCity(e.target.value)}
+                    className="h-8 text-sm"
+                  />
+                </div>
+              </div>
+              <div>
+                <Label className="text-xs">Téléphone</Label>
+                <Input
+                  value={ticketClientPhone}
+                  onChange={(e) => setTicketClientPhone(e.target.value)}
+                  className="h-8 text-sm"
+                />
+              </div>
+            </div>
+          </div>
+          <div className="bg-card rounded-lg border p-4">
+            <h2 className="mb-3 text-lg font-semibold">🍜 Plats</h2>
+            <div className="mb-3 flex gap-2">
+              <Select onValueChange={handleAddPlat}>
+                <SelectTrigger className="flex-1">
+                  <SelectValue placeholder="Ajouter un plat..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {plats
+                    .filter((p) => !selectedPlats.find((sp) => sp.plat.idplats === p.idplats))
+                    .map((plat) => (
+                      <SelectItem key={plat.idplats} value={plat.idplats.toString()}>
+                        {plat.plat} - {plat.prix}€
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="max-h-64 space-y-2 overflow-y-auto">
+              {selectedPlats.map((sp) => (
+                <div
+                  key={sp.plat.idplats}
+                  className="flex items-center gap-2 rounded-lg bg-gray-50 p-2"
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium">{sp.plat.plat}</p>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Input
+                      type="text"
+                      value={sp.customPrice}
+                      onChange={(e) => handlePriceChange(sp.plat.idplats, e.target.value)}
+                      className="h-8 w-16 text-right text-sm"
+                    />
+                    <span className="text-sm text-gray-500">€</span>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-red-500"
+                    onClick={() => handleRemovePlat(sp.plat.idplats)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+        <div className="lg:col-span-2">
+          <div className="bg-card h-[1200px] rounded-lg border p-4">
+            <h2 className="mb-3 text-lg font-semibold">👁️ Prévisualisation live</h2>
+            <iframe
+              srcDoc={previewHTML}
+              className="h-full w-full rounded border bg-white"
+              title="Ticket Preview"
+              sandbox="allow-scripts allow-same-origin"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default function Page() {
+  return (
+    <div className="container mx-auto space-y-20 py-10">
+      <div className="border-b pb-12">
+        <h1 className="mb-8 text-3xl font-bold">Playground PDF - Devis & Facture</h1>
+        <DevisFacturePlayground />
+      </div>
+      <div>
+        <h1 className="mb-8 text-3xl font-bold">Playground PDF - Ticket</h1>
+        <TicketPlayground />
       </div>
     </div>
   )

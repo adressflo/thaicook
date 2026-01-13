@@ -20,6 +20,10 @@ function generateDocHTML(data: DevisTemplateData): string {
       pickupTime: (data as unknown as { pickupTime?: string }).pickupTime,
       orderDate: (data as unknown as { orderDate?: string }).orderDate,
       encashmentDate: (data as unknown as { encashmentDate?: string }).encashmentDate,
+      // Mapping Client Info
+      clientName: data.client.name,
+      clientPhone: data.client.phone,
+      clientAddress: data.client.address,
     }
 
     return `<!DOCTYPE html>

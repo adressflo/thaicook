@@ -936,7 +936,7 @@ function CartItemCardPlayground() {
         setSelectedPlatId(defaultPlat.id)
         setProps((prev) => ({
           ...prev,
-          isVegetarian: defaultPlat.est_vegetarien || false,
+          isVegetarian: !!defaultPlat.est_vegetarien,
           isSpicy: (defaultPlat.niveau_epice ?? 0) > 0,
         }))
       }
@@ -1315,7 +1315,7 @@ function CartItemCardPlayground() {
               if (plat) {
                 setProps((prev) => ({
                   ...prev,
-                  isVegetarian: plat.est_vegetarien || false,
+                  isVegetarian: !!plat.est_vegetarien,
                   isSpicy: (plat.niveau_epice ?? 0) > 0,
                 }))
               }
