@@ -350,7 +350,8 @@ export function DevisTemplate({ data }: DevisTemplateProps) {
             background: white;
             border: 1px solid #f0f0f0;
             border-radius: 12px;
-            align-items: center;
+            align-items: flex-start; /* Align top for better long text handling */
+            min-height: 64px; /* Force height */
           }
           
           .product-item:not(:last-child),
@@ -361,8 +362,8 @@ export function DevisTemplate({ data }: DevisTemplateProps) {
           }
           
           .product-icon {
-            width: 80px;
-            height: 80px;
+            width: 64px;
+            height: 64px;
             border-radius: 10px;
             background: #f5f5f0;
             display: flex;
@@ -410,6 +411,7 @@ export function DevisTemplate({ data }: DevisTemplateProps) {
             color: #ea580c; /* Orange-600 */
             text-align: right;
             min-width: 80px;
+            align-self: center;
           }
           
           .product-card-footer {

@@ -291,7 +291,8 @@ function generatePreviewHTML(data: DevisTemplateData): string {
       background: white;
       border: 1px solid #f0f0f0;
       border-radius: 12px;
-      align-items: center;
+      align-items: flex-start;
+      min-height: 64px;
       box-shadow: 0 2px 4px rgba(0,0,0,0.01);
     }
     
@@ -304,8 +305,8 @@ function generatePreviewHTML(data: DevisTemplateData): string {
     }
 
     .product-icon {
-      width: 48px;
-      height: 48px;
+      width: 64px;
+      height: 64px;
       border-radius: 10px;
       background: #f5f5f0;
       display: flex;
@@ -331,10 +332,11 @@ function generatePreviewHTML(data: DevisTemplateData): string {
       font-size: 10px;
       color: #666;
       line-height: 1.4;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
+      line-height: 1.4;
+      /* display: -webkit-box; removed truncation */
+      /* -webkit-line-clamp: 2; removed truncation */
+      /* -webkit-box-orient: vertical; removed truncation */
+      /* overflow: hidden; removed truncation */
     }
 
     .product-price {
@@ -342,7 +344,10 @@ function generatePreviewHTML(data: DevisTemplateData): string {
       font-weight: 700;
       color: #ea580c; /* Orange-600 */
       text-align: right;
+      color: #ea580c; /* Orange-600 */
+      text-align: right;
       min-width: 70px;
+      align-self: center; /* Center price vertically */
     }
     
     .product-card-footer {
@@ -1139,6 +1144,17 @@ export function TicketPlayground() {
   const [ticketPickupTime, setTicketPickupTime] = useState("18:10")
   const [ticketOrderDate, setTicketOrderDate] = useState("08/12/25 à 14:57")
 
+  // Custom Plat
+  const [showCustomPlat, setShowCustomPlat] = useState(false)
+  const [customPlatName, setCustomPlatName] = useState("Nom du plat")
+  const [customPlatDesc, setCustomPlatDesc] = useState("Description...")
+  const [customPlatPrice, setCustomPlatPrice] = useState("15")
+
+  // Options
+  const [showPrices, setShowPrices] = useState(true)
+  const [useManualTotal, setUseManualTotal] = useState(false)
+  const [manualTotal, setManualTotal] = useState("")
+
   // Plats
   useEffect(() => {
     const loadPlats = async () => {
@@ -1170,8 +1186,13 @@ export function TicketPlayground() {
   }
 
   const total = useMemo(() => {
-    return selectedPlats.reduce((acc, sp) => acc + (parseFloat(sp.customPrice || "0") || 0), 0)
-  }, [selectedPlats])
+    const platsTotal = selectedPlats.reduce(
+      (acc, sp) => acc + (parseFloat(sp.customPrice || "0") || 0),
+      0
+    )
+    const customTotal = showCustomPlat ? parseFloat(customPlatPrice) || 0 : 0
+    return platsTotal + customTotal
+  }, [selectedPlats, showCustomPlat, customPlatPrice])
 
   const getData = useCallback((): DevisTemplateData => {
     return {
@@ -1180,20 +1201,33 @@ export function TicketPlayground() {
       docDate: ticketPickupDate,
       client: { name: "", address: "", phone: "" },
       event: { name: "", date: "", location: "" },
-      products: selectedPlats.map((sp) => {
-        // Typage sécurisé pour accéder aux propriétés de description potentielles
-        const platData = sp.plat as unknown as {
-          description?: string
-          description_du_plat?: string
-        }
-        return {
-          name: sp.plat.plat,
-          desc: platData.description || platData.description_du_plat || "",
-          img: sp.plat.photo_du_plat ? getStorageUrl(sp.plat.photo_du_plat) : undefined,
-          qty: 1,
-          price: sp.customPrice || sp.plat.prix || undefined,
-        }
-      }),
+      products: [
+        ...selectedPlats.map((sp) => {
+          // Typage sécurisé pour accéder aux propriétés de description potentielles
+          const platData = sp.plat as unknown as {
+            description?: string
+            description_du_plat?: string
+          }
+          return {
+            name: sp.plat.plat,
+            desc: platData.description || platData.description_du_plat || "",
+            img: sp.plat.photo_du_plat ? getStorageUrl(sp.plat.photo_du_plat) : undefined,
+            qty: 1,
+            price: showPrices ? sp.customPrice || sp.plat.prix || undefined : undefined,
+          }
+        }),
+        ...(showCustomPlat
+          ? [
+              {
+                name: customPlatName,
+                desc: customPlatDesc,
+                img: "http://localhost:3000/media/statut/evenement/buffet/buffetclin.svg",
+                price: showPrices ? customPlatPrice : undefined,
+                qty: 1,
+              },
+            ]
+          : []),
+      ],
       total,
       mentions: "",
       orderNumber: parseInt(ticketOrderNumber) || 0,
@@ -1218,6 +1252,11 @@ export function TicketPlayground() {
     ticketClientPhone,
     selectedPlats,
     total,
+    showCustomPlat,
+    customPlatName,
+    customPlatDesc,
+    customPlatPrice,
+    showPrices,
   ])
 
   const previewHTML = useMemo(() => generatePreviewHTML(getData()), [getData])
@@ -1324,6 +1363,57 @@ export function TicketPlayground() {
               </div>
             </div>
           </div>
+
+          {/* Plat personnalisé */}
+          <div className="bg-card rounded-lg border p-4">
+            <div className="mb-3 flex items-center justify-between">
+              <h2 className="text-lg font-semibold">🎨 Plat personnalisé</h2>
+              <label className="flex cursor-pointer items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={showCustomPlat}
+                  onChange={(e) => setShowCustomPlat(e.target.checked)}
+                  className="h-4 w-4 rounded"
+                />
+                <span className="text-sm">Activer</span>
+              </label>
+            </div>
+            {showCustomPlat && (
+              <div className="space-y-2">
+                <div>
+                  <Label className="text-xs">Nom du plat</Label>
+                  <Input
+                    value={customPlatName}
+                    onChange={(e) => setCustomPlatName(e.target.value)}
+                    className="h-8 text-sm"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Description</Label>
+                  <Input
+                    value={customPlatDesc}
+                    onChange={(e) => setCustomPlatDesc(e.target.value)}
+                    className="h-8 text-sm"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="flex-1">
+                    <Label className="text-xs">Prix</Label>
+                    <div className="flex items-center gap-1">
+                      <Input
+                        value={customPlatPrice}
+                        onChange={(e) => setCustomPlatPrice(e.target.value)}
+                        className="h-8 text-sm"
+                        placeholder="850"
+                      />
+                      <span className="text-sm text-gray-500">€</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
           <div className="bg-card rounded-lg border p-4">
             <h2 className="mb-3 text-lg font-semibold">🍜 Plats</h2>
             <div className="mb-3 flex gap-2">
@@ -1371,6 +1461,56 @@ export function TicketPlayground() {
                 </div>
               ))}
             </div>
+          </div>
+
+          {/* Options */}
+          <div className="bg-card rounded-lg border p-4">
+            <h2 className="mb-3 text-lg font-semibold">⚙️ Options</h2>
+            <div className="space-y-3">
+              <label className="flex cursor-pointer items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={showPrices}
+                  onChange={(e) => setShowPrices(e.target.checked)}
+                  className="h-4 w-4 rounded"
+                />
+                <span className="text-sm">Afficher les prix unitaires</span>
+              </label>
+              <label className="flex cursor-pointer items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={useManualTotal}
+                  onChange={(e) => setUseManualTotal(e.target.checked)}
+                  className="h-4 w-4 rounded"
+                />
+                <span className="text-sm">Total HT manuel</span>
+              </label>
+              {useManualTotal && (
+                <div>
+                  <Label className="text-xs">Total HT (€)</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={manualTotal}
+                    onChange={(e) => setManualTotal(e.target.value)}
+                    placeholder="Ex: 850.00"
+                    className="h-8 text-sm"
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Total */}
+          <div className="bg-card rounded-lg border p-4">
+            <h2 className="mb-1 text-lg font-semibold">💰 Total</h2>
+            <p className="text-3xl font-bold text-green-600">
+              {useManualTotal && manualTotal
+                ? parseFloat(manualTotal).toFixed(2)
+                : total.toFixed(2)}{" "}
+              €
+            </p>
+            {useManualTotal && <p className="text-xs text-orange-500">⚠️ Total manuel</p>}
           </div>
         </div>
         <div className="lg:col-span-2">

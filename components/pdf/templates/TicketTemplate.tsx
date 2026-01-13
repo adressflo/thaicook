@@ -56,8 +56,8 @@ export function TicketTemplate(data: TicketTemplateData): string {
   const productsHTML = data.products
     .map(
       (product) => `
-      <div style="display: flex; gap: 12px; padding: 12px; background: white; border: 1px solid #f0f0f0; border-radius: 12px; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
-        <div style="width: 48px; height: 48px; border-radius: 10px; background: #f5f5f0; display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden;">
+      <div style="display: flex; gap: 12px; padding: 12px; background: white; border: 1px solid #f0f0f0; border-radius: 12px; align-items: flex-start; min-height: 64px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+        <div style="width: 64px; height: 64px; border-radius: 10px; background: #f5f5f0; display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden;">
           ${
             product.img
               ? `<img src="${product.img}" alt="${product.name}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.parentElement.innerHTML='🍜'" />`
@@ -66,9 +66,9 @@ export function TicketTemplate(data: TicketTemplateData): string {
         </div>
         <div style="flex: 1; min-width: 0;">
           <div style="font-size: 14px; font-weight: 700; color: #2d5016; margin-bottom: 2px;">${product.name}</div>
-          ${product.desc ? `<div style="font-size: 11px; color: #666; line-height: 1.4; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${product.desc}</div>` : ""}
+          ${product.desc ? `<div style="font-size: 11px; color: #666; line-height: 1.4;">${product.desc}</div>` : ""}
         </div>
-        <div style="font-size: 14px; font-weight: 700; color: #ea580c; text-align: right; min-width: 70px;">${product.price ? formatPrice(product.price) : ""}</div>
+        <div style="font-size: 14px; font-weight: 700; color: #ea580c; text-align: right; min-width: 70px; align-self: center;">${product.price ? formatPrice(product.price) : ""}</div>
       </div>
     `
     )

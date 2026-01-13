@@ -349,7 +349,8 @@ export function FactureTemplate({ data }: FactureTemplateProps) {
             background: white;
             border: 1px solid #f0f0f0;
             border-radius: 12px;
-            align-items: center;
+            align-items: flex-start;
+            min-height: 64px;
           }
           
           .product-item:not(:last-child),
@@ -360,8 +361,8 @@ export function FactureTemplate({ data }: FactureTemplateProps) {
           }
           
           .product-icon {
-            width: 80px;
-            height: 80px;
+            width: 64px;
+            height: 64px;
             border-radius: 10px;
             background: #f5f5f0;
             display: flex;
@@ -409,6 +410,7 @@ export function FactureTemplate({ data }: FactureTemplateProps) {
             color: #ea580c; /* Orange-600 */
             text-align: right;
             min-width: 80px;
+            align-self: center;
           }
           
           .product-card-footer {
