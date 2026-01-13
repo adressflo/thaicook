@@ -361,8 +361,8 @@ export function DevisTemplate({ data }: DevisTemplateProps) {
           }
           
           .product-icon {
-            width: 48px;
-            height: 48px;
+            width: 80px;
+            height: 80px;
             border-radius: 10px;
             background: #f5f5f0;
             display: flex;
@@ -379,8 +379,8 @@ export function DevisTemplate({ data }: DevisTemplateProps) {
           }
           
           .product-icon-placeholder {
-            width: 24px;
-            height: 24px;
+            width: 40px;
+            height: 40px;
             color: #999;
           }
           
